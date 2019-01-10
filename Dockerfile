@@ -17,10 +17,10 @@ RUN set -x \
     && chmod 755 -R gopath \
     && cp -rfp /tmp/gopath/ /www/wonly/gopath/ \
     && chmod 755 -R das && cd das \
-	&& cp -rfp /tmp/das/src/das.ini /www/wonly/DAS_go/ \
-    && go build -o das/bin/das das/src/.  \
     && mkdir -p /www/wonly/DAS_go \
     && mkdir -p /www/wonly/DAS_go/logs \
+	&& cp -rfp /tmp/das/src/das.ini /www/wonly/DAS_go/ \
+    && go build -o das/bin/das das/src/.  \
     && cp -rfp /tmp/das/bin/das /www/wonly/DAS_go/ \
     && chown nobody:nobody -R /www/wonly/DAS_go \
     && rm -rf /tmp/*
