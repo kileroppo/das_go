@@ -1,0 +1,21 @@
+version: '2'
+services:
+    app:
+        build: .
+        image: wonlycloud/das_go:dev
+        container_name: das_go
+        restart: always
+        # environment:
+        #     - SERVER_AREA=Asia:China:HangZhou
+        #     - VENDOR_NAME=general
+        #     - REDIS_CENTER=139.196.221.163
+        volumes:
+            - /persistent_data/wonly/DAS_go/logs:/www/wonly/DAS_go/logs
+        network_mode: "host"
+        dns:
+            - 114.114.114.114
+            - 8.8.8.8
+        expose:
+            - "10700"
+        ports:
+            - "127.0.0.1:10700:10700"
