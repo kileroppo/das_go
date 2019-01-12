@@ -6,6 +6,8 @@ import (
 	"../core/constant"
 	"../mq/producer"
 	"../core/redis"
+	"../core/log"
+
 )
 
 type Serload struct {
@@ -26,7 +28,7 @@ type Header struct {
 */
 func (p *Serload) ProcessJob() error {
 	// 处理OneNET推送过来的消息
-	fmt.Println("process msg from onenet: ", p.pri)
+	log.Debug("process msg from onenet: ", p.pri)
 
 	// 1、解析消息
 	//json str 转struct(部份字段)
