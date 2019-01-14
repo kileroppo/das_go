@@ -19,8 +19,8 @@ func InitRmq_Ex_Que_Name_mongo(conf *goconf.ConfigFile) {
 		return
 	}
 	exchange_mgo, _ = conf.GetString("rabbitmq", "Device2Db_ex")
-	exchangeType_mgo, _ = conf.GetString("rabbitmq", "fanout")
-	routingKey_mgo, _ = conf.GetString("rabbitmq", "Device2Db_queue")
+	exchangeType_mgo, _ = conf.GetString("rabbitmq", "device2db_ex_type")
+	routingKey_mgo, _ = conf.GetString("rabbitmq", "device2db_que")
 }
 
 func SendMQMsg2Db(message string) {
