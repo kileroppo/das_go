@@ -49,10 +49,11 @@ func Http2OneNET_exe(imei string,  sBody string) {
 }
 
 func Http2OneNET_write(imei string,  sBody string) {
+	log.Info("Http2OneNET_write imei=", imei, ", sBody=", sBody)
 	mydata := "{\"data\":[{\"res_id\":5750,\"val\":'" + sBody + "'}]}"
 
 	req_body := bytes.NewBuffer([]byte(mydata))
-	fmt.Println(req_body)
+	log.Info(req_body)
 
 	client := &http.Client{}
 	sUrl := "http://api.zj.cmcconenet.com/nbiot?imei=" + imei + "&obj_id=3201&obj_inst_id=0&mode=1"
@@ -60,7 +61,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	req, err := http.NewRequest("POST", sUrl, req_body)
 	if err != nil {
 		// handle error
-		fmt.Println("Http2OneNET_write http请求下发命令到OneNET失败")
+		log.Error("Http2OneNET_write http请求下发命令到OneNET失败")
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -74,18 +75,18 @@ func Http2OneNET_write(imei string,  sBody string) {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			// handle error
-			fmt.Println("Http2OneNET_write ReadAll Body 1 failed，err=", err)
+			log.Error("Http2OneNET_write ReadAll Body 1 failed，err=", err)
 		}
 
-		fmt.Println(string(body))
+		log.Info(string(body))
 	} else {
-		fmt.Println("Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", err=", err)
+		log.Error("Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", err=", err)
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			// handle error
-			fmt.Println("Http2OneNET_write ReadAll Body 2 failed，err=", err)
+			log.Error("Http2OneNET_write ReadAll Body 2 failed，err=", err)
 		}
 
-		fmt.Println(string(body))
+		log.Info(string(body))
 	}
 }

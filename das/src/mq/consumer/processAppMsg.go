@@ -1,9 +1,9 @@
 package consumer
 
 import (
-	"fmt"
-	"../../core/httpgo"
+		"../../core/httpgo"
 	"encoding/json"
+	"../../core/log"
 )
 
 type Header struct {
@@ -22,15 +22,13 @@ type AppMsg struct {
 *
 */
 func (p *AppMsg) ProcessAppMsg() error {
-	fmt.Println("ProcessAppMsg process msg from app: ", p.pri)
+	log.Info("ProcessAppMsg process msg from app: ", p.pri)
 
 	// 1、解析消息
 	//json str 转struct(部份字段)
 	var head Header
-	if err := json.Unmarshal([]byte(p.pri), &head); err == nil {
-		fmt.Println("ProcessAppMsg================json str 转struct==")
-		fmt.Println(head)
-		fmt.Println(head.Cmd)
+	if err := json.Unmarshal([]byte(p.pri), &head); err != nil {
+		log.Error("json.Unmarshal error, err=", err)
 	}
 
 	// 将命令发到OneNET
