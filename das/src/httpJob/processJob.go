@@ -54,7 +54,7 @@ func (p *Serload) ProcessJob() error {
 	switch data.Msg.Msgtype {
 	case 2:	// 设备上下线消息(type=2)
 		{
-			log.Info("OneNET Upload_lock_active")
+			log.Info("OneNET Upload_lock_active, imei=", data.Msg.Imei, ", time=", data.Msg.At/1000)
 
 			if 1 == data.Msg.Status {
 				//1. 锁唤醒，存入redis

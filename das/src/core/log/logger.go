@@ -8,7 +8,7 @@ import (
 	"path"
 )
 
-var log = logging.MustGetLogger("goh")
+var log = logging.MustGetLogger("das_go_log")
 
 var format = logging.MustStringFormatter(
 	`%{color}%{time} %{shortfunc} > %{level:.4s} %{pid}%{color:reset} %{message}`,
