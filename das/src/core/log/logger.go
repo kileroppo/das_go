@@ -8,7 +8,7 @@ import (
 	"path"
 )
 
-var log = logging.MustGetLogger("das_go_log")
+var log = logging.MustGetLogger("das_go")
 
 var format = logging.MustStringFormatter(
 	`%{color}%{time} %{shortfunc} > %{level:.4s} %{pid}%{color:reset} %{message}`,
@@ -26,8 +26,8 @@ func NewLogger(pathName string, level string) {
 	}
 	fileLog := logging.NewLogBackend(logFile, "", 0)
 	stdLog := logging.NewLogBackend(os.Stderr, "", 0)
-	stdFormatter := logging.NewBackendFormatter(stdLog, format)
-	fileLeveled := logging.AddModuleLevel(fileLog)
+	stdFormatter := logging.NewBackendFormatter(fileLog, format)
+	fileLeveled := logging.AddModuleLevel(stdLog)
 	lLevel, _ := logging.LogLevel(level)
 	fileLeveled.SetLevel(lLevel, "")
 	logging.SetBackend(fileLeveled, stdFormatter)
