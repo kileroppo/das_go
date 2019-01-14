@@ -35,13 +35,7 @@ const (
 	Remote_open = 0x52			// 远程开锁
 	Upload_dev_info = 0x50		// 上传设备信息
 
-	// 设置参数
-	Volume_level = 0x01			// 音量等级
-	Open_mode = 0x02 			// 常开模式
-	Passwd_switch = 0x03 		// 密码开关
-	Remote_switch = 0x04		// 远程开关
-	Sin_mul = 0x06 				// 开门模式
-	Set_time = 0x07				// 设置时间 时间数据结构：YYMMDDhhmmss(BCD码)
+	Set_dev_para = 0x72			// 设置参数
 	Update_dev_para = 0x73		// 设备参数更新上报
 	Soft_reset = 0x74			// 软件复位
 	Factory_reset = 0x75		// 恢复出厂设置

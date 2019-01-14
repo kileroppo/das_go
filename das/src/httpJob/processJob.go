@@ -134,64 +134,9 @@ func (p *Serload) ProcessJob() error {
 					//2. 上传设备信息，需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
-			case constant.Volume_level: // 音量等级
+			case constant.Set_dev_para: // 设置设备参数
 				{
-					log.Info("constant.Volume_level")
-					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-
-					//2. 需要存到mongodb
-					if 1 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
-				}
-			case constant.Open_mode: // 常开模式
-				{
-					log.Info("constant.Open_mode")
-					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-
-					//2. 需要存到mongodb
-					if 1 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
-				}
-			case constant.Passwd_switch: // 密码开关
-				{
-					log.Info("constant.Passwd_switch")
-					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-
-					//2. 需要存到mongodb
-					if 1 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
-				}
-			case constant.Remote_switch: // 远程开关
-				{
-					log.Info("constant.Remote_switch")
-					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-
-					//2. 需要存到mongodb
-					if 1 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
-				}
-			case constant.Sin_mul: // 开门模式
-				{
-					log.Info("constant.Sin_mul")
-					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-
-					//2. 需要存到mongodb
-					if 1 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
-				}
-			case constant.Set_time: // 设置时间
-				{
-					log.Info("constant.Set_time")
+					log.Info("constant.Set_dev_para")
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
