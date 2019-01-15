@@ -14,7 +14,7 @@ func Http2OneNET_exe(imei string,  sBody string) {
 	log.Error(req_body)
 
 	client := &http.Client{}
-	sUrl := "http://api.zj.cmcconenet.com/nbiot/execute?imei=" + imei + "&obj_id=3201&obj_inst_id=0&res_id=5750&timeout=30"
+	sUrl := "http://api.heclouds.com/nbiot/execute?imei=" + imei + "&obj_id=3201&obj_inst_id=0&res_id=5750&timeout=30"	// api.zj.cmcconenet.com
 	req, err := http.NewRequest("POST", sUrl, req_body)
 	if err != nil {
 		// handle error
@@ -56,7 +56,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	log.Debug(req_body)
 
 	client := &http.Client{}
-	sUrl := "http://api.zj.cmcconenet.com/nbiot?imei=" + imei + "&obj_id=3201&obj_inst_id=0&mode=1"
+	sUrl := "http://api.heclouds.com/nbiot?imei=" + imei + "&obj_id=3201&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com
 	log.Debug(sUrl)
 	req, err := http.NewRequest("POST", sUrl, req_body)
 	if err != nil {
