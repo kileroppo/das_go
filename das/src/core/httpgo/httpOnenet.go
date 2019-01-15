@@ -53,11 +53,11 @@ func Http2OneNET_write(imei string,  sBody string) {
 	mydata := "{\"data\":[{\"res_id\":5750,\"val\":'" + sBody + "'}]}"
 
 	req_body := bytes.NewBuffer([]byte(mydata))
-	log.Info(req_body)
+	log.Debug(req_body)
 
 	client := &http.Client{}
 	sUrl := "http://api.zj.cmcconenet.com/nbiot?imei=" + imei + "&obj_id=3201&obj_inst_id=0&mode=1"
-	fmt.Println(sUrl)
+	log.Debug(sUrl)
 	req, err := http.NewRequest("POST", sUrl, req_body)
 	if err != nil {
 		// handle error

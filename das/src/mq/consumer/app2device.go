@@ -1,8 +1,7 @@
 package consumer
 
 import (
-	"fmt"
-	"../../core/rabbitmq"
+		"../../core/rabbitmq"
 	"github.com/dlintw/goconf"
 	"../../core/log"
 )
@@ -16,7 +15,7 @@ var routingKey string;		// = "wonlycloud"
 func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
 	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
 	if rmq_uri == "" {
-		fmt.Println("未启用RabbitMq")
+		log.Error("未启用RabbitMq")
 		return
 	}
 	exchange, _ = conf.GetString("rabbitmq", "app2device_ex")
@@ -25,9 +24,11 @@ func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
 }
 
 func ReceiveMQMsgFromAPP() {
-	log.Debug("start ReceiveMQMessage......")
+	log.Info("start ReceiveMQMsgFromAPP......")
+
 	//初始化rabbitmq
 	if rabbitmq.ConsumerRabbitMq == nil {
+		log.Error("ReceiveMQMsgFromAPP: rabbitmq.ConsumerRabbitMq is nil.")
 		return
 	}
 
@@ -35,17 +36,15 @@ func ReceiveMQMsgFromAPP() {
 
 	rabbitmq.ConsumerRabbitMq.QueueDeclare(&channleContxt)
 
-	log.Debug("Consumer ReceiveMQMessage......")
+	log.Info("Consumer ReceiveMQMsgFromAPP......")
 	// go程循环去读消息，并放到Job去处理
 	for {
 		msgs := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
-		log.Debug("Consumer 2 ReceiveMQMessage......")
+		log.Debug("Consumer 2 ReceiveMQMsgFromAPP......")
 		forever := make(chan bool)
 		go func() {
 			for d := range msgs {
-				log.Debug("process 3 ReceiveMQMessage......")
-				fmt.Println(string(d.Body))
-				log.Debug(string(d.Body))
+				log.Debug("process 3 ReceiveMQMsgFromAPP: ", string(d.Body))
 				// fetch job
 				work := Job{appMsg: AppMsg{pri: string(d.Body)}}
 				JobQueue <- work

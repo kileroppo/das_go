@@ -2,7 +2,8 @@ package consumer
 
 import (
 	"runtime"
-	)
+	"../../core/log"
+		)
 
 var (
 	// Max_Num = os.Getenv("MAX_NUM")
@@ -37,7 +38,6 @@ func (w Worker) Start() {
 			select {
 			case job := <-w.JobChannel:
 				// excute job
-				// fmt.Println(job.serload.pri)
 				job.appMsg.ProcessAppMsg();
 			case <-w.Quit:
 				return
@@ -93,24 +93,8 @@ func (d *Dispatcher) Dispatch() {
 	}
 }
 
-/*func Entry(res http.ResponseWriter, req *http.Request) {
-	req.ParseForm() //解析参数，默认是不会解析的
-	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
-		msg, err_1 := req.Form["msg"]
-		// signature, err_2 := req.Form["signature"]
-		// nonce, err_3 := req.Form["nonce"]
-		if(!err_1) { // 存在则返回msg
-			fmt.Fprintf(res, msg[0])
-		}
-	} else if ("POST" == req.Method) { // 接收OneNET推送过来的数据
-		// fetch job
-		work := Job{serload: Serload{pri:"Just do it"}}
-		JobQueue <- work
-		fmt.Fprintf(res, "Hello World ...post")
-	}
-}*/
-
 func init() {
+	log.Debug("consumerJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
 	runtime.GOMAXPROCS(MaxWorker)
 	JobQueue = make(chan Job, MaxQueue)
 	dispatcher := NewDispatcher(MaxWorker)

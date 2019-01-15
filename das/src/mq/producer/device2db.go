@@ -1,9 +1,9 @@
 package producer
 
 import (
-	"fmt"
-	"../../core/rabbitmq"
+		"../../core/rabbitmq"
 	"github.com/dlintw/goconf"
+	"../../core/log"
 )
 
 var rmq_uri_mgo string
@@ -15,7 +15,7 @@ var routingKey_mgo string = ""	// 设备的uuid
 func InitRmq_Ex_Que_Name_mongo(conf *goconf.ConfigFile) {
 	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
 	if rmq_uri == "" {
-		fmt.Println("未启用RabbitMq")
+		log.Error("未启用RabbitMq")
 		return
 	}
 	exchange_mgo, _ = conf.GetString("rabbitmq", "Device2Db_ex")
@@ -24,13 +24,13 @@ func InitRmq_Ex_Que_Name_mongo(conf *goconf.ConfigFile) {
 }
 
 func SendMQMsg2Db(message string) {
-	if rabbitmq.ProducerRabbitMq == nil {
+	if rabbitmq.ProducerRabbitMq2Db == nil {
+		log.Error("SendMQMsg2Db: rabbitmq.ProducerRabbitMq2Db is nil.")
 		return
 	}
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo, Reliable: true, Durable: true}
 
-	fmt.Println("sending message")
-	rabbitmq.ProducerRabbitMq.Publish2Db(&channleContxt, message)
-
+	log.Info("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
+	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, message)
 }

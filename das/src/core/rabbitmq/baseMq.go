@@ -72,7 +72,7 @@ func (bmq *BaseMq) refreshConnectionAndChannel(channelContext *ChannelContext) e
 	if bmq.MqConnection.Connection != nil {
 		channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
 	} else {
-		log.Error("connection not init,dial first time..")
+		log.Error("connection not init, dial first time......")
 		err = errors.New("connection nil")
 	}
 

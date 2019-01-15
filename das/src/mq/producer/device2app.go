@@ -1,9 +1,9 @@
 package producer
 
 import (
-	"fmt"
-	"../../core/rabbitmq"
+		"../../core/rabbitmq"
 	"github.com/dlintw/goconf"
+	"../../core/log"
 )
 
 var rmq_uri string
@@ -14,7 +14,7 @@ var exchangeType string	// = "direct"
 func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
 	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
 	if rmq_uri == "" {
-		fmt.Println("未启用RabbitMq")
+		log.Error("未启用RabbitMq")
 		return
 	}
 	exchange, _ = conf.GetString("rabbitmq", "device2app_ex")
@@ -23,11 +23,12 @@ func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
 
 func SendMQMsg2APP(uuid string, message string) {
 	if rabbitmq.ProducerRabbitMq == nil {
+		log.Error("SendMQMsg2APP: rabbitmq.ConsumerRabbitMq is nil.")
 		return
 	}
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: uuid, Reliable: true, Durable: true}
 
-	fmt.Println("sending message")
+	log.Info("rabbitmq.ProducerRabbitMq.Publish2App:", message)
 	rabbitmq.ProducerRabbitMq.Publish2App(&channleContxt, message)
 }

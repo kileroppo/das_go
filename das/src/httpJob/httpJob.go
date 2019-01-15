@@ -107,7 +107,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 		// nonce := req.Form.Get("nonce")
 		if("" != msg) { // 存在则返回msg
 			fmt.Fprintf(res, msg)
-			log.Debug("return msg to OneNET, ", msg)
+			log.Info("return msg to OneNET, ", msg)
 		}
 	} else if ("POST" == req.Method) { // 接收OneNET推送过来的数据
 		result, err := ioutil.ReadAll(req.Body)
@@ -117,12 +117,12 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			// fetch job
 			work := Job { serload: Serload { pri : bytes.NewBuffer(result).String() }}
 			JobQueue <- work
-			fmt.Fprintf(res, "Hello World ...post")
 		}
 	}
 }
 
 func init() {
+	log.Debug("httpJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
 	runtime.GOMAXPROCS(MaxWorker)
 	JobQueue = make(chan Job, MaxQueue)
 	dispatcher := NewDispatcher(MaxWorker)
