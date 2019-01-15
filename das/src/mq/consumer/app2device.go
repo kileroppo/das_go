@@ -1,7 +1,7 @@
 package consumer
 
 import (
-		"../../core/rabbitmq"
+	"../../core/rabbitmq"
 	"github.com/dlintw/goconf"
 	"../../core/log"
 )

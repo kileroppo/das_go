@@ -1,9 +1,9 @@
 package rabbitmq
 
 import (
-	"fmt"
 	"github.com/dlintw/goconf"
 	"sync"
+	"../log"
 )
 
 var ProducerRabbitMq *BaseMq
@@ -46,7 +46,7 @@ func getConsumerRabbitMq(uri string) *BaseMq {
 func InitProducerMqConnection(conf *goconf.ConfigFile) *BaseMq {
 	uri, _ := conf.GetString("rabbitmq", "rabbitmq_uri")
 	if uri == "" {
-		fmt.Println("未启用rabbimq")
+		log.Error("未启用rabbimq")
 		return nil
 	}
 	return getProducerRabbitMq(uri)
@@ -55,7 +55,7 @@ func InitProducerMqConnection(conf *goconf.ConfigFile) *BaseMq {
 func InitProducerMqConnection2Db(conf *goconf.ConfigFile) *BaseMq {
 	uri, _ := conf.GetString("rabbitmq", "rabbitmq_uri")
 	if uri == "" {
-		fmt.Println("未启用rabbimq")
+		log.Error("未启用rabbimq")
 		return nil
 	}
 	return getProducerRabbitMq2Db(uri)
@@ -64,7 +64,7 @@ func InitProducerMqConnection2Db(conf *goconf.ConfigFile) *BaseMq {
 func InitConsumerMqConnection(conf *goconf.ConfigFile) *BaseMq {
 	uri, _ := conf.GetString("rabbitmq", "rabbitmq_uri")
 	if uri == "" {
-		fmt.Println("未启用rabbimq")
+		log.Error("未启用rabbimq")
 		return nil
 	}
 	return getConsumerRabbitMq(uri)
