@@ -129,8 +129,8 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 		false, 			// exclusive
 		false, 				// noWait
 		amqp.Table{
-			"x-message-ttl": int32(60000),
-			"x-expires": int32(300000)},   // arguments
+			"x-message-ttl": int32(5000),
+			"x-expires": int32(10000)},   // arguments
 	)
 
 	channelContext.Channel.QueueBind(
