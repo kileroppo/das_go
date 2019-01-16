@@ -84,7 +84,7 @@ func (bmq *BaseMq) refreshConnectionAndChannel(channelContext *ChannelContext) e
 				log.Error("connect mq get connection error,retry..." + bmq.MqConnection.MqUri)
 				time.Sleep(10 * time.Second)
 			} else {
-				log.Info("connection。。。。。..")
+				log.Info("connection RabbitMQ......")
 				channelContext.Channel, _ = bmq.MqConnection.Connection.Channel()
 				break
 			}
