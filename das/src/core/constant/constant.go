@@ -33,7 +33,7 @@ const (
 	Update_dev_user = 0x35		// 用户更新上报
 	Sync_dev_user = 0x31		// 同步设备用户列表
 	Remote_open = 0x52			// 远程开锁
-	Upload_dev_info = 0x50		// 上传设备信息
+	Upload_dev_info = 0x70		// 上传设备信息
 
 	Set_dev_para = 0x72			// 设置参数
 	Update_dev_para = 0x73		// 设备参数更新上报
