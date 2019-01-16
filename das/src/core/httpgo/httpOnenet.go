@@ -22,7 +22,7 @@ func Http2OneNET_exe(imei string,  sBody string) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("api-key", "HH=A=y1D9vuArz1JTcpvReUf5Uc=")
+	req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=")
 
 	resp, err := client.Do(req)
 
@@ -65,7 +65,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("api-key", "HH=A=y1D9vuArz1JTcpvReUf5Uc=")
+	req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=")
 
 	resp, err := client.Do(req)
 
