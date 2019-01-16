@@ -7,7 +7,7 @@ import (
 	"../core/redis"
 	"../core/log"
 
-)
+	)
 
 type Serload struct {
 	pri string
@@ -59,6 +59,20 @@ func (p *Serload) ProcessJob() error {
 			if 1 == data.Msg.Status {
 				//1. 锁唤醒，存入redis
 				redis.SetData(data.Msg.Imei, data.Msg.At/1000)
+
+				//struct 到json str
+				var toApp Header
+				toApp.Cmd = constant.Upload_lock_active
+				toApp.Ack = 0
+				toApp.DevType = ""
+				toApp.DevId = data.Msg.Imei
+				toApp.Time = data.Msg.At/1000
+				if toApp_str, err := json.Marshal(toApp); err == nil {
+					//2. 回复到APP
+					producer.SendMQMsg2APP(data.Msg.Imei, string(toApp_str))
+				} else {
+					log.Error("toApp json.Marshal, err=", err)
+				}
 			}
 		}
 	case 1:	// 数据点消息(type=1)，
