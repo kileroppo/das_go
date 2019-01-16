@@ -56,24 +56,32 @@ func (p *Serload) ProcessJob() error {
 		{
 			log.Info("OneNET Upload_lock_active, imei=", data.Msg.Imei, ", time=", data.Msg.At/1000)
 
-			if 1 == data.Msg.Status {
-				//1. 锁唤醒，存入redis
-				redis.SetData(data.Msg.Imei, data.Msg.At/1000)
-
-				//struct 到json str
-				var toApp Header
-				toApp.Cmd = constant.Upload_lock_active
-				toApp.Ack = 0
-				toApp.DevType = ""
-				toApp.DevId = data.Msg.Imei
-				toApp.Time = data.Msg.At/1000
-				if toApp_str, err := json.Marshal(toApp); err == nil {
-					//2. 回复到APP
-					producer.SendMQMsg2APP(data.Msg.Imei, string(toApp_str))
-				} else {
-					log.Error("toApp json.Marshal, err=", err)
-				}
+			var nTime int64
+			nTime = 0
+			if 1 == data.Msg.Status {	// 设备上线
+				nTime = data.Msg.At/1000
+			} else if 0 == data.Msg.Status {	// 设备离线
+				nTime = 0
 			}
+
+			//1. 锁状态，存入redis
+			redis.SetData(data.Msg.Imei, nTime)
+
+			//struct 到json str
+			var toApp Header
+			toApp.Cmd = constant.Upload_lock_active
+			toApp.Ack = 0
+			toApp.DevType = ""
+			toApp.DevId = data.Msg.Imei
+			toApp.Time = nTime
+
+			if toApp_str, err := json.Marshal(toApp); err == nil {
+				//2. 回复到APP
+				producer.SendMQMsg2APP(data.Msg.Imei, string(toApp_str))
+			} else {
+				log.Error("toApp json.Marshal, err=", err)
+			}
+
 		}
 	case 1:	// 数据点消息(type=1)，
 		{

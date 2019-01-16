@@ -31,7 +31,7 @@ func SetData(devId string, time int64)  {
 	defer c.Close()
 
 	// 写入值60S后过期
-	_, err = c.Do("SET", devId, time, "EX", "60")
+	_, err = c.Do("SET", devId, time, "EX", "120")
 	if err != nil {
 		fmt.Println("redis set failed:", err)
 	}
