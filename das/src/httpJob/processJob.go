@@ -6,7 +6,7 @@ import (
 	"../mq/producer"
 	"../core/redis"
 	"../core/log"
-
+	"../core/httpgo"
 	)
 
 type Serload struct {
@@ -118,8 +118,17 @@ func (p *Serload) ProcessJob() error {
 			case constant.Update_dev_user: // 用户更新上报
 				{
 					log.Info("constant.Update_dev_user")
-					//1. 更新设备用户操作需要存到mongodb
-					if 1 == head.Ack {
+					//1. 回复设备
+					head.Ack = 1
+					if toDevice_str, err := json.Marshal(head); err == nil {
+						log.Info("constant.Del_dev_user, resp to device, ", string(toDevice_str))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					} else {
+						log.Error("toDevice_str json.Marshal, err=", err)
+					}
+
+					//2. 更新设备用户操作需要存到mongodb
+					if 0 == head.Ack {
 						producer.SendMQMsg2Db(data.Msg.Value)
 					}
 				}
@@ -145,6 +154,15 @@ func (p *Serload) ProcessJob() error {
 			case constant.Upload_dev_info: // 上传设备信息
 				{
 					log.Info("constant.Upload_dev_info")
+					//1. 回复设备
+					head.Ack = 1
+					if toDevice_str, err := json.Marshal(head); err == nil {
+						log.Info("constant.Upload_dev_info, resp to device, ", string(toDevice_str))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					} else {
+						log.Error("toDevice_str json.Marshal, err=", err)
+					}
+
 					//2. 上传设备信息，需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
@@ -157,7 +175,16 @@ func (p *Serload) ProcessJob() error {
 			case constant.Update_dev_para: // 设备参数更新上报
 				{
 					log.Info("constant.Update_dev_para")
-					//1. 需要存到mongodb
+					//1. 回复设备
+					head.Ack = 1
+					if toDevice_str, err := json.Marshal(head); err == nil {
+						log.Info("constant.Update_dev_para, resp to device, ", string(toDevice_str))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					} else {
+						log.Error("toDevice_str json.Marshal, err=", err)
+					}
+
+					//2. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Soft_reset: // 软件复位
@@ -211,10 +238,19 @@ func (p *Serload) ProcessJob() error {
 			case constant.Upload_lock_active: // 锁激活状态上报
 				{
 					log.Info("constant.Upload_lock_active")
-					//1. 锁唤醒，存入redis
+					//1. 回复设备
+					head.Ack = 1
+					if toDevice_str, err := json.Marshal(head); err == nil {
+						log.Info("constant.Upload_lock_active, resp to device, ", string(toDevice_str))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					} else {
+						log.Error("toDevice_str json.Marshal, err=", err)
+					}
+
+					//2. 锁唤醒，存入redis
 					redis.SetData(head.DevId, head.Time)
 
-					//2. 回复到APP
+					//3. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			default:
