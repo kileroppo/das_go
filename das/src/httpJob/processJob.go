@@ -59,6 +59,7 @@ func (p *Serload) ProcessJob() error {
 	var data OneNETData
 	if err := json.Unmarshal([]byte(p.pri), &data); err != nil {
 		log.Error("OneNETData json.Unmarshal, err=", err)
+		return nil
 	}
 
 	switch data.Msg.Msgtype {
@@ -68,7 +69,7 @@ func (p *Serload) ProcessJob() error {
 
 			var nTime int64
 			nTime = 0
-			if 1 == data.Msg.Status {	// 设备上线
+			if 1 == data.Msg.Status {			// 设备上线
 				nTime = data.Msg.At/1000
 			} else if 0 == data.Msg.Status {	// 设备离线
 				nTime = 0
@@ -101,6 +102,7 @@ func (p *Serload) ProcessJob() error {
 			var head Header
 			if err := json.Unmarshal([]byte(data.Msg.Value), &head); err != nil {
 				log.Error("Header json.Unmarshal, err=", err)
+				break
 			}
 
 			// 3、根据命令，分别做业务处理
@@ -206,10 +208,13 @@ func (p *Serload) ProcessJob() error {
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("toDevice_str json.Marshal, err=", err)
+						break
 					}
 
 					//2. 需要存到mongodb
-					producer.SendMQMsg2Db(data.Msg.Value)
+					if 0 == head.Ack {
+						producer.SendMQMsg2Db(data.Msg.Value)
+					}
 				}
 			case constant.Soft_reset: // 软件复位
 				{
@@ -269,6 +274,7 @@ func (p *Serload) ProcessJob() error {
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("toDevice_str json.Marshal, err=", err)
+						break
 					}
 
 					//2. 锁唤醒，存入redis
@@ -276,6 +282,7 @@ func (p *Serload) ProcessJob() error {
 					var devAct DeviceActive
 					if err := json.Unmarshal([]byte(data.Msg.Value), &devAct); err != nil {
 						log.Error("Header json.Unmarshal, err=", err)
+						break
 					}
 					redis.SetData(devAct.DevId, devAct.Time)
 

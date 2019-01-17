@@ -5,8 +5,7 @@ import (
 	"github.com/dlintw/goconf"
 	"flag"
 	"os"
-	"fmt"
-	"net/http"
+		"net/http"
 	"strconv"
 	"./httpJob"
 	"./core/redis"
@@ -45,7 +44,7 @@ func main() {
 	//9. 启动http/https服务
 	httpServerStart(conf)
 
-	fmt.Println("quit")
+	log.Info("quit")
 }
 
 func httpServerStart(conf *goconf.ConfigFile) {
