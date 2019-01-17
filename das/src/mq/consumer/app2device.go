@@ -32,7 +32,7 @@ func ReceiveMQMsgFromAPP() {
 		return
 	}
 
-	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true}
+	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true, ReSendNum: 0}
 
 	rabbitmq.ConsumerRabbitMq.QueueDeclare(&channleContxt)
 

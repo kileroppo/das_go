@@ -29,7 +29,7 @@ func SendMQMsg2Db(message string) {
 		return
 	}
 
-	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo, Reliable: true, Durable: true}
+	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Info("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
 	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, message)

@@ -25,6 +25,7 @@ type ChannelContext struct {
 	Durable      bool
 	ChannelId    string
 	Channel      *amqp.Channel
+	ReSendNum	 int		// 重发次数
 }
 
 type BaseMq struct {
@@ -158,7 +159,14 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 	); err != nil {
 		log.Error("send message failed refresh connection")
 		time.Sleep(10 * time.Second)
-		bmq.refreshConnectionAndChannel(channelContext)
+		recon_err := bmq.refreshConnectionAndChannel(channelContext)
+		if nil != recon_err {
+			if channelContext.ReSendNum < 3 {
+				log.Error("Publish2App ReSend message=", body, ", num=", channelContext.ReSendNum)
+				channelContext.ReSendNum++
+				bmq.Publish2App(channelContext, body)
+			}
+		}
 	}
 
 	return nil
@@ -211,7 +219,14 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 	); err != nil {
 		log.Error("send message failed refresh connection")
 		time.Sleep(10 * time.Second)
-		bmq.refreshConnectionAndChannel(channelContext)
+		recon_err := bmq.refreshConnectionAndChannel(channelContext)
+		if nil != recon_err {
+			if channelContext.ReSendNum < 3 {
+				log.Error("Publish2Db ReSend message=", body, ", num=", channelContext.ReSendNum)
+				channelContext.ReSendNum++
+				bmq.Publish2App(channelContext, body)
+			}
+		}
 	}
 
 	return nil

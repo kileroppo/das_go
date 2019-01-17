@@ -27,7 +27,7 @@ func SendMQMsg2APP(uuid string, message string) {
 		return
 	}
 
-	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: uuid, Reliable: true, Durable: true}
+	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: uuid, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Info("rabbitmq.ProducerRabbitMq.Publish2App:", message)
 	rabbitmq.ProducerRabbitMq.Publish2App(&channleContxt, message)
