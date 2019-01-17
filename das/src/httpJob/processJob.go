@@ -34,6 +34,16 @@ type Header struct {
 	Ack int      		`json:"ack"`
 	DevType string 		`json:"devType"`
 	DevId string 		`json:"devId"`
+	SeqId int			`json:"seqId"`
+}
+
+type DeviceActive struct {
+	Cmd int				`json:"cmd"`
+	Ack int      		`json:"ack"`
+	DevType string 		`json:"devType"`
+	DevId string 		`json:"devId"`
+	SeqId int			`json:"seqId"`
+
 	Time int64			`json:"time"`
 }
 
@@ -68,11 +78,12 @@ func (p *Serload) ProcessJob() error {
 			redis.SetData(data.Msg.Imei, nTime)
 
 			//struct 到json str
-			var toApp Header
+			var toApp DeviceActive
 			toApp.Cmd = constant.Upload_lock_active
 			toApp.Ack = 0
 			toApp.DevType = ""
 			toApp.DevId = data.Msg.Imei
+			toApp.SeqId = 0
 			toApp.Time = nTime
 
 			if toApp_str, err := json.Marshal(toApp); err == nil {
@@ -102,9 +113,9 @@ func (p *Serload) ProcessJob() error {
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 
 					//2. 添加设备用户操作需要存到mongodb
-					if 1 == head.Ack {
+					/*if 1 == head.Ack {
 						producer.SendMQMsg2Db(data.Msg.Value)
-					}
+					}*/
 				}
 			case constant.Set_dev_user_temp: // 设置临时用户
 				{
@@ -179,6 +190,11 @@ func (p *Serload) ProcessJob() error {
 					log.Info("constant.Set_dev_para")
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+
+					//2. 需要存到mongodb
+					if 1 == head.Ack {
+						producer.SendMQMsg2Db(data.Msg.Value)
+					}
 				}
 			case constant.Update_dev_para: // 设备参数更新上报
 				{
@@ -256,7 +272,12 @@ func (p *Serload) ProcessJob() error {
 					}
 
 					//2. 锁唤醒，存入redis
-					redis.SetData(head.DevId, head.Time)
+					//json str 转struct(部份字段)
+					var devAct DeviceActive
+					if err := json.Unmarshal([]byte(data.Msg.Value), &devAct); err != nil {
+						log.Error("Header json.Unmarshal, err=", err)
+					}
+					redis.SetData(devAct.DevId, devAct.Time)
 
 					//3. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
