@@ -7,7 +7,9 @@ import (
 	"../log"
 	glog "log"
 	"bytes"
-	)
+	"net"
+	"time"
+)
 
 func checkError(err error) {
 	if err != nil{
@@ -67,40 +69,58 @@ func Http2OneNET_write(imei string,  sBody string) {
 	req_body := bytes.NewBuffer([]byte(mydata))
 	log.Debug(req_body)
 
-	client := &http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{
+			Dial: func(netw, addr string) (net.Conn, error) {
+				deadline := time.Now().Add(30 * time.Second)
+				c, err := net.DialTimeout(netw, addr, time.Second*30)
+				if err != nil {
+					log.Error("Http2OneNET_write net.DialTimeout，err=", err)
+					return nil, err
+				}
+				c.SetDeadline(deadline)
+				return c, nil
+			},
+		},
+	}
+
 	sUrl := "http://api.heclouds.com/nbiot?imei=" + imei + "&obj_id=3201&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com
 	log.Debug(sUrl)
 	req, err0 := http.NewRequest("POST", sUrl, req_body)
 	if err0 != nil {
 		// handle error
 		log.Error("Http2OneNET_write http请求下发命令到OneNET失败，error=", err0)
+		return
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=")
 
 	resp, err1 := client.Do(req)
-	// 关闭 resp.Body 的正确姿势
-	if resp != nil {
-		defer resp.Body.Close()
+	if nil != err1 {
+		// handle error
+		log.Error("Http2OneNET_write client.Do, error=", err1)
+		return
 	}
-	checkError(err1)
+
 	defer resp.Body.Close()
 
 	if 200 == resp.StatusCode {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("Http2OneNET_write ReadAll Body 1 failed，err=", err)
+			log.Error("Http2OneNET_write ReadAll Body 1 failed，error=", err)
+			return
 		}
 
 		log.Info(string(body))
 	} else {
-		log.Error("Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", err=", err1)
+		log.Error("Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("Http2OneNET_write ReadAll Body 2 failed，err=", err)
+			log.Error("Http2OneNET_write ReadAll Body 2 failed，error=", err)
+			return
 		}
 
 		log.Info(string(body))

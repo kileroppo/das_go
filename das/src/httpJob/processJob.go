@@ -113,11 +113,6 @@ func (p *Serload) ProcessJob() error {
 
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-
-					//2. 添加设备用户操作需要存到mongodb
-					/*if 1 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}*/
 				}
 			case constant.Set_dev_user_temp: // 设置临时用户
 				{
