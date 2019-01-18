@@ -209,8 +209,8 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 		false,            // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
-			ContentType:     "application/json",
-			ContentEncoding: "UTF-8",
+			ContentType:     "text/plain",
+			ContentEncoding: "",
 			Body:            []byte(body),
 			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
 			Priority:        0,              // 0-9
