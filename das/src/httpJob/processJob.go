@@ -129,6 +129,9 @@ func (p *Serload) ProcessJob() error {
 			case constant.Add_dev_user_step: // 新增用户步骤
 				{
 					log.Info("constant.Add_dev_user_step")
+
+					//1. 回复到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Del_dev_user: // 删除设备用户
 				{
