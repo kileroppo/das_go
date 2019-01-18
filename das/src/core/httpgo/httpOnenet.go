@@ -89,7 +89,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	req, err0 := http.NewRequest("POST", sUrl, req_body)
 	if err0 != nil {
 		// handle error
-		log.Error("Http2OneNET_write http请求下发命令到OneNET失败，error=", err0)
+		log.Error("Http2OneNET_write http.NewRequest()，error=", err0)
 		return
 	}
 
@@ -109,7 +109,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("Http2OneNET_write ReadAll Body 1 failed，error=", err)
+			log.Error("Http2OneNET_write ioutil.ReadAll() 1，error=", err)
 			return
 		}
 
@@ -119,7 +119,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("Http2OneNET_write ReadAll Body 2 failed，error=", err)
+			log.Error("Http2OneNET_write ioutil.ReadAll() 2, error=", err)
 			return
 		}
 
