@@ -29,6 +29,7 @@ func (p *AppMsg) ProcessAppMsg() error {
 	var head Header
 	if err := json.Unmarshal([]byte(p.pri), &head); err != nil {
 		log.Error("json.Unmarshal error, err=", err)
+		return err
 	}
 
 	// 将命令发到OneNET
