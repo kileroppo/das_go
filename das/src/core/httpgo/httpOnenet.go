@@ -63,7 +63,7 @@ func Http2OneNET_exe(imei string,  sBody string) {
 }
 
 func Http2OneNET_write(imei string,  sBody string) {
-	log.Info("Http2OneNET_write imei=", imei, ", sBody=", sBody)
+	log.Info("Http2OneNET_write imei=", imei)
 	mydata := "{\"data\":[{\"res_id\":5750,\"val\":'" + sBody + "'}]}"
 
 	req_body := bytes.NewBuffer([]byte(mydata))
@@ -85,7 +85,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	}
 
 	sUrl := "http://api.heclouds.com/nbiot?imei=" + imei + "&obj_id=3201&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com
-	log.Debug(sUrl)
+	log.Debug("Http2OneNET_write() ", sUrl, ", sBody=", sBody)
 	req, err0 := http.NewRequest("POST", sUrl, req_body)
 	if err0 != nil {
 		// handle error
@@ -113,7 +113,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 			return
 		}
 
-		log.Info(string(body))
+		log.Info("Http2OneNET_write() ", string(body))
 	} else {
 		log.Error("Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
 		body, err := ioutil.ReadAll(resp.Body)
@@ -123,6 +123,6 @@ func Http2OneNET_write(imei string,  sBody string) {
 			return
 		}
 
-		log.Info(string(body))
+		log.Info("Http2OneNET_write() ", string(body))
 	}
 }
