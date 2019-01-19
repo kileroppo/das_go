@@ -206,10 +206,13 @@ func (p *Serload) ProcessJob() error {
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("toDevice_str json.Marshal, err=", err)
-						break
+					}
+					//2. 回复到APP
+					if 0 == head.Ack {
+						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 					}
 
-					//2. 需要存到mongodb
+					//3. 需要存到mongodb
 					if 0 == head.Ack {
 						producer.SendMQMsg2Db(data.Msg.Value)
 					}
@@ -272,7 +275,6 @@ func (p *Serload) ProcessJob() error {
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("toDevice_str json.Marshal, err=", err)
-						break
 					}
 
 					//2. 锁唤醒，存入redis
@@ -280,12 +282,45 @@ func (p *Serload) ProcessJob() error {
 					var devAct DeviceActive
 					if err := json.Unmarshal([]byte(data.Msg.Value), &devAct); err != nil {
 						log.Error("Header json.Unmarshal, err=", err)
-						break
 					}
 					redis.SetData(devAct.DevId, devAct.Time)
 
 					//3. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+				}
+			case constant.Real_Video:
+				{
+					log.Info("constant.Upload_lock_active")
+
+					//1. 回复到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+				}
+			case constant.Set_Wifi:
+				{
+					log.Info("constant.Set_Wifi")
+					//1. 回复到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+
+					//2. 需要存到mongodb
+					producer.SendMQMsg2Db(data.Msg.Value)
+				}
+			case constant.Door_Call:
+				{
+					log.Info("constant.Door_Call")
+					//1. 回复设备
+					head.Ack = 1
+					if toDevice_str, err := json.Marshal(head); err == nil {
+						log.Info("constant.Door_Call, resp to device, ", string(toDevice_str))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					} else {
+						log.Error("toDevice_str json.Marshal, err=", err)
+					}
+
+					//2. 推到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+
+					//2. 需要存到mongodb
+					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			default:
 				log.Info("Default, Cmd=", head.Cmd)

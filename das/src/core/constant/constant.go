@@ -50,4 +50,9 @@ const (
 
 	// 锁激活
 	Upload_lock_active = 0x46	// 锁激活状态上报
+
+	// 视频设备
+	Real_Video	= 0x36			// 实时视频
+	Set_Wifi	= 0x37			// Wifi设置
+	Door_Call 	= 0x38			// 门铃呼叫
 )

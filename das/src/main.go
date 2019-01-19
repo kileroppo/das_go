@@ -5,7 +5,7 @@ import (
 	"github.com/dlintw/goconf"
 	"flag"
 	"os"
-		"net/http"
+	"net/http"
 	"strconv"
 	"./httpJob"
 	"./core/redis"

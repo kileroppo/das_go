@@ -28,7 +28,7 @@ func (p *AppMsg) ProcessAppMsg() error {
 	//json str 转struct(部份字段)
 	var head Header
 	if err := json.Unmarshal([]byte(p.pri), &head); err != nil {
-		log.Error("json.Unmarshal error, err=", err)
+		log.Error("ProcessAppMsg json.Unmarshal error, err=", err)
 		return err
 	}
 
