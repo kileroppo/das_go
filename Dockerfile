@@ -21,7 +21,7 @@ RUN set -x \
 RUN cd /tmp && ls -l
 RUN cd /tmp/das && ls -l && cp /tmp/das/src/das.ini /www/wonly/DAS_go/
 RUN cd /www/wonly/DAS_go/ && ls -l
-RUN cd /tmp/das/src && ls -l && GOOS=linux GOARCH=amd64 go build -v -o ../bin/das.bin .
+RUN cd /tmp/das/src && ls -l && GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -v -o ../bin/das.bin .
 RUN cp /tmp/das/bin/das.bin /www/wonly/DAS_go/
 RUN chmod -R 755 /www/wonly/DAS_go
 RUN cd /www/wonly/DAS_go/ && ls -l
