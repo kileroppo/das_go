@@ -97,6 +97,8 @@ func (p *Serload) ProcessJob() error {
 		}
 	case 1:	// 数据点消息(type=1)，
 		{
+			log.Debugf("data.Msg.Value: %X", data.Msg.Value)
+
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
 			var head Header
@@ -319,7 +321,7 @@ func (p *Serload) ProcessJob() error {
 					//2. 推到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 
-					//2. 需要存到mongodb
+					//3. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			default:
