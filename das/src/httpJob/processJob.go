@@ -7,7 +7,9 @@ import (
 	"../core/redis"
 	"../core/log"
 	"../core/httpgo"
-	)
+		"regexp"
+	"strconv"
+)
 
 type Serload struct {
 	pri string
@@ -47,6 +49,19 @@ type DeviceActive struct {
 	Time int64			`json:"time"`
 }
 
+// 转换8进制utf-8字符串到中文
+// eg: `\346\200\241` -> 怡
+func convertOctonaryUtf8(in string) string {
+	s := []byte(in)
+	reg := regexp.MustCompile(`\\[0-7]{3}`)
+
+	out := reg.ReplaceAllFunc(s,
+		func(b []byte) []byte {
+			i, _ := strconv.ParseInt(string(b[1:]), 8, 0)
+			return []byte{byte(i)}
+		})
+	return string(out)
+}
 /*
 *	处理OneNET推送过来的消息
 *
@@ -98,6 +113,8 @@ func (p *Serload) ProcessJob() error {
 	case 1:	// 数据点消息(type=1)，
 		{
 			log.Debugf("data.Msg.Value: %X", data.Msg.Value)
+			s3 := convertOctonaryUtf8(data.Msg.Value)
+			log.Debug("s3 =", s3)
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
