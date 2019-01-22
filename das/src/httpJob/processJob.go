@@ -113,7 +113,6 @@ func (p *Serload) ProcessJob() error {
 		}
 	case 1:	// 数据点消息(type=1)，
 		{
-			log.Debugf("data.Msg.Value: %X", data.Msg.Value)
 			ret, _ := hex.DecodeString(data.Msg.Value)
 			log.Debugf("中文：%s", ret)
 			log.Debug("中文：", ret)
