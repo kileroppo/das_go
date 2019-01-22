@@ -115,6 +115,7 @@ func (p *Serload) ProcessJob() error {
 		{
 			log.Debugf("data.Msg.Value: %X", data.Msg.Value)
 			ret, _ := hex.DecodeString(data.Msg.Value)
+			log.Debugf("中文：%s", ret)
 			log.Debug("中文：", ret)
 
 			// 2、解析王力的消息
