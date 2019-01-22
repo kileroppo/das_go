@@ -9,6 +9,7 @@ import (
 	"../core/httpgo"
 		"regexp"
 	"strconv"
+	"encoding/hex"
 )
 
 type Serload struct {
@@ -113,8 +114,8 @@ func (p *Serload) ProcessJob() error {
 	case 1:	// 数据点消息(type=1)，
 		{
 			log.Debugf("data.Msg.Value: %X", data.Msg.Value)
-			s3 := convertOctonaryUtf8(data.Msg.Value)
-			log.Debug("s3 =", s3)
+			ret, _ := hex.DecodeString(data.Msg.Value)
+			log.Debug("中文：", ret)
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
