@@ -166,9 +166,7 @@ func (p *Serload) ProcessJob() error {
 					}
 
 					//2. 更新设备用户操作需要存到mongodb
-					if 0 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
+					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Sync_dev_user: // 同步设备用户列表
 				{
@@ -182,7 +180,9 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("constant.Remote_open")
 					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					if 1 == head.Ack {
+						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					}
 
 					//2. 远程开门操作需要存到mongodb
 					if 1 == head.Ack {
@@ -208,7 +208,9 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("constant.Set_dev_para")
 					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					if 1 == head.Ack {
+						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					}
 
 					//2. 需要存到mongodb
 					if 1 == head.Ack {
@@ -226,15 +228,12 @@ func (p *Serload) ProcessJob() error {
 					} else {
 						log.Error("toDevice_str json.Marshal, err=", err)
 					}
+
 					//2. 回复到APP
-					if 0 == head.Ack {
-						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-					}
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 
 					//3. 需要存到mongodb
-					if 0 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
+					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Soft_reset: // 软件复位
 				{

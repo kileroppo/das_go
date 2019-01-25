@@ -100,9 +100,9 @@ func (d *Dispatcher) Dispatch() {
 }
 
 func Entry(res http.ResponseWriter, req *http.Request) {
-	log.Debug("httpJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
 	req.ParseForm() //解析参数，默认是不会解析的
 	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
+		log.Debug("httpJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
 		msg := req.Form.Get("msg")
 		// signature := req.Form.Get("signature")
 		// nonce := req.Form.Get("nonce")
