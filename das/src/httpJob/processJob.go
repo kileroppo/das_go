@@ -108,7 +108,6 @@ func (p *Serload) ProcessJob() error {
 			} else {
 				log.Error("toApp json.Marshal, err=", err)
 			}
-
 		}
 	case 1:	// 数据点消息(type=1)，
 		{
