@@ -9,7 +9,8 @@ import (
 	"../core/httpgo"
 		"regexp"
 	"strconv"
-	)
+	"time"
+)
 
 type Serload struct {
 	pri string
@@ -47,6 +48,17 @@ type DeviceActive struct {
 	SeqId int			`json:"seqId"`
 
 	Time int64			`json:"time"`
+}
+
+type SetDeviceTime struct {
+	Cmd int				`json:"cmd"`
+	Ack int      		`json:"ack"`
+	DevType string 		`json:"devType"`
+	DevId string 		`json:"devId"`
+	SeqId int			`json:"seqId"`
+
+	paraNo int			`json:"paraNo"`
+	value int			`json:"value"`
 }
 
 // 转换8进制utf-8字符串到中文
@@ -192,8 +204,18 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("constant.Upload_dev_info")
 					//1. 回复设备
-					head.Ack = 1
-					if toDevice_str, err := json.Marshal(head); err == nil {
+
+					t := time.Now()
+					tm, _ := strconv.Atoi(t.Format("060102150405"))
+					var toDev SetDeviceTime
+					toDev.Cmd = constant.Set_dev_para
+					toDev.Ack = 1
+					toDev.DevType = head.DevType
+					toDev.DevId = head.DevId
+					toDev.SeqId = head.SeqId
+					toDev.paraNo = 7
+					toDev.value = tm
+					if toDevice_str, err := json.Marshal(toDev); err == nil {
 						log.Info("constant.Upload_dev_info, resp to device, ", string(toDevice_str))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
@@ -221,6 +243,7 @@ func (p *Serload) ProcessJob() error {
 					log.Info("constant.Update_dev_para")
 					//1. 回复设备
 					head.Ack = 1
+
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("constant.Update_dev_para, resp to device, ", string(toDevice_str))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
