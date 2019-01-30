@@ -275,8 +275,13 @@ func (p *Serload) ProcessJob() error {
 			case constant.Factory_reset: // 恢复出厂设置
 				{
 					log.Info("constant.Factory_reset")
-					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					//1. 重置设备用户列表mongodb
+					producer.SendMQMsg2Db(data.Msg.Value)
+
+					//2. 回复到APP
+					if 1 == head.Ack {
+						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					}
 				}
 			case constant.Upload_open_log: // 门锁开门日志上报
 				{
