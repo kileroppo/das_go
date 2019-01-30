@@ -9,8 +9,7 @@ import (
 	"../core/httpgo"
 	"regexp"
 	"strconv"
-	"time"
-)
+	)
 
 type Serload struct {
 	pri string
@@ -123,13 +122,15 @@ func (p *Serload) ProcessJob() error {
 		}
 	case 1:	// 数据点消息(type=1)，
 		{
+			httpgo.Http2OneNET_write(data.Msg.Imei, "what are you doing?")
+
 			/*ret, _ := hex.DecodeString(data.Msg.Value)
 			log.Debugf("中文：%s", ret)
 			log.Debug("中文：", ret)*/
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
-			var head Header
+			/*var head Header
 			if err := json.Unmarshal([]byte(data.Msg.Value), &head); err != nil {
 				log.Error("Header json.Unmarshal, err=", err)
 				break
@@ -376,7 +377,7 @@ func (p *Serload) ProcessJob() error {
 				}
 			default:
 				log.Info("Default, Cmd=", head.Cmd)
-			}
+			}*/
 		}
 	}
 	return nil
