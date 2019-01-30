@@ -1,15 +1,15 @@
 package httpJob
 
 import (
-		"encoding/json"
+	"encoding/json"
 	"../core/constant"
 	"../mq/producer"
 	"../core/redis"
 	"../core/log"
 	"../core/httpgo"
-		"regexp"
+	"regexp"
 	"strconv"
-	_ "time"
+	"time"
 )
 
 type Serload struct {
@@ -213,14 +213,13 @@ func (p *Serload) ProcessJob() error {
 					}
 
 					//2. 设置设备时间
-					/*
 					t := time.Now()
 					var toDev SetDeviceTime
 					toDev.Cmd = constant.Set_dev_para
 					toDev.Ack = 0
 					toDev.DevType = head.DevType
 					toDev.DevId = head.DevId
-					toDev.SeqId = head.SeqId
+					toDev.SeqId = 0
 					toDev.paraNo = 7
 					toDev.value = t.Unix()
 					if toDevice_str, err := json.Marshal(toDev); err == nil {
@@ -229,7 +228,6 @@ func (p *Serload) ProcessJob() error {
 					} else {
 						log.Error("toDevice_str json.Marshal, err=", err)
 					}
-					*/
 
 					//3. 上传设备信息，需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
