@@ -9,7 +9,7 @@ import (
 	"../core/httpgo"
 		"regexp"
 	"strconv"
-	"time"
+	_ "time"
 )
 
 type Serload struct {
@@ -213,6 +213,7 @@ func (p *Serload) ProcessJob() error {
 					}
 
 					//2. 设置设备时间
+					/*
 					t := time.Now()
 					var toDev SetDeviceTime
 					toDev.Cmd = constant.Set_dev_para
@@ -228,8 +229,9 @@ func (p *Serload) ProcessJob() error {
 					} else {
 						log.Error("toDevice_str json.Marshal, err=", err)
 					}
+					*/
 
-					//2. 上传设备信息，需要存到mongodb
+					//3. 上传设备信息，需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Set_dev_para: // 设置设备参数
