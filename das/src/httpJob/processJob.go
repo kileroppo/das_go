@@ -222,8 +222,8 @@ func (p *Serload) ProcessJob() error {
 					toDev.DevType = head.DevType
 					toDev.DevId = head.DevId
 					toDev.SeqId = 0
-					toDev.paraNo = 7
-					toDev.value = t.Unix()
+					toDev.ParaNo = 7
+					toDev.Value = t.Unix()
 					if toDevice_set, err := json.Marshal(toDev); err == nil {
 						log.Info("constant.Upload_dev_info, resp to device, ", string(toDevice_set))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_set))
