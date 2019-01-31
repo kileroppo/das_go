@@ -57,8 +57,8 @@ type SetDeviceTime struct {
 	DevId string 		`json:"devId"`
 	SeqId int			`json:"seqId"`
 
-	paraNo int			`json:"paraNo"`
-	value int64			`json:"value"`
+	ParaNo int			`json:"paraNo"`
+	Value int64			`json:"value"`
 }
 
 // 转换8进制utf-8字符串到中文
