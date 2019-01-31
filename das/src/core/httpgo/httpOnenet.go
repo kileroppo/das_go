@@ -84,7 +84,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 		},
 	}
 
-	sUrl := "http://api.zj.cmcconenet.com/nbiot?imei=" + imei + "&obj_id=3201&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com, api.heclouds.com
+	sUrl := "http://api.zj.cmcconenet.com/nbiot?imei=" + imei + "&obj_id=3200&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com, api.heclouds.com
 	// sUrl := "http://api.heclouds.com/nbiot?imei=" + imei + "&obj_id=3200&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com, api.heclouds.com
 	log.Debug("Http2OneNET_write() ", sUrl, ", sBody=", sBody)
 	req, err0 := http.NewRequest("POST", sUrl, req_body)
