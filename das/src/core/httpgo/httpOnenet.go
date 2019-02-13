@@ -84,7 +84,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 		},
 	}
 
-	sUrl := "http://api.zj.cmcconenet.com/nbiot?imei=" + imei + "&obj_id=3200&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com, api.heclouds.com
+	sUrl := "http://api.heclouds.com/nbiot?imei=" + imei + "&obj_id=3200&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com, api.heclouds.com
 	// sUrl := "http://api.heclouds.com/nbiot?imei=" + imei + "&obj_id=3200&obj_inst_id=0&mode=1"		// api.zj.cmcconenet.com, api.heclouds.com
 	log.Debug("Http2OneNET_write() ", sUrl, ", sBody=", sBody)
 	req, err0 := http.NewRequest("POST", sUrl, req_body)
@@ -95,7 +95,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("api-key", "HH=A=y1D9vuArz1JTcpvReUf5Uc=") // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
+	req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=") // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
 
 	resp, err1 := client.Do(req)
 	if nil != err1 {
