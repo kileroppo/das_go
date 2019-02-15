@@ -38,7 +38,8 @@ const (
 	Set_dev_para = 0x72			// 设置参数
 	Update_dev_para = 0x73		// 设备参数更新上报
 	Soft_reset = 0x74			// 软件复位
-	Factory_reset = 0x75		// 恢复出厂设置
+	// Factory_reset = 0x75		// 恢复出厂设置
+	Factory_reset = 0xEA		// 恢复出厂设置
 	Upload_open_log = 0x40		// 门锁开门日志上报
 
 	// 报警
