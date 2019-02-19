@@ -193,12 +193,12 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("constant.Remote_open")
 					//1. 回复到APP
-					if 1 == head.Ack {
+					if 0 != head.Ack {
 						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 					}
 
 					//2. 远程开门操作需要存到mongodb
-					if 1 == head.Ack {
+					if 0 != head.Ack {
 						producer.SendMQMsg2Db(data.Msg.Value)
 					}
 				}
@@ -238,7 +238,7 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("constant.Set_dev_para")
 					//1. 回复到APP
-					if 1 == head.Ack {
+					if 0 != head.Ack {
 						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 					}
 
@@ -279,7 +279,7 @@ func (p *Serload) ProcessJob() error {
 					producer.SendMQMsg2Db(data.Msg.Value)
 
 					//2. 回复到APP
-					if 1 == head.Ack {
+					if 0 != head.Ack {
 						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 					}
 				}
