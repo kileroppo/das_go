@@ -70,7 +70,7 @@ type TransferPkgData struct {
 }
 
 func GetUpgradeFileInfo(devId string, devType string, seqId int) {
-	body1, err1:= httpgo.Http2WonlyUpgrade()
+	body1, err1:= httpgo.Http2WonlyUpgrade(devType)
 	if nil != err1 {
 		log.Error("get upgrade file from wonly pus failed, err: ", err1)
 		return

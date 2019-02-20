@@ -9,8 +9,8 @@ import (
 	"io/ioutil"
 )
 
-func Http2WonlyUpgrade() (b []byte, err error) {
-	mydata := "{\"PUS\":{\"header\":{\"api_version\":\"1.0\",\"message_type\":\"MSG_PRODUCT_UPGRADE_DOWN_REQ\",\"seq_id\":\"1\"},\"body\":{\"token\":\"xxxxxxxxxxxxxxx\",\"vendor_name\":\"general\",\"platform\":\"device\",\"endpoint_type\":\"WonlyBtLock\",\"current_version\":\"1.0.0\"}}}"
+func Http2WonlyUpgrade(devType string) (b []byte, err error) {
+	mydata := "{\"PUS\":{\"header\":{\"api_version\":\"1.0\",\"message_type\":\"MSG_PRODUCT_UPGRADE_DOWN_REQ\",\"seq_id\":\"1\"},\"body\":{\"token\":\"xxxxxxxxxxxxxxx\",\"vendor_name\":\"general\",\"platform\":\"device\",\"endpoint_type\":" + devType + ",\"current_version\":\"1.0.0\"}}}"
 
 	req_body := bytes.NewBuffer([]byte(mydata))
 	log.Debug(req_body)
