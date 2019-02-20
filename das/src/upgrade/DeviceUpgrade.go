@@ -136,17 +136,17 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 	}
 	filename := path.Base(uri.Path)
 
-	exist, err1 := PathExists("download/")
+	exist, err1 := PathExists("logs/")
 	if err1 != nil {
 		log.Error("get dir error![%v]\n", err1)
 		return "", 0, err1
 	}
 	if exist {
-		log.Debug("has dir![%v]\n", "download/")
+		log.Debug("has dir![%v]\n", "logs/")
 	} else {
-		log.Debug("no dir![%v]\n", "download/")
+		log.Debug("no dir![%v]\n", "logs/")
 		// 创建文件夹
-		err2 := os.Mkdir("download/", os.ModePerm)
+		err2 := os.Mkdir("logs/", os.ModePerm)
 		if err != nil {
 			log.Error("mkdir failed![%v]\n", err2)
 			return "", 0, err2
@@ -155,7 +155,7 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 		}
 	}
 
-	fpath := fmt.Sprintf("download/%s", filename)
+	fpath := fmt.Sprintf("logs/%s", filename)
 	newFile, err3 := os.Create(fpath)
 	if err3 != nil {
 		log.Error("process failed for ", filename, ", err:", err3.Error())
@@ -186,7 +186,7 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 
 func TransferFileData(devId string, devType string, seqId int, offset int64, fileName string) {
 	log.Debug("TransferFileData %s to device.", fileName)
-	fpath := fmt.Sprintf("download/%s", fileName)
+	fpath := fmt.Sprintf("logs/%s", fileName)
 	file, err := os.OpenFile(fpath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		defer file.Close()
