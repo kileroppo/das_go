@@ -56,4 +56,14 @@ const (
 	Real_Video	= 0x36			// 实时视频
 	Set_Wifi	= 0x37			// Wifi设置
 	Door_Call 	= 0x38			// 门铃呼叫
+
+	//NB锁升级
+	Notify_F_Upgrade = 0xE0		// 通知前板升级（APP—后台—>锁）
+	Notify_B_Upgrade = 0xE1		// 通知后板升级（APP—后台—>锁）
+
+	Get_Upgrade_FileInfo = 0xC0		// 锁查询升级固件包信息
+	Download_Upgrade_File = 0xC1 	// 锁下载固件升级包（锁—>后台，分包传输）
+	Upload_F_Upgrade_State = 0xC2	// 前板上传升级状态
+	Upload_B_Upgrade_State = 0xD0	// 后板上传升级状态
+
 )

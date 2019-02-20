@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 	"../core/httpgo"
+	"../upgrade"
 )
 
 type Serload struct {
@@ -59,6 +60,17 @@ type SetDeviceTime struct {
 
 	ParaNo int			`json:"paraNo"`
 	Value int64			`json:"value"`
+}
+
+type UpgradeReq struct {
+	Cmd int				`json:"cmd"`
+	Ack int      		`json:"ack"`
+	DevType string 		`json:"devType"`
+	DevId string 		`json:"devId"`
+	SeqId int			`json:"seqId"`
+
+	Offset int64		`json:"offset"`
+	FileName string		`json:"fileName"`
 }
 
 // 转换8进制utf-8字符串到中文
@@ -133,7 +145,7 @@ func (p *Serload) ProcessJob() error {
 			//json str 转struct(部份字段)
 			var head Header
 			if err := json.Unmarshal([]byte(data.Msg.Value), &head); err != nil {
-				log.Error("Header json.Unmarshal, err=", err)
+				log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
 				break
 			}
 
@@ -141,41 +153,41 @@ func (p *Serload) ProcessJob() error {
 			switch head.Cmd {
 			case constant.Add_dev_user: // 添加设备用户
 				{
-					log.Info("constant.Add_dev_user")
+					log.Info("[", head.DevId, "] constant.Add_dev_user")
 
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Set_dev_user_temp: // 设置临时用户
 				{
-					log.Info("constant.Set_dev_user_temp")
+					log.Info("[", head.DevId, "] constant.Set_dev_user_temp")
 
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Add_dev_user_step: // 新增用户步骤
 				{
-					log.Info("constant.Add_dev_user_step")
+					log.Info("[", head.DevId, "] constant.Add_dev_user_step")
 
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Del_dev_user: // 删除设备用户
 				{
-					log.Info("constant.Del_dev_user")
+					log.Info("[", head.DevId, "] constant.Del_dev_user")
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Update_dev_user: // 用户更新上报
 				{
-					log.Info("constant.Update_dev_user")
+					log.Info("[", head.DevId, "] constant.Update_dev_user")
 					//1. 回复设备
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("constant.Del_dev_user, resp to device, ", string(toDevice_str))
+						log.Info("[", head.DevId, "] constant.Del_dev_user, resp to device, ", string(toDevice_str))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
-						log.Error("toDevice_str json.Marshal, err=", err)
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
 
 					//2. 更新设备用户操作需要存到mongodb
@@ -184,14 +196,14 @@ func (p *Serload) ProcessJob() error {
 			case constant.Sync_dev_user: // 同步设备用户列表
 				{
 					//1. 设备用户同步
-					log.Info("constant.Sync_dev_user")
+					log.Info("[", head.DevId, "] constant.Sync_dev_user")
 					if 1 == head.Ack {
 						producer.SendMQMsg2Db(data.Msg.Value)
 					}
 				}
 			case constant.Remote_open: // 远程开锁
 				{
-					log.Info("constant.Remote_open")
+					log.Info("[", head.DevId, "] constant.Remote_open")
 					//1. 回复到APP
 					if 0 != head.Ack {
 						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
@@ -208,10 +220,10 @@ func (p *Serload) ProcessJob() error {
 					//1. 回复设备
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("constant.Upload_dev_info, resp to device, ", string(toDevice_str))
+						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_str))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
-						log.Error("toDevice_str json.Marshal, err=", err)
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
 
 					//2. 设置设备时间
@@ -225,10 +237,10 @@ func (p *Serload) ProcessJob() error {
 					toDev.ParaNo = 7
 					toDev.Value = t.Unix()
 					if toDevice_set, err := json.Marshal(toDev); err == nil {
-						log.Info("constant.Upload_dev_info, resp to device, ", string(toDevice_set))
+						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_set))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_set))
 					} else {
-						log.Error("toDevice_str json.Marshal, err=", err)
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
 
 					//3. 上传设备信息，需要存到mongodb
@@ -236,7 +248,7 @@ func (p *Serload) ProcessJob() error {
 				}
 			case constant.Set_dev_para: // 设置设备参数
 				{
-					log.Info("constant.Set_dev_para")
+					log.Info("[", head.DevId, "] constant.Set_dev_para")
 					//1. 回复到APP
 					if 0 != head.Ack {
 						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
@@ -249,15 +261,15 @@ func (p *Serload) ProcessJob() error {
 				}
 			case constant.Update_dev_para: // 设备参数更新上报
 				{
-					log.Info("constant.Update_dev_para")
+					log.Info("[", head.DevId, "] constant.Update_dev_para")
 					//1. 回复设备
 					head.Ack = 1
 
 					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("constant.Update_dev_para, resp to device, ", string(toDevice_str))
+						log.Info("[", head.DevId, "] constant.Update_dev_para, resp to device, ", string(toDevice_str))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
-						log.Error("toDevice_str json.Marshal, err=", err)
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
 
 					//2. 回复到APP
@@ -268,13 +280,13 @@ func (p *Serload) ProcessJob() error {
 				}
 			case constant.Soft_reset: // 软件复位
 				{
-					log.Info("constant.Soft_reset")
+					log.Info("[", head.DevId, "] constant.Soft_reset")
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Factory_reset: // 恢复出厂设置
 				{
-					log.Info("constant.Factory_reset")
+					log.Info("[", head.DevId, "] constant.Factory_reset")
 					//1. 重置设备用户列表mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 
@@ -285,57 +297,57 @@ func (p *Serload) ProcessJob() error {
 				}
 			case constant.Upload_open_log: // 门锁开门日志上报
 				{
-					log.Info("constant.Upload_open_log")
+					log.Info("[", head.DevId, "] constant.Upload_open_log")
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Noatmpt_alarm: // 非法操作报警
 				{
-					log.Info("constant.Noatmpt_alarm")
+					log.Info("[", head.DevId, "] constant.Noatmpt_alarm")
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Forced_break_alarm: // 强拆报警
 				{
-					log.Info("constant.Forced_break_alarm")
+					log.Info("[", head.DevId, "] constant.Forced_break_alarm")
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Fakelock_alarm: // 假锁报警
 				{
-					log.Info("constant.Fakelock_alarm")
+					log.Info("[", head.DevId, "] constant.Fakelock_alarm")
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Nolock_alarm: // 门未关报警
 				{
-					log.Info("constant.Nolock_alarm")
+					log.Info("[", head.DevId, "] constant.Nolock_alarm")
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Low_battery_alarm: // 锁体的电池，低电量报警
 				{
-					log.Info("constant.Low_battery_alarm")
+					log.Info("[", head.DevId, "] constant.Low_battery_alarm")
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Upload_lock_active: // 锁激活状态上报
 				{
-					log.Info("constant.Upload_lock_active")
+					log.Info("[", head.DevId, "] constant.Upload_lock_active")
 					//1. 回复设备
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("constant.Upload_lock_active, resp to device, ", string(toDevice_str))
+						log.Info("[", head.DevId, "] constant.Upload_lock_active, resp to device, ", string(toDevice_str))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
-						log.Error("toDevice_str json.Marshal, err=", err)
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
 
 					//2. 锁唤醒，存入redis
 					//json str 转struct(部份字段)
 					var devAct DeviceActive
 					if err := json.Unmarshal([]byte(data.Msg.Value), &devAct); err != nil {
-						log.Error("Header json.Unmarshal, err=", err)
+						log.Error("[", head.DevId, "] DeviceActive json.Unmarshal, err=", err)
 					}
 					redis.SetData(devAct.DevId, devAct.Time)
 
@@ -344,14 +356,14 @@ func (p *Serload) ProcessJob() error {
 				}
 			case constant.Real_Video:
 				{
-					log.Info("constant.Upload_lock_active")
+					log.Info("[", head.DevId, "] constant.Upload_lock_active")
 
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Set_Wifi:
 				{
-					log.Info("constant.Set_Wifi")
+					log.Info("[", head.DevId, "] constant.Set_Wifi")
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 
@@ -360,14 +372,14 @@ func (p *Serload) ProcessJob() error {
 				}
 			case constant.Door_Call:
 				{
-					log.Info("constant.Door_Call")
+					log.Info("[", head.DevId, "] constant.Door_Call")
 					//1. 回复设备
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("constant.Door_Call, resp to device, ", string(toDevice_str))
+						log.Info("[", head.DevId, "] constant.Door_Call, resp to device, ", string(toDevice_str))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
-						log.Error("toDevice_str json.Marshal, err=", err)
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
 
 					//2. 推到APP
@@ -376,8 +388,44 @@ func (p *Serload) ProcessJob() error {
 					//3. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
+			case constant.Notify_F_Upgrade:	// 通知前板升级（APP—后台—>锁）
+				{
+					log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
+				}
+			case constant.Notify_B_Upgrade: // 通知后板升级（APP—后台—>锁）
+				{
+					log.Info("[", head.DevId, "] constant.Notify_B_Upgrade")
+				}
+			case constant.Get_Upgrade_FileInfo: // 锁查询升级固件包信息
+				{
+					log.Info("[", head.DevId, "] constant.Get_Upgrade_FileInfo")
+
+					// 获取升级包信息
+					upgrade.GetUpgradeFileInfo(head.DevId, head.DevType, head.SeqId)
+				}
+			case constant.Download_Upgrade_File: // 锁下载固件升级包（锁—>后台，分包传输）
+				{
+					log.Info("[", head.DevId, "] constant.Download_Upgrade_File")
+					var upReq UpgradeReq
+					if err := json.Unmarshal([]byte(data.Msg.Value), &upReq); err != nil {
+						log.Error("[", head.DevId, "] UpgradeReq json.Unmarshal, err=", err)
+						return err
+					}
+
+					// 获取文件传输给设备
+					log.Info("[", head.DevId, "] constant.Get_Upgrade_FileInfo, TransferFileData")
+					upgrade.TransferFileData(head.DevId, head.DevType, head.SeqId, upReq.Offset, upReq.FileName)
+				}
+			case constant.Upload_F_Upgrade_State: // 前板上传升级状态
+				{
+					log.Info("[", head.DevId, "] constant.Upload_F_Upgrade_State")
+				}
+			case constant.Upload_B_Upgrade_State: // 后板上传升级状态
+				{
+					log.Info("[", head.DevId, "] constant.Upload_B_Upgrade_State")
+				}
 			default:
-				log.Info("Default, Cmd=", head.Cmd)
+				log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
 			}
 		}
 	}
