@@ -146,16 +146,16 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 		return "", 0, err1
 	}
 	if exist {
-		log.Debug("has dir![%v]\n", "logs/")
+		log.Debug("has dir: ", "logs/")
 	} else {
-		log.Debug("no dir![%v]\n", "logs/")
+		log.Debug("no dir: ", "logs/")
 		// 创建文件夹
 		err2 := os.Mkdir("logs/", os.ModePerm)
 		if err != nil {
-			log.Error("mkdir failed![%v]\n", err2)
+			log.Error("mkdir failed, ", err2)
 			return "", 0, err2
 		} else {
-			log.Debug("mkdir success!\n")
+			log.Debug("mkdir success!")
 		}
 	}
 
@@ -191,10 +191,11 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 func TransferFileData(devId string, devType string, seqId int, offset int64, fileName string) {
 	log.Debug("TransferFileData %s to device.", fileName)
 	fpath := fmt.Sprintf("logs/%s", fileName)
-	file, err := os.OpenFile(fpath, os.O_RDONLY, os.ModePerm)
-	if err != nil {
+	file, err0 := os.OpenFile(fpath, os.O_RDONLY, os.ModePerm)
+	if err0 != nil {
 		defer file.Close()
-		os.Exit(0)
+		log.Error("os.OpenFile failed, err=", err0)
+		return
 	}
 
 	file.Seek(256*offset, 0)
