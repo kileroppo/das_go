@@ -82,15 +82,19 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int) {
 		log.Error("Msg json.Unmarshal, err=", err)
 		return
 	}
+	if "200" != data.Pus.Head.Http_code {
+		log.Error("get upgrade file failed, http_code: ", data.Pus.Head.Http_code)
+		return
+	}
 
 	part := strings.Split(data.Pus.Body.Part, ",")
 	log.Debug("len:", len(part), ", part[0]:", part[0], ", part[1]:", part[1])
 
 	md5 := strings.Split(data.Pus.Body.Md5, ",")
-	log.Debug("len:", len(md5), ", md5[0]:", md5[0], ", md5[1]:", md5[1])
+	//log.Debug("len:", len(md5), ", md5[0]:", md5[0], ", md5[1]:", md5[1])
 
 	fileUrl := strings.Split(data.Pus.Body.Url, ",")
-	log.Debug("len:", len(fileUrl), ", url[0]:", fileUrl[0], ", url[1]:", fileUrl[1])
+	//log.Debug("len:", len(fileUrl), ", url[0]:", fileUrl[0], ", url[1]:", fileUrl[1])
 
 	var pkgUrl string
 	var pkgMd5 string

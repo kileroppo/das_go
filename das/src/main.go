@@ -12,16 +12,17 @@ import (
 	"./core/rabbitmq"
 	"./mq/consumer"
 	"./mq/producer"
-			)
+				)
 
 func main() {
-	// upgrade.GetUpgradeFileInfo("866971031002111", "WonlyNBLock", 0)
-	// upgrade.TransferFileData("866971031002111", "WonlyNBLock", 0, 1, "mcu-v1.0.43.bin")
 	//1. 加载配置文件
 	conf := loadConfig()
 
 	//2. 初始化日志
 	initLogger(conf)
+
+	// upgrade.GetUpgradeFileInfo("866971031002111", "WonlyBtLock", 0)
+	// upgrade.TransferFileData("866971031002111", "WonlyBtLock", 0, 151, "mcu-v1.0.43.bin")
 
 	//3. 初始化Redis
 	redis.InitRedisSingle(conf)
