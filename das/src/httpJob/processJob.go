@@ -391,10 +391,16 @@ func (p *Serload) ProcessJob() error {
 			case constant.Notify_F_Upgrade:	// 通知前板升级（APP—后台—>锁）
 				{
 					log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
+
+					//1. 推到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Notify_B_Upgrade: // 通知后板升级（APP—后台—>锁）
 				{
 					log.Info("[", head.DevId, "] constant.Notify_B_Upgrade")
+
+					//1. 推到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Get_Upgrade_FileInfo: // 锁查询升级固件包信息
 				{
@@ -419,10 +425,16 @@ func (p *Serload) ProcessJob() error {
 			case constant.Upload_F_Upgrade_State: // 前板上传升级状态
 				{
 					log.Info("[", head.DevId, "] constant.Upload_F_Upgrade_State")
+
+					//1. 推到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Upload_B_Upgrade_State: // 后板上传升级状态
 				{
 					log.Info("[", head.DevId, "] constant.Upload_B_Upgrade_State")
+
+					//1. 推到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			default:
 				log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
