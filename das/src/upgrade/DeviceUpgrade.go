@@ -69,7 +69,7 @@ type TransferPkgData struct {
 	FileData string		`json:"fileData"`
 }
 
-func GetUpgradeFileInfo(devId string, devType string, seqId int) {
+func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 	body1, err1:= httpgo.Http2WonlyUpgrade(devType)
 	if nil != err1 {
 		log.Error("get upgrade file from wonly pus failed, err: ", err1)
@@ -98,14 +98,22 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int) {
 
 	var pkgUrl string
 	var pkgMd5 string
-	for i, v := range part {
-		if "mcu" == v {
+	pkgMd5 = md5[partId]
+	pkgUrl = fileUrl[partId]
+
+	for i, _ := range part {
+		if partId == i {
 			pkgMd5 = md5[i]
 			pkgUrl = fileUrl[i]
 			break
 		}
 	}
+
 	log.Debug("pkgMd5:", pkgMd5, ", pkgUrl:", pkgUrl)
+	if "" == pkgUrl && "" == pkgMd5 {
+		log.Error("GetUpgradeFileInfo pkgUrl pkgMd5 is null, check the partId, ", partId)
+		return
+	}
 
 	fileName, fileSize, err := Download(pkgUrl)
 	if nil != err {

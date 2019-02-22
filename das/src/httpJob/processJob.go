@@ -62,6 +62,16 @@ type SetDeviceTime struct {
 	Value int64			`json:"value"`
 }
 
+type UpgradeQuery struct {
+	Cmd int				`json:"cmd"`
+	Ack int      		`json:"ack"`
+	DevType string 		`json:"devType"`
+	DevId string 		`json:"devId"`
+	SeqId int			`json:"seqId"`
+
+	Part int			`json:"part"`
+}
+
 type UpgradeReq struct {
 	Cmd int				`json:"cmd"`
 	Ack int      		`json:"ack"`
@@ -406,8 +416,14 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("[", head.DevId, "] constant.Get_Upgrade_FileInfo")
 
+					var upQuery UpgradeQuery
+					if err := json.Unmarshal([]byte(p.pri), &upQuery); err != nil {
+						log.Error("UpgradeQuery json.Unmarshal, err=", err)
+						return err
+					}
+
 					// 获取升级包信息
-					upgrade.GetUpgradeFileInfo(head.DevId, head.DevType, head.SeqId)
+					upgrade.GetUpgradeFileInfo(head.DevId, head.DevType, head.SeqId, upQuery.Part)
 				}
 			case constant.Download_Upgrade_File: // 锁下载固件升级包（锁—>后台，分包传输）
 				{
