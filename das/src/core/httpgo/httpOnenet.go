@@ -62,7 +62,7 @@ func Http2OneNET_exe(imei string,  sBody string) {
 	}
 }
 
-func Http2OneNET_write(imei string,  sBody string) {
+func Http2OneNET_write(imei string,  sBody string) (respBody string, err error) {
 	log.Info("Http2OneNET_write imei=", imei)
 	mydata := "{\"data\":[{\"res_id\":5750,\"val\":'" + sBody + "'}]}"
 
@@ -91,7 +91,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	if err0 != nil {
 		// handle error
 		log.Error("Http2OneNET_write http.NewRequest()，error=", err0)
-		return
+		return "", err0
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -101,7 +101,7 @@ func Http2OneNET_write(imei string,  sBody string) {
 	if nil != err1 {
 		// handle error
 		log.Error("Http2OneNET_write client.Do, error=", err1)
-		return
+		return "", err1
 	}
 
 	defer resp.Body.Close()
@@ -111,19 +111,21 @@ func Http2OneNET_write(imei string,  sBody string) {
 		if err != nil {
 			// handle error
 			log.Error("Http2OneNET_write ioutil.ReadAll() 1，error=", err)
-			return
+			return "", err
 		}
 
 		log.Info("Http2OneNET_write() ", string(body))
+		return string(body), nil
 	} else {
 		log.Error("Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			// handle error
 			log.Error("Http2OneNET_write ioutil.ReadAll() 2, error=", err)
-			return
+			return "", err
 		}
 
 		log.Info("Http2OneNET_write() ", string(body))
+		return "", err1
 	}
 }

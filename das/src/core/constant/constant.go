@@ -66,4 +66,6 @@ const (
 	Upload_F_Upgrade_State = 0xC2	// 前板上传升级状态
 	Upload_B_Upgrade_State = 0xD0	// 后板上传升级状态
 
+	Device_Resp_TimeOut = 0x99		// 设备响应超时
+
 )
