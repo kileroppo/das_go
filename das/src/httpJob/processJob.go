@@ -38,6 +38,7 @@ type Header struct {
 	Ack int      		`json:"ack"`
 	DevType string 		`json:"devType"`
 	DevId string 		`json:"devId"`
+	Vendor string		`json:"vendor"`
 	SeqId int			`json:"seqId"`
 }
 
@@ -46,6 +47,7 @@ type DeviceActive struct {
 	Ack int      		`json:"ack"`
 	DevType string 		`json:"devType"`
 	DevId string 		`json:"devId"`
+	Vendor string		`json:"vendor"`
 	SeqId int			`json:"seqId"`
 
 	Time int64			`json:"time"`
@@ -56,6 +58,7 @@ type SetDeviceTime struct {
 	Ack int      		`json:"ack"`
 	DevType string 		`json:"devType"`
 	DevId string 		`json:"devId"`
+	Vendor string		`json:"vendor"`
 	SeqId int			`json:"seqId"`
 
 	ParaNo int			`json:"paraNo"`
@@ -67,6 +70,7 @@ type UpgradeQuery struct {
 	Ack int      		`json:"ack"`
 	DevType string 		`json:"devType"`
 	DevId string 		`json:"devId"`
+	Vendor string		`json:"vendor"`
 	SeqId int			`json:"seqId"`
 
 	Part int			`json:"part"`
@@ -77,6 +81,7 @@ type UpgradeReq struct {
 	Ack int      		`json:"ack"`
 	DevType string 		`json:"devType"`
 	DevId string 		`json:"devId"`
+	Vendor string		`json:"vendor"`
 	SeqId int			`json:"seqId"`
 
 	Offset int64		`json:"offset"`
@@ -132,6 +137,7 @@ func (p *Serload) ProcessJob() error {
 			toApp.Cmd = constant.Upload_lock_active
 			toApp.Ack = 0
 			toApp.DevType = ""
+			toApp.Vendor = ""
 			toApp.DevId = data.Msg.Imei
 			toApp.SeqId = 0
 			toApp.Time = nTime
@@ -243,6 +249,7 @@ func (p *Serload) ProcessJob() error {
 					toDev.Ack = 0
 					toDev.DevType = head.DevType
 					toDev.DevId = head.DevId
+					toDev.Vendor = head.Vendor
 					toDev.SeqId = 0
 					toDev.ParaNo = 7
 					toDev.Value = t.Unix()
