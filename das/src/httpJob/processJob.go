@@ -371,14 +371,14 @@ func (p *Serload) ProcessJob() error {
 					//3. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
-			case constant.Real_Video:
+			case constant.Real_Video:	// 实时视频
 				{
 					log.Info("[", head.DevId, "] constant.Upload_lock_active")
 
 					//1. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
-			case constant.Set_Wifi:
+			case constant.Set_Wifi:	// Wifi设置
 				{
 					log.Info("[", head.DevId, "] constant.Set_Wifi")
 					//1. 回复到APP
@@ -387,7 +387,7 @@ func (p *Serload) ProcessJob() error {
 					//2. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
-			case constant.Door_Call:
+			case constant.Door_Call:	// 门铃呼叫
 				{
 					log.Info("[", head.DevId, "] constant.Door_Call")
 					//1. 回复设备

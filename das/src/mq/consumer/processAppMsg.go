@@ -13,6 +13,8 @@ type Header struct {
 	Ack int      		`json:"ack"`
 	DevType string 		`json:"devType"`
 	DevId string 		`json:"devId"`
+	Vendor string		`json:"vendor"`
+	SeqId int			`json:"seqId"`
 }
 
 type RespOneNET struct {
