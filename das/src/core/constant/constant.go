@@ -57,6 +57,9 @@ const (
 	Set_Wifi	= 0x37			// Wifi设置
 	Door_Call 	= 0x38			// 门铃呼叫
 
+	// 锁状态
+	Door_State 	= 0x55			// 锁状态上报
+
 	//NB锁升级
 	Notify_F_Upgrade = 0xE0		// 通知前板升级（APP—后台—>锁）
 	Notify_B_Upgrade = 0xE1		// 通知后板升级（APP—后台—>锁）

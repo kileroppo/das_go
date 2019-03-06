@@ -405,6 +405,24 @@ func (p *Serload) ProcessJob() error {
 					//3. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
+			case constant.Door_State:	// 锁状态上报
+				{
+					log.Info("[", head.DevId, "] constant.Door_Call")
+					//1. 回复设备
+					head.Ack = 1
+					if toDevice_str, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Door_State, resp to device, ", string(toDevice_str))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					} else {
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
+					}
+
+					//2. 推到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+
+					//3. 需要存到mongodb
+					producer.SendMQMsg2Db(data.Msg.Value)
+				}
 			case constant.Notify_F_Upgrade:	// 通知前板升级（APP—后台—>锁）
 				{
 					log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
