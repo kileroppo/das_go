@@ -407,7 +407,7 @@ func (p *Serload) ProcessJob() error {
 				}
 			case constant.Door_State:	// 锁状态上报
 				{
-					log.Info("[", head.DevId, "] constant.Door_Call")
+					log.Info("[", head.DevId, "] constant.Door_State")
 					//1. 回复设备
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
