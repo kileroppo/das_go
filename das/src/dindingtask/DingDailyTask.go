@@ -29,7 +29,7 @@ type timerHandler struct {
 
 func AddTimerTask(dueInterval int, taskId string) {
 	timerCtl.AddFuncWithId(time.Duration(dueInterval)*time.Second, taskId, func() {
-		log.Debug("taskid is %v, time Duration is %v", taskId, dueInterval )
+		log.Debug("AddFuncWithId() taskid is ", taskId, ", time Duration is ", dueInterval )
 	})
 }
 
@@ -47,7 +47,7 @@ func StartMyTimer()  {
 		interval := 1000 * time.Millisecond
 		taskId := strconv.Itoa(0)
 		timerCtl.AddFuncWithId(2 * interval, taskId, func() {
-			log.Debug("taskid is %v, time Duration is %v \n", taskId, interval )
+			log.Debug("StartMyTimer() timer is doing...... taskid is ", taskId, ", time Duration is ", interval )
 			t := time.Now()
 			time1 := time.Date(t.Year(), t.Month(), t.Day(), 14, 0, 0, 0, time.Local)
 			time2 := time.Date(t.Year(), t.Month(), t.Day(), 14, 0, 6, 0, time.Local)
