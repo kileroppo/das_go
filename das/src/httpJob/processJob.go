@@ -267,14 +267,10 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("[", head.DevId, "] constant.Set_dev_para")
 					//1. 回复到APP
-					if 0 != head.Ack {
-						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-					}
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 
 					//2. 需要存到mongodb
-					if 1 == head.Ack {
-						producer.SendMQMsg2Db(data.Msg.Value)
-					}
+					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Update_dev_para: // 设备参数更新上报
 				{
@@ -304,13 +300,20 @@ func (p *Serload) ProcessJob() error {
 			case constant.Factory_reset: // 恢复出厂设置
 				{
 					log.Info("[", head.DevId, "] constant.Factory_reset")
-					//1. 重置设备用户列表mongodb
+					//1. 回复设备
+					head.Ack = 1
+					if toDevice_str, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Factory_reset, resp to device, ", string(toDevice_str))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					} else {
+						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
+					}
+
+					//2. 重置设备用户列表mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 
-					//2. 回复到APP
-					if 0 != head.Ack {
-						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-					}
+					//3. 回复到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Upload_open_log: // 门锁开门日志上报
 				{

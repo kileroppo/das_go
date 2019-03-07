@@ -12,6 +12,7 @@ import (
 	"./core/rabbitmq"
 	"./mq/consumer"
 	"./mq/producer"
+	"./dindingtask"
 				)
 
 func main() {
@@ -20,9 +21,6 @@ func main() {
 
 	//2. 初始化日志
 	initLogger(conf)
-
-	// upgrade.GetUpgradeFileInfo("866971031002111", "WonlyBtLock", 0)
-	// upgrade.TransferFileData("866971031002111", "WonlyBtLock", 0, 151, "mcu-v1.0.43.bin")
 
 	//3. 初始化Redis
 	redis.InitRedisSingle(conf)
@@ -44,7 +42,11 @@ func main() {
 	consumer.InitRmq_Ex_Que_Name(conf)
 	go consumer.ReceiveMQMsgFromAPP()
 
-	//9. 启动http/https服务
+	// 9. 启动定时器
+	dindingtask.InitTimer_IsStart(conf)
+	dindingtask.StartMyTimer()
+
+	//10. 启动http/https服务
 	httpServerStart(conf)
 
 	log.Info("quit")
