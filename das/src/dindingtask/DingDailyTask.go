@@ -42,7 +42,7 @@ func StartMyTimer()  {
 	if 1 == timer_is_start {
 		log.Debug("StartMyTimer()......" )
 		cronJob = cron.New()
-		spec := "0 0 15 * * 1-5" //定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
+		spec := "0 0 14 * * 1-5" //定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
 		cronJob.AddFunc(spec, func() {
 			t := time.Now()
 			t3 := t.Format("2006-01-02 15:04:05")
