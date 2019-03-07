@@ -49,6 +49,9 @@ func main() {
 	//10. 启动http/https服务
 	httpServerStart(conf)
 
+	// 11. 停止定时器
+	dindingtask.StopMyTimer()
+
 	log.Info("quit")
 }
 
