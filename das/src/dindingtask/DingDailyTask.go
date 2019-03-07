@@ -15,7 +15,7 @@ var (
 
 var timer_is_start int
 
-//初始化RabbitMQ交换器，消息队列名称
+//初始化
 func InitTimer_IsStart(conf *goconf.ConfigFile) {
 	timer_is_start, _ = conf.GetInt("timer", "is_start")
 }
