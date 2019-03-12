@@ -160,14 +160,14 @@ func (p *Serload) ProcessJob() error {
 			log.Debug("中文：", ret)*/
 
 			log.Debug("ProcessJob() data.Msg.Value before: ", data.Msg.Value)
-			strOneNetData := strings.Replace(data.Msg.Value, "#", ",", -1)
-			log.Debug("ProcessJob() data.Msg.Value after: ", strOneNetData)
+			data.Msg.Value = strings.Replace(data.Msg.Value, "#", ",", -1)
+			log.Debug("ProcessJob() data.Msg.Value after: ", data.Msg.Value)
 
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
 			var head Header
-			if err := json.Unmarshal([]byte(strOneNetData), &head); err != nil {
+			if err := json.Unmarshal([]byte(data.Msg.Value), &head); err != nil {
 				log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
 				break
 			}
