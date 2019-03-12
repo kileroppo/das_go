@@ -28,6 +28,7 @@ type OneMsg struct {
 	Status int			`json:"status"`				// 设备上下线标识：0-下线, 1-上线
 	Login_type int		`json:"login_type"`
 }
+
 type OneNETData struct {
 	Msg_signature string	`json:"msg_signature"`
 	Nonce string			`json:"nonce"`
@@ -158,8 +159,9 @@ func (p *Serload) ProcessJob() error {
 			log.Debugf("中文：%s", ret)
 			log.Debug("中文：", ret)*/
 
-			strings.Replace(data.Msg.Value, ",", "#", -1)
-			log.Debug("ProcessJob() data.Msg.Value: ", data.Msg.Value)
+			log.Debug("ProcessJob() data.Msg.Value before: ", data.Msg.Value)
+			strings.Replace(data.Msg.Value, "#", ",", -1)
+			log.Debug("ProcessJob() data.Msg.Value after: ", data.Msg.Value)
 
 
 			// 2、解析王力的消息
