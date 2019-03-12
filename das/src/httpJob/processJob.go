@@ -110,9 +110,6 @@ func (p *Serload) ProcessJob() error {
 	// 处理OneNET推送过来的消息
 	log.Info("process msg from onenet before: ", p.pri)
 
-	strings.Replace(p.pri, ",", "#", -1)
-	log.Info("process msg from onenet after: ", p.pri)
-
 	// 1、解析OneNET消息
 	var data OneNETData
 	if err := json.Unmarshal([]byte(p.pri), &data); err != nil {
@@ -160,6 +157,10 @@ func (p *Serload) ProcessJob() error {
 			/*ret, _ := hex.DecodeString(data.Msg.Value)
 			log.Debugf("中文：%s", ret)
 			log.Debug("中文：", ret)*/
+
+			strings.Replace(data.Msg.Value, ",", "#", -1)
+			log.Debug("ProcessJob() data.Msg.Value: ", data.Msg.Value)
+
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
