@@ -11,6 +11,7 @@ import (
 	"time"
 	"../core/httpgo"
 	"../upgrade"
+	"strings"
 )
 
 type Serload struct {
