@@ -107,7 +107,10 @@ func convertOctonaryUtf8(in string) string {
 */
 func (p *Serload) ProcessJob() error {
 	// 处理OneNET推送过来的消息
-	log.Info("process msg from onenet: ", p.pri)
+	log.Info("process msg from onenet before: ", p.pri)
+
+	strings.Replace(p.pri, ",", "#", -1)
+	log.Info("process msg from onenet after: ", p.pri)
 
 	// 1、解析OneNET消息
 	var data OneNETData
