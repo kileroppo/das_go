@@ -7,7 +7,8 @@ import (
 
 var (
 	// Max_Num = os.Getenv("MAX_NUM")
-	MaxWorker = runtime.NumCPU()/2
+	// MaxWorker = runtime.NumCPU()/2
+	MaxWorker = runtime.NumCPU()
 	MaxQueue  = 1000
 )
 
