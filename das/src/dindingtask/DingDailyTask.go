@@ -42,13 +42,38 @@ func StartMyTimer()  {
 	if 1 == timer_is_start {
 		log.Debug("StartMyTimer()......" )
 		cronJob = cron.New()
-		spec := "0 0 14 * * 1-5" //定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
-		cronJob.AddFunc(spec, func() {
+		specDaily := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
+		specWeek := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
+		specMonth := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
+		specYear := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
+		cronJob.AddFunc(specDaily, func() {
 			t := time.Now()
 			t3 := t.Format("2006-01-02 15:04:05")
 			log.Debug(t3, ", StartMyTimer() timer is doing......")
 			httpgo.Http2DingDaily()
 		}, "DingDailyTask")
+
+		cronJob.AddFunc(specWeek, func() {
+			t := time.Now()
+			t3 := t.Format("2006-01-02 15:04:05")
+			log.Debug(t3, ", StartMyTimer() timer is doing......")
+			httpgo.Http2DingDaily()
+		}, "DingWeekTask")
+
+		cronJob.AddFunc(specMonth, func() {
+			t := time.Now()
+			t3 := t.Format("2006-01-02 15:04:05")
+			log.Debug(t3, ", StartMyTimer() timer is doing......")
+			httpgo.Http2DingDaily()
+		}, "DingMonthTask")
+
+		cronJob.AddFunc(specYear, func() {
+			t := time.Now()
+			t3 := t.Format("2006-01-02 15:04:05")
+			log.Debug(t3, ", StartMyTimer() timer is doing......")
+			httpgo.Http2DingDaily()
+		}, "DingYearTask")
+
 		cronJob.Start()
 	}
 
@@ -75,8 +100,13 @@ func StartMyTimer()  {
 func StopMyTimer()  {
 	if 1 == timer_is_start {
 		log.Debug("StopMyTimer()......" )
+
 		// Remove an entry from the cron by name.
+		log.Debug("StopMyTimer() RemoveJob()......" )
 		cronJob.RemoveJob("DingDailyTask")
+		cronJob.RemoveJob("DingWeekTask")
+		cronJob.RemoveJob("DingMonthTask")
+		cronJob.RemoveJob("DingYearTask")
 
 		cronJob.Stop() // Stop the scheduler (does not stop any jobs already running).
 	}

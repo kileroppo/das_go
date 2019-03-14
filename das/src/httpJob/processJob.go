@@ -64,7 +64,7 @@ type SetDeviceTime struct {
 	SeqId int			`json:"seqId"`
 
 	ParaNo int			`json:"paraNo"`
-	Value int64			`json:"value"`
+	PaValue int64		`json:"paValue"`
 }
 
 type UpgradeQuery struct {
@@ -259,7 +259,7 @@ func (p *Serload) ProcessJob() error {
 					toDev.Vendor = head.Vendor
 					toDev.SeqId = 0
 					toDev.ParaNo = 7
-					toDev.Value = t.Unix()
+					toDev.PaValue = t.Unix()
 					if toDevice_set, err := json.Marshal(toDev); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_set))
 						httpgo.Http2OneNET_write(head.DevId, string(toDevice_set))
