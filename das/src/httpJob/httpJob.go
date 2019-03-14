@@ -11,8 +11,8 @@ import (
 
 var (
 	// Max_Num = os.Getenv("MAX_NUM")
-	MaxWorker = runtime.NumCPU()/2
-	// MaxWorker = runtime.NumCPU()
+	// MaxWorker = runtime.NumCPU()/2
+	MaxWorker = runtime.NumCPU()
 	MaxQueue  = 1000
 )
 
@@ -119,6 +119,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			// fetch job
 			work := Job { serload: Serload { pri : bytes.NewBuffer(result).String() }}
 			JobQueue <- work
+			log.Debug("httpJob.Entry() get: ", bytes.NewBuffer(result).String())
 		}
 	}
 }
