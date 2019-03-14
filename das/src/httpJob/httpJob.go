@@ -7,12 +7,13 @@ import (
 	"io/ioutil"
 	"bytes"
 	"../core/log"
+	"io"
 )
 
 var (
 	// Max_Num = os.Getenv("MAX_NUM")
-	// MaxWorker = runtime.NumCPU()/2
-	MaxWorker = runtime.NumCPU()
+	MaxWorker = runtime.NumCPU()/2
+	// MaxWorker = runtime.NumCPU()
 	MaxQueue  = 1000
 )
 
@@ -120,6 +121,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			work := Job { serload: Serload { pri : bytes.NewBuffer(result).String() }}
 			JobQueue <- work
 		}
+		io.WriteString(res, "ok")
 	}
 }
 
