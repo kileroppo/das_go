@@ -7,8 +7,7 @@ import (
 	"io/ioutil"
 	"bytes"
 	"../core/log"
-	"io"
-)
+	)
 
 var (
 	// Max_Num = os.Getenv("MAX_NUM")
@@ -121,7 +120,6 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			work := Job { serload: Serload { pri : bytes.NewBuffer(result).String() }}
 			JobQueue <- work
 		}
-		io.WriteString(res, "ok")
 	}
 }
 
