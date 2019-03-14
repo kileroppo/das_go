@@ -123,15 +123,15 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
 	}
 
-	/*queue_name, _ := channelContext.Channel.QueueDeclare(
+	queue_name, _ := channelContext.Channel.QueueDeclare(
 		"",  					// name, leave empty to generate a unique name
 		false,  				// durable
 		false, 			// delete when usused
 		false, 			// exclusive
 		false, 				// noWait
 		amqp.Table{
-			"x-message-ttl": int32(5000),
-			"x-expires": int32(10000)},   // arguments
+			/*"x-message-ttl": int32(5000),*/
+			"x-expires": int32(1000)},   // arguments
 	)
 
 	channelContext.Channel.QueueBind(
@@ -140,7 +140,7 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 		channelContext.Exchange, // sourceExchange
 		false,    // noWait
 		nil,      	  // arguments
-	)*/
+	)
 
 	if err := channelContext.Channel.Publish(
 		channelContext.Exchange,    // publish to an exchange

@@ -21,80 +21,51 @@ func InitTimer_IsStart(conf *goconf.ConfigFile) {
 	timer_is_start, _ = conf.GetInt("timer", "is_start")
 }
 
-/*func (t *timerHandler) myinit() {
-	timerCtl =  timer.New(1, 2)
-}
-
-type timerHandler struct {
-}
-
-func AddTimerTask(dueInterval int, taskId string) {
-	timerCtl.AddFuncWithId(time.Duration(dueInterval)*time.Second, taskId, func() {
-		log.Debug("AddFuncWithId() taskid is ", taskId, ", time Duration is ", dueInterval )
-	})
-}
-
-func (t *timerHandler) StartLoop() {
-	timerCtl.StartTimerLoop(timer.MIN_TIMER) // 扫描的间隔时间 eq cpu hz/tick
-}*/
-
 func StartMyTimer()  {
 	if 1 == timer_is_start {
 		log.Debug("StartMyTimer()......" )
+
 		cronJob = cron.New()
-		specDaily := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
-		specWeek := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
-		specMonth := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
-		specYear := "0 0 14 * * 1-5" 	// 定义执行时间点 参照上面的说明可知 执行时间为 周一至周五每天14:00:00执行
+		specDaily 	:= "0 0 15 * * 1-5" 		// 定义执行时间点 参照上面的说明可知 执行时间为：周一至周五每天15:00:00执行
+		specWeek 	:= "0 30 15 * * 5" 			// 定义执行时间点 参照上面的说明可知 执行时间为：每周的周五15:30:00执行
+		specMonth 	:= "0 0 16 23-28 * *" 		// 定义执行时间点 参照上面的说明可知 执行时间为：每个月的23日至28日16:00:00执行
+		specYear 	:= "0 30 16 15-20 12 *" 	// 定义执行时间点 参照上面的说明可知 执行时间为：12月15-20日16:30:00执行
+
+		reqDaily := "我是机器人小艾, 提醒大家：没有发日计划与总结的请及时发日计划与总结，否则罚款20元/次；日计划与总结上交时间为当日下班至次日上班前。"
+		reqWeek := "我是机器人小艾, 提醒大家：又到周五了，大家的心情是不是又很嗨呢，别忘发周计划与总结，请及时发周计划与总结，否则罚款20元/次；周计划与总结上交时间为周五下班至周一上班前。"
+		reqMonth := "我是机器人小艾, 提醒大家：月底了，没有发月计划与总结的请及时发月计划与总结，否则罚款20元/次；月计划时间为每月28日前，月总结为每月4日前。"
+		reqYear := "我是机器人小艾, 提醒大家：没有发年计划与总结的请及时发年计划与总结，否则罚款20元/次；年计划上交时间每年12月20日前，年总结每年1月10日前。"
+
 		cronJob.AddFunc(specDaily, func() {
 			t := time.Now()
 			t3 := t.Format("2006-01-02 15:04:05")
-			log.Debug(t3, ", StartMyTimer() timer is doing......")
-			httpgo.Http2DingDaily()
+			log.Debug(t3, ", StartMyTimer() DingDailyTask timer is doing......")
+			httpgo.Http2DingDaily(reqDaily)
 		}, "DingDailyTask")
 
 		cronJob.AddFunc(specWeek, func() {
 			t := time.Now()
 			t3 := t.Format("2006-01-02 15:04:05")
-			log.Debug(t3, ", StartMyTimer() timer is doing......")
-			httpgo.Http2DingDaily()
+			log.Debug(t3, ", StartMyTimer() DingWeekTask timer is doing......")
+			httpgo.Http2DingDaily(reqWeek)
 		}, "DingWeekTask")
 
 		cronJob.AddFunc(specMonth, func() {
 			t := time.Now()
 			t3 := t.Format("2006-01-02 15:04:05")
-			log.Debug(t3, ", StartMyTimer() timer is doing......")
-			httpgo.Http2DingDaily()
+			log.Debug(t3, ", StartMyTimer() DingMonthTask timer is doing......")
+			httpgo.Http2DingDaily(reqMonth)
 		}, "DingMonthTask")
 
 		cronJob.AddFunc(specYear, func() {
 			t := time.Now()
 			t3 := t.Format("2006-01-02 15:04:05")
-			log.Debug(t3, ", StartMyTimer() timer is doing......")
-			httpgo.Http2DingDaily()
+			log.Debug(t3, ", StartMyTimer() DingYearTask timer is doing......")
+			httpgo.Http2DingDaily(reqYear)
 		}, "DingYearTask")
 
 		cronJob.Start()
 	}
-
-	/*if 1 == timer_is_start {
-		log.Debug("StartMyTimer()......" )
-		timerEntry := timerHandler{}
-		timerEntry.myinit()
-		timerEntry.StartLoop()
-
-		interval := 1000 * time.Millisecond
-		taskId := strconv.Itoa(0)
-		timerCtl.AddFuncWithId(2 * interval, taskId, func() {
-			log.Debug("StartMyTimer() timer is doing...... taskid is ", taskId, ", time Duration is ", interval )
-			t := time.Now()
-			time1 := time.Date(t.Year(), t.Month(), t.Day(), 14, 0, 0, 0, time.Local)
-			time2 := time.Date(t.Year(), t.Month(), t.Day(), 14, 0, 6, 0, time.Local)
-			if t.Unix() >= time1.Unix() && t.Unix() <= time2.Unix() { // 执行时间段：每天的下午2点0秒到6秒之间执行一次
-				httpgo.Http2DingDaily()
-			}
-		})
-	}*/
 }
 
 func StopMyTimer()  {

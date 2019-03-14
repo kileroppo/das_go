@@ -13,7 +13,7 @@ import (
 	"./mq/consumer"
 	"./mq/producer"
 	"./dindingtask"
-				)
+		)
 
 func main() {
 	//1. 加载配置文件
@@ -49,6 +49,31 @@ func main() {
 	//10. 启动http/https服务
 	httpServerStart(conf)
 
+	// Handle SIGINT and SIGTERM.
+	/*ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
+	s := <-ch
+	switch s {
+	case syscall.SIGINT:
+		log.Infof("SIGINT")
+		return
+	case syscall.SIGTERM:
+		log.Infof("SIGTERM")
+		return
+	case syscall.SIGQUIT:
+		log.Infof("SIGSTOP")
+		return
+	case syscall.SIGHUP:
+		log.Infof("SIGHUP")
+		return
+	case syscall.SIGKILL:
+		log.Infof("SIGKILL")
+		return
+	default:
+		log.Infof("default")
+		return
+	}*/
+
 	// 11. 停止定时器
 	dindingtask.StopMyTimer()
 
@@ -72,7 +97,8 @@ func httpServerStart(conf *goconf.ConfigFile) {
 			log.Debug(http.ListenAndServeTLS(":"+strconv.Itoa(httpsPort), serverCrt, serverKey, nil))
 		} else {
 			httpPort, _ := conf.GetInt("http", "http_port")
-			log.Debug(http.ListenAndServe(":"+strconv.Itoa(httpPort), nil))
+			log.Debug("httpServerStart http.ListenAndServe()......")
+			http.ListenAndServe(":"+strconv.Itoa(httpPort), nil)
 		}
 	}
 }

@@ -9,9 +9,9 @@ import (
 	"../log"
 )
 
-func Http2DingDaily() (respBody string, err error) {
+func Http2DingDaily(reqBody string) (respBody string, err error) {
 	log.Info("Http2DingDaily()......")
-	mydata := "{\"msgtype\":\"text\",\"text\":{\"content\":\"我是机器人小艾, 提醒大家：没有发日报的请及时发日报，否则罚款20元/次；日报上交时间当日13时至次日8时。\"},\"at\":{\"atMobiles\":[],\"isAtAll\":true}}"
+	mydata := "{\"msgtype\":\"text\",\"text\":{\"content\":\"" + reqBody + "\"},\"at\":{\"atMobiles\":[],\"isAtAll\":true}}"
 
 	req_body := bytes.NewBuffer([]byte(mydata))
 	log.Debug(req_body)
