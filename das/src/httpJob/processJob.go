@@ -208,7 +208,7 @@ func (p *Serload) ProcessJob() error {
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Del_dev_user, resp to device, ", string(toDevice_str))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -244,7 +244,7 @@ func (p *Serload) ProcessJob() error {
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_str))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -262,7 +262,7 @@ func (p *Serload) ProcessJob() error {
 					toDev.PaValue = t.Unix()
 					if toDevice_set, err := json.Marshal(toDev); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_set))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_set))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_set))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -287,7 +287,7 @@ func (p *Serload) ProcessJob() error {
 
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Update_dev_para, resp to device, ", string(toDevice_str))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -311,7 +311,7 @@ func (p *Serload) ProcessJob() error {
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Factory_reset, resp to device, ", string(toDevice_str))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -365,7 +365,7 @@ func (p *Serload) ProcessJob() error {
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_lock_active, resp to device, ", string(toDevice_str))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -404,7 +404,7 @@ func (p *Serload) ProcessJob() error {
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Door_Call, resp to device, ", string(toDevice_str))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -422,7 +422,7 @@ func (p *Serload) ProcessJob() error {
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Door_State, resp to device, ", string(toDevice_str))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
