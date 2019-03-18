@@ -179,7 +179,7 @@ func (p *Serload) ProcessJob() error {
 					log.Info("[", head.DevId, "] constant.Add_dev_user")
 
 					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					// producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Set_dev_user_temp: // 设置临时用户
 				{
