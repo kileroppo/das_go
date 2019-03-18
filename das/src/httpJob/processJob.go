@@ -204,7 +204,12 @@ func (p *Serload) ProcessJob() error {
 			case constant.Update_dev_user: // 用户更新上报
 				{
 					log.Info("[", head.DevId, "] constant.Update_dev_user")
-					//1. 回复设备
+					//1. 更新设备用户操作需要存到mongodb
+					if 0 == head.Ack {
+						producer.SendMQMsg2Db(data.Msg.Value)
+					}
+
+					//2. 回复设备
 					head.Ack = 1
 					if toDevice_str, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Del_dev_user, resp to device, ", string(toDevice_str))
@@ -212,9 +217,6 @@ func (p *Serload) ProcessJob() error {
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
-
-					//2. 更新设备用户操作需要存到mongodb
-					producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Sync_dev_user: // 同步设备用户列表
 				{
