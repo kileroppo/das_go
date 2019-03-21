@@ -12,83 +12,13 @@ import (
 	"../core/httpgo"
 	"../upgrade"
 	"strings"
+	"../core/entity"
 )
 
 type Serload struct {
 	pri string
 }
 
-type OneMsg struct {
-	At int64			`json:"at"`
-	Msgtype int			`json:"type"`				// 数据点消息(type=1)，设备上下线消息(type=2)
-	Value string		`json:"value"`
-	Imei string			`json:"imei"`
-	Dev_id int			`json:"dev_id"`
-	Ds_id string		`json:"ds_id"`
-	Status int			`json:"status"`				// 设备上下线标识：0-下线, 1-上线
-	Login_type int		`json:"login_type"`
-}
-
-type OneNETData struct {
-	Msg_signature string	`json:"msg_signature"`
-	Nonce string			`json:"nonce"`
-	Msg OneMsg 				`json:"msg"`
-}
-
-type Header struct {
-	Cmd int				`json:"cmd"`
-	Ack int      		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId string 		`json:"devId"`
-	Vendor string		`json:"vendor"`
-	SeqId int			`json:"seqId"`
-}
-
-type DeviceActive struct {
-	Cmd int				`json:"cmd"`
-	Ack int      		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId string 		`json:"devId"`
-	Vendor string		`json:"vendor"`
-	SeqId int			`json:"seqId"`
-
-	Time int64			`json:"time"`
-}
-
-type SetDeviceTime struct {
-	Cmd int				`json:"cmd"`
-	Ack int      		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId string 		`json:"devId"`
-	Vendor string		`json:"vendor"`
-	SeqId int			`json:"seqId"`
-
-	ParaNo int			`json:"paraNo"`
-	PaValue int64		`json:"paValue"`
-}
-
-type UpgradeQuery struct {
-	Cmd int				`json:"cmd"`
-	Ack int      		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId string 		`json:"devId"`
-	Vendor string		`json:"vendor"`
-	SeqId int			`json:"seqId"`
-
-	Part int			`json:"part"`
-}
-
-type UpgradeReq struct {
-	Cmd int				`json:"cmd"`
-	Ack int      		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId string 		`json:"devId"`
-	Vendor string		`json:"vendor"`
-	SeqId int			`json:"seqId"`
-
-	Offset int64		`json:"offset"`
-	FileName string		`json:"fileName"`
-}
 
 // 转换8进制utf-8字符串到中文
 // eg: `\346\200\241` -> 怡
@@ -112,7 +42,7 @@ func (p *Serload) ProcessJob() error {
 	log.Info("process msg from onenet before: ", p.pri)
 
 	// 1、解析OneNET消息
-	var data OneNETData
+	var data entity.OneNETData
 	if err := json.Unmarshal([]byte(p.pri), &data); err != nil {
 		log.Error("OneNETData json.Unmarshal, err=", err)
 		return nil
@@ -135,7 +65,7 @@ func (p *Serload) ProcessJob() error {
 			redis.SetData(data.Msg.Imei, nTime)
 
 			//struct 到json str
-			var toApp DeviceActive
+			var toApp entity.DeviceActive
 			toApp.Cmd = constant.Upload_lock_active
 			toApp.Ack = 0
 			toApp.DevType = ""
@@ -166,7 +96,7 @@ func (p *Serload) ProcessJob() error {
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
-			var head Header
+			var head entity.Header
 			if err := json.Unmarshal([]byte(data.Msg.Value), &head); err != nil {
 				log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
 				break
@@ -253,7 +183,7 @@ func (p *Serload) ProcessJob() error {
 
 					//2. 设置设备时间
 					t := time.Now()
-					var toDev SetDeviceTime
+					var toDev entity.SetDeviceTime
 					toDev.Cmd = constant.Set_dev_para
 					toDev.Ack = 0
 					toDev.DevType = head.DevType
@@ -374,7 +304,7 @@ func (p *Serload) ProcessJob() error {
 
 					//2. 锁唤醒，存入redis
 					//json str 转struct(部份字段)
-					var devAct DeviceActive
+					var devAct entity.DeviceActive
 					if err := json.Unmarshal([]byte(data.Msg.Value), &devAct); err != nil {
 						log.Error("[", head.DevId, "] DeviceActive json.Unmarshal, err=", err)
 					}
@@ -453,7 +383,7 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("[", head.DevId, "] constant.Get_Upgrade_FileInfo")
 
-					var upQuery UpgradeQuery
+					var upQuery entity.UpgradeQuery
 					if err := json.Unmarshal([]byte(p.pri), &upQuery); err != nil {
 						log.Error("UpgradeQuery json.Unmarshal, err=", err)
 						return err
@@ -465,7 +395,7 @@ func (p *Serload) ProcessJob() error {
 			case constant.Download_Upgrade_File: // 锁下载固件升级包（锁—>后台，分包传输）
 				{
 					log.Info("[", head.DevId, "] constant.Download_Upgrade_File")
-					var upReq UpgradeReq
+					var upReq entity.UpgradeReq
 					if err := json.Unmarshal([]byte(data.Msg.Value), &upReq); err != nil {
 						log.Error("[", head.DevId, "] UpgradeReq json.Unmarshal, err=", err)
 						return err
