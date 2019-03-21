@@ -114,7 +114,7 @@ func Http2OneNET_write(imei string,  sBody string) (respBody string, err error) 
 			return "", err
 		}
 
-		log.Info("Http2OneNET_write() ", string(body))
+		log.Debug("Http2OneNET_write() ", string(body))
 		return string(body), nil
 	} else {
 		log.Error("Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
@@ -125,7 +125,7 @@ func Http2OneNET_write(imei string,  sBody string) (respBody string, err error) 
 			return "", err
 		}
 
-		log.Info("Http2OneNET_write() ", string(body))
+		log.Debug("Http2OneNET_write() ", string(body))
 		return "", err1
 	}
 }

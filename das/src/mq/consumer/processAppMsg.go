@@ -34,6 +34,7 @@ func (p *AppMsg) ProcessAppMsg() error {
 	imei := head.DevId
 
 	respStr, err := httpgo.Http2OneNET_write(imei, p.pri)
+	log.Debug("[", head.DevId, "] ProcessAppMsg->Http2OneNET_write(), ", respStr)
 	if "" != respStr && nil == err {
 		var respOneNET entity.RespOneNET
 		if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {
