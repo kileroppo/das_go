@@ -49,6 +49,8 @@ const (
 	Nolock_alarm = 0x26			// 门未关报警
 	Low_battery_alarm = 0x2A	// 锁体的电池，低电量报警
 
+	Lock_PIC_Upload = 0x2F		// 视频锁图片上报
+
 	// 锁激活
 	Upload_lock_active = 0x46	// 锁激活状态上报
 

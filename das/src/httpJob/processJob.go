@@ -290,6 +290,13 @@ func (p *Serload) ProcessJob() error {
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
+			case constant.Lock_PIC_Upload:	// 视频锁图片上报
+				{
+					log.Info("[", head.DevId, "] constant.Lock_PIC_Upload")
+
+					//1. 需要存到mongodb
+					producer.SendMQMsg2Db(data.Msg.Value)
+				}
 			case constant.Upload_lock_active: // 锁激活状态上报
 				{
 					log.Info("[", head.DevId, "] constant.Upload_lock_active")
