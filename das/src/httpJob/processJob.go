@@ -88,11 +88,8 @@ func (p *Serload) ProcessJob() error {
 			/*ret, _ := hex.DecodeString(data.Msg.Value)
 			log.Debugf("中文：%s", ret)
 			log.Debug("中文：", ret)*/
-
-			log.Debug("ProcessJob() data.Msg.Value before: ", data.Msg.Value)
 			data.Msg.Value = strings.Replace(data.Msg.Value, "#", ",", -1)
 			log.Debug("ProcessJob() data.Msg.Value after: ", data.Msg.Value)
-
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
@@ -123,7 +120,7 @@ func (p *Serload) ProcessJob() error {
 					log.Info("[", head.DevId, "] constant.Add_dev_user_step")
 
 					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					// producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Del_dev_user: // 删除设备用户
 				{
