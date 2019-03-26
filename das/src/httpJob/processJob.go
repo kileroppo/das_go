@@ -357,7 +357,7 @@ func (p *Serload) ProcessJob() error {
 					}
 
 					//2. 推到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					// producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 
 					//3. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
