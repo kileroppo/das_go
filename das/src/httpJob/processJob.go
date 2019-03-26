@@ -121,8 +121,17 @@ func (p *Serload) ProcessJob() error {
 				{
 					log.Info("[", head.DevId, "] constant.Add_dev_user_step")
 
-					//1. 回复到APP
-					// producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					//1. 判断是否失败，失败则通知APP
+					var addUserStep entity.AddDevUserStep
+					if err_step := json.Unmarshal([]byte(data.Msg.Value), &addUserStep); err_step != nil {
+						log.Error("[", head.DevId, "] entity.AddDevUserStep json.Unmarshal, err_step=", err_step)
+						break
+					}
+
+					if 1 == addUserStep.StepState {
+						// 回复到APP
+						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					}
 				}
 			case constant.Del_dev_user: // 删除设备用户
 				{
