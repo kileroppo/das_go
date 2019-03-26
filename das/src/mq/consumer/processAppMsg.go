@@ -20,7 +20,7 @@ type AppMsg struct {
 *
 */
 func (p *AppMsg) ProcessAppMsg() error {
-	log.Info("ProcessAppMsg process msg from app: ", p.pri)
+	log.Debug("ProcessAppMsg process msg from app: ", p.pri)
 
 	// 1、解析消息
 	//json str 转struct(部份字段)
