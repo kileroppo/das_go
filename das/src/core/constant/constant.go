@@ -26,6 +26,9 @@ const SmsCodePrefix = "sms_"     //短信验证码的redis键值前缀
 const HttpTimeOut = 30 //http请求超时时间
 
 const (
+	API_VERSION = 108			// 协议版本号
+	SERVICE_TYPE = 0x06			// 服务类型（DAS (0x06)）
+
 	Add_dev_user = 0x33			// 添加设备用户
 	Set_dev_user_temp = 0x76	// 设置临时用户
 	Add_dev_user_step = 0x34	// 新增用户步骤

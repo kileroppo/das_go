@@ -2,13 +2,18 @@ package consumer
 
 import (
 	"../../core/httpgo"
+	"bytes"
+	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"../../core/log"
 	"../../core/constant"
 	"../producer"
 	"../../core/entity"
 	"../../core/redis"
-		)
+	"strings"
+	"../../core/util"
+)
 
 
 type AppMsg struct {
@@ -33,7 +38,25 @@ func (p *AppMsg) ProcessAppMsg() error {
 	// 将命令发到OneNET
 	imei := head.DevId
 
-	respStr, err := httpgo.Http2OneNET_write(imei, p.pri)
+	// 加密数据
+	var toDevHead entity.MyHeader
+	toDevHead.ApiVersion = constant.API_VERSION
+	toDevHead.ServiceType = constant.SERVICE_TYPE
+
+	myKey := util.MD52Bytes(head.DevId)
+	var strToDevData string
+	var err error
+	if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt([]byte(p.pri), myKey); err == nil {
+		toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+
+		buf := new(bytes.Buffer)
+		binary.Write(buf, binary.BigEndian, toDevHead)
+		strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+	}
+
+
+	// respStr, err := httpgo.Http2OneNET_write(imei, p.pri)
+	respStr, err := httpgo.Http2OneNET_write(imei, strToDevData)
 	if "" != respStr && nil == err {
 		var respOneNET entity.RespOneNET
 		if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {

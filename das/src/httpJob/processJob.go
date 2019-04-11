@@ -1,18 +1,22 @@
 package httpJob
 
 import (
-	"encoding/json"
 	"../core/constant"
-	"../mq/producer"
-	"../core/redis"
+	"../core/entity"
+	"../core/httpgo"
 	"../core/log"
+	"../core/redis"
+	"../core/util"
+	"../mq/producer"
+	"../upgrade"
+	"bytes"
+	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"regexp"
 	"strconv"
-	"time"
-	"../core/httpgo"
-	"../upgrade"
 	"strings"
-	"../core/entity"
+	"time"
 )
 
 type Serload struct {
@@ -88,6 +92,41 @@ func (p *Serload) ProcessJob() error {
 			/*ret, _ := hex.DecodeString(data.Msg.Value)
 			log.Debugf("中文：%s", ret)
 			log.Debug("中文：", ret)*/
+			myKey := util.MD52Bytes(data.Msg.Imei)
+
+			// 增加二进制包头，以及加密的包体
+			// 1、 获取包头部分 8个字节
+			if !strings.ContainsAny(data.Msg.Value, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
+				log.Debug("get aes data: ", data.Msg.Value)
+				var strHead string
+				strHead = data.Msg.Value[0:16]
+				byteHead, _ := hex.DecodeString(strHead)
+
+				var myHead entity.MyHeader
+				myHead.ApiVersion = util.BytesToInt16(byteHead[0:2])
+				myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
+				myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
+				myHead.CheckSum = util.BytesToInt16(byteHead[6:8])
+				log.Info("ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
+
+				var checkSum uint16
+				var strData string
+				strData = data.Msg.Value[16:]
+				checkSum = util.CheckSum([]byte(strData))
+				if checkSum != myHead.CheckSum {
+					log.Error("CheckSum failed, src:", myHead.CheckSum, ", dst: ", checkSum)
+					return nil
+				}
+
+				var err_aes error
+				data.Msg.Value, err_aes = util.ECBDecrypt(strData, myKey)
+				if nil != err_aes {
+					log.Error("util.ECBDecrypt failed, strData:", strData, ", key: ", myKey)
+					return err_aes
+				}
+				log.Info("After ECBDecrypt, data.Msg.Value: ", data.Msg.Value)
+			}
+
 			data.Msg.Value = strings.Replace(data.Msg.Value, "#", ",", -1)
 			log.Debug("ProcessJob() data.Msg.Value after: ", data.Msg.Value)
 
@@ -98,6 +137,10 @@ func (p *Serload) ProcessJob() error {
 				log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
 				break
 			}
+
+			var toDevHead entity.MyHeader
+			toDevHead.ApiVersion = constant.API_VERSION
+			toDevHead.ServiceType = constant.SERVICE_TYPE
 
 			// 3、根据命令，分别做业务处理
 			switch head.Cmd {
@@ -149,9 +192,18 @@ func (p *Serload) ProcessJob() error {
 
 					//2. 回复设备
 					head.Ack = 1
-					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Del_dev_user, resp to device, ", string(toDevice_str))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Update_dev_user, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -182,9 +234,19 @@ func (p *Serload) ProcessJob() error {
 					log.Info("constant.Upload_dev_info")
 					//1. 回复设备
 					head.Ack = 1
-					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_str))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
+						// go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -200,9 +262,18 @@ func (p *Serload) ProcessJob() error {
 					toDev.SeqId = 0
 					toDev.ParaNo = 7
 					toDev.PaValue = t.Unix()
-					if toDevice_set, err := json.Marshal(toDev); err == nil {
-						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_set))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_set))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -225,9 +296,18 @@ func (p *Serload) ProcessJob() error {
 					//1. 回复设备
 					head.Ack = 1
 
-					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Update_dev_para, resp to device, ", string(toDevice_str))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Update_dev_para, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -249,9 +329,18 @@ func (p *Serload) ProcessJob() error {
 					log.Info("[", head.DevId, "] constant.Factory_reset")
 					//1. 回复设备
 					head.Ack = 1
-					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Factory_reset, resp to device, ", string(toDevice_str))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Factory_reset, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -310,9 +399,18 @@ func (p *Serload) ProcessJob() error {
 					log.Info("[", head.DevId, "] constant.Upload_lock_active")
 					//1. 回复设备
 					head.Ack = 1
-					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Upload_lock_active, resp to device, ", string(toDevice_str))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Upload_lock_active, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -349,9 +447,18 @@ func (p *Serload) ProcessJob() error {
 					log.Info("[", head.DevId, "] constant.Door_Call")
 					//1. 回复设备
 					head.Ack = 1
-					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Door_Call, resp to device, ", string(toDevice_str))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
@@ -367,9 +474,18 @@ func (p *Serload) ProcessJob() error {
 					log.Info("[", head.DevId, "] constant.Door_State")
 					//1. 回复设备
 					head.Ack = 1
-					if toDevice_str, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Door_State, resp to device, ", string(toDevice_str))
-						go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
+					if toDevice_byte, err := json.Marshal(head); err == nil {
+						log.Info("[", head.DevId, "] constant.Door_State, resp to device, ", string(toDevice_byte))
+						var strToDevData string
+						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
+
+						go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}

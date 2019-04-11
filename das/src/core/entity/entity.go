@@ -1,5 +1,18 @@
 package entity
 
+/*数据包格式
+* +——----——+——-----——+——----——+——----——+——----——+
+* | 版本号  |  模块号 |    长度 |  校验和 |   数据 |
+* +——----——+——-----——+——----——+——----——+——----——+
+*/
+// 2 + 2 + 2 + 2
+type MyHeader struct {
+	ApiVersion uint16
+	ServiceType uint16
+	MsgLen uint16
+	CheckSum uint16
+}
+
 type OneMsg struct {
 	At int64			`json:"at"`
 	Msgtype int			`json:"type"`				// 数据点消息(type=1)，设备上下线消息(type=2)
@@ -94,3 +107,4 @@ type AddDevUserStep struct {
 	StepState int 		`json:"stepState"` 		// 0表示成功，1表示失败
 	Time int			`json:"time"`
 }
+
