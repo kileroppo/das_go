@@ -2,18 +2,18 @@ package main
 
 import (
 	"./core/log"
-	"github.com/dlintw/goconf"
-	"flag"
-	"os"
-	"net/http"
-	"strconv"
-	"./httpJob"
-	"./core/redis"
 	"./core/rabbitmq"
+	"./core/redis"
+	"./dindingtask"
+	"./httpJob"
 	"./mq/consumer"
 	"./mq/producer"
-	"./dindingtask"
-		)
+	"flag"
+	"github.com/dlintw/goconf"
+	"net/http"
+	"os"
+	"strconv"
+)
 
 func main() {
 	//1. 加载配置文件

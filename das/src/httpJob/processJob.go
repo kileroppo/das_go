@@ -97,7 +97,7 @@ func (p *Serload) ProcessJob() error {
 			// 增加二进制包头，以及加密的包体
 			// 1、 获取包头部分 8个字节
 			if !strings.ContainsAny(data.Msg.Value, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
-				log.Debug("get aes data: ", data.Msg.Value)
+				log.Debug("[", data.Msg.Imei, "] get aes data: ", data.Msg.Value)
 				var strHead string
 				strHead = data.Msg.Value[0:16]
 				byteHead, _ := hex.DecodeString(strHead)
@@ -107,28 +107,28 @@ func (p *Serload) ProcessJob() error {
 				myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
 				myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
 				myHead.CheckSum = util.BytesToInt16(byteHead[6:8])
-				log.Info("ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
+				log.Info("[", data.Msg.Imei, "] ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
 
 				var checkSum uint16
 				var strData string
 				strData = data.Msg.Value[16:]
 				checkSum = util.CheckSum([]byte(strData))
 				if checkSum != myHead.CheckSum {
-					log.Error("CheckSum failed, src:", myHead.CheckSum, ", dst: ", checkSum)
+					log.Error("[", data.Msg.Imei, "] ProcessJob() CheckSum failed, src:", myHead.CheckSum, ", dst: ", checkSum)
 					return nil
 				}
 
 				var err_aes error
 				data.Msg.Value, err_aes = util.ECBDecrypt(strData, myKey)
 				if nil != err_aes {
-					log.Error("util.ECBDecrypt failed, strData:", strData, ", key: ", myKey)
+					log.Error("[", data.Msg.Imei, "] util.ECBDecrypt failed, strData:", strData, ", key: ", myKey, ", error: ", err_aes)
 					return err_aes
 				}
-				log.Info("After ECBDecrypt, data.Msg.Value: ", data.Msg.Value)
+				log.Info("[", data.Msg.Imei, "] After ECBDecrypt, data.Msg.Value: ", data.Msg.Value)
 			}
 
 			data.Msg.Value = strings.Replace(data.Msg.Value, "#", ",", -1)
-			log.Debug("ProcessJob() data.Msg.Value after: ", data.Msg.Value)
+			log.Debug("[", data.Msg.Imei, "] ProcessJob() data.Msg.Value after: ", data.Msg.Value)
 
 			// 2、解析王力的消息
 			//json str 转struct(部份字段)
