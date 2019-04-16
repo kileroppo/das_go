@@ -392,6 +392,13 @@ func (p *Serload) ProcessJob() error {
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
 				}
+			case constant.Infrared_alarm:	// 人体感应报警（infra红外感应)
+				{
+					log.Info("[", head.DevId, "] constant.Infrared_alarm")
+
+					//1. 需要存到mongodb
+					producer.SendMQMsg2Db(data.Msg.Value)
+				}
 			case constant.Lock_PIC_Upload:	// 视频锁图片上报
 				{
 					log.Info("[", head.DevId, "] constant.Lock_PIC_Upload")

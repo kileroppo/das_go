@@ -51,7 +51,7 @@ const (
 	Fakelock_alarm = 0x24		// 假锁报警
 	Nolock_alarm = 0x26			// 门未关报警
 	Low_battery_alarm = 0x2A	// 锁体的电池，低电量报警
-
+	Infrared_alarm = 0x39		// 人体感应报警（infra红外感应)
 	Lock_PIC_Upload = 0x2F		// 视频锁图片上报
 
 	// 锁激活
@@ -61,6 +61,7 @@ const (
 	Real_Video	= 0x36			// 实时视频
 	Set_Wifi	= 0x37			// Wifi设置
 	Door_Call 	= 0x38			// 门铃呼叫
+
 
 	// 锁状态
 	Door_State 	= 0x55			// 锁状态上报
