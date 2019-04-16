@@ -65,6 +65,7 @@ func Http2OneNET_exe(imei string,  sBody string) {
 func Http2OneNET_write(imei string,  sBody string) (respBody string, err error) {
 	log.Info("[", imei, "]Http2OneNET_write start_write......")
 	mydata := "{\"data\":[{\"res_id\":5750,\"val\":'" + sBody + "'}]}"
+	// mydata := "{\"data\":[{\"res_id\":5750,\"val\":\"" + sBody + "\"}]}"
 
 	req_body := bytes.NewBuffer([]byte(mydata))
 	log.Debug(req_body)

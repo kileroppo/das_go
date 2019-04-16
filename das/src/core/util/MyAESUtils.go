@@ -166,15 +166,14 @@ func CBCEncrypt(rawData,key []byte) (string, error) {
 	// return hex.EncodeToString(data), nil
 }
 
-func ECBEncrypt(rawData, key []byte) (string, uint16, error) {
+func ECBEncrypt(rawData, key []byte) (string, error) {
 	data, err:= aesECBEncrypt(rawData,key)
 	// fmt.Printf("%02x\n", data)
 	if err != nil {
-		return "", 0, err
+		return "", err
 	}
-	chkSum := CheckSum(data)
 
-	return base64.StdEncoding.EncodeToString(data), chkSum, nil
+	return base64.StdEncoding.EncodeToString(data), nil
 }
 
 func CBCDecrypt(rawData string, key []byte) (string,error) {

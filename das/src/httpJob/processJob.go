@@ -195,7 +195,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Update_dev_user, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)
@@ -237,7 +238,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)
@@ -265,7 +267,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)
@@ -299,7 +302,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Update_dev_para, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)
@@ -332,7 +336,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Factory_reset, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)
@@ -402,7 +407,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_lock_active, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)
@@ -450,7 +456,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)
@@ -477,7 +484,8 @@ func (p *Serload) ProcessJob() error {
 					if toDevice_byte, err := json.Marshal(head); err == nil {
 						log.Info("[", head.DevId, "] constant.Door_State, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 							toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
 
 							buf := new(bytes.Buffer)

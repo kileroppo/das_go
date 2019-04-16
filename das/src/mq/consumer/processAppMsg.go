@@ -46,7 +46,9 @@ func (p *AppMsg) ProcessAppMsg() error {
 	myKey := util.MD52Bytes(head.DevId)
 	var strToDevData string
 	var err error
-	if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt([]byte(p.pri), myKey); err == nil {
+	// if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt([]byte(p.pri), myKey); err == nil {
+	if strToDevData, err = util.ECBEncrypt([]byte(p.pri), myKey); err == nil {
+		toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 		toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 		buf := new(bytes.Buffer)
