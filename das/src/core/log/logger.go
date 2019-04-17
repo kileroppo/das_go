@@ -40,7 +40,7 @@ func NewLogger(pathDir string, level string) {
 
 	// 文件夹存在, 直接以创建的方式打开文件
 	logFilePath := fmt.Sprintf("%s/%s_%02d%02d%02d%s", destFilePath, "das_go", time.Now().Hour(), time.Now().Minute(), time.Now().Second(),".log")
-	logFile, err := os.OpenFile(logFilePath, os.O_CREATE | os.O_APPEND | os.O_RDWR, os.ModePerm)
+	logFile, err := os.OpenFile(logFilePath, os.O_CREATE | os.O_APPEND | os.O_RDWR, 0755)
 	if err != nil{
 		fmt.Println( OpenFileFail,err.Error())
 		return
