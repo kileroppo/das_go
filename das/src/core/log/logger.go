@@ -35,7 +35,7 @@ func NewLogger(pathDir string, level string) {
 		fmt.Println(ArgsInvaild)
 	}
 	if !flag {
-		os.MkdirAll(destFilePath, os.ModeDir)
+		os.MkdirAll(destFilePath, os.ModePerm)
 	}
 
 	// 文件夹存在, 直接以创建的方式打开文件
