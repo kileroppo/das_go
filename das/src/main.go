@@ -12,7 +12,9 @@ import (
 	"github.com/dlintw/goconf"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 )
 
 func main() {
@@ -47,42 +49,52 @@ func main() {
 	dindingtask.StartMyTimer()
 
 	//10. 启动http/https服务
-	httpServerStart(conf)
+	srv := httpServerStart(conf)
 
-	// Handle SIGINT and SIGTERM.
-	/*ch := make(chan os.Signal)
+	//11. Handle SIGINT and SIGTERM.
+	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	s := <-ch
-	switch s {
-	case syscall.SIGINT:
-		log.Infof("SIGINT")
-		return
-	case syscall.SIGTERM:
-		log.Infof("SIGTERM")
-		return
-	case syscall.SIGQUIT:
-		log.Infof("SIGSTOP")
-		return
-	case syscall.SIGHUP:
-		log.Infof("SIGHUP")
-		return
-	case syscall.SIGKILL:
-		log.Infof("SIGKILL")
-		return
-	default:
-		log.Infof("default")
-		return
-	}*/
 
-	// 11. 停止定时器
+	SERVER_EXIT:
+	// 处理信号
+    for {
+		s := <-ch
+		switch s {
+		case syscall.SIGINT:
+			log.Error("SIGINT: get signal: ", s)
+			break SERVER_EXIT
+		case syscall.SIGTERM:
+			log.Error("SIGTERM: get signal: ", s)
+			break SERVER_EXIT
+		case syscall.SIGQUIT:
+			log.Error("SIGSTOP: get signal: ", s)
+			break SERVER_EXIT
+		case syscall.SIGHUP:
+			log.Error("SIGHUP: get signal: ", s)
+			break SERVER_EXIT
+		case syscall.SIGKILL:
+			log.Error("SIGKILL: get signal: ", s)
+			break SERVER_EXIT
+		default:
+			log.Error("default: get signal: ", s)
+			break SERVER_EXIT
+		}
+	}
+
+	// 12. 停止HTTP服务器
+	if err := srv.Shutdown(nil); err != nil {
+		panic(err) // failure/timeout shutting down the server gracefully
+	}
+
+	// 13. 停止定时器
 	dindingtask.StopMyTimer()
 
-	log.Info("quit")
+	log.Info("das_go server quit......")
 }
 
-func httpServerStart(conf *goconf.ConfigFile) {
+func httpServerStart(conf *goconf.ConfigFile) *http.Server {
 	// hanlder
-	http.HandleFunc("/", httpJob.Entry)
+	/*http.HandleFunc("/", httpJob.Entry)
 
 	//判断是否为https协议
 	isHttps, err := conf.GetBool("https", "is_https")
@@ -100,7 +112,44 @@ func httpServerStart(conf *goconf.ConfigFile) {
 			log.Debug("httpServerStart http.ListenAndServe()......")
 			http.ListenAndServe(":"+strconv.Itoa(httpPort), nil)
 		}
+	}*/
+	// 判断是否为https协议
+	var httpPort int
+
+	// 判断是否为https协议
+	isHttps, err := conf.GetBool("https", "is_https")
+	if err != nil {
+		log.Errorf("读取https配置失败，%s\n", err)
+		os.Exit(1)
 	}
+	if isHttps {
+		httpPort, _ = conf.GetInt("https", "https_port")
+	} else {
+		httpPort, _ = conf.GetInt("http", "http_port")
+	}
+
+	srv := &http.Server{Addr: ":"+strconv.Itoa(httpPort)}
+
+	http.HandleFunc("/", httpJob.Entry)
+
+	go func() {
+		if isHttps { //如果为https协议需要配置server.crt和server.key
+			serverCrt, _ := conf.GetString("https", "https_server_crt")
+			serverKey, _ := conf.GetString("https", "https_server_key")
+			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
+				log.Error("Httpserver: ListenAndServeTLS(): %s", err_https)
+			}
+		} else {
+			log.Debug("httpServerStart http.ListenAndServe()......")
+			if err_http := srv.ListenAndServe(); err_http != nil {
+				// cannot panic, because this probably is an intentional close
+				log.Error("Httpserver: ListenAndServe(): %s", err_http)
+			}
+		}
+	}()
+
+	// returning reference so caller can call Shutdown()
+	return srv
 }
 
 func initLogger(conf *goconf.ConfigFile) {
