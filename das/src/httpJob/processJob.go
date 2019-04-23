@@ -298,7 +298,7 @@ func (p *Serload) ProcessJob() error {
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 
 					//2. 需要存到mongodb
-					producer.SendMQMsg2Db(data.Msg.Value)
+					// producer.SendMQMsg2Db(data.Msg.Value)
 				}
 			case constant.Update_dev_para: // 设备参数更新上报
 				{
