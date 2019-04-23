@@ -13,6 +13,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"regexp"
 	"strconv"
 	"strings"
@@ -98,6 +99,12 @@ func (p *Serload) ProcessJob() error {
 			// 1、 获取包头部分 8个字节
 			if !strings.ContainsAny(data.Msg.Value, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
 				log.Debug("[", data.Msg.Imei, "] get aes data: ", data.Msg.Value)
+				lens := strings.Count(data.Msg.Value,"") - 1
+				if lens < 16 {
+					log.Error("[", data.Msg.Imei, "] ProcessJob() error msg : ", data.Msg.Value, ", len: ", lens)
+					return errors.New("error msg.")
+				}
+
 				var strHead string
 				strHead = data.Msg.Value[0:16]
 				byteHead, _ := hex.DecodeString(strHead)
@@ -115,7 +122,7 @@ func (p *Serload) ProcessJob() error {
 				checkSum = util.CheckSum([]byte(strData))
 				if checkSum != myHead.CheckSum {
 					log.Error("[", data.Msg.Imei, "] ProcessJob() CheckSum failed, src:", myHead.CheckSum, ", dst: ", checkSum)
-					return nil
+					return errors.New("CheckSum failed.")
 				}
 
 				var err_aes error
