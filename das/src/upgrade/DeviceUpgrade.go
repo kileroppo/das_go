@@ -2,6 +2,7 @@ package upgrade
 
 import (
 	"../core/httpgo"
+	"encoding/binary"
 	"encoding/json"
 	"../core/log"
 	"strings"
@@ -15,6 +16,8 @@ import (
 	"../core/constant"
 	"bytes"
 	"encoding/hex"
+	"../core/util"
+	"../core/entity"
 )
 
 type Msg struct {
@@ -131,6 +134,23 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 	fileInfo.MD5 = pkgMd5
 	if toDevice_fileInfo, err := json.Marshal(fileInfo); err == nil {
 		log.Info("constant.Get_Upgrade_FileInfo, resp to device, ", string(toDevice_fileInfo))
+
+		myKey := util.MD52Bytes(fileInfo.DevId)
+
+		var strToDevData string
+		var toDevHead entity.MyHeader
+		toDevHead.ApiVersion = constant.API_VERSION
+		toDevHead.ServiceType = constant.SERVICE_TYPE
+
+		if strToDevData, err = util.ECBEncrypt(toDevice_fileInfo, myKey); err == nil {
+			toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+			toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, toDevHead)
+			strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+		}
+
 		httpgo.Http2OneNET_write(devId, string(toDevice_fileInfo))
 	} else {
 		log.Error("toDevice_str json.Marshal, err=", err)
@@ -224,7 +244,23 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 	fileData.FileData = encodedStr
 	if toDevice_fileData, err := json.Marshal(fileData); err == nil {
 		log.Info("constant.Download_Upgrade_File, resp to device, ", string(toDevice_fileData))
-		httpgo.Http2OneNET_write(devId, string(toDevice_fileData))
+		myKey := util.MD52Bytes(fileData.DevId)
+
+		var strToDevData string
+		var toDevHead entity.MyHeader
+		toDevHead.ApiVersion = constant.API_VERSION
+		toDevHead.ServiceType = constant.SERVICE_TYPE
+
+		if strToDevData, err = util.ECBEncrypt(toDevice_fileData, myKey); err == nil {
+			toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+			toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, toDevHead)
+			strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+		}
+
+		httpgo.Http2OneNET_write(devId, string(strToDevData))
 	} else {
 		log.Error("toDevice_fileData json.Marshal, err=", err)
 	}
