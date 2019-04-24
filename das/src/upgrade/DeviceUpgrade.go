@@ -56,6 +56,7 @@ type QueryPkgInfo struct {
 	DevId string 		`json:"devId"`
 	SeqId int			`json:"seqId"`
 
+	Part int			`json:"part"`
 	FileName string		`json:"fileName"`
 	FileSize int64		`json:"fileSize"`
 	MD5 string			`json:"MD5"`
@@ -68,6 +69,7 @@ type TransferPkgData struct {
 	DevId string 		`json:"devId"`
 	SeqId int			`json:"seqId"`
 
+	Part int			`json:"part"`
 	Offset int64		`json:"offset"`
 	FileData string		`json:"fileData"`
 }
@@ -129,6 +131,7 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 	fileInfo.DevType = devType
 	fileInfo.DevId = devId
 	fileInfo.SeqId = seqId
+	fileInfo.Part = partId
 	fileInfo.FileName = fileName
 	fileInfo.FileSize = fileSize
 	fileInfo.MD5 = pkgMd5
@@ -216,7 +219,7 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 	return filename, resp.ContentLength, nil
 }
 
-func TransferFileData(devId string, devType string, seqId int, offset int64, fileName string) {
+func TransferFileData(devId string, devType string, seqId int, offset int64, fileName string, partId int) {
 	log.Debug("TransferFileData %s to device.", fileName)
 	fpath := fmt.Sprintf("logs/%s", fileName)
 	file, err0 := os.OpenFile(fpath, os.O_RDONLY, os.ModePerm)
@@ -240,6 +243,7 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 	fileData.DevType = devType
 	fileData.DevId = devId
 	fileData.SeqId = seqId
+	fileData.Part = partId
 	fileData.Offset = offset
 	fileData.FileData = encodedStr
 	if toDevice_fileData, err := json.Marshal(fileData); err == nil {

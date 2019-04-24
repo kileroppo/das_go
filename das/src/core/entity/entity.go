@@ -81,6 +81,7 @@ type UpgradeReq struct {
 	Vendor string		`json:"vendor"`
 	SeqId int			`json:"seqId"`
 
+	Part int			`json:"part"`
 	Offset int64		`json:"offset"`
 	FileName string		`json:"fileName"`
 }

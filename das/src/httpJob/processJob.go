@@ -561,7 +561,7 @@ func (p *Serload) ProcessJob() error {
 
 					// 获取文件传输给设备
 					log.Info("[", head.DevId, "] constant.Get_Upgrade_FileInfo, TransferFileData")
-					upgrade.TransferFileData(head.DevId, head.DevType, head.SeqId, upReq.Offset, upReq.FileName)
+					upgrade.TransferFileData(head.DevId, head.DevType, head.SeqId, upReq.Offset, upReq.FileName, upReq.Part)
 				}
 			case constant.Upload_F_Upgrade_State: // 前板上传升级状态
 				{
