@@ -77,6 +77,6 @@ const (
 
 	Device_Resp_TimeOut = 0x99		// 设备响应超时
 
-	FILE_MAX = 512					// 升级每次发送的文件大小
+	FILE_MAX = 256					// 升级每次发送的文件大小
 
 )
