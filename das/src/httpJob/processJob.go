@@ -126,7 +126,9 @@ func (p *Serload) ProcessJob() error {
 					return errors.New("CheckSum failed.")
 				}
 
-				if constant.SERVICE_TYPE == myHead.ServiceType { // 加密
+				if constant.SERVICE_TYPE_UNENCRY == myHead.ServiceType { // 不加密
+					data.Msg.Value = strData
+				} else {
 					var err_aes error
 					data.Msg.Value, err_aes = util.ECBDecrypt(strData, myKey)
 					if nil != err_aes {
@@ -134,8 +136,6 @@ func (p *Serload) ProcessJob() error {
 						return err_aes
 					}
 					log.Info("[", data.Msg.Imei, "] After ECBDecrypt, data.Msg.Value: ", data.Msg.Value)
-				} else if constant.SERVICE_TYPE_UPGRADE_NOPASS == myHead.ServiceType {
-					data.Msg.Value = strData
 				}
 			}
 

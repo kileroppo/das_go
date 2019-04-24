@@ -144,7 +144,7 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 		var strToDevData string
 		var toDevHead entity.MyHeader
 		toDevHead.ApiVersion = constant.API_VERSION
-		toDevHead.ServiceType = constant.SERVICE_TYPE_UPGRADE_NOPASS
+		toDevHead.ServiceType = constant.SERVICE_TYPE_UNENCRY
 
 		/*if strToDevData, err = util.ECBEncrypt(toDevice_fileInfo, myKey); err == nil {
 			toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
@@ -264,7 +264,7 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 		var strToDevData string
 		var toDevHead entity.MyHeader
 		toDevHead.ApiVersion = constant.API_VERSION
-		toDevHead.ServiceType = constant.SERVICE_TYPE_UPGRADE_NOPASS
+		toDevHead.ServiceType = constant.SERVICE_TYPE_UNENCRY
 
 		/*if strToDevData, err = util.ECBEncrypt(toDevice_fileData, myKey); err == nil {
 			toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
