@@ -418,9 +418,17 @@ func (p *Serload) ProcessJob() error {
 			case constant.Upload_lock_active: // 锁激活状态上报
 				{
 					log.Info("[", head.DevId, "] constant.Upload_lock_active")
-					//1. 回复设备
-					head.Ack = 1
-					if toDevice_byte, err := json.Marshal(head); err == nil {
+
+					//1. 解析锁激活上报包
+					var lockActive entity.DeviceActive
+					if err_lockActive := json.Unmarshal([]byte(data.Msg.Value), &lockActive); err_lockActive != nil {
+						log.Error("[", head.DevId, "] entity.Upload_lock_active json.Unmarshal, err_lockActive=", err_lockActive)
+						break
+					}
+
+					//2. 回复设备
+					lockActive.Ack = 1
+					if toDevice_byte, err := json.Marshal(lockActive); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_lock_active, resp to device, ", string(toDevice_byte))
 						var strToDevData string
 						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
@@ -437,15 +445,10 @@ func (p *Serload) ProcessJob() error {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
 
-					//2. 锁唤醒，存入redis
-					//json str 转struct(部份字段)
-					var devAct entity.DeviceActive
-					if err := json.Unmarshal([]byte(data.Msg.Value), &devAct); err != nil {
-						log.Error("[", head.DevId, "] DeviceActive json.Unmarshal, err=", err)
-					}
-					redis.SetData(devAct.DevId, devAct.Time)
+					//3. 锁唤醒，存入redis
+					redis.SetData(lockActive.DevId, lockActive.Time)
 
-					//3. 回复到APP
+					//4. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Real_Video:	// 实时视频
