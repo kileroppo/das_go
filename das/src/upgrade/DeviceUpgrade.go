@@ -229,10 +229,10 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 		return
 	}
 
-	file.Seek(256*offset, 0)
+	file.Seek(constant.FILE_MAX*offset, 0)
 
 	var buffer bytes.Buffer
-	io.CopyN(&buffer, file, 256)
+	io.CopyN(&buffer, file, constant.FILE_MAX)
 	_bytes := buffer.Bytes()
 
 	encodedStr :=hex.EncodeToString(_bytes)
