@@ -97,6 +97,7 @@ func (p *Serload) ProcessJob() error {
 
 			// 增加二进制包头，以及加密的包体
 			// 1、 获取包头部分 8个字节
+			var myHead entity.MyHeader
 			if !strings.ContainsAny(data.Msg.Value, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
 				log.Debug("[", data.Msg.Imei, "] get aes data: ", data.Msg.Value)
 				lens := strings.Count(data.Msg.Value,"") - 1
@@ -109,7 +110,7 @@ func (p *Serload) ProcessJob() error {
 				strHead = data.Msg.Value[0:16]
 				byteHead, _ := hex.DecodeString(strHead)
 
-				var myHead entity.MyHeader
+
 				myHead.ApiVersion = util.BytesToInt16(byteHead[0:2])
 				myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
 				myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
@@ -125,13 +126,17 @@ func (p *Serload) ProcessJob() error {
 					return errors.New("CheckSum failed.")
 				}
 
-				var err_aes error
-				data.Msg.Value, err_aes = util.ECBDecrypt(strData, myKey)
-				if nil != err_aes {
-					log.Error("[", data.Msg.Imei, "] util.ECBDecrypt failed, strData:", strData, ", key: ", myKey, ", error: ", err_aes)
-					return err_aes
+				if constant.SERVICE_TYPE == myHead.ServiceType { // 加密
+					var err_aes error
+					data.Msg.Value, err_aes = util.ECBDecrypt(strData, myKey)
+					if nil != err_aes {
+						log.Error("[", data.Msg.Imei, "] util.ECBDecrypt failed, strData:", strData, ", key: ", myKey, ", error: ", err_aes)
+						return err_aes
+					}
+					log.Info("[", data.Msg.Imei, "] After ECBDecrypt, data.Msg.Value: ", data.Msg.Value)
+				} else if constant.SERVICE_TYPE_UPGRADE_NOPASS == myHead.ServiceType {
+					data.Msg.Value = strData
 				}
-				log.Info("[", data.Msg.Imei, "] After ECBDecrypt, data.Msg.Value: ", data.Msg.Value)
 			}
 
 			data.Msg.Value = strings.Replace(data.Msg.Value, "#", ",", -1)
@@ -147,7 +152,7 @@ func (p *Serload) ProcessJob() error {
 
 			var toDevHead entity.MyHeader
 			toDevHead.ApiVersion = constant.API_VERSION
-			toDevHead.ServiceType = constant.SERVICE_TYPE
+			toDevHead.ServiceType = myHead.ServiceType
 
 			// 3、根据命令，分别做业务处理
 			switch head.Cmd {
