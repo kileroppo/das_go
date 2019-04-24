@@ -28,6 +28,7 @@ const HttpTimeOut = 30 //http请求超时时间
 const (
 	API_VERSION = 108			// 协议版本号
 	SERVICE_TYPE = 0x06			// 服务类型（DAS (0x06)）
+	SERVICE_TYPE_UPGRADE = 0x06	// 服务类型，设备升级（DAS_UPGRADE (0x16)）
 
 	Add_dev_user = 0x33			// 添加设备用户
 	Set_dev_user_temp = 0x76	// 设置临时用户
