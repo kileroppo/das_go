@@ -110,7 +110,6 @@ func (p *Serload) ProcessJob() error {
 				strHead = data.Msg.Value[0:16]
 				byteHead, _ := hex.DecodeString(strHead)
 
-
 				myHead.ApiVersion = util.BytesToInt16(byteHead[0:2])
 				myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
 				myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
