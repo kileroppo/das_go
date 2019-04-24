@@ -151,7 +151,7 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 			strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 		}
 
-		httpgo.Http2OneNET_write(devId, string(toDevice_fileInfo))
+		httpgo.Http2OneNET_write(devId, strToDevData)
 	} else {
 		log.Error("toDevice_str json.Marshal, err=", err)
 	}
@@ -260,7 +260,7 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 			strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 		}
 
-		httpgo.Http2OneNET_write(devId, string(strToDevData))
+		httpgo.Http2OneNET_write(devId, strToDevData)
 	} else {
 		log.Error("toDevice_fileData json.Marshal, err=", err)
 	}
