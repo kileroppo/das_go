@@ -430,7 +430,10 @@ func (p *Serload) ProcessJob() error {
 						break
 					}
 
-					//2. 回复设备
+					//2. 锁唤醒，存入redis
+					redis.SetData(lockActive.DevId, lockActive.Time)
+
+					//3. 回复设备
 					lockActive.Ack = 1
 					t := time.Now()
 					lockActive.Time = t.Unix()
@@ -450,9 +453,6 @@ func (p *Serload) ProcessJob() error {
 					} else {
 						log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 					}
-
-					//3. 锁唤醒，存入redis
-					redis.SetData(lockActive.DevId, lockActive.Time)
 
 					//4. 回复到APP
 					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
