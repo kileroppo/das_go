@@ -275,8 +275,9 @@ func (p *Serload) ProcessJob() error {
 					toDev.SeqId = 0
 					toDev.ParaNo = 7
 					toDev.PaValue = t.Unix()
-					if toDevice_byte, err := json.Marshal(head); err == nil {
-						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, ", string(toDevice_byte))
+					toDev.Time = t.Unix()
+					if toDevice_byte, err := json.Marshal(toDev); err == nil {
+						log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, constant.Set_dev_para to device, ", string(toDevice_byte))
 						var strToDevData string
 						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))

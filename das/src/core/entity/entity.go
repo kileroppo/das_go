@@ -60,6 +60,7 @@ type SetDeviceTime struct {
 
 	ParaNo int			`json:"paraNo"`
 	PaValue int64		`json:"paValue"`
+	Time int64			`json:"time"`
 }
 
 type UpgradeQuery struct {
