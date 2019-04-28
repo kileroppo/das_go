@@ -101,7 +101,7 @@ type AddDevUserStep struct {
 	Vendor string		`json:"vendor"`
 	SeqId int			`json:"seqId"`
 
-	UserVer string		`json:"userVer"` 		// 设备用户版本号
+	UserVer int			`json:"userVer"` 		// 设备用户版本号
 	UserId int 			`json:"userId"`			// 设备用户ID
 	MainOpen int		`json:"mainOpen"` 		// 主开锁方式（1-密码，2-刷卡，3-指纹）
 	SubOpen int 		`json:"subOpen"` 		// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
