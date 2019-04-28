@@ -182,10 +182,10 @@ func (p *Serload) ProcessJob() error {
 						break
 					}
 
-					if 1 == addUserStep.StepState {
-						// 回复到APP
-						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
-					}
+					// if 1 == addUserStep.StepState {
+					// 回复到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					//}
 				}
 			case constant.Del_dev_user: // 删除设备用户
 				{
