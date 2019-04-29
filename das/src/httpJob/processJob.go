@@ -440,8 +440,8 @@ func (p *Serload) ProcessJob() error {
 
 					//2. 回复设备
 					lockActive.Ack = 1
-					t := time.Now()
-					lockActive.Time = t.Unix()
+					/*t := time.Now()
+					lockActive.Time = t.Unix()*/
 					if toDevice_byte, err := json.Marshal(lockActive); err == nil {
 						log.Info("[", head.DevId, "] constant.Upload_lock_active, resp to device, ", string(toDevice_byte))
 						var strToDevData string
