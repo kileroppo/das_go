@@ -373,8 +373,12 @@ func (p *Serload) ProcessJob() error {
 			case constant.Upload_open_log: // 门锁开门日志上报
 				{
 					log.Info("[", head.DevId, "] constant.Upload_open_log")
+
 					//1. 需要存到mongodb
 					producer.SendMQMsg2Db(data.Msg.Value)
+
+					//2. 回复到APP
+					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
 				}
 			case constant.Noatmpt_alarm: // 非法操作报警
 				{
