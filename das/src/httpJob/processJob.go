@@ -190,8 +190,11 @@ func (p *Serload) ProcessJob() error {
 			case constant.Del_dev_user: // 删除设备用户
 				{
 					log.Info("[", head.DevId, "] constant.Del_dev_user")
+
 					//1. 回复到APP
-					producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					if head.Ack > 1 { // 失败消息直接返回给APP
+						producer.SendMQMsg2APP(head.DevId, data.Msg.Value)
+					}
 				}
 			case constant.Update_dev_user: // 用户更新上报
 				{
