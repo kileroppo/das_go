@@ -25,6 +25,8 @@ const SmsCodePrefix = "sms_"     //短信验证码的redis键值前缀
 //http request
 const HttpTimeOut = 30 //http请求超时时间
 
+const Base_Dianxin_Url = "180.101.147.89:8743"
+
 const (
 	API_VERSION = 108			// 协议版本号
 	SERVICE_TYPE = 0x06			// 服务类型（DAS (0x06)）
@@ -79,5 +81,34 @@ const (
 	Device_Resp_TimeOut = 0x99		// 设备响应超时
 
 	FILE_MAX = 256					// 升级每次发送的文件大小
+)
 
+// 电信平台订阅消息类型
+const (
+	/*
+	 * service Notify Type
+	 * serviceInfoChanged|deviceInfoChanged|LocationChanged|deviceDataChanged|deviceDatasChanged
+	 * deviceAdded|deviceDeleted|messageConfirm|commandRsp|deviceEvent|ruleEvent|deviceModelAdded
+	 * deviceModelDeleted|deviceDesiredPropertiesModifyStatusChanged
+	 */
+	DEVICE_ADDED 			= "deviceAdded";
+	DEVICE_INFO_CHANGED 	= "deviceInfoChanged";
+	DEVICE_DATA_CHANGED 	= "deviceDataChanged";
+	DEVICE_DELETED 			= "deviceDeleted";
+	MESSAGE_CONFIRM 		= "messageConfirm";
+	SERVICE_INFO_CHANGED 	= "serviceInfoChanged";
+	COMMAND_RSP 			= "commandRsp";
+	DEVICE_EVENT 			= "deviceEvent";
+	RULE_EVENT 				= "ruleEvent";
+	DEVICE_DATAS_CHANGED 	= "deviceDatasChanged";
+	DEVICE_DESIRED_MODIFY 	= "deviceDesiredPropertiesModifyStatusChanged";
+
+	/*
+	 * management Notify Type
+	 * swUpgradeStateChangeNotify|swUpgradeResultNotify|fwUpgradeStateChangeNotify|fwUpgradeResultNotify
+	 */
+	SW_UPGRADE_STATE_CHANGED 	= "swUpgradeStateChangeNotify";
+	SW_UPGRADE_RESULT 			= "swUpgradeResultNotify";
+	FW_UPGRADE_STATE_CHANGED 	= "fwUpgradeStateChangeNotify";
+	FW_UPGRADE_RESULT 			= "fwUpgradeResultNotify";
 )

@@ -19,7 +19,7 @@ var (
 
 
 type Job struct {
-	serload Serload
+	Serload Serload
 }
 
 var JobQueue chan Job
@@ -46,7 +46,7 @@ func (w Worker) Start() {
 			case job := <-w.JobChannel:
 				// excute job
 				// fmt.Println(job.serload.pri)
-				job.serload.ProcessJob();
+				job.Serload.ProcessJob();
 			case <-w.Quit:
 				return
 			}
@@ -118,7 +118,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			log.Error("get req.Body failed")
 		} else {
 			// fetch job
-			work := Job { serload: Serload { pri : bytes.NewBuffer(result).String() }}
+			work := Job { Serload: Serload { DValue : bytes.NewBuffer(result).String() }}
 			JobQueue <- work
 			log.Debug("httpJob.Entry() get: ", bytes.NewBuffer(result).String())
 		}
