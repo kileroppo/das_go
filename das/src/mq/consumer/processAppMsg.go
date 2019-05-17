@@ -1,18 +1,18 @@
 package consumer
 
 import (
-	"../../core/httpgo"
+	"../../core/constant"
+	"../../core/entity"
+	"../../core/log"
+	"../../core/redis"
+	"../../core/util"
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
-	"../../core/log"
-	"../../core/constant"
-	"../producer"
-	"../../core/entity"
-	"../../core/redis"
 	"strings"
-	"../../core/util"
+	"../../core/httpgo"
+	"../producer"
 )
 
 
@@ -56,38 +56,60 @@ func (p *AppMsg) ProcessAppMsg() error {
 		strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 	}
 
+	platform, errPlat := redis.GetDevicePlatformPool(imei)
+	if errPlat != nil {
+		log.Error("Get Platform from redis failed, err=", errPlat)
+		return errPlat
+	}
 
-	// respStr, err := httpgo.Http2OneNET_write(imei, p.pri)
-	respStr, err := httpgo.Http2OneNET_write(imei, strToDevData)
-	if "" != respStr && nil == err {
-		var respOneNET entity.RespOneNET
-		if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {
-			log.Error("ProcessAppMsg json.Unmarshal RespOneNET error, err=", err)
-			return err
-		}
+	switch platform {
+	case "onenet":
+		{
+			respStr, err := httpgo.Http2OneNET_write(imei, strToDevData)
+			if "" != respStr && nil == err {
+				var respOneNET entity.RespOneNET
+				if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {
+					log.Error("ProcessAppMsg json.Unmarshal RespOneNET error, err=", err)
+					return err
+				}
 
-		if 0 != respOneNET.RespErrno {
-			var devAct entity.DeviceActive
-			devAct.Cmd = constant.Upload_lock_active
-			devAct.Ack = 0
-			devAct.DevType = head.DevType
-			devAct.DevId = head.DevId
-			devAct.Vendor = head.Vendor
-			devAct.SeqId = 0
-			devAct.Time = 0
+				if 0 != respOneNET.RespErrno {
+					var devAct entity.DeviceActive
+					devAct.Cmd = constant.Upload_lock_active
+					devAct.Ack = 0
+					devAct.DevType = head.DevType
+					devAct.DevId = head.DevId
+					devAct.Vendor = head.Vendor
+					devAct.SeqId = 0
+					devAct.Time = 0
 
-			//1. 回复APP，设备离线状态
-			if toApp_str, err := json.Marshal(devAct); err == nil {
-				log.Info("[", head.DevId, "] ProcessAppMsg() device timeout, resp to APP, ", string(toApp_str))
-				producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
-			} else {
-				log.Error("[", head.DevId, "] ProcessAppMsg() device timeout, resp to APP, json.Marshal, err=", err)
+					//1. 回复APP，设备离线状态
+					if toApp_str, err := json.Marshal(devAct); err == nil {
+						log.Info("[", head.DevId, "] ProcessAppMsg() device timeout, resp to APP, ", string(toApp_str))
+						producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
+					} else {
+						log.Error("[", head.DevId, "] ProcessAppMsg() device timeout, resp to APP, json.Marshal, err=", err)
+					}
+
+					//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
+					redis.SetActTimePool(devAct.DevId, devAct.Time)
+				}
 			}
+		}
+	case "telecom":
+		{
 
-			//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
-			redis.SetData(devAct.DevId, devAct.Time)
+		}
+	case "andlink":
+		{
+
+		}
+	default:
+		{
+			log.Error("Unknow Platform from redis, please check the platform: ", platform)
 		}
 	}
+
 
 	// time.Sleep(time.Second)
 	return nil

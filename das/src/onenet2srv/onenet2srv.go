@@ -78,6 +78,8 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 				log.Error("OneNETData json.Unmarshal, err=", err)
 				return
 			}
+			//1. 锁对接的平台，存入redis
+			redis.SetDevicePlatformPool(data.Msg.Imei, "onenet")
 
 			switch data.Msg.Msgtype {
 			case 2: // 设备上下线消息(type=2)
@@ -93,7 +95,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 					}
 
 					//1. 锁状态，存入redis
-					redis.SetData(data.Msg.Imei, nTime)
+					redis.SetActTimePool(data.Msg.Imei, nTime)
 
 					//struct 到json str
 					var toApp entity.DeviceActive

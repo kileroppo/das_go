@@ -21,7 +21,7 @@ func InitRedisSingle(conf *goconf.ConfigFile) {
 	redisPassword_s, _ = conf.GetString("redisPool", "redis_password")
 }
 
-func SetData(devId string, time int64)  {
+func SetActTime(devId string, time int64)  {
 	c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -35,4 +35,41 @@ func SetData(devId string, time int64)  {
 	if err != nil {
 		fmt.Println("redis set failed:", err)
 	}
+}
+
+
+func SetDevicePlatform(devId string, platform string)  {
+	c, err := redis.Dial("tcp", redisServer_s)
+	if err != nil {
+		fmt.Println("Connect to redis error", err)
+		return
+	}
+
+	defer c.Close()
+
+	// 写入值60S后过期
+	_, err = c.Do("SET", devId + "_platform", platform, "EX", "2592000")
+
+	if err != nil {
+		fmt.Println("redis set failed:", err)
+	}
+}
+
+func GetDevicePlatform(devId string) (string, error)  {
+	c, err := redis.Dial("tcp", redisServer_s)
+	if err != nil {
+		fmt.Println("Connect to redis error", err)
+		return "", err
+	}
+
+	defer c.Close()
+
+	var retPlat string
+	retPlat, err = redis.String(c.Do("GET", devId + "_platform"))
+	if err != nil {
+		fmt.Println("redis get failed:", err)
+		return "", err
+	}
+
+	return retPlat, nil
 }

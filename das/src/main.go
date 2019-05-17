@@ -24,8 +24,8 @@ func main() {
 	//2. 初始化日志
 	initLogger(conf)
 
-	//3. 初始化Redis
-	redis.InitRedisSingle(conf)
+	//3. 初始化Redis连接池
+	redis.InitRedisPool(conf)
 
 	//4. 初始化生产者rabbitmq_uri
 	rabbitmq.InitProducerMqConnection(conf)
