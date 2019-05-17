@@ -23,6 +23,7 @@ RUN cd /tmp/das && ls -l && cp /tmp/das/src/das.ini /www/wonly/DAS_go/ && mv /tm
 RUN cd /www/wonly/DAS_go/ && ls -l
 RUN cd /tmp/das/src && ls -l && GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -v -o ../bin/das.bin .
 RUN cp /tmp/das/bin/das.bin /www/wonly/DAS_go/
+RUN cp -rf /tmp/das/src/cert /www/wonly/DAS_go/.
 RUN chmod -R 755 /www/wonly/DAS_go
 RUN cd /www/wonly/DAS_go/ && ls -l
 RUN rm -rf /tmp/*
@@ -30,5 +31,7 @@ RUN rm -rf /tmp/*
 WORKDIR /www/wonly/DAS_go
 VOLUME ["/www/wonly/DAS_go/logs"]
 
-EXPOSE 10700
+EXPOSE 10701
+EXPOSE 10702
+EXPOSE 10703
 CMD ["supervisord"]
