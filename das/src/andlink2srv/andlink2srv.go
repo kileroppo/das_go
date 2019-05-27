@@ -1,15 +1,16 @@
 package andlink2srv
 
 import (
+	"../core/log"
+	"../core/redis"
+	"../httpJob"
 	"bytes"
 	"fmt"
 	"github.com/dlintw/goconf"
-	"../core/log"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
-	"../httpJob"
 )
 
 func Andlink2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -58,13 +59,26 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 		// nonce := req.Form.Get("nonce")
 		if("" != msg) { // 存在则返回msg
 			fmt.Fprintf(res, msg)
-			log.Info("return msg to OneNET, ", msg)
+			log.Info("return msg to andlink, ", msg)
 		}
 	} else if ("POST" == req.Method) { // 接收OneNET推送过来的数据
 		result, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			log.Error("get req.Body failed")
 		} else {
+			// 处理Telecom推送过来的消息
+			log.Debug("andlink.Entry() get: ", bytes.NewBuffer(result).String())
+
+			// 1、解析TeleCom消息
+			/*var data entity.TelecomDeviceDataChanged
+			if err := json.Unmarshal([]byte(result), &data); err != nil {
+				log.Error("TelecomDeviceDataChanged json.Unmarshal, err=", err)
+				return
+			}*/
+
+			//1. 锁对接的平台，存入redis
+			redis.SetDevicePlatformPool("1111", "telecom")
+
 			// fetch job
 			work := httpJob.Job { Serload: httpJob.Serload { DValue : bytes.NewBuffer(result).String() }}
 			httpJob.JobQueue <- work

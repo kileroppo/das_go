@@ -2,6 +2,7 @@ package telecom2srv
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/dlintw/goconf"
 	"../core/log"
@@ -10,6 +11,8 @@ import (
 	"os"
 	"strconv"
 	"../httpJob"
+	"../core/entity"
+	"../core/redis"
 )
 
 func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -51,7 +54,7 @@ func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 func Entry(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm() //解析参数，默认是不会解析的
-	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
+	if ("GET" == req.Method) { // 基本配置：
 		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
 		msg := req.Form.Get("msg")
 		// signature := req.Form.Get("signature")
@@ -65,10 +68,21 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Error("get req.Body failed")
 		} else {
+			// 处理Telecom推送过来的消息
 			log.Debug("telecom.Entry() get: ", bytes.NewBuffer(result).String())
 
+			// 1、解析TeleCom消息
+			var data entity.TelecomDeviceDataChanged
+			if err := json.Unmarshal([]byte(result), &data); err != nil {
+				log.Error("TelecomDeviceDataChanged json.Unmarshal, err=", err)
+				return
+			}
+
+			//1. 锁对接的平台，存入redis
+			redis.SetDevicePlatformPool(data.DeviceId, "telecom")
+
 			// fetch job
-			work := httpJob.Job { Serload: httpJob.Serload { DValue : bytes.NewBuffer(result).String(), Imei:"111"}}
+			work := httpJob.Job { Serload: httpJob.Serload { DValue : data.Service.Data, Imei: data.DeviceId}}
 			httpJob.JobQueue <- work
 		}
 	}

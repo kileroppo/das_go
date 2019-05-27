@@ -20,7 +20,7 @@ func Cmd2Platform(imei string, data string) error {
 		}
 	case "telecom":
 		{
-
+			httpgo.HttpCmd2DeviceTelecom(imei, data)
 		}
 	case "andlink":
 		{

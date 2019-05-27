@@ -110,3 +110,18 @@ type AddDevUserStep struct {
 	Time int			`json:"time"`
 }
 
+// 电信平台设备数据变化，推送的JSON
+type TelecomDeviceServiceData struct {
+	ServiceId string	`json:"serviceId"`
+	ServiceType string	`json:"serviceType"`
+	Data string			`json:"data"`
+	EventTime string	`json:"eventTime"`
+}
+
+type TelecomDeviceDataChanged struct {
+	NotifyType string	`json:"notifyType"`
+	RequestId string	`json:"requestId"`
+	DeviceId string		`json:"deviceId"`
+	GatewayId string	`json:"gatewayId"`
+	Service TelecomDeviceServiceData
+}

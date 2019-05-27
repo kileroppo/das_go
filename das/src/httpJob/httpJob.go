@@ -1,18 +1,14 @@
 package httpJob
 
 import (
-	"runtime"
-	"fmt"
-	"net/http"
-	"io/ioutil"
-	"bytes"
 	"../core/log"
-	)
+	"runtime"
+)
 
 var (
 	// Max_Num = os.Getenv("MAX_NUM")
-	// MaxWorker = runtime.NumCPU()/2
-	MaxWorker = runtime.NumCPU()
+	MaxWorker = runtime.NumCPU()/2
+	// MaxWorker = runtime.NumCPU()
 	// MaxWorker = 1
 	MaxQueue  = 1000
 )
@@ -101,7 +97,7 @@ func (d *Dispatcher) Dispatch() {
 	}
 }
 
-func Entry(res http.ResponseWriter, req *http.Request) {
+/*func Entry(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm() //解析参数，默认是不会解析的
 	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
 		log.Debug("httpJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
@@ -123,7 +119,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			log.Debug("httpJob.Entry() get: ", bytes.NewBuffer(result).String())
 		}
 	}
-}
+}*/
 
 func init() {
 	log.Debug("httpJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
