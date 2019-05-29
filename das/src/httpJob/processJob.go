@@ -440,7 +440,7 @@ func (p *Serload) ProcessJob() error {
 			producer.SendMQMsg2APP(head.DevId, p.DValue)
 
 			//2. 需要存到mongodb
-			producer.SendMQMsg2Db(p.DValue)
+			// producer.SendMQMsg2Db(p.DValue)
 		}
 	case constant.Door_Call:	// 门铃呼叫
 		{
