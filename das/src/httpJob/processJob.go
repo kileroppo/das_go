@@ -171,7 +171,7 @@ func (p *Serload) ProcessJob() error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_user")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -216,7 +216,7 @@ func (p *Serload) ProcessJob() error {
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 				// go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -246,7 +246,7 @@ func (p *Serload) ProcessJob() error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -284,7 +284,7 @@ func (p *Serload) ProcessJob() error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_para")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -319,7 +319,7 @@ func (p *Serload) ProcessJob() error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Factory_reset")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -415,7 +415,7 @@ func (p *Serload) ProcessJob() error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -460,7 +460,7 @@ func (p *Serload) ProcessJob() error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -489,7 +489,7 @@ func (p *Serload) ProcessJob() error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData)
+				go Cmd2Platform(head.DevId, strToDevData, "constant.Door_State")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}

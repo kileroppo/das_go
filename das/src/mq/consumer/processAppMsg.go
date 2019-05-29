@@ -10,6 +10,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"../../core/httpgo"
 	"../producer"
@@ -65,7 +66,7 @@ func (p *AppMsg) ProcessAppMsg() error {
 	switch platform {
 	case "onenet":
 		{
-			respStr, err := httpgo.Http2OneNET_write(imei, strToDevData)
+			respStr, err := httpgo.Http2OneNET_write(imei, strToDevData, strconv.Itoa(head.Cmd))
 			if "" != respStr && nil == err {
 				var respOneNET entity.RespOneNET
 				if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {

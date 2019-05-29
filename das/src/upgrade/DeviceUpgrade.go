@@ -162,7 +162,7 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 		binary.Write(buf, binary.BigEndian, toDevHead)
 		strToDevData = hex.EncodeToString(buf.Bytes()) + string(toDevice_fileInfo)
 
-		httpgo.Http2OneNET_write(devId, strToDevData)
+		httpgo.Http2OneNET_write(devId, strToDevData, "constant.Get_Upgrade_FileInfo")
 	} else {
 		log.Error("toDevice_str json.Marshal, err=", err)
 	}
@@ -257,7 +257,7 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 	fileData.FileData = encodedStr
 	if toDevice_fileData, err := json.Marshal(fileData); err == nil {
 		log.Info("constant.Download_Upgrade_File, resp to device, ", string(toDevice_fileData))
-		httpgo.Http2OneNET_write(devId, string(toDevice_fileData))
+		httpgo.Http2OneNET_write(devId, string(toDevice_fileData), "constant.Download_Upgrade_File")
 
 		// myKey := util.MD52Bytes(fileData.DevId)
 
@@ -282,7 +282,7 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 		binary.Write(buf, binary.BigEndian, toDevHead)
 		strToDevData = hex.EncodeToString(buf.Bytes()) + string(toDevice_fileData)
 
-		httpgo.Http2OneNET_write(devId, strToDevData)
+		httpgo.Http2OneNET_write(devId, strToDevData, "constant.Download_Upgrade_File")
 
 	} else {
 		log.Error("toDevice_fileData json.Marshal, err=", err)

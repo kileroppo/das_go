@@ -1,20 +1,20 @@
 package main
 
 import (
-	"./core/log"
-	"./core/rabbitmq"
-	"./core/redis"
-	"./dindingtask"
-	"./mq/consumer"
-	"./mq/producer"
-	"./onenet2srv"
-	"./telecom2srv"
 	"./andlink2srv"
+	"./core/log"
+	"./core/redis"
 	"flag"
 	"github.com/dlintw/goconf"
 	"os"
 	"os/signal"
 	"syscall"
+	"./dindingtask"
+	"./core/rabbitmq"
+	"./mq/producer"
+	"./mq/consumer"
+	"./onenet2srv"
+	"./telecom2srv"
 )
 
 func main() {

@@ -6,7 +6,7 @@ import (
 	"../core/httpgo"
 )
 
-func Cmd2Platform(imei string, data string) error {
+func Cmd2Platform(imei string, data string, cmd string) error {
 	platform, errPlat := redis.GetDevicePlatformPool(imei)
 	if errPlat != nil {
 		log.Error("Get Platform from redis failed, err=", errPlat)
@@ -16,7 +16,7 @@ func Cmd2Platform(imei string, data string) error {
 	switch platform {
 	case "onenet":
 		{
-			httpgo.Http2OneNET_write(imei, data)
+			httpgo.Http2OneNET_write(imei, data, cmd)
 		}
 	case "telecom":
 		{
