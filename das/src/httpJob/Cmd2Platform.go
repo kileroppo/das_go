@@ -4,9 +4,15 @@ import (
 	"../core/log"
 	"../core/redis"
 	"../core/httpgo"
+	"errors"
 )
 
 func Cmd2Platform(imei string, data string, cmd string) error {
+	if "" == imei {
+		err := errors.New("imei is null")
+		log.Error("Get Platform from redis failed, imei is null, err=", err)
+		return err
+	}
 	platform, errPlat := redis.GetDevicePlatformPool(imei)
 	if errPlat != nil {
 		log.Error("Get Platform from redis failed, err=", errPlat)
