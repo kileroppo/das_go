@@ -32,6 +32,10 @@ func Cmd2Platform(imei string, data string, cmd string) error {
 		{
 
 		}
+	case "wifi":
+		{
+
+		}
 	default:
 		{
 			log.Error("Unknow Platform from redis, please check the platform: ", platform)
