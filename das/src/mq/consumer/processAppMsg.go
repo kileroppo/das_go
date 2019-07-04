@@ -3,19 +3,18 @@ package consumer
 import (
 	"../../core/constant"
 	"../../core/entity"
+	"../../core/httpgo"
 	"../../core/log"
 	"../../core/redis"
 	"../../core/util"
+	"../producer"
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"strconv"
 	"strings"
-	"../../core/httpgo"
-	"../producer"
 )
-
 
 type AppMsg struct {
 	pri string
@@ -24,7 +23,7 @@ type AppMsg struct {
 /*
 *	处理APP发送过来的命令消息
 *
-*/
+ */
 func (p *AppMsg) ProcessAppMsg() error {
 	log.Debug("ProcessAppMsg process msg from app: ", p.pri)
 
@@ -34,6 +33,16 @@ func (p *AppMsg) ProcessAppMsg() error {
 	if err := json.Unmarshal([]byte(p.pri), &head); err != nil {
 		log.Error("ProcessAppMsg json.Unmarshal Header error, err=", err)
 		return err
+	}
+
+	//若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
+	if head.Cmd == 0x52 {
+		signRandom, err0 := util.RemoteOpen(head, p.pri)
+		if err0 != nil {
+			log.Error("ProcessAppMsg RemoteOpen error, err=", err0)
+			return err0
+		}
+		p.pri = signRandom
 	}
 
 	// 将命令发到OneNET
@@ -110,7 +119,6 @@ func (p *AppMsg) ProcessAppMsg() error {
 			log.Error("Unknow Platform from redis, please check the platform: ", platform)
 		}
 	}
-
 
 	// time.Sleep(time.Second)
 	return nil

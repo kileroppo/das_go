@@ -47,14 +47,14 @@ func NewPool(server, password string) *redis.Pool {
 
 func NewPool_goredis(server, password string) *goredis.Client {
 	client := goredis.NewClient(
-		&goredis.Options {
-		Addr:     redisServer,
-		Password: "", // no password set
-		DB:       0,  // use default DB
-		IdleTimeout: time.Duration(idleTimeout) * time.Second,
-		MinIdleConns: maxIdle,
-		PoolSize: maxActive,
-	})
+		&goredis.Options{
+			Addr:         redisServer,
+			Password:     "", // no password set
+			DB:           0,  // use default DB
+			IdleTimeout:  time.Duration(idleTimeout) * time.Second,
+			MinIdleConns: maxIdle,
+			PoolSize:     maxActive,
+		})
 
 	pong, err := client.Ping().Result()
 	fmt.Println(pong, err)
@@ -82,7 +82,7 @@ func RedisString(reply interface{}, err1 error) (value string, err2 error) {
 	return
 }
 
-func SetActTimePool(devId string, time int64)  {
+func SetActTimePool(devId string, time int64) {
 	/*c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -101,8 +101,7 @@ func SetActTimePool(devId string, time int64)  {
 	}
 }
 
-
-func SetDevicePlatformPool(devId string, platform string)  {
+func SetDevicePlatformPool(devId string, platform string) {
 	/*c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -117,14 +116,14 @@ func SetDevicePlatformPool(devId string, platform string)  {
 	defer rc.Close()
 
 	// 写入值60S后过期
-	_, err := rc.Do("SET", devId + "_platform", platform, "EX", "2592000")
+	_, err := rc.Do("SET", devId+"_platform", platform, "EX", "2592000")
 
 	if err != nil {
 		fmt.Println("redis set failed:", err)
 	}
 }
 
-func GetDevicePlatformPool(devId string) (string, error)  {
+func GetDevicePlatformPool(devId string) (string, error) {
 	/*c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -140,7 +139,47 @@ func GetDevicePlatformPool(devId string) (string, error)  {
 	defer rc.Close()
 
 	var retPlat string
-	retPlat, err := redis.String(rc.Do("GET", devId + "_platform"))
+	retPlat, err := redis.String(rc.Do("GET", devId+"_platform"))
+	if err != nil {
+		fmt.Println("redis get failed:", err)
+		return "", err
+	}
+
+	return retPlat, nil
+}
+
+func SetDeviceYisumaRandomfromPool(devId string, random string) {
+	/*c, err := redis.Dial("tcp", redisServer_s)
+	if err != nil {
+		fmt.Println("Connect to redis error", err)
+		return
+	}
+
+	defer c.Close()*/
+	// 从池里获取连接
+	rc := RedisClient.Get()
+
+	// 用完后将连接放回连接池
+	defer rc.Close()
+
+	// 写入值30天后过期
+	_, err := rc.Do("SET", devId+"_yisumaRandom", random, "EX", "2592000")
+
+	if err != nil {
+		fmt.Println("redis set failed:", err)
+	}
+}
+
+func GetDeviceYisumaRandomfromPool(devId string) (string, error) {
+
+	// 从池里获取连接
+	rc := RedisClient.Get()
+
+	// 用完后将连接放回连接池
+	defer rc.Close()
+
+	var retPlat string
+	retPlat, err := redis.String(rc.Do("GET", devId+"_yisumaRandom"))
 	if err != nil {
 		fmt.Println("redis get failed:", err)
 		return "", err

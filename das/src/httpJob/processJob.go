@@ -3,6 +3,7 @@ package httpJob
 import (
 	"../core/constant"
 	"../core/entity"
+	"../core/httpgo"
 	"../core/log"
 	"../core/redis"
 	"../core/util"
@@ -13,6 +14,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"github.com/ZZMarquis/gm/sm2"
 	"regexp"
 	"strconv"
 	"strings"
@@ -21,7 +23,7 @@ import (
 
 type Serload struct {
 	DValue string
-	Imei string
+	Imei   string
 }
 
 // 转换8进制utf-8字符串到中文
@@ -37,10 +39,11 @@ func convertOctonaryUtf8(in string) string {
 		})
 	return string(out)
 }
+
 /*
 *	处理OneNET，Andlink, Telecom推送过来的消息
 *
-*/
+ */
 func (p *Serload) ProcessJob() error {
 	// 处理OneNET推送过来的消息
 	log.Info("process msg from before: ", p.DValue)
@@ -52,7 +55,7 @@ func (p *Serload) ProcessJob() error {
 	var myHead entity.MyHeader
 	if !strings.ContainsAny(p.DValue, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
 		log.Debug("[", p.Imei, "] get aes data: ", p.DValue)
-		lens := strings.Count(p.DValue,"") - 1
+		lens := strings.Count(p.DValue, "") - 1
 		if lens < 16 {
 			log.Error("[", p.Imei, "] ProcessJob() error msg : ", p.DValue, ", len: ", lens)
 			return errors.New("error msg.")
@@ -98,7 +101,7 @@ func (p *Serload) ProcessJob() error {
 	var head entity.Header
 	if err := json.Unmarshal([]byte(p.DValue), &head); err != nil {
 		log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
-		return err// break
+		return err // break
 	}
 
 	var toDevHead entity.MyHeader
@@ -163,7 +166,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -207,7 +210,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -238,7 +241,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -276,7 +279,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -295,6 +298,111 @@ func (p *Serload) ProcessJob() error {
 			//3. 需要存到mongodb
 			producer.SendMQMsg2Db(p.DValue)
 		}
+	case constant.Active_Yisuma_SE: // 亿速码安全芯片激活(锁-后台-亿速码-后台->锁)
+		{
+			log.Info("[", head.DevId, "] constant.Active_yisuma_SE")
+
+			if toDevice_byte, err := json.Marshal(head); err == nil {
+				log.Info("[", head.DevId, "] constant.Active_yisuma_SE, resp to device, ", string(toDevice_byte))
+				if _, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+					//1. 获取参数
+					var yisumaActiveSE entity.YisumaActiveSE
+					if err_step := json.Unmarshal([]byte(p.DValue), &yisumaActiveSE); err_step != nil {
+						log.Error("[", head.DevId, "] entity.yisumaActiveSE json.Unmarshal, err_step=", err_step)
+						break
+					}
+					//2. SM2算法加密数据
+					//2.1 获取privateKey
+					privateStr := "607EC530749978DD8D32123B3F2FDF423D1632E6281EB83D083B6375109BB740"
+					data, err := hex.DecodeString(privateStr)
+					if err != nil {
+						log.Error("[", head.DevId, "] privateStr hex.DecodeString, err_step=", err)
+						break
+					}
+					privateKey, err := sm2.RawBytesToPrivateKey(data)
+					if err != nil {
+						log.Error("[", head.DevId, "] privateKey sm2.RawBytesToPrivateKey, err_step=", err)
+						break
+					}
+					//2.2 封装业务数据
+					sign := entity.YisumaSign{UId: yisumaActiveSE.UId, ProjectNo: yisumaActiveSE.ProjectNo, MerchantNo: yisumaActiveSE.MerchantNo, CardChanllege: yisumaActiveSE.Random}
+					b, err := json.Marshal(sign)
+					if err != nil {
+						log.Error("[", head.DevId, "] entity.YisumaSign json.Marshal, err_step=", err)
+						break
+					}
+					//2.3 用私钥加密 得到signature
+					r, s, err := sm2.SignToRS(privateKey, nil, b)
+					if err != nil {
+						log.Error("[", head.DevId, "] r, s, err sm2.SignToRS, err_step=", err)
+						break
+					}
+					signature := strings.ToUpper(hex.EncodeToString(r.Bytes()) + hex.EncodeToString(s.Bytes()))
+					//3 模拟https请求
+					//3.1 封装业务数据
+					httpsParm := entity.YisumaHttpsReq{Body: sign, Signature: signature}
+					//3,2 发送https请求
+					respBody, err := httpgo.Http2YisumaActive(httpsParm)
+					if err != nil {
+						log.Error("[", head.DevId, "] httpgo httpgo.Http2YisumaActive, err_step=", err)
+						break
+					}
+					var jsonRes entity.YisumaHttpsRes
+					// 3.3 获取apdu指令
+					err1 := json.Unmarshal([]byte(respBody), &jsonRes)
+					if err1 != nil {
+						log.Error("[", head.DevId, "] YisumaHttpsRes json.Unmarshal, err_step=", err)
+						break
+					}
+					if jsonRes.ResultCode != "0000" {
+						log.Error("[", head.DevId, "] resultCode jsonRes.ResultCode, err_step=", err)
+						break
+					}
+					apdu := jsonRes.Apdu
+					//4 将命令发到OneNET
+					//4.1 将数据组装成json字符串
+					apduBody := entity.YisumaActiveApdu{head.Cmd, head.Ack, head.DevType, head.DevId, head.Vendor, head.SeqId, apdu}
+					//4.2 通过onenet平台透传
+					if toDevice_Data, err := json.Marshal(apduBody); err == nil {
+						log.Info("constant.Active_yisuma_SE, resp to device, ", string(toDevice_Data))
+						httpgo.Http2OneNET_write(head.DevId, string(toDevice_Data), "constant.Active_yisuma_SE")
+
+						var strToDevData string
+						var toDevHead entity.MyHeader
+						toDevHead.ApiVersion = constant.API_VERSION
+						toDevHead.ServiceType = constant.SERVICE_TYPE_UNENCRY
+
+						toDevHead.CheckSum = util.CheckSum(toDevice_Data)
+						toDevHead.MsgLen = (uint16)(strings.Count(string(toDevice_Data), "") - 1)
+
+						buf := new(bytes.Buffer)
+						binary.Write(buf, binary.BigEndian, toDevHead)
+						strToDevData = hex.EncodeToString(buf.Bytes()) + string(toDevice_Data)
+
+						httpgo.Http2OneNET_write(head.DevId, strToDevData, "constant.Active_yisuma_SE")
+
+					} else {
+						log.Error("toDevice_Data json.Marshal, err=", err)
+					}
+
+				} else {
+					log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
+				}
+			}
+		}
+	case constant.Random_Yisuma_State: //上报随机数
+		{
+			log.Info("constant.Random_Yisuma_State")
+			//1. 获取参数
+			var yisumaStateRandom entity.YisumaStateRandom
+			if err_step := json.Unmarshal([]byte(p.DValue), &yisumaStateRandom); err_step != nil {
+				log.Error("[", head.DevId, "] entity.YisumaStateRandom json.Unmarshal, err_step=", err_step)
+				break
+			}
+			//2. 存入redis
+			redis.SetDeviceYisumaRandomfromPool(head.DevId, yisumaStateRandom.Random)
+
+		}
 	case constant.Soft_reset: // 软件复位
 		{
 			log.Info("[", head.DevId, "] constant.Soft_reset")
@@ -311,7 +419,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -370,14 +478,14 @@ func (p *Serload) ProcessJob() error {
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(p.DValue)
 		}
-	case constant.Infrared_alarm:	// 人体感应报警（infra红外感应)
+	case constant.Infrared_alarm: // 人体感应报警（infra红外感应)
 		{
 			log.Info("[", head.DevId, "] constant.Infrared_alarm")
 
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(p.DValue)
 		}
-	case constant.Lock_PIC_Upload:	// 视频锁图片上报
+	case constant.Lock_PIC_Upload: // 视频锁图片上报
 		{
 			log.Info("[", head.DevId, "] constant.Lock_PIC_Upload")
 
@@ -407,7 +515,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -426,14 +534,14 @@ func (p *Serload) ProcessJob() error {
 			//4. 回复到APP
 			producer.SendMQMsg2APP(head.DevId, p.DValue)
 		}
-	case constant.Real_Video:	// 实时视频
+	case constant.Real_Video: // 实时视频
 		{
 			log.Info("[", head.DevId, "] constant.Upload_lock_active")
 
 			//1. 回复到APP
 			producer.SendMQMsg2APP(head.DevId, p.DValue)
 		}
-	case constant.Set_Wifi:	// Wifi设置
+	case constant.Set_Wifi: // Wifi设置
 		{
 			log.Info("[", head.DevId, "] constant.Set_Wifi")
 			//1. 回复到APP
@@ -442,7 +550,7 @@ func (p *Serload) ProcessJob() error {
 			//2. 需要存到mongodb
 			// producer.SendMQMsg2Db(p.DValue)
 		}
-	case constant.Door_Call:	// 门铃呼叫
+	case constant.Door_Call: // 门铃呼叫
 		{
 			log.Info("[", head.DevId, "] constant.Door_Call")
 			//1. 回复设备
@@ -452,7 +560,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -471,7 +579,7 @@ func (p *Serload) ProcessJob() error {
 			//3. 需要存到mongodb
 			producer.SendMQMsg2Db(p.DValue)
 		}
-	case constant.Door_State:	// 锁状态上报
+	case constant.Door_State: // 锁状态上报
 		{
 			log.Info("[", head.DevId, "] constant.Door_State")
 			//1. 回复设备
@@ -481,7 +589,7 @@ func (p *Serload) ProcessJob() error {
 				var strToDevData string
 				if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
 					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen =  (uint16)(strings.Count(strToDevData,"") - 1)
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
 					buf := new(bytes.Buffer)
 					binary.Write(buf, binary.BigEndian, toDevHead)
@@ -500,7 +608,7 @@ func (p *Serload) ProcessJob() error {
 			//3. 需要存到mongodb
 			producer.SendMQMsg2Db(p.DValue)
 		}
-	case constant.Notify_F_Upgrade:	// 通知前板升级（APP—后台—>锁）
+	case constant.Notify_F_Upgrade: // 通知前板升级（APP—后台—>锁）
 		{
 			log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
 
