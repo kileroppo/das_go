@@ -13,9 +13,9 @@ services:
             - /persistent_data/wonly/DAS_go/logs:/www/wonly/DAS_go/logs
         network_mode: "host"
         dns:
-            - 114.114.114.114
-            - 8.8.8.8
+            - 223.5.5.5
+            - 223.6.6.6
         expose:
-            - "10700"
+            - "10701"
         ports:
-            - "127.0.0.1:10700:10700"
+            - "127.0.0.1:10700:10701"
