@@ -182,6 +182,8 @@ type YisumaRandomSign struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	Password  string `json:"passwd"`
+	Password2 string `json:"passwd2"`
 	Random    string `json:"random"`
 	Signature string `json:"signature"`
 }
