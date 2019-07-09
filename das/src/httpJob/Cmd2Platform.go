@@ -4,6 +4,7 @@ import (
 	"../core/log"
 	"../core/redis"
 	"../core/httpgo"
+	"../mq/producer"
 	"errors"
 )
 
@@ -34,7 +35,7 @@ func Cmd2Platform(imei string, data string, cmd string) error {
 		}
 	case "wifi":
 		{
-
+			producer.SendMQMsg2Device(imei, data, cmd)
 		}
 	default:
 		{

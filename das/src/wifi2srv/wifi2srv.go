@@ -6,6 +6,7 @@ import (
 	"github.com/dlintw/goconf"
 	"../httpJob"
 	"../core/redis"
+	"strings"
 )
 
 var rmq_uri string;
@@ -47,11 +48,25 @@ func ReceiveMQMsgFromDevice() {
 			for d := range msgs {
 				log.Error("Consumer ReceiveMQMsgFromDevice 1: ", string(d.Body))
 
-				//1. 锁对接的平台，存入redis
-				redis.SetDevicePlatformPool("", "wifi")
+				//1. 检验数据是否合法
+				getData := string(d.Body)
+				if !strings.Contains(getData, "#") {
+					log.Error("ReceiveMQMsgFromDevice: rabbitmq.ConsumerRabbitMq error msg: ", getData)
+					continue
+				}
 
-				//2. fetch job
-				work := httpJob.Job { Serload: httpJob.Serload { DValue: string(d.Body), Imei:"" }}
+				//2. 获取设备编号
+				prData := strings.Split(getData, "#")
+				var devID string
+				var devData string
+				devID = prData[0]
+				devData = prData[1]
+
+				//3. 锁对接的平台，存入redis
+				redis.SetDevicePlatformPool(devID, "wifi")
+
+				//4. fetch job
+				work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID }}
 				httpJob.JobQueue <- work
 			}
 		}()
