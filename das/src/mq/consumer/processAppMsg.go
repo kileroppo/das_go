@@ -35,14 +35,24 @@ func (p *AppMsg) ProcessAppMsg() error {
 		return err
 	}
 
-	//若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
-	if head.Cmd == 0x52 {
-		signRandom, err0 := util.RemoteOpen(head, p.pri)
+	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
+	if head.Cmd == constant.Remote_open {
+		//1. 先判断是否为亿速码加签名，查询redis，若为远程开锁流程且能查到random，则需要加签名
+		random, err0 := redis.GetDeviceYisumaRandomfromPool(head.DevId)
 		if err0 != nil {
-			log.Error("ProcessAppMsg RemoteOpen error, err=", err0)
+			log.Error("Get YisumaRandom from redis failed, err=", err0)
 			return err0
 		}
-		p.pri = signRandom
+
+		//2. 亿速码加签
+		if "" != random {
+			signRandom, err0 := util.AddYisumaRandomSign(head, p.pri, random) // 加上签名
+			if err0 != nil {
+				log.Error("ProcessAppMsg util.AddYisumaRandomSign error, err=", err0)
+				return err0
+			}
+			p.pri = signRandom
+		}
 	}
 
 	// 将命令发到OneNET
