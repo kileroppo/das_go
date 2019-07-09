@@ -21,6 +21,11 @@ func RemoteOpen(head entity.Header, pri string) (respBody string, err error) {
 	}
 	//若能查询出随机数 说明为亿速码加密的数据
 	if random != "" {
+		var randomUnSign entity.YisumaRandomSign
+		if err := json.Unmarshal([]byte(pri), &randomUnSign); err != nil {
+			log.Error("ProcessAppMsg json.Unmarshal Header error, err=", err)
+			return "", err
+		}
 		str := "607EC530749978DD8D32123B3F2FDF423D1632E6281EB83D083B6375109BB740"
 		data, err := hex.DecodeString(str)
 		if err != nil {
@@ -36,7 +41,7 @@ func RemoteOpen(head entity.Header, pri string) (respBody string, err error) {
 		signatureR := hex.EncodeToString(r.Bytes())
 		signatureS := hex.EncodeToString(s.Bytes())
 		signature := strings.ToUpper(signatureR + signatureS)
-		randomSign := entity.YisumaRandomSign{head.Cmd, head.Ack, head.DevType, head.DevId, head.Vendor, head.SeqId, random, signature}
+		randomSign := entity.YisumaRandomSign{head.Cmd, head.Ack, head.DevType, head.DevId, head.Vendor, head.SeqId, randomUnSign.Password, randomUnSign.Password2, random, signature}
 		randomSignStr, err := json.Marshal(randomSign)
 		if err != nil {
 			log.Error("Get YisumaRandom json.Marshal failed, err=", err)
