@@ -51,7 +51,7 @@ func (p *Serload) ProcessJob() error {
 	myKey := util.MD52Bytes(p.Imei)
 
 	// 增加二进制包头，以及加密的包体
-	// 1、 获取包头部分 8个字节
+	//	// 1、 获取包头部分 8个字节
 	var myHead entity.MyHeader
 	if !strings.ContainsAny(p.DValue, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
 		log.Debug("[", p.Imei, "] get aes data: ", p.DValue)
@@ -361,26 +361,22 @@ func (p *Serload) ProcessJob() error {
 					apdu := jsonRes.Apdu
 					//4 将命令发到OneNET
 					//4.1 将数据组装成json字符串
-					apduBody := entity.YisumaActiveApdu{head.Cmd, head.Ack, head.DevType, head.DevId, head.Vendor, head.SeqId, apdu}
+					apduBody := entity.YisumaActiveApdu{head.Cmd, 1, head.DevType, head.DevId, head.Vendor, head.SeqId, apdu}
 					//4.2 通过onenet平台透传
-					if toDevice_Data, err := json.Marshal(apduBody); err == nil {
-						log.Info("constant.Active_yisuma_SE, resp to device, ", string(toDevice_Data))
-						httpgo.Http2OneNET_write(head.DevId, string(toDevice_Data), "constant.Active_yisuma_SE")
-
+					if toDevice_byte, err := json.Marshal(apduBody); err == nil {
+						log.Info("[", head.DevId, "] constant.Active_yisuma_SE, resp to device, ", string(toDevice_byte))
 						var strToDevData string
-						var toDevHead entity.MyHeader
-						toDevHead.ApiVersion = constant.API_VERSION
-						toDevHead.ServiceType = constant.SERVICE_TYPE_UNENCRY
+						if strToDevData, err = util.ECBEncrypt(toDevice_byte, myKey); err == nil {
+							toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+							toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
-						toDevHead.CheckSum = util.CheckSum(toDevice_Data)
-						toDevHead.MsgLen = (uint16)(strings.Count(string(toDevice_Data), "") - 1)
+							buf := new(bytes.Buffer)
+							binary.Write(buf, binary.BigEndian, toDevHead)
+							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+						}
 
-						buf := new(bytes.Buffer)
-						binary.Write(buf, binary.BigEndian, toDevHead)
-						strToDevData = hex.EncodeToString(buf.Bytes()) + string(toDevice_Data)
-
-						httpgo.Http2OneNET_write(head.DevId, strToDevData, "constant.Active_yisuma_SE")
-
+						// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
+						go Cmd2Platform(head.DevId, strToDevData, "constant.Active_yisuma_SE")
 					} else {
 						log.Error("toDevice_Data json.Marshal, err=", err)
 					}
@@ -401,6 +397,8 @@ func (p *Serload) ProcessJob() error {
 			}
 			//2. 存入redis
 			redis.SetDeviceYisumaRandomfromPool(head.DevId, yisumaStateRandom.Random)
+			random, _ := redis.GetDeviceYisumaRandomfromPool(head.DevId)
+			log.Info("redis.SetDeviceYisumaRandomfromPool=============" + random)
 
 		}
 	case constant.Soft_reset: // 软件复位
