@@ -51,7 +51,7 @@ func (p *Serload) ProcessJob() error {
 	myKey := util.MD52Bytes(p.Imei)
 
 	// 增加二进制包头，以及加密的包体
-	//	// 1、 获取包头部分 8个字节
+	// 1、 获取包头部分 8个字节
 	var myHead entity.MyHeader
 	if !strings.ContainsAny(p.DValue, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
 		log.Debug("[", p.Imei, "] get aes data: ", p.DValue)
