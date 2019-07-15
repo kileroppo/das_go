@@ -26,7 +26,6 @@ type AppMsg struct {
  */
 func (p *AppMsg) ProcessAppMsg() error {
 	log.Debug("ProcessAppMsg process msg from app: ", p.pri)
-
 	// 1、解析消息
 	//json str 转struct(部份字段)
 	var head entity.Header
@@ -39,19 +38,16 @@ func (p *AppMsg) ProcessAppMsg() error {
 	if head.Cmd == constant.Remote_open {
 		//1. 先判断是否为亿速码加签名，查询redis，若为远程开锁流程且能查到random，则需要加签名
 		random, err0 := redis.GetDeviceYisumaRandomfromPool(head.DevId)
-		if err0 != nil {
-			log.Error("Get YisumaRandom from redis failed, err=", err0)
-			return err0
-		}
-
-		//2. 亿速码加签
-		if "" != random {
-			signRandom, err0 := util.AddYisumaRandomSign(head, p.pri, random) // 加上签名
-			if err0 != nil {
-				log.Error("ProcessAppMsg util.AddYisumaRandomSign error, err=", err0)
-				return err0
+		if err0 == nil {
+			//2. 亿速码加签
+			if "" != random {
+				signRandom, err0 := util.AddYisumaRandomSign(head, p.pri, random) // 加上签名
+				if err0 != nil {
+					log.Error("ProcessAppMsg util.AddYisumaRandomSign error, err=", err0)
+					return err0
+				}
+				p.pri = signRandom
 			}
-			p.pri = signRandom
 		}
 	}
 
