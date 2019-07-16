@@ -42,28 +42,31 @@ func main() {
 	//7. 初始化到Mongodb生成者交换器，消息队列的参数
 	producer.InitRmq_Ex_Que_Name_mongo(conf)
 
+	//8. 初始化发送到平板设备的生成者交换器，消息队列的参数
+	producer.InitRmq_Ex_Que_Name_Device(conf)
+
 	//8. 初始化消费者交换器，消息队列的参数
 	consumer.InitRmq_Ex_Que_Name(conf)
 	go consumer.ReceiveMQMsgFromAPP()
 
-	//9. 初始化平板消费者交换器，消息队列的参数
+	//10. 初始化平板消费者交换器，消息队列的参数
 	wifi2srv.InitRmq_Ex_Que_Name(conf)
 	go wifi2srv.ReceiveMQMsgFromDevice()
 
-	//10. 启动定时器
+	//11. 启动定时器
 	dindingtask.InitTimer_IsStart(conf)
 	dindingtask.StartMyTimer()
 
-	//11. 启动http/https服务
+	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 
-	//12. 启动http/https服务
+	//13. 启动http/https服务
 	telecom2srv := telecom2srv.Telecom2HttpSrvStart(conf)
 
-	//13. 启动http/https服务
+	//14. 启动http/https服务
 	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)
 
-	//14. Handle SIGINT and SIGTERM.
+	//15. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
@@ -93,25 +96,25 @@ func main() {
 		}
 	}
 
-	// 15. 停止HTTP服务器
+	// 16. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	// 16. 停止HTTP服务器
+	// 17. 停止HTTP服务器
 	if err := telecom2srv.Shutdown(nil); err != nil {
 		log.Error("telecom2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	// 17. 停止HTTP服务器
+	// 18. 停止HTTP服务器
 	if err := andlink2srv.Shutdown(nil); err != nil {
 		log.Error("andlink2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	// 18. 停止定时器
+	// 19. 停止定时器
 	dindingtask.StopMyTimer()
 
 	log.Info("das_go server quit......")
