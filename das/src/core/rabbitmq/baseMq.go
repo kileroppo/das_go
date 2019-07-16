@@ -235,7 +235,7 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 /*
 *	publish message
 *
-*	发给APP的消息
+*	发给平板设备的消息
 */
 func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
@@ -253,7 +253,7 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 		false, 				// noWait
 		amqp.Table{
 			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(1000)},   // arguments
+			"x-expires": int32(10000)},   // arguments
 	)
 
 	channelContext.Channel.QueueBind(
@@ -284,9 +284,9 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {
 			if channelContext.ReSendNum < 3 {
-				log.Error("Publish2App ReSend message=", body, ", num=", channelContext.ReSendNum)
+				log.Error("Publish2Device ReSend message=", body, ", num=", channelContext.ReSendNum)
 				channelContext.ReSendNum++
-				bmq.Publish2App(channelContext, body)
+				bmq.Publish2Device(channelContext, body)
 			}
 		}
 	}
