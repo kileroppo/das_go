@@ -31,6 +31,7 @@ func main() {
 	//4. 初始化生产者rabbitmq_uri
 	rabbitmq.InitProducerMqConnection(conf)
 	rabbitmq.InitProducerMqConnection2Db(conf)
+	rabbitmq.InitProducerMqConnection2Device(conf)
 
 	//5. 初始化消费者rabbitmq_uri
 	rabbitmq.InitConsumerMqConnection(conf)

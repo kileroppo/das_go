@@ -10,6 +10,8 @@ var ProducerRabbitMq *BaseMq
 var producerRabbitMqonce sync.Once
 var ProducerRabbitMq2Db *BaseMq
 var producerRabbitMqonce2Db sync.Once
+var ProducerRabbitMq2Device *BaseMq
+var producerRabbitMqonce2Device sync.Once
 var ConsumerRabbitMq *BaseMq
 var consumerRabbitMqonce sync.Once
 
@@ -43,6 +45,16 @@ func getConsumerRabbitMq(uri string) *BaseMq {
 	return ConsumerRabbitMq
 }
 
+func getProducerRabbitMq2Device(uri string) *BaseMq {
+	producerRabbitMqonce2Device.Do(func() {
+		ProducerRabbitMq2Device = &BaseMq{
+			MqConnection: &MqConnection{MqUri: uri},
+		}
+		ProducerRabbitMq2Device.Init()
+	})
+	return ProducerRabbitMq2Device
+}
+
 func InitProducerMqConnection(conf *goconf.ConfigFile) *BaseMq {
 	uri, _ := conf.GetString("rabbitmq", "rabbitmq_uri")
 	if uri == "" {
@@ -68,4 +80,13 @@ func InitConsumerMqConnection(conf *goconf.ConfigFile) *BaseMq {
 		return nil
 	}
 	return getConsumerRabbitMq(uri)
+}
+
+func InitProducerMqConnection2Device(conf *goconf.ConfigFile) *BaseMq {
+	uri, _ := conf.GetString("rabbitmq", "rabbitmq_uri")
+	if uri == "" {
+		log.Error("未启用rabbimq")
+		return nil
+	}
+	return getProducerRabbitMq2Device(uri)
 }

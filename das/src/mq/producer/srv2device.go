@@ -22,8 +22,8 @@ func InitRmq_Ex_Que_Name_Device(conf *goconf.ConfigFile) {
 }
 
 func SendMQMsg2Device(uuid string, message string, cmd string ) {
-	if rabbitmq.ProducerRabbitMq == nil {
-		log.Error("SendMQMsg2Device: rabbitmq.ConsumerRabbitMq is nil.")
+	if rabbitmq.ProducerRabbitMq2Device == nil {
+		log.Error("SendMQMsg2Device: rabbitmq.ProducerRabbitMq2Device is nil.")
 		return
 	}
 
@@ -32,5 +32,5 @@ func SendMQMsg2Device(uuid string, message string, cmd string ) {
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: rkey, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Info("[ ", rkey, " ] " + cmd + " Publish2Device: ", message)
-	rabbitmq.ProducerRabbitMq.Publish2Device(&channleContxt, message)
+	rabbitmq.ProducerRabbitMq2Device.Publish2Device(&channleContxt, message)
 }
