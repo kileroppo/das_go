@@ -45,7 +45,7 @@ func main() {
 	//8. 初始化发送到平板设备的生成者交换器，消息队列的参数
 	producer.InitRmq_Ex_Que_Name_Device(conf)
 
-	//8. 初始化消费者交换器，消息队列的参数
+	//9. 初始化消费者交换器，消息队列的参数
 	consumer.InitRmq_Ex_Que_Name(conf)
 	go consumer.ReceiveMQMsgFromAPP()
 

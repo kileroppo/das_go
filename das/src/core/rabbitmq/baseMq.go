@@ -224,7 +224,7 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 			if channelContext.ReSendNum < 3 {
 				log.Error("Publish2Db ReSend message=", body, ", num=", channelContext.ReSendNum)
 				channelContext.ReSendNum++
-				bmq.Publish2App(channelContext, body)
+				bmq.Publish2Db(channelContext, body)
 			}
 		}
 	}
@@ -245,7 +245,7 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
 	}
 
-	queue_name, _ := channelContext.Channel.QueueDeclare(
+	queue_name, qerr := channelContext.Channel.QueueDeclare(
 		"",  					// name, leave empty to generate a unique name
 		false,  				// durable
 		false, 			// delete when usused
@@ -253,16 +253,24 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 		false, 				// noWait
 		amqp.Table{
 			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(5000)},   // arguments
+			"x-expires": int32(20000)},   // arguments
 	)
+	if nil != qerr {
+		log.Error("Publish2Device, channelContext.Channel.QueueDeclare, err: ", qerr)
+		return qerr
+	}
 
-	channelContext.Channel.QueueBind(
+	qbinderr := channelContext.Channel.QueueBind(
 		queue_name.Name,    // name of the queue
 		channelContext.RoutingKey,   // bindingKey
 		channelContext.Exchange, // sourceExchange
 		false,    // noWait
 		nil,      	  // arguments
 	)
+	if nil != qbinderr {
+		log.Error("Publish2Device, channelContext.Channel.QueueBind, err: ", qbinderr)
+		return qerr
+	}
 
 	if err := channelContext.Channel.Publish(
 		channelContext.Exchange,    // publish to an exchange
@@ -279,7 +287,7 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 			// a bunch of application/implementation-specific fields
 		},
 	); err != nil {
-		log.Error("send message failed refresh connection")
+		log.Error("send message failed refresh connection, err: ", err)
 		time.Sleep(10 * time.Second)
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {

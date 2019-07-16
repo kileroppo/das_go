@@ -12,8 +12,8 @@ var exchangeType_device string
 
 //初始化RabbitMQ交换器，消息队列名称
 func InitRmq_Ex_Que_Name_Device(conf *goconf.ConfigFile) {
-	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
-	if rmq_uri == "" {
+	rmq_uri_device, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
+	if rmq_uri_device == "" {
 		log.Error("未启用RabbitMq")
 		return
 	}
@@ -31,6 +31,6 @@ func SendMQMsg2Device(uuid string, message string, cmd string ) {
 	rkey = uuid + "_robot"
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_device, ExchangeType: exchangeType_device, RoutingKey: rkey, Reliable: true, Durable: true, ReSendNum: 0}
 
-	log.Info("[ ", rkey, " ] " + cmd + " Publish2Device: ", message)
+	log.Info("[ ", rkey, " ] " + cmd + " rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
 	rabbitmq.ProducerRabbitMq2Device.Publish2Device(&channleContxt, message)
 }
