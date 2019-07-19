@@ -39,7 +39,7 @@ func Cmd2Platform(imei string, data string, cmd string) error {
 		}
 	default:
 		{
-			log.Error("Unknow Platform from redis, please check the platform: ", platform)
+			log.Error("Cmd2Platform::Unknow Platform from redis, please check the platform: ", platform)
 		}
 	}
 

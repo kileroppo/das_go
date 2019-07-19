@@ -120,9 +120,13 @@ func (p *AppMsg) ProcessAppMsg() error {
 		{
 
 		}
+	case "wifi":
+		{
+			producer.SendMQMsg2Device(imei, strToDevData, strconv.Itoa(head.Cmd))
+		}
 	default:
 		{
-			log.Error("Unknow Platform from redis, please check the platform: ", platform)
+			log.Error("ProcessAppMsg::Unknow Platform from redis, please check the platform: ", platform)
 		}
 	}
 
