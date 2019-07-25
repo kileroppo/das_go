@@ -57,11 +57,12 @@ func (bmq *BaseMq) generateChannelId(channelContext *ChannelContext) string {
 	/*stringTag := channelContext.Exchange + ":" + channelContext.ExchangeType + ":" + channelContext.RoutingKey + ":" +
 		strconv.FormatBool(channelContext.Durable) + ":" + strconv.FormatBool(channelContext.Reliable)*/
 	// 去掉RoutingKey，减少返回消息给APP的连接
-	stringTag := channelContext.Exchange + ":" + channelContext.ExchangeType + ":" +
-		strconv.FormatBool(channelContext.Durable) + ":" + strconv.FormatBool(channelContext.Reliable)
+	stringTag := channelContext.Exchange + ":" + channelContext.ExchangeType + ":" + strconv.FormatBool(channelContext.Durable) + ":" + strconv.FormatBool(channelContext.Reliable)
 	hasher := md5.New()
 	hasher.Write([]byte(stringTag))
-	return hex.EncodeToString(hasher.Sum(nil))
+	md5Str := hex.EncodeToString(hasher.Sum(nil))
+	log.Debug("generateChannelId(): " + stringTag + ", md5Str: " + md5Str)
+	return md5Str
 }
 
 /*
