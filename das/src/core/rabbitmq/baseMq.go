@@ -54,7 +54,10 @@ func (bmq *BaseMq) confirmOne(confirms <-chan amqp.Confirmation) {
  * get md5 from channel context
  */
 func (bmq *BaseMq) generateChannelId(channelContext *ChannelContext) string {
-	stringTag := channelContext.Exchange + ":" + channelContext.ExchangeType + ":" + channelContext.RoutingKey + ":" +
+	/*stringTag := channelContext.Exchange + ":" + channelContext.ExchangeType + ":" + channelContext.RoutingKey + ":" +
+		strconv.FormatBool(channelContext.Durable) + ":" + strconv.FormatBool(channelContext.Reliable)*/
+	// 去掉RoutingKey，减少返回消息给APP的连接
+	stringTag := channelContext.Exchange + ":" + channelContext.ExchangeType + ":" +
 		strconv.FormatBool(channelContext.Durable) + ":" + strconv.FormatBool(channelContext.Reliable)
 	hasher := md5.New()
 	hasher.Write([]byte(stringTag))
