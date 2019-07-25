@@ -71,6 +71,7 @@ func (bmq *BaseMq) refreshConnectionAndChannel(channelContext *ChannelContext) e
 	var err error
 
 	if bmq.MqConnection.Connection != nil {
+		log.Error("refreshConnectionAndChannel() bmq.MqConnection.Connection != nil, bmq.MqConnection.Connection.Channel()->openChannel().")
 		channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
 	} else {
 		log.Error("connection not init, dial first time......")
@@ -118,6 +119,7 @@ func (bmq *BaseMq) refreshConnectionAndChannel(channelContext *ChannelContext) e
 func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
+		log.Error("Publish2App() 1-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		bmq.refreshConnectionAndChannel(channelContext)
 	} else {
 		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
@@ -159,6 +161,7 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 	); err != nil {
 		log.Error("send message failed refresh connection")
 		time.Sleep(10 * time.Second)
+		log.Error("Publish2App() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {
 			if channelContext.ReSendNum < 3 {
@@ -180,6 +183,7 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
+		log.Error("Publish2Db() 1-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		bmq.refreshConnectionAndChannel(channelContext)
 	} else {
 		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
@@ -219,6 +223,7 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 	); err != nil {
 		log.Error("send message failed refresh connection")
 		time.Sleep(10 * time.Second)
+		log.Error("Publish2Db() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {
 			if channelContext.ReSendNum < 3 {
@@ -240,6 +245,7 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
+		log.Error("Publish2Device() 1-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		bmq.refreshConnectionAndChannel(channelContext)
 	} else {
 		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
@@ -289,6 +295,7 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 	); err != nil {
 		log.Error("send message failed refresh connection, err: ", err)
 		time.Sleep(10 * time.Second)
+		log.Error("Publish2Device() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {
 			if channelContext.ReSendNum < 3 {
