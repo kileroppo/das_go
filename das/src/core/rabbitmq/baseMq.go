@@ -263,7 +263,7 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 		false, 				// noWait
 		amqp.Table{
 			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(20000)},   // arguments
+			"x-expires": int32(2000)},   // arguments
 	)
 	if nil != qerr {
 		log.Error("Publish2Device, channelContext.Channel.QueueDeclare, err: ", qerr)
