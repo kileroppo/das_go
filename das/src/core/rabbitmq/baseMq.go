@@ -129,7 +129,7 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
 	}
 
-	queue_name, _ := channelContext.Channel.QueueDeclare(
+	queue_name, qerr := channelContext.Channel.QueueDeclare(
 		"",  					// name, leave empty to generate a unique name
 		false,  				// durable
 		false, 			// delete when usused
@@ -139,14 +139,24 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 			/*"x-message-ttl": int32(5000),*/
 			"x-expires": int32(1000)},   // arguments
 	)
+	if nil != qerr {
+		log.Error("Publish2App, channelContext.Channel.QueueDeclare, err: ", qerr)
+		bmq.refreshConnectionAndChannel(channelContext)
+		//return qerr
+	}
 
-	channelContext.Channel.QueueBind(
+	qbinderr := channelContext.Channel.QueueBind(
 		queue_name.Name,    // name of the queue
 		channelContext.RoutingKey,   // bindingKey
 		channelContext.Exchange, // sourceExchange
 		false,    // noWait
 		nil,      	  // arguments
 	)
+	if nil != qbinderr {
+		log.Error("Publish2App, channelContext.Channel.QueueBind, err: ", qbinderr)
+		bmq.refreshConnectionAndChannel(channelContext)
+		// return qerr
+	}
 
 	if err := channelContext.Channel.Publish(
 		channelContext.Exchange,    // publish to an exchange
@@ -193,7 +203,7 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
 	}
 
-	queue_name, _ := channelContext.Channel.QueueDeclare(
+	queue_name, qerr := channelContext.Channel.QueueDeclare(
 		channelContext.RoutingKey,  // name, leave empty to generate a unique name
 		true,  				// durable
 		false, 			// delete when usused
@@ -201,14 +211,24 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 		false, 				// noWait
 		nil,   // arguments
 	)
+	if nil != qerr {
+		log.Error("Publish2Db, channelContext.Channel.QueueDeclare, err: ", qerr)
+		bmq.refreshConnectionAndChannel(channelContext)
+		//return qerr
+	}
 
-	channelContext.Channel.QueueBind(
+	qbinderr := channelContext.Channel.QueueBind(
 		queue_name.Name,    // name of the queue
 		"",      		// bindingKey
 		channelContext.Exchange, // sourceExchange
 		false,    // noWait
 		nil,      	  // arguments
 	)
+	if nil != qbinderr {
+		log.Error("Publish2Db, channelContext.Channel.QueueBind, err: ", qbinderr)
+		bmq.refreshConnectionAndChannel(channelContext)
+		// return qerr
+	}
 
 	if err := channelContext.Channel.Publish(
 		channelContext.Exchange,    // publish to an exchange
@@ -267,7 +287,8 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 	)
 	if nil != qerr {
 		log.Error("Publish2Device, channelContext.Channel.QueueDeclare, err: ", qerr)
-		return qerr
+		bmq.refreshConnectionAndChannel(channelContext)
+		//return qerr
 	}
 
 	qbinderr := channelContext.Channel.QueueBind(
@@ -279,7 +300,8 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 	)
 	if nil != qbinderr {
 		log.Error("Publish2Device, channelContext.Channel.QueueBind, err: ", qbinderr)
-		return qerr
+		bmq.refreshConnectionAndChannel(channelContext)
+		// return qerr
 	}
 
 	if err := channelContext.Channel.Publish(
