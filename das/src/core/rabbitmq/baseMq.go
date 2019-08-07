@@ -173,12 +173,12 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 			// a bunch of application/implementation-specific fields
 		},
 	); err != nil {
-		log.Error("send message failed refresh connection")
+		log.Error("send message failed refresh connection", err)
 		time.Sleep(10 * time.Second)
 		log.Error("Publish2App() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {
-			if channelContext.ReSendNum < 3 {
+			if channelContext.ReSendNum < 1 {
 				log.Error("Publish2App ReSend message=", body, ", num=", channelContext.ReSendNum)
 				channelContext.ReSendNum++
 				bmq.Publish2App(channelContext, body)
@@ -245,12 +245,12 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 			// a bunch of application/implementation-specific fields
 		},
 	); err != nil {
-		log.Error("send message failed refresh connection")
+		log.Error("send message failed refresh connection", err)
 		time.Sleep(10 * time.Second)
 		log.Error("Publish2Db() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {
-			if channelContext.ReSendNum < 3 {
+			if channelContext.ReSendNum < 1 {
 				log.Error("Publish2Db ReSend message=", body, ", num=", channelContext.ReSendNum)
 				channelContext.ReSendNum++
 				bmq.Publish2Db(channelContext, body)
@@ -324,7 +324,7 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 		log.Error("Publish2Device() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
 		recon_err := bmq.refreshConnectionAndChannel(channelContext)
 		if nil != recon_err {
-			if channelContext.ReSendNum < 3 {
+			if channelContext.ReSendNum < 1 {
 				log.Error("Publish2Device ReSend message=", body, ", num=", channelContext.ReSendNum)
 				channelContext.ReSendNum++
 				bmq.Publish2Device(channelContext, body)
