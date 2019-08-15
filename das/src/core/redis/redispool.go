@@ -162,8 +162,8 @@ func SetDeviceYisumaRandomfromPool(devId string, random string) {
 	// 用完后将连接放回连接池
 	defer rc.Close()
 
-	// 写入值30天后过期
-	_, err := rc.Do("SET", devId+"_yisumaRandom", random, "EX", "2592000")
+	// 写入值30分钟过期
+	_, err := rc.Do("SET", devId+"_yisumaRandom", random, "EX", "1800")
 
 	if err != nil {
 		fmt.Println("redis set failed:", err)
