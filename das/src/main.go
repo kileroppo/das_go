@@ -1,13 +1,21 @@
 package main
 
 import (
+	"./andlink2srv"
 	"./core/log"
-	"./dindingtask"
+	"./core/redis"
 	"flag"
 	"github.com/dlintw/goconf"
 	"os"
 	"os/signal"
 	"syscall"
+	"./dindingtask"
+	"./core/rabbitmq"
+	"./mq/producer"
+	"./mq/consumer"
+	"./onenet2srv"
+	"./telecom2srv"
+	"./wifi2srv"
 )
 
 func main() {
@@ -18,7 +26,7 @@ func main() {
 	initLogger(conf)
 
 	//3. 初始化Redis连接池
-/*	redis.InitRedisPool(conf)
+	redis.InitRedisPool(conf)
 
 	//4. 初始化生产者rabbitmq_uri
 	rabbitmq.InitProducerMqConnection(conf)
@@ -43,20 +51,20 @@ func main() {
 
 	//10. 初始化平板消费者交换器，消息队列的参数
 	wifi2srv.InitRmq_Ex_Que_Name(conf)
-	go wifi2srv.ReceiveMQMsgFromDevice()*/
+	go wifi2srv.ReceiveMQMsgFromDevice()
 
 	//11. 启动定时器
 	dindingtask.InitTimer_IsStart(conf)
 	dindingtask.StartMyTimer()
 
 	//12. 启动http/https服务
-/*	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
+	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 
 	//13. 启动http/https服务
 	telecom2srv := telecom2srv.Telecom2HttpSrvStart(conf)
 
 	//14. 启动http/https服务
-	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)*/
+	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)
 
 	//15. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -89,7 +97,7 @@ func main() {
 	}
 
 	// 16. 停止HTTP服务器
-	/*if err := oneNet2Srv.Shutdown(nil); err != nil {
+	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
@@ -104,7 +112,7 @@ func main() {
 	if err := andlink2srv.Shutdown(nil); err != nil {
 		log.Error("andlink2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
-	}*/
+	}
 
 	// 19. 停止定时器
 	dindingtask.StopMyTimer()
