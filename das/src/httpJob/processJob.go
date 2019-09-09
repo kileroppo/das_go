@@ -195,8 +195,8 @@ func (p *Serload) ProcessJob() error {
 				producer.SendMQMsg2APP(head.DevId, p.DValue)
 			}
 
-			//2. 远程开门操作需要存到mongodb
-			if 0 != head.Ack {
+			//2. 远程开门操作需要存到mongodb，开门成功才记录开门记录
+			if 1 == head.Ack {
 				producer.SendMQMsg2Db(p.DValue)
 			}
 		}
