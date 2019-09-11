@@ -16,9 +16,12 @@ import (
 	"./onenet2srv"
 	"./telecom2srv"
 	"./wifi2srv"
+	"./test"
 )
 
 func main() {
+	test.TestHttp()
+
 	//1. 加载配置文件
 	conf := loadConfig()
 

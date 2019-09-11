@@ -22,8 +22,9 @@ import (
 )
 
 type Serload struct {
-	DValue string
-	Imei   string
+	DValue 	string
+	Imei   	string
+	MsgFrom string	// 消息来自哪个平台
 }
 
 // 转换8进制utf-8字符串到中文
