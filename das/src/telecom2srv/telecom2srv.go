@@ -13,6 +13,7 @@ import (
 	"../httpJob"
 	"../core/entity"
 	"../core/redis"
+	"../core/constant"
 )
 
 func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -82,7 +83,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			redis.SetDevicePlatformPool(data.DeviceId, "telecom")
 
 			// fetch job
-			work := httpJob.Job { Serload: httpJob.Serload { DValue : data.Service.Data, Imei: data.DeviceId}}
+			work := httpJob.Job { Serload: httpJob.Serload { DValue : data.Service.Data, Imei: data.DeviceId, MsgFrom:constant.NBIOT_MSG}}
 			httpJob.JobQueue <- work
 		}
 	}

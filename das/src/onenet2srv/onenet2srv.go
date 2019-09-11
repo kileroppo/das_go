@@ -117,7 +117,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			case 1: // 数据点消息(type=1)，
 				{
 					// fetch job
-					work := httpJob.Job{Serload: httpJob.Serload{DValue: bytes.NewBuffer([]byte(data.Msg.Value)).String(), Imei:data.Msg.Imei}}
+					work := httpJob.Job{Serload: httpJob.Serload{DValue: bytes.NewBuffer([]byte(data.Msg.Value)).String(), Imei:data.Msg.Imei, MsgFrom:constant.NBIOT_MSG}}
 					httpJob.JobQueue <- work
 				}
 			}

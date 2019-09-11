@@ -85,6 +85,11 @@ const (
 	Random_Yisuma_State = 0x66 //亿速码随机数上报
 )
 
+const (
+	FEIBEE_MSG 	= "feibee_msg"
+	NBIOT_MSG 	= "nbiot_msg"
+)
+
 // 电信平台订阅消息类型
 const (
 	/*

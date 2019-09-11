@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"../core/constant"
 )
 
 func Andlink2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -80,7 +81,7 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			redis.SetDevicePlatformPool("1111", "telecom")
 
 			// fetch job
-			work := httpJob.Job { Serload: httpJob.Serload { DValue : bytes.NewBuffer(result).String() }}
+			work := httpJob.Job { Serload: httpJob.Serload { DValue: bytes.NewBuffer(result).String(), Imei: "111", MsgFrom:constant.NBIOT_MSG }}
 			httpJob.JobQueue <- work
 			log.Debug("httpJob.Entry() get: ", bytes.NewBuffer(result).String())
 		}

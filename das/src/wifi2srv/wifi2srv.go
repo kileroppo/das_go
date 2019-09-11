@@ -7,6 +7,7 @@ import (
 	"../httpJob"
 	"../core/redis"
 	"strings"
+	"../core/constant"
 )
 
 var rmq_uri string;
@@ -66,7 +67,7 @@ func ReceiveMQMsgFromDevice() {
 				redis.SetDevicePlatformPool(devID, "wifi")
 
 				//4. fetch job
-				work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID }}
+				work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
 				httpJob.JobQueue <- work
 			}
 		}()
