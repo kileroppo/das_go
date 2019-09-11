@@ -96,7 +96,7 @@ func Http2OneNET_write(imei string,  sBody string, cmd string) (respBody string,
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("api-key", "HH=A=y1D9vuArz1JTcpvReUf5Uc=") // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
+	req.Header.Set("api-key", "PO=ZWF3sEN9LtfKpY40vAewnjKw=") // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
 	// req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=") // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
 
 	resp, err1 := client.Do(req)
