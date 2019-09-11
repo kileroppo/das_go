@@ -14,8 +14,8 @@ var (
 )
 
 
-type Job struct {
-	Serload Serload
+type Job interface {
+	Handle()
 }
 
 var JobQueue chan Job
@@ -40,9 +40,7 @@ func (w Worker) Start() {
 			w.WorkerPool <- w.JobChannel
 			select {
 			case job := <-w.JobChannel:
-				// excute job
-				// fmt.Println(job.serload.pri)
-				job.Serload.ProcessJob();
+				job.Handle()
 			case <-w.Quit:
 				return
 			}
