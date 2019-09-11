@@ -3,25 +3,22 @@ package main
 import (
 	"./andlink2srv"
 	"./core/log"
+	"./core/rabbitmq"
 	"./core/redis"
+	"./dindingtask"
+	"./mq/consumer"
+	"./mq/producer"
+	"./onenet2srv"
+	"./telecom2srv"
+	"./wifi2srv"
 	"flag"
 	"github.com/dlintw/goconf"
 	"os"
 	"os/signal"
 	"syscall"
-	"./dindingtask"
-	"./core/rabbitmq"
-	"./mq/producer"
-	"./mq/consumer"
-	"./onenet2srv"
-	"./telecom2srv"
-	"./wifi2srv"
-	"./test"
 )
 
 func main() {
-	test.TestHttp()
-
 	//1. 加载配置文件
 	conf := loadConfig()
 
@@ -69,7 +66,10 @@ func main() {
 	//14. 启动http/https服务
 	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)
 
-	//15. Handle SIGINT and SIGTERM.
+	//15. 启动http/https服务
+	// feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
+
+	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
@@ -99,25 +99,31 @@ func main() {
 		}
 	}
 
-	// 16. 停止HTTP服务器
+	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	// 17. 停止HTTP服务器
+	// 18. 停止HTTP服务器
 	if err := telecom2srv.Shutdown(nil); err != nil {
 		log.Error("telecom2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	// 18. 停止HTTP服务器
+	// 19. 停止HTTP服务器
 	if err := andlink2srv.Shutdown(nil); err != nil {
 		log.Error("andlink2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	// 19. 停止定时器
+	// 20. 停止HTTP服务器
+	/*if err := feibee2srv.Shutdown(nil); err != nil {
+		log.Error("feibee2srv.Shutdown failed, err=", err)
+		// panic(err) // failure/timeout shutting down the server gracefully
+	}*/
+
+	// 21. 停止定时器
 	dindingtask.StopMyTimer()
 
 	log.Info("das_go server quit......")
