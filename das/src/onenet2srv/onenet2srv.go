@@ -67,7 +67,7 @@ func NewOnenetJob(rawData []byte) OnenetJob {
 
 func (o OnenetJob) Handle() {
 
-	log.Debug("onenet2srv.Entry() get: ", bytes.NewBuffer(o.rawData).String())
+	log.Debug("onenet2srv.Handle() get: ", bytes.NewBuffer(o.rawData).String())
 
 	// 1、解析OneNET消息
 	var data entity.OneNETData
