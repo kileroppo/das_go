@@ -22,19 +22,21 @@
 // Package ecb implements block cipher mode of encryption ECB (Electronic Code
 // Book) functions. This is implemented for legacy purposes only and should not
 // be used for any new encryption needs. Use CBC (Cipher Block Chaining) instead.
-package cipher
+package ecb
+
+import "crypto/cipher"
 
 /*import (
 	"crypto/cipher"
 )*/
 
 type ecb struct {
-	b         Block
+	b         cipher.Block
 	blockSize int
 	tmp       []byte
 }
 
-func newECB(b Block) *ecb {
+func newECB(b cipher.Block) *ecb {
 	return &ecb{
 		b:         b,
 		blockSize: b.BlockSize(),
@@ -46,7 +48,7 @@ type ecbEncrypter ecb
 
 // NewECBEncrypter returns a BlockMode which encrypts in elecronic codebook (ECB)
 // mode, using the given Block (Cipher).
-func NewECBEncrypter(b Block) BlockMode {
+func NewECBEncrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbEncrypter)(newECB(b))
 }
 
@@ -73,7 +75,7 @@ type ecbDecrypter ecb
 
 // NewECBDecrypter returns a BlockMode which decrypts in electronic codebook (ECB)
 // mode, using the given Block.
-func NewECBDecrypter(b Block) BlockMode {
+func NewECBDecrypter(b cipher.Block) cipher.BlockMode {
 	return (*ecbDecrypter)(newECB(b))
 }
 

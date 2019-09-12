@@ -43,7 +43,8 @@ func (p *Serload) ProcessJob() error {
 	case constant.NBIOT_MSG: 	// OneNET，Andlink, Telecom，NB-wifi
 		{
 			log.Debug("ProcessJob() from NBIOT_MSG.")
-			return ProcessNbMsg(p.DValue, p.Imei)
+			//return ProcessNbMsg(p.DValue, p.Imei)
+			return nil
 		}
 	}
 

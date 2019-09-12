@@ -17,6 +17,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"../aes/ecb"
 )
 
 /*	CBC加密 按照golang标准库的例子代码
@@ -87,7 +89,7 @@ func aesECBEncrypt(rawData,key []byte) ([]byte, error) {
 
 	//block大小和初始向量大小一定要一致
 	// mode := cipher.NewCBCEncrypter(block,iv)
-	mode := cipher.NewECBEncrypter(block)
+	mode := ecb.NewECBEncrypter(block)
 
 	mode.CryptBlocks(cipherText, rawData)
 
@@ -141,7 +143,7 @@ func aesECBDecrypt(encryptData, key []byte) ([]byte, error) {
 		panic("ciphertext is not a multiple of the block size")
 	}
 
-	mode := cipher.NewECBDecrypter(block)
+	mode := ecb.NewECBDecrypter(block)
 
 	// CryptBlocks can work in-place if the two arguments are the same.
 	mode.CryptBlocks(encryptData, encryptData)

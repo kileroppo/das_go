@@ -16,7 +16,7 @@
 // Special Publication 800-38A, ``Recommendation for Block Cipher
 // Modes of Operation,'' 2001 Edition, pp. 24-27.
 
-package cipher_test
+package ecb
 
 import (
 	"bytes"

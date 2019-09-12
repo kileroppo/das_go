@@ -1,6 +1,16 @@
 package onenet2srv
 
 import (
+	"bytes"
+	"strings"
+	"time"
+	"errors"
+	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
+
+	"github.com/ZZMarquis/gm/sm2"
+
 	"../core/constant"
 	"../core/entity"
 	"../core/httpgo"
@@ -9,15 +19,7 @@ import (
 	"../core/util"
 	"../mq/producer"
 	"../upgrade"
-	"bytes"
-	"encoding/binary"
-	"encoding/hex"
-	"encoding/json"
-	"github.com/ZZMarquis/gm/sm2"
-	"strings"
-	"time"
 
-	"errors"
 )
 
 func ProcessNbMsg(DValue string, Imei string) error {
@@ -150,7 +152,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_user")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_user")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -195,7 +197,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
 				// go httpgo.Http2OneNET_write(head.DevId, string(toDevice_str))
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -225,7 +227,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -263,7 +265,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_para")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_para")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -352,7 +354,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 						}
 
 						// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-						go Cmd2Platform(head.DevId, strToDevData, "constant.Active_yisuma_SE")
+						go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Active_yisuma_SE")
 					} else {
 						log.Error("toDevice_Data json.Marshal, err=", err)
 					}
@@ -401,7 +403,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Factory_reset")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Factory_reset")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -497,7 +499,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -542,7 +544,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -571,7 +573,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				// go httpgo.Http2OneNET_write(head.DevId, strToDevData)
-				go Cmd2Platform(head.DevId, strToDevData, "constant.Door_State")
+				go httpgo.Cmd2Platform(head.DevId, strToDevData, "constant.Door_State")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}

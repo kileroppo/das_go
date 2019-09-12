@@ -1,11 +1,11 @@
-package httpJob
+package httpgo
 
 import (
-	"../core/log"
-	"../core/redis"
-	"../core/httpgo"
-	"../mq/producer"
 	"errors"
+
+	"../log"
+	"../redis"
+	"../../mq/producer"
 )
 
 func Cmd2Platform(imei string, data string, cmd string) error {
@@ -23,11 +23,11 @@ func Cmd2Platform(imei string, data string, cmd string) error {
 	switch platform {
 	case "onenet":
 		{
-			httpgo.Http2OneNET_write(imei, data, cmd)
+			Http2OneNET_write(imei, data, cmd)
 		}
 	case "telecom":
 		{
-			httpgo.HttpCmd2DeviceTelecom(imei, data)
+			HttpCmd2DeviceTelecom(imei, data)
 		}
 	case "andlink":
 		{
