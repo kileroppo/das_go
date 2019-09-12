@@ -3,7 +3,7 @@ package andlink2srv
 import (
 	"../core/log"
 	"../core/redis"
-	"../httpJob"
+	"../core/jobque"
 	"bytes"
 	"fmt"
 	"github.com/dlintw/goconf"
@@ -66,7 +66,7 @@ func AndlinkHandler(res http.ResponseWriter, req *http.Request) {
 
 	req.ParseForm()          //解析参数，默认是不会解析的
 	if "GET" == req.Method { // 基本配置：oneNET校验第三方接口
-		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
+		log.Debug("httpJob.init MaxWorker: ", jobque.MaxWorker, ", MaxQueue: ", jobque.MaxQueue)
 		msg := req.Form.Get("msg")
 		// signature := req.Form.Get("signature")
 		// nonce := req.Form.Get("nonce")
@@ -94,7 +94,7 @@ func AndlinkHandler(res http.ResponseWriter, req *http.Request) {
 
 			// fetch job
 			//work := httpJob.Job{Serload: httpJob.Serload{DValue: bytes.NewBuffer(result).String(), Imei: "111", MsgFrom: constant.NBIOT_MSG}}
-			httpJob.JobQueue <- NewAndlinkJob(result)
+			jobque.JobQueue <- NewAndlinkJob(result)
 			log.Debug("httpJob.Entry() get: ", bytes.NewBuffer(result).String())
 		}
 	}

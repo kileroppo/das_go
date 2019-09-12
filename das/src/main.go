@@ -11,6 +11,7 @@ import (
 	"./onenet2srv"
 	"./telecom2srv"
 	"./wifi2srv"
+	"./feibee2srv"
 	"flag"
 	"github.com/dlintw/goconf"
 	"os"
@@ -66,8 +67,8 @@ func main() {
 	//14. 启动http/https服务
 	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)
 
-	//15. 启动http/https服务
-	// feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
+	// 15. 启动http/https服务
+	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -118,10 +119,10 @@ SERVER_EXIT:
 	}
 
 	// 20. 停止HTTP服务器
-	/*if err := feibee2srv.Shutdown(nil); err != nil {
+	if err := feibee2srv.Shutdown(nil); err != nil {
 		log.Error("feibee2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
-	}*/
+	}
 
 	// 21. 停止定时器
 	dindingtask.StopMyTimer()

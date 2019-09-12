@@ -4,7 +4,7 @@ import (
 	"../core/rabbitmq"
 	"../core/log"
 	"github.com/dlintw/goconf"
-	"../httpJob"
+	"../core/jobque"
 	"../core/redis"
 	"strings"
 	"../core/constant"
@@ -85,7 +85,7 @@ func ReceiveMQMsgFromDevice() {
 
 				//4. fetch job
 				// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
-				httpJob.JobQueue <- NewWifiPlatJob(devData, devID)
+				jobque.JobQueue <- NewWifiPlatJob(devData, devID)
 			}
 		}()
 		<-forever

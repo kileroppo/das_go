@@ -1,20 +1,21 @@
-package consumer
+package jobque
 
 import (
+	"../log"
 	"runtime"
-	"../../core/log"
-		)
+)
 
 var (
 	// Max_Num = os.Getenv("MAX_NUM")
-	MaxWorker = runtime.NumCPU()/2
-
-	// MaxWorker = runtime.NumCPU()
+	// MaxWorker = runtime.NumCPU()/2
+	MaxWorker = runtime.NumCPU()
+	// MaxWorker = 1
 	MaxQueue  = 1000
 )
 
-type Job struct {
-	appMsg AppMsg
+
+type Job interface {
+	Handle()
 }
 
 var JobQueue chan Job
@@ -39,8 +40,7 @@ func (w Worker) Start() {
 			w.WorkerPool <- w.JobChannel
 			select {
 			case job := <-w.JobChannel:
-				// excute job
-				job.appMsg.ProcessAppMsg();
+				job.Handle()
 			case <-w.Quit:
 				return
 			}
@@ -95,10 +95,40 @@ func (d *Dispatcher) Dispatch() {
 	}
 }
 
+/*func Entry(res http.ResponseWriter, req *http.Request) {
+	req.ParseForm() //解析参数，默认是不会解析的
+	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
+		log.Debug("httpJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
+		msg := req.Form.Get("msg")
+		// signature := req.Form.Get("signature")
+		// nonce := req.Form.Get("nonce")
+		if("" != msg) { // 存在则返回msg
+			fmt.Fprintf(res, msg)
+			log.Info("return msg to OneNET, ", msg)
+		}
+	} else if ("POST" == req.Method) { // 接收OneNET推送过来的数据
+		result, err := ioutil.ReadAll(req.Body)
+		if err != nil {
+			log.Error("get req.Body failed")
+		} else {
+			// fetch job
+			work := Job { Serload: Serload { DValue : bytes.NewBuffer(result).String() }}
+			JobQueue <- work
+			log.Debug("httpJob.Entry() get: ", bytes.NewBuffer(result).String())
+		}
+	}
+}*/
+
 func init() {
-	log.Debug("consumerJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
+	log.Debug("httpJob.init MaxWorker: ", MaxWorker, ", MaxQueue: ", MaxQueue)
 	runtime.GOMAXPROCS(MaxWorker)
 	JobQueue = make(chan Job, MaxQueue)
 	dispatcher := NewDispatcher(MaxWorker)
 	dispatcher.Run()
+}
+
+func checkToken(msg string, nonce string, signature string, token string) bool {
+
+
+	return true
 }

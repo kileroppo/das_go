@@ -16,21 +16,18 @@ import (
 	"strings"
 )
 
-type AppMsg struct {
-	pri string
-}
 
 /*
 *	处理APP发送过来的命令消息
 *
  */
-func (p *AppMsg) ProcessAppMsg() error {
-	log.Debug("ProcessAppMsg process msg from app: ", p.pri)
+func ProcAppMsg(appMsg string) error {
+	log.Debug("ProcAppMsg process msg from app: ", appMsg)
 	// 1、解析消息
 	//json str 转struct(部份字段)
 	var head entity.Header
-	if err := json.Unmarshal([]byte(p.pri), &head); err != nil {
-		log.Error("ProcessAppMsg json.Unmarshal Header error, err=", err)
+	if err := json.Unmarshal([]byte(appMsg), &head); err != nil {
+		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		return err
 	}
 
@@ -41,12 +38,12 @@ func (p *AppMsg) ProcessAppMsg() error {
 		if err0 == nil {
 			//2. 亿速码加签
 			if "" != random {
-				signRandom, err0 := util.AddYisumaRandomSign(head, p.pri, random) // 加上签名
+				signRandom, err0 := util.AddYisumaRandomSign(head, appMsg, random) // 加上签名
 				if err0 != nil {
-					log.Error("ProcessAppMsg util.AddYisumaRandomSign error, err=", err0)
+					log.Error("ProcAppMsg util.AddYisumaRandomSign error, err=", err0)
 					return err0
 				}
-				p.pri = signRandom
+				appMsg = signRandom
 			}
 		}
 	}
@@ -63,7 +60,7 @@ func (p *AppMsg) ProcessAppMsg() error {
 	var strToDevData string
 	var err error
 	// if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt([]byte(p.pri), myKey); err == nil {
-	if strToDevData, err = util.ECBEncrypt([]byte(p.pri), myKey); err == nil {
+	if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
 		toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
 		toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
@@ -79,13 +76,13 @@ func (p *AppMsg) ProcessAppMsg() error {
 	}
 
 	switch platform {
-	case "onenet":
+	case constant.ONENET_PLATFORM:
 		{
 			respStr, err := httpgo.Http2OneNET_write(imei, strToDevData, strconv.Itoa(head.Cmd))
 			if "" != respStr && nil == err {
 				var respOneNET entity.RespOneNET
 				if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {
-					log.Error("ProcessAppMsg json.Unmarshal RespOneNET error, err=", err)
+					log.Error("ProcAppMsg json.Unmarshal RespOneNET error, err=", err)
 					return err
 				}
 
@@ -101,10 +98,10 @@ func (p *AppMsg) ProcessAppMsg() error {
 
 					//1. 回复APP，设备离线状态
 					if toApp_str, err := json.Marshal(devAct); err == nil {
-						log.Info("[", head.DevId, "] ProcessAppMsg() device timeout, resp to APP, ", string(toApp_str))
+						log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
 						producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
 					} else {
-						log.Error("[", head.DevId, "] ProcessAppMsg() device timeout, resp to APP, json.Marshal, err=", err)
+						log.Error("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, json.Marshal, err=", err)
 					}
 
 					//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
@@ -112,21 +109,21 @@ func (p *AppMsg) ProcessAppMsg() error {
 				}
 			}
 		}
-	case "telecom":
+	case constant.TELECOM_PLATFORM:
 		{
 
 		}
-	case "andlink":
+	case constant.ANDLINK_PLATFORM:
 		{
 
 		}
-	case "wifi":
+	case constant.WIFI_PLATFORM:
 		{
 			producer.SendMQMsg2Device(imei, strToDevData, strconv.Itoa(head.Cmd))
 		}
 	default:
 		{
-			log.Error("ProcessAppMsg::Unknow Platform from redis, please check the platform: ", platform)
+			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", platform)
 		}
 	}
 

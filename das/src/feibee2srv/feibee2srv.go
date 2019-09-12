@@ -9,7 +9,7 @@ import (
 	"github.com/dlintw/goconf"
 
 	"../core/log"
-	"../httpJob"
+	"../core/jobque"
 	"bytes"
 )
 
@@ -74,7 +74,7 @@ func FeibeeHandler(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Error("get feibee http Body failed")
 		} else {
-			httpJob.JobQueue <- NewFeibeeJob(rawData)
+			jobque.JobQueue <- NewFeibeeJob(rawData)
 		}
 	}
 }

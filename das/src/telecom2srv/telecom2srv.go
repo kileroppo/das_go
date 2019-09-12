@@ -4,7 +4,7 @@ import (
 	"../core/entity"
 	"../core/log"
 	"../core/redis"
-	"../httpJob"
+	"../core/jobque"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -66,7 +66,7 @@ func (t TelecomJob) Handle() {
 func TelecomHandler(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()          //解析参数，默认是不会解析的
 	if "GET" == req.Method { // 基本配置：
-		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
+		log.Debug("httpJob.init MaxWorker: ", jobque.MaxWorker, ", MaxQueue: ", jobque.MaxQueue)
 		msg := req.Form.Get("msg")
 		// signature := req.Form.Get("signature")
 		// nonce := req.Form.Get("nonce")
@@ -94,7 +94,7 @@ func TelecomHandler(res http.ResponseWriter, req *http.Request) {
 
 			// fetch job
 			//work := httpJob.Job{Serload: httpJob.Serload{DValue: data.Service.Data, Imei: data.DeviceId, MsgFrom: constant.NBIOT_MSG}}
-			httpJob.JobQueue <- NewTelecomJob(result)
+			jobque.JobQueue <- NewTelecomJob(result)
 
 		}
 	}

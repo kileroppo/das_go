@@ -4,6 +4,7 @@ import (
 	"../../core/rabbitmq"
 	"github.com/dlintw/goconf"
 	"../../core/log"
+	"../../core/jobque"
 )
 
 var rmq_uri string;
@@ -21,6 +22,20 @@ func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
 	exchange, _ = conf.GetString("rabbitmq", "app2device_ex")
 	exchangeType, _ = conf.GetString("rabbitmq", "app2device_ex_type")
 	routingKey, _ = conf.GetString("rabbitmq", "app2device_que")
+}
+
+type ConsumerJob struct {
+	rawData string
+}
+
+func NewConsumerJob(rawData string) ConsumerJob {
+	return ConsumerJob{
+		rawData: rawData,
+	}
+}
+
+func (c ConsumerJob) Handle() {
+	ProcAppMsg(c.rawData)
 }
 
 func ReceiveMQMsgFromAPP() {
@@ -45,8 +60,8 @@ func ReceiveMQMsgFromAPP() {
 			for d := range msgs {
 				log.Error("Consumer ReceiveMQMsgFromAPP 1: ", string(d.Body))
 				// fetch job
-				work := Job{appMsg: AppMsg{pri: string(d.Body)}}
-				JobQueue <- work
+				// work := Job{appMsg: AppMsg{pri: string(d.Body)}}
+				jobque.JobQueue <- NewConsumerJob(string(d.Body))
 			}
 		}()
 		<-forever

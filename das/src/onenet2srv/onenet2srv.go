@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"github.com/dlintw/goconf"
 	"../core/log"
-	"../httpJob"
+	"../core/jobque"
 	"../core/constant"
 	"../core/entity"
 	"../core/redis"
@@ -120,7 +120,7 @@ func (o OnenetJob) Handle() {
 func OnenetHandler(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()          //解析参数，默认是不会解析的
 	if "GET" == req.Method { // 基本配置：oneNET校验第三方接口
-		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
+		log.Debug("httpJob.init MaxWorker: ", jobque.MaxWorker, ", MaxQueue: ", jobque.MaxQueue)
 		msg := req.Form.Get("msg")
 
 		if "" != msg { // 存在则返回msg
@@ -133,7 +133,7 @@ func OnenetHandler(res http.ResponseWriter, req *http.Request) {
 			log.Error("get req.Body failed")
 		} else {
 			// fetch job
-			httpJob.JobQueue <- NewOnenetJob(result)
+			jobque.JobQueue <- NewOnenetJob(result)
 		}
 	}
 }
