@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-
 	"github.com/dlintw/goconf"
 	"../core/log"
 	"../httpJob"
+	"../core/constant"
 	"../core/entity"
 	"../core/redis"
-	"../core/constant"
 	"../mq/producer"
+	"../procnbmsg"
 )
 
 func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -30,7 +30,7 @@ func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 	httpPort, _ = conf.GetInt("onenet2http", "onenet2http_port")
 
-	srv := &http.Server{Addr: ":"+strconv.Itoa(httpPort)}
+	srv := &http.Server{Addr: ":" + strconv.Itoa(httpPort)}
 
 	http.HandleFunc("/onenet", OnenetHandler)
 
@@ -58,18 +58,18 @@ type OnenetJob struct {
 	rawData []byte
 }
 
-func NewOnenetJob(rawData []byte) OnenetJob{
+func NewOnenetJob(rawData []byte) OnenetJob {
 	return OnenetJob{
-		rawData:rawData,
+		rawData: rawData,
 	}
 }
 
 func (o OnenetJob) Handle() {
-	log.Debug("onenet2srv.Entry() get: ", bytes.NewBuffer(o.rawData).String())
+	log.Debug("onenet2srv.Handle() get: ", bytes.NewBuffer(o.rawData).String())
 
 	// 1、解析OneNET消息
 	var data entity.OneNETData
-	if err := json.Unmarshal([]byte(o.rawData), &data); err != nil {
+	if err := json.Unmarshal(o.rawData, &data); err != nil {
 		log.Error("OneNETData json.Unmarshal, err=", err)
 		return
 	}
@@ -111,28 +111,30 @@ func (o OnenetJob) Handle() {
 		}
 	case 1: // 数据点消息(type=1)，
 		{
-			// fetch job
-			ProcessNbMsg(data.Msg.Value, data.Msg.Imei)
+			// 处理数据点消息
+			procnbmsg.ProcessNbMsg(data.Msg.Value, data.Msg.Imei)
 		}
 	}
 }
 
 func OnenetHandler(res http.ResponseWriter, req *http.Request) {
-	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
+	req.ParseForm()          //解析参数，默认是不会解析的
+	if "GET" == req.Method { // 基本配置：oneNET校验第三方接口
 		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
 		msg := req.Form.Get("msg")
 
-		if("" != msg) { // 存在则返回msg
+		if "" != msg { // 存在则返回msg
 			fmt.Fprintf(res, msg)
 			log.Info("return msg to OneNET, ", msg)
 		}
-	} else if ("POST" == req.Method) { // 接收OneNET推送过来的数据
+	} else if "POST" == req.Method { // 接收OneNET推送过来的数据
 		result, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			log.Error("get req.Body failed")
 		} else {
-
+			// fetch job
 			httpJob.JobQueue <- NewOnenetJob(result)
 		}
 	}
 }
+

@@ -27,9 +27,9 @@ func Andlink2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 	httpPort, _ = conf.GetInt("andlink2http", "andlink2http_port")
 
-	srv := &http.Server{Addr: ":"+strconv.Itoa(httpPort)}
+	srv := &http.Server{Addr: ":" + strconv.Itoa(httpPort)}
 
-	http.HandleFunc("/andlink", Entry)
+	http.HandleFunc("/andlink", AndlinkHandler)
 
 	go func() {
 		if isHttps { //如果为https协议需要配置server.crt和server.key
@@ -51,18 +51,30 @@ func Andlink2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 	return srv
 }
 
-func Entry(res http.ResponseWriter, req *http.Request) {
-	req.ParseForm() //解析参数，默认是不会解析的
-	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
+type AndlinkJob struct {
+}
+
+func NewAndlinkJob(rawData []byte) AndlinkJob {
+	return AndlinkJob{}
+}
+
+func (a AndlinkJob) Handle() {
+	//Andlink消息处理
+}
+
+func AndlinkHandler(res http.ResponseWriter, req *http.Request) {
+
+	req.ParseForm()          //解析参数，默认是不会解析的
+	if "GET" == req.Method { // 基本配置：oneNET校验第三方接口
 		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
 		msg := req.Form.Get("msg")
 		// signature := req.Form.Get("signature")
 		// nonce := req.Form.Get("nonce")
-		if("" != msg) { // 存在则返回msg
+		if "" != msg { // 存在则返回msg
 			fmt.Fprintf(res, msg)
 			log.Info("return msg to andlink, ", msg)
 		}
-	} else if ("POST" == req.Method) { // 接收OneNET推送过来的数据
+	} else if "POST" == req.Method { // 接收OneNET推送过来的数据
 		result, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			log.Error("get req.Body failed")
@@ -78,12 +90,13 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			}*/
 
 			//1. 锁对接的平台，存入redis
-			redis.SetDevicePlatformPool("1111", "telecom")
+			redis.SetDevicePlatformPool("1111", constant.ANDLINK_PLATFORM)
 
 			// fetch job
-			work := httpJob.Job { Serload: httpJob.Serload { DValue: bytes.NewBuffer(result).String(), Imei: "111", MsgFrom:constant.NBIOT_MSG }}
-			httpJob.JobQueue <- work
+			//work := httpJob.Job{Serload: httpJob.Serload{DValue: bytes.NewBuffer(result).String(), Imei: "111", MsgFrom: constant.NBIOT_MSG}}
+			httpJob.JobQueue <- NewAndlinkJob(result)
 			log.Debug("httpJob.Entry() get: ", bytes.NewBuffer(result).String())
 		}
 	}
+
 }

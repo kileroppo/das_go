@@ -1,16 +1,15 @@
-package httpgo
+package cmdto
 
 import (
+	"../core/constant"
+	"../core/httpgo"
+	"../core/log"
+	"../core/redis"
+	"../mq/producer"
 	"errors"
-	"../../mq/producer"
-	"../httpgo"
-	"../log"
-	"../redis"
-	"../constant"
-	"../entity"
 )
 
-func Cmd2Platform(imei string, data string, cmd string) error {
+func Cmd2Device(imei string, data string, cmd string) error {
 	if "" == imei {
 		err := errors.New("imei is null")
 		log.Error("Get Platform from redis failed, imei is null, err=", err)
@@ -46,8 +45,4 @@ func Cmd2Platform(imei string, data string, cmd string) error {
 	}
 
 	return nil
-}
-
-func Cmd2Yisuma(reqBody entity.YisumaHttpsReq) (respBody string, err error) {
-	return httpgo.Http2YisumaActive(reqBody)
 }

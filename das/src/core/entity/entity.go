@@ -243,5 +243,17 @@ type FeibeeGatewayMsg struct {
 	Online   int    `json:"online"`
 }
 
+//设备入网通知(推送给app)
 type Feibee2AppMsg struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devtype"`
+	Devid   string `json:"devid"`
+	Vendor  string `json:"vendor"`
+	Seqld   int    `json:"seqld"`
+
+	Note      string `json:"note"`
+	Deviceuid int    `json:"deviceuid"`
+	Online    int    `json:"online"`
+	Battery   int    `json:"battery"`
 }

@@ -1,6 +1,15 @@
-package onenet2srv
+package procnbmsg
 
 import (
+	"../core/constant"
+	"../core/entity"
+	"../core/log"
+	"../core/redis"
+	"../core/util"
+	"../mq/producer"
+	"../upgrade"
+	"../cmdto"
+
 	"bytes"
 	"strings"
 	"time"
@@ -9,14 +18,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"github.com/ZZMarquis/gm/sm2"
-	"../core/constant"
-	"../core/entity"
-	"../core/log"
-	"../core/redis"
-	"../core/util"
-	"../mq/producer"
-	"../upgrade"
-	"../core/cmd2dev"
 )
 
 func ProcessNbMsg(DValue string, Imei string) error {
@@ -148,7 +149,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_user")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Update_dev_user")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -191,7 +192,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Upload_dev_info")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -220,7 +221,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_dev_info")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Upload_dev_info")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -257,7 +258,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Update_dev_para")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Update_dev_para")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -312,9 +313,9 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					//3.1 封装业务数据
 					httpsParm := entity.YisumaHttpsReq{Body: sign, Signature: signature}
 					//3,2 发送https请求
-					respBody, err := cmd2dev.Cmd2Yisuma(httpsParm)
+					respBody, err := cmdto.GetYisumaApud(httpsParm)
 					if err != nil {
-						log.Error("[", head.DevId, "] cmd2dev cmd2dev.Cmd2Yisuma, err_step=", err)
+						log.Error("[", head.DevId, "] cmdto cmdto.Cmd2Yisuma, err_step=", err)
 						break
 					}
 					var jsonRes entity.YisumaHttpsRes
@@ -345,7 +346,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 							strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 						}
 
-						go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Active_yisuma_SE")
+						go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Active_yisuma_SE")
 					} else {
 						log.Error("toDevice_Data json.Marshal, err=", err)
 					}
@@ -393,7 +394,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Factory_reset")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Factory_reset")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -488,7 +489,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Upload_lock_active")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -532,7 +533,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Upload_lock_active")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Upload_lock_active")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
@@ -560,7 +561,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 
-				go cmd2dev.Cmd2Platform(head.DevId, strToDevData, "constant.Door_State")
+				go cmdto.Cmd2Device(head.DevId, strToDevData, "constant.Door_State")
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}

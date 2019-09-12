@@ -10,6 +10,7 @@ import (
 
 	"../core/log"
 	"../httpJob"
+	"bytes"
 )
 
 type FeibeeJob struct {
@@ -25,7 +26,7 @@ func NewFeibeeJob(rawData []byte) FeibeeJob {
 }
 
 func (f FeibeeJob) Handle() {
-	log.Debug("onenet job handle")
+	log.Debug("feibee2srv.Handle() get: ", bytes.NewBuffer(f.rawData).String())
 	ProcessFeibeeMsg(f.rawData)
 }
 

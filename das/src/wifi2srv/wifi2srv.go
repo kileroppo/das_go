@@ -8,6 +8,7 @@ import (
 	"../core/redis"
 	"strings"
 	"../core/constant"
+	"../procnbmsg"
 )
 
 var rmq_uri string;
@@ -25,6 +26,22 @@ func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
 	exchange, _ = conf.GetString("rabbitmq", "device2srv_ex")
 	exchangeType, _ = conf.GetString("rabbitmq", "device2srv_ex_type")
 	routingKey, _ = conf.GetString("rabbitmq", "device2srv_que")
+}
+
+type WifiPlatJob struct {
+	rawData string
+	devID string
+}
+
+func NewWifiPlatJob(rawData string, devID string) WifiPlatJob {
+	return WifiPlatJob{
+		rawData: rawData,
+		devID: devID,
+	}
+}
+
+func (w WifiPlatJob) Handle() {
+	procnbmsg.ProcessNbMsg(w.rawData, w.devID)
 }
 
 func ReceiveMQMsgFromDevice() {
@@ -64,11 +81,11 @@ func ReceiveMQMsgFromDevice() {
 				devData = prData[1]
 
 				//3. 锁对接的平台，存入redis
-				redis.SetDevicePlatformPool(devID, "wifi")
+				redis.SetDevicePlatformPool(devID, constant.WIFI_PLATFORM)
 
 				//4. fetch job
-				work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
-				httpJob.JobQueue <- work
+				// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
+				httpJob.JobQueue <- NewWifiPlatJob(devData, devID)
 			}
 		}()
 		<-forever

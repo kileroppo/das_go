@@ -1,19 +1,18 @@
 package telecom2srv
 
 import (
+	"../core/entity"
+	"../core/log"
+	"../core/redis"
+	"../httpJob"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/dlintw/goconf"
-	"../core/log"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
-	"../httpJob"
-	"../core/entity"
-	"../core/redis"
-	"../core/constant"
 )
 
 func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -29,9 +28,9 @@ func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 	httpPort, _ = conf.GetInt("telecom2http", "telecom2https_port")
 
-	srv := &http.Server{Addr: ":"+strconv.Itoa(httpPort)}
+	srv := &http.Server{Addr: ":" + strconv.Itoa(httpPort)}
 
-	http.HandleFunc("/telecom", Entry)
+	http.HandleFunc("/telecom", TelecomHandler)
 
 	go func() {
 		if isHttps { //如果为https协议需要配置server.crt和server.key
@@ -53,18 +52,29 @@ func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 	return srv
 }
 
-func Entry(res http.ResponseWriter, req *http.Request) {
-	req.ParseForm() //解析参数，默认是不会解析的
-	if ("GET" == req.Method) { // 基本配置：
+type TelecomJob struct {
+}
+
+func NewTelecomJob(rawData []byte) TelecomJob {
+	return TelecomJob{}
+}
+
+func (t TelecomJob) Handle() {
+	//telecom消息处理
+}
+
+func TelecomHandler(res http.ResponseWriter, req *http.Request) {
+	req.ParseForm()          //解析参数，默认是不会解析的
+	if "GET" == req.Method { // 基本配置：
 		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
 		msg := req.Form.Get("msg")
 		// signature := req.Form.Get("signature")
 		// nonce := req.Form.Get("nonce")
-		if("" != msg) { // 存在则返回msg
+		if "" != msg { // 存在则返回msg
 			fmt.Fprintf(res, msg)
 			log.Info("return msg to telecom, ", msg)
 		}
-	} else if ("POST" == req.Method) { // 接收OneNET推送过来的数据
+	} else if "POST" == req.Method { // 接收OneNET推送过来的数据
 		result, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			log.Error("get req.Body failed")
@@ -83,8 +93,9 @@ func Entry(res http.ResponseWriter, req *http.Request) {
 			redis.SetDevicePlatformPool(data.DeviceId, "telecom")
 
 			// fetch job
-			work := httpJob.Job { Serload: httpJob.Serload { DValue : data.Service.Data, Imei: data.DeviceId, MsgFrom:constant.NBIOT_MSG}}
-			httpJob.JobQueue <- work
+			//work := httpJob.Job{Serload: httpJob.Serload{DValue: data.Service.Data, Imei: data.DeviceId, MsgFrom: constant.NBIOT_MSG}}
+			httpJob.JobQueue <- NewTelecomJob(result)
+
 		}
 	}
 }
