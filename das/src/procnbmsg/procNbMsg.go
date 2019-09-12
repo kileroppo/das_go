@@ -6,7 +6,7 @@ import (
 	"../core/log"
 	"../core/redis"
 	"../core/util"
-	"../mq/producer"
+	"../rmq/producer"
 	"../upgrade"
 	"../cmdto"
 

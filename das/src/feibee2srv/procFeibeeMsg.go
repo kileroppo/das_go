@@ -6,7 +6,7 @@ import (
 
 	"../core/entity"
 	"../core/log"
-	"../mq/producer"
+	"../rmq/producer"
 )
 
 type FeibeeData struct {

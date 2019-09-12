@@ -5,7 +5,7 @@ import (
 	"../core/httpgo"
 	"../core/log"
 	"../core/redis"
-	"../mq/producer"
+	"../rmq/producer"
 	"errors"
 )
 

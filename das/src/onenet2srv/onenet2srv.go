@@ -14,7 +14,7 @@ import (
 	"../core/constant"
 	"../core/entity"
 	"../core/redis"
-	"../mq/producer"
+	"../rmq/producer"
 	"../procnbmsg"
 )
 
