@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/dlintw/goconf"
-	"../core/log"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/dlintw/goconf"
+
+	"../core/log"
 	"../httpJob"
 	"../core/entity"
 	"../core/redis"
@@ -57,13 +59,13 @@ type OnenetJob struct {
 	rawData []byte
 }
 
-func NewOnenetJob(rawData []byte) *OnenetJob{
-	return &OnenetJob{
+func NewOnenetJob(rawData []byte) OnenetJob{
+	return OnenetJob{
 		rawData:rawData,
 	}
 }
 
-func (o *OnenetJob) Handle() {
+func (o OnenetJob) Handle() {
 
 	log.Debug("onenet2srv.Entry() get: ", bytes.NewBuffer(o.rawData).String())
 

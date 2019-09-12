@@ -199,3 +199,49 @@ type YisumaStateRandom struct {
 
 	Random string `json:"random"`
 }
+
+//feibee推送的消息体
+type FeibeeData struct {
+	Code    int                `josn:"code"`
+	Status  string             `json:"status"`
+	Ver     string             `json:"ver"`
+	Msg     []FeibeeDevMsg     `json:"msg"`
+	Gateway []FeibeeGatewayMsg `json:"gateway"`
+}
+
+//feibee推送的设备信息
+type FeibeeDevMsg struct {
+	Name       string `json:"name"`
+	Bindid     string `json:"bindid"`
+	Uuid       string `json:"uuid"`
+	Devicetype string `json:"devicetype"`
+	Deviceuid  int    `json:"deviceuid"`
+	Snid       string `json:"snid"`
+	Profileid  int    `json:"profileed"`
+	Deviceid   int    `json:"deviceid"`
+	Onoff      int    `json:"onoff"`
+	Online     int    `json:"online"`
+	Zonetype   int    `json:"zonetype"`
+	Battery    int    `json:"battery"`
+	Lastvalue  int    `json:"lastvalue"`
+	IEEE       string `json:"IEEE"`
+	Pushstring string `json:"pushstring"`
+}
+
+//feibee推送的网关信息
+type FeibeeGatewayMsg struct {
+	Bindid   string `json:"bindid"`
+	Bindstr  string `json:"bindstr"`
+	Version  string `json:"version"`
+	Snid     string `json:"snid"`
+	Devnum   int    `json:"devnum"`
+	Areanum  int    `json:"areanum"`
+	Timernum int    `json:"timernum"`
+	Scenenum int    `json:"scenenum"`
+	Tasknum  int    `json:"tasknum"`
+	Uptime   int    `json:"uptime"`
+	Online   int    `json:"online"`
+}
+
+type Feibee2AppMsg struct {
+}
