@@ -6,19 +6,20 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"./onenet2srv"
 	"./core/log"
-	"syscall"
+	"./onenet2srv"
 	"os/signal"
+	"syscall"
 )
 
-func main()  {
-
+func main() {
+	//1. 加载配置文件
 	conf := loadConfig()
 
 	//2. 初始化日志
 	initLogger(conf)
-	oneNetSrv := onenet2srv.OneNET2HttpSrvStart(conf)
+
+	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 
 	ch := make(chan os.Signal)
 
@@ -27,14 +28,17 @@ func main()  {
 	for {
 		switch <-ch {
 		case syscall.SIGQUIT:
-		    break
+			break
 		default:
 			break
 		}
 	}
 
-	oneNetSrv.Shutdown(nil)
-
+	// 17. 停止HTTP服务器
+	if err := oneNet2Srv.Shutdown(nil); err != nil {
+		log.Error("oneNet2Srv.Shutdown failed, err=", err)
+		// panic(err) // failure/timeout shutting down the server gracefully
+	}
 
 }
 
