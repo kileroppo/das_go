@@ -1,13 +1,19 @@
 package main
 
 import (
-	"flag"
-	"os"
-
-	"github.com/dlintw/goconf"
-
+	"./andlink2srv"
 	"./core/log"
+	"./core/rabbitmq"
+	"./core/redis"
+	"./dindingtask"
+	"./mq/consumer"
+	"./mq/producer"
 	"./onenet2srv"
+	"./telecom2srv"
+	"./wifi2srv"
+	"flag"
+	"github.com/dlintw/goconf"
+	"os"
 	"os/signal"
 	"syscall"
 )
@@ -19,18 +25,77 @@ func main() {
 	//2. 初始化日志
 	initLogger(conf)
 
+	//3. 初始化Redis连接池
+	redis.InitRedisPool(conf)
+
+	//4. 初始化生产者rabbitmq_uri
+	rabbitmq.InitProducerMqConnection(conf)
+	rabbitmq.InitProducerMqConnection2Db(conf)
+	rabbitmq.InitProducerMqConnection2Device(conf)
+
+	//5. 初始化消费者rabbitmq_uri
+	rabbitmq.InitConsumerMqConnection(conf)
+
+	//6. 初始化到APP生成者交换器，消息队列的参数
+	producer.InitRmq_Ex_Que_Name(conf)
+
+	//7. 初始化到Mongodb生成者交换器，消息队列的参数
+	producer.InitRmq_Ex_Que_Name_mongo(conf)
+
+	//8. 初始化发送到平板设备的生成者交换器，消息队列的参数
+	producer.InitRmq_Ex_Que_Name_Device(conf)
+
+	//9. 初始化消费者交换器，消息队列的参数
+	consumer.InitRmq_Ex_Que_Name(conf)
+	go consumer.ReceiveMQMsgFromAPP()
+
+	//10. 初始化平板消费者交换器，消息队列的参数
+	wifi2srv.InitRmq_Ex_Que_Name(conf)
+	go wifi2srv.ReceiveMQMsgFromDevice()
+
+	//11. 启动定时器
+	dindingtask.InitTimer_IsStart(conf)
+	dindingtask.StartMyTimer()
+
+	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 
+	//13. 启动http/https服务
+	telecom2srv := telecom2srv.Telecom2HttpSrvStart(conf)
+
+	//14. 启动http/https服务
+	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)
+
+	//15. 启动http/https服务
+	// feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
+
+	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
+	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
-	signal.Notify(ch, os.Interrupt)
-
+SERVER_EXIT:
+	// 处理信号
 	for {
-		switch <-ch {
+		s := <-ch
+		switch s {
+		case syscall.SIGINT:
+			log.Error("SIGINT: get signal: ", s)
+			break SERVER_EXIT
+		case syscall.SIGTERM:
+			log.Error("SIGTERM: get signal: ", s)
+			break SERVER_EXIT
 		case syscall.SIGQUIT:
-			break
+			log.Error("SIGSTOP: get signal: ", s)
+			break SERVER_EXIT
+		case syscall.SIGHUP:
+			log.Error("SIGHUP: get signal: ", s)
+			break SERVER_EXIT
+		case syscall.SIGKILL:
+			log.Error("SIGKILL: get signal: ", s)
+			break SERVER_EXIT
 		default:
-			break
+			log.Error("default: get signal: ", s)
+			break SERVER_EXIT
 		}
 	}
 
@@ -40,6 +105,28 @@ func main() {
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
+	// 18. 停止HTTP服务器
+	if err := telecom2srv.Shutdown(nil); err != nil {
+		log.Error("telecom2srv.Shutdown failed, err=", err)
+		// panic(err) // failure/timeout shutting down the server gracefully
+	}
+
+	// 19. 停止HTTP服务器
+	if err := andlink2srv.Shutdown(nil); err != nil {
+		log.Error("andlink2srv.Shutdown failed, err=", err)
+		// panic(err) // failure/timeout shutting down the server gracefully
+	}
+
+	// 20. 停止HTTP服务器
+	/*if err := feibee2srv.Shutdown(nil); err != nil {
+		log.Error("feibee2srv.Shutdown failed, err=", err)
+		// panic(err) // failure/timeout shutting down the server gracefully
+	}*/
+
+	// 21. 停止定时器
+	dindingtask.StopMyTimer()
+
+	log.Info("das_go server quit......")
 }
 
 func initLogger(conf *goconf.ConfigFile) {

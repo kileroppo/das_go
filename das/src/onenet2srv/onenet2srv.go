@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/dlintw/goconf"
-
 	"../core/log"
 	"../httpJob"
 	"../core/entity"
@@ -66,7 +65,6 @@ func NewOnenetJob(rawData []byte) OnenetJob{
 }
 
 func (o OnenetJob) Handle() {
-
 	log.Debug("onenet2srv.Entry() get: ", bytes.NewBuffer(o.rawData).String())
 
 	// 1、解析OneNET消息
@@ -76,7 +74,7 @@ func (o OnenetJob) Handle() {
 		return
 	}
 	//1. 锁对接的平台，存入redis
-	redis.SetDevicePlatformPool(data.Msg.Imei, "onenet")
+	redis.SetDevicePlatformPool(data.Msg.Imei, constant.ONENET_PLATFORM)
 
 	switch data.Msg.Msgtype {
 	case 2: // 设备上下线消息(type=2)
@@ -115,15 +113,11 @@ func (o OnenetJob) Handle() {
 		{
 			// fetch job
 			ProcessNbMsg(data.Msg.Value, data.Msg.Imei)
-			//work := httpJob.Job{Serload: httpJob.Serload{DValue: bytes.NewBuffer([]byte(data.Msg.Value)).String(), Imei:data.Msg.Imei, MsgFrom:constant.NBIOT_MSG}}
-			//httpJob.JobQueue <- work
 		}
 	}
-
 }
 
 func OnenetHandler(res http.ResponseWriter, req *http.Request) {
-
 	if ("GET" == req.Method) { // 基本配置：oneNET校验第三方接口
 		log.Debug("httpJob.init MaxWorker: ", httpJob.MaxWorker, ", MaxQueue: ", httpJob.MaxQueue)
 		msg := req.Form.Get("msg")
@@ -139,11 +133,6 @@ func OnenetHandler(res http.ResponseWriter, req *http.Request) {
 		} else {
 
 			httpJob.JobQueue <- NewOnenetJob(result)
-
 		}
 	}
-
-
-
-
 }

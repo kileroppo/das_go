@@ -86,8 +86,10 @@ const (
 )
 
 const (
-	FEIBEE_MSG 	= "feibee_msg"
-	NBIOT_MSG 	= "nbiot_msg"
+	ONENET_PLATFORM 	= "onenet"
+	TELECOM_PLATFORM 	= "telecom"
+	ANDLINK_PLATFORM	= "andlink"
+	WIFI_PLATFORM		= "wifi"
 )
 
 // 电信平台订阅消息类型

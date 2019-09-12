@@ -2,10 +2,12 @@ package httpgo
 
 import (
 	"errors"
-
+	"../../mq/producer"
+	"../httpgo"
 	"../log"
 	"../redis"
-	"../../mq/producer"
+	"../constant"
+	"../entity"
 )
 
 func Cmd2Platform(imei string, data string, cmd string) error {
@@ -21,19 +23,19 @@ func Cmd2Platform(imei string, data string, cmd string) error {
 	}
 
 	switch platform {
-	case "onenet":
+	case constant.ONENET_PLATFORM:
 		{
-			Http2OneNET_write(imei, data, cmd)
+			httpgo.Http2OneNET_write(imei, data, cmd)
 		}
-	case "telecom":
+	case constant.TELECOM_PLATFORM:
 		{
-			HttpCmd2DeviceTelecom(imei, data)
+			httpgo.HttpCmd2DeviceTelecom(imei, data)
 		}
-	case "andlink":
+	case constant.ANDLINK_PLATFORM:
 		{
 
 		}
-	case "wifi":
+	case constant.WIFI_PLATFORM:
 		{
 			producer.SendMQMsg2Device(imei, data, cmd)
 		}
@@ -44,5 +46,8 @@ func Cmd2Platform(imei string, data string, cmd string) error {
 	}
 
 	return nil
+}
 
+func Cmd2Yisuma(reqBody entity.YisumaHttpsReq) (respBody string, err error) {
+	return httpgo.Http2YisumaActive(reqBody)
 }
