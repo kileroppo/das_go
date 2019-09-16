@@ -247,10 +247,10 @@ type FeibeeGatewayMsg struct {
 type Feibee2AppMsg struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
-	DevType string `json:"devtype"`
-	Devid   string `json:"devid"`
+	DevType string `json:"devType"`
+	Devid   string `json:"devId"`
 	Vendor  string `json:"vendor"`
-	Seqld   int    `json:"seqld"`
+	SeqId   int    `json:"seqId"`
 
 	Note      string `json:"note"`
 	Deviceuid int    `json:"deviceuid"`

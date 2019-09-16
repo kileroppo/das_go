@@ -126,7 +126,7 @@ func dataFormat(msg entity.FeibeeDevMsg) entity.Feibee2AppMsg {
 		DevType: msg.Devicetype,
 		Devid:   msg.Uuid,
 		Vendor:  "feibee",
-		Seqld:   1,
+		SeqId:   1,
 
 		Note:      msg.Name,
 		Deviceuid: msg.Deviceuid,
