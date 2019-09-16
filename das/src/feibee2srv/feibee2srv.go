@@ -1,6 +1,7 @@
 package feibee2srv
 
 import (
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -8,9 +9,8 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"../core/log"
 	"../core/jobque"
-	"bytes"
+	"../core/log"
 )
 
 type FeibeeJob struct {
@@ -51,11 +51,11 @@ func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 			serverCrt, _ := conf.GetString("https", "https_server_crt")
 			serverKey, _ := conf.GetString("https", "https_server_key")
 			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
-				log.Error("Httpserver: ListenAndServeTLS(): %s", err_https)
+				log.Error("Feibee2HttpSrvStart: ListenAndServeTLS(): %s", err_https)
 			}
 		} else {
 			if err_http := srv.ListenAndServe(); err_http != nil {
-				log.Error("feibeeServer ListenAndServer() error=", err_http)
+				log.Error("Feibee2HttpSrvStart ListenAndServer() error=", err_http)
 			}
 		}
 	}()
