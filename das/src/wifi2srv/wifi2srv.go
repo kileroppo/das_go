@@ -1,20 +1,20 @@
 package wifi2srv
 
 import (
-	"../core/rabbitmq"
-	"../core/log"
-	"github.com/dlintw/goconf"
-	"../core/jobque"
-	"../core/redis"
-	"strings"
 	"../core/constant"
+	"../core/jobque"
+	"../core/log"
+	"../core/rabbitmq"
+	"../core/redis"
 	"../procnbmsg"
+	"github.com/dlintw/goconf"
+	"strings"
 )
 
-var rmq_uri string;
-var exchange string;		// = "App2OneNET"
-var exchangeType string;	// = "direct"
-var routingKey string;		// = "wonlycloud"
+var rmq_uri string
+var exchange string     // = "App2OneNET"
+var exchangeType string // = "direct"
+var routingKey string   // = "wonlycloud"
 
 //初始化RabbitMQ交换器，消息队列名称
 func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
@@ -30,13 +30,13 @@ func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
 
 type WifiPlatJob struct {
 	rawData string
-	devID string
+	devID   string
 }
 
 func NewWifiPlatJob(rawData string, devID string) WifiPlatJob {
 	return WifiPlatJob{
 		rawData: rawData,
-		devID: devID,
+		devID:   devID,
 	}
 }
 

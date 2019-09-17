@@ -29,7 +29,7 @@ import (
 
 //使用PKCS7进行填充，IOS也是7
 func pKCS7Padding(ciphertext []byte, blockSize int) []byte {
-	padding := blockSize - len(ciphertext) % blockSize
+	padding := blockSize - len(ciphertext)%blockSize
 	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
 	return append(ciphertext, padtext...)
 }
@@ -44,7 +44,7 @@ func pKCS7UnPadding(origData []byte) []byte {
 }
 
 //aes加密，填充秘钥key的16位，24,32分别对应AES-128, AES-192, or AES-256.
-func aesCBCEncrypt(rawData,key []byte) ([]byte, error) {
+func aesCBCEncrypt(rawData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -54,22 +54,22 @@ func aesCBCEncrypt(rawData,key []byte) ([]byte, error) {
 	blockSize := block.BlockSize()
 	rawData = pKCS7Padding(rawData, blockSize)
 	//初始向量IV必须是唯一，但不需要保密
-	cipherText := make([]byte,blockSize+len(rawData))
+	cipherText := make([]byte, blockSize+len(rawData))
 	//block大小 16
 	iv := cipherText[:blockSize]
-	if _, err := io.ReadFull(rand.Reader,iv); err != nil {
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		panic(err)
 	}
 
 	//block大小和初始向量大小一定要一致
-	mode := cipher.NewCBCEncrypter(block,iv)
-	mode.CryptBlocks(cipherText[blockSize:],rawData)
+	mode := cipher.NewCBCEncrypter(block, iv)
+	mode.CryptBlocks(cipherText[blockSize:], rawData)
 
 	return cipherText, nil
 }
 
 //aes加密，填充秘钥key的16位，24,32分别对应AES-128, AES-192, or AES-256.
-func aesECBEncrypt(rawData,key []byte) ([]byte, error) {
+func aesECBEncrypt(rawData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -96,7 +96,7 @@ func aesECBEncrypt(rawData,key []byte) ([]byte, error) {
 	return cipherText, nil
 }
 
-func aesCBCDecrypt(encryptData, key []byte) ([]byte,error) {
+func aesCBCDecrypt(encryptData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
@@ -157,8 +157,8 @@ func aesECBDecrypt(encryptData, key []byte) ([]byte, error) {
 	return encryptData, nil
 }
 
-func CBCEncrypt(rawData,key []byte) (string, error) {
-	data, err:= aesCBCEncrypt(rawData,key)
+func CBCEncrypt(rawData, key []byte) (string, error) {
+	data, err := aesCBCEncrypt(rawData, key)
 	fmt.Printf("%02x\n", data)
 	if err != nil {
 		return "", err
@@ -169,7 +169,7 @@ func CBCEncrypt(rawData,key []byte) (string, error) {
 }
 
 func ECBEncrypt(rawData, key []byte) (string, error) {
-	data, err:= aesECBEncrypt(rawData,key)
+	data, err := aesECBEncrypt(rawData, key)
 	// fmt.Printf("%02x\n", data)
 	if err != nil {
 		return "", err
@@ -178,29 +178,29 @@ func ECBEncrypt(rawData, key []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
-func CBCDecrypt(rawData string, key []byte) (string,error) {
-	data,err := base64.StdEncoding.DecodeString(rawData)
+func CBCDecrypt(rawData string, key []byte) (string, error) {
+	data, err := base64.StdEncoding.DecodeString(rawData)
 	// data, err := hex.DecodeString(rawData)
-	if err != nil {
-		return "",err
-	}
-	dnData,err := aesCBCDecrypt(data,key)
 	if err != nil {
 		return "", err
 	}
-	return string(dnData),nil
+	dnData, err := aesCBCDecrypt(data, key)
+	if err != nil {
+		return "", err
+	}
+	return string(dnData), nil
 }
 
 func ECBDecrypt(rawData string, key []byte) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(rawData)
 	// data, err := hex.DecodeString(rawData)
 	if err != nil {
-		return "",err
+		return "", err
 	}
 
 	dnData, err := aesECBDecrypt(data, key)
 	if err != nil {
 		return "", err
 	}
-	return string(dnData),nil
+	return string(dnData), nil
 }

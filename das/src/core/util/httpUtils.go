@@ -1,12 +1,12 @@
 package util
 
 import (
-	"net/http"
+	"../constant"
 	"io/ioutil"
 	"net"
-	"time"
+	"net/http"
 	"strings"
-	"../constant"
+	"time"
 )
 
 var client *http.Client

@@ -21,7 +21,7 @@ func InitRmq_Ex_Que_Name_Device(conf *goconf.ConfigFile) {
 	exchangeType_device, _ = conf.GetString("rabbitmq", "srv2device_ex_type")
 }
 
-func SendMQMsg2Device(uuid string, message string, cmd string ) {
+func SendMQMsg2Device(uuid string, message string, cmd string) {
 	if rabbitmq.ProducerRabbitMq2Device == nil {
 		log.Error("SendMQMsg2Device: rabbitmq.ProducerRabbitMq2Device is nil.")
 		return
@@ -31,6 +31,6 @@ func SendMQMsg2Device(uuid string, message string, cmd string ) {
 	rkey = uuid + "_robot"
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_device, ExchangeType: exchangeType_device, RoutingKey: rkey, Reliable: true, Durable: true, ReSendNum: 0}
 
-	log.Info("[ ", rkey, " ] " + cmd + " rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
+	log.Info("[ ", rkey, " ] "+cmd+" rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
 	rabbitmq.ProducerRabbitMq2Device.Publish2Device(&channleContxt, message)
 }

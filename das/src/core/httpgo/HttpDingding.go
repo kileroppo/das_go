@@ -1,12 +1,12 @@
 package httpgo
 
 import (
-	"bytes"
-	"net/http"
-	"net"
-	"time"
-	"io/ioutil"
 	"../log"
+	"bytes"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"time"
 )
 
 func Http2DingDaily(reqBody string) (respBody string, err error) {

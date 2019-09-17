@@ -2,9 +2,9 @@ package telecom2srv
 
 import (
 	"../core/entity"
+	"../core/jobque"
 	"../core/log"
 	"../core/redis"
-	"../core/jobque"
 	"bytes"
 	"encoding/json"
 	"fmt"

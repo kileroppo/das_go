@@ -10,7 +10,7 @@ func CheckSum(data []byte) uint16 {
 
 	// 以每16位为单位进行求和，直到所有的字节全部求完或者只剩下一个8位字节（如果剩余一个8位字节说明字节数为奇数个）
 	for length > 0 {
-		sum += uint16(data[index])//<<8 //+ uint32(data[index+1])
+		sum += uint16(data[index]) //<<8 //+ uint32(data[index+1])
 		index += 1
 		length -= 1
 	}

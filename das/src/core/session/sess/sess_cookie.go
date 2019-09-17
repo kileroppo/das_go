@@ -77,11 +77,11 @@ func (st *CookieSessionStore) SessionRelease(w http.ResponseWriter) {
 	encodedCookie, err := encodeCookie(cookiepder.block, cookiepder.config.SecurityKey, cookiepder.config.SecurityName, st.values)
 	if err == nil {
 		cookie := &http.Cookie{Name: cookiepder.config.CookieName,
-			Value: url.QueryEscape(encodedCookie),
-			Path: "/",
+			Value:    url.QueryEscape(encodedCookie),
+			Path:     "/",
 			HttpOnly: true,
-			Secure: cookiepder.config.Secure,
-			MaxAge: cookiepder.config.Maxage}
+			Secure:   cookiepder.config.Secure,
+			MaxAge:   cookiepder.config.Maxage}
 		http.SetCookie(w, cookie)
 	}
 }

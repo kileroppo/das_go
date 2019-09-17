@@ -1,21 +1,22 @@
 package onenet2srv
 
 import (
+	"../core/constant"
+	"../core/entity"
+	"../core/jobque"
+	"../core/log"
+	"../core/redis"
+	"../core/httpgo"
+	"../procnbmsg"
+	"../rmq/producer"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/dlintw/goconf"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
-	"github.com/dlintw/goconf"
-	"../core/log"
-	"../core/jobque"
-	"../core/constant"
-	"../core/entity"
-	"../core/redis"
-	"../rmq/producer"
-	"../procnbmsg"
 )
 
 func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -29,6 +30,8 @@ func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 	}
 
 	httpPort, _ = conf.GetInt("onenet2http", "onenet2http_port")
+	httpgo.OneNET_Url, _ = conf.GetString("onenet2http", "onenet_url")
+	httpgo.OneNET_Apikey, _ = conf.GetString("onenet2http", "onenet_apikey")
 
 	srv := &http.Server{Addr: ":" + strconv.Itoa(httpPort)}
 
@@ -137,4 +140,3 @@ func OnenetHandler(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 }
-

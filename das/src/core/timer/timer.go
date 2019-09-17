@@ -1,27 +1,27 @@
 package timer
 
 import (
-	"time"
-	"sync"
+	"container/heap"
 	"log"
 	"runtime/debug"
-	"container/heap"
+	"sync"
+	"time"
 )
 
 const MIN_TIMER = 20 * time.Millisecond
+
 var (
-	logger *log.Logger
+	logger    *log.Logger
 	IsRunning bool = true
 )
 
-/*	
+/*
 	map + 最小堆，最小堆用来排序，使用map 可以用来逻辑del，通过将elem 时间戳设置成当前时间
 	回调逻辑因为可能阻塞主任务，采用异步方式入队列，队列满则写入磁盘，或者直接drop
 */
 
-
 type TimerHander interface {
-	AddFuncWithId(d time.Duration, taskid string,callBack func())
+	AddFuncWithId(d time.Duration, taskid string, callBack func())
 	StartTimerLoop()
 	GetLen()
 	ExitLoop()
@@ -30,11 +30,10 @@ type TimerHander interface {
 }
 
 type TimerEntry struct {
-	runTime  time.Time     // 到期时间
-	callback CallbackFunc  // 回调方法
-	taskId   string        // 业务ID
+	runTime  time.Time    // 到期时间
+	callback CallbackFunc // 回调方法
+	taskId   string       // 业务ID
 }
-
 
 // time heap
 type TimerHeapHandler struct {
@@ -131,7 +130,6 @@ func (h *TimerHeapHandler) addCallback(d time.Duration, callback CallbackFunc, t
 	return t
 }
 
-
 //every loop get all task expired
 func (h *TimerHeapHandler) EventLoop() {
 	now := time.Now()
@@ -195,7 +193,7 @@ func (h *TimerHeapHandler) runCallback(callback CallbackFunc) {
 	callback()
 }
 
-func (h *TimerHeapHandler) Exit(){
+func (h *TimerHeapHandler) Exit() {
 	IsRunning = false
 }
 
@@ -206,7 +204,7 @@ func (h *TimerHeapHandler) startAsyncWorker(num int) {
 }
 
 func (h *TimerHeapHandler) asyncWorker() {
-	for IsRunning{
+	for IsRunning {
 		select {
 		case call := <-h.TaskQueue:
 			h.runCallback(call)
@@ -215,5 +213,3 @@ func (h *TimerHeapHandler) asyncWorker() {
 }
 
 type CallbackFunc func()
-
-

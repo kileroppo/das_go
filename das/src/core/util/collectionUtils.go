@@ -1,8 +1,8 @@
 package util
 
 import (
-	"reflect"
 	"errors"
+	"reflect"
 )
 
 func Contains(obj interface{}, target interface{}) (bool, error) {

@@ -1,9 +1,10 @@
 package andlink2srv
 
 import (
+	"../core/constant"
+	"../core/jobque"
 	"../core/log"
 	"../core/redis"
-	"../core/jobque"
 	"bytes"
 	"fmt"
 	"github.com/dlintw/goconf"
@@ -11,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"../core/constant"
 )
 
 func Andlink2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {

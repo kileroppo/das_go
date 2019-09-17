@@ -54,9 +54,9 @@ func HttpLoginTelecom() (respBody string, err error) {
 
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config {
-				RootCAs: pool,
-				Certificates: []tls.Certificate{cliCrt},
+			TLSClientConfig: &tls.Config{
+				RootCAs:            pool,
+				Certificates:       []tls.Certificate{cliCrt},
 				InsecureSkipVerify: true},
 			Dial: func(netw, addr string) (net.Conn, error) {
 				deadline := time.Now().Add(30 * time.Second)
@@ -129,8 +129,8 @@ func HttpSubNotifyTelecom() (respBody string, err error) {
 
 	req_body := bytes.NewBuffer([]byte(
 		"{\"appId\":\"uVWENSQL_XSY_yPE1nImoVVbUj4a\"," +
-		"\"notifyType\":\""+ constant.DEVICE_DATA_CHANGED + "\"," +
-		"\"callbackUrl\":\"http://139.196.221.163:10702\"}"))
+			"\"notifyType\":\"" + constant.DEVICE_DATA_CHANGED + "\"," +
+			"\"callbackUrl\":\"http://139.196.221.163:10702\"}"))
 	log.Debug(req_body)
 
 	ca_1Path := "cert/ca_1.pem"
@@ -169,9 +169,9 @@ func HttpSubNotifyTelecom() (respBody string, err error) {
 
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config {
-				RootCAs: pool,
-				Certificates: []tls.Certificate{cliCrt},
+			TLSClientConfig: &tls.Config{
+				RootCAs:            pool,
+				Certificates:       []tls.Certificate{cliCrt},
 				InsecureSkipVerify: true},
 			Dial: func(netw, addr string) (net.Conn, error) {
 				deadline := time.Now().Add(30 * time.Second)
@@ -196,7 +196,7 @@ func HttpSubNotifyTelecom() (respBody string, err error) {
 	}
 
 	req.Header.Set("app_key", "uVWENSQL_XSY_yPE1nImoVVbUj4a")
-	req.Header.Set("Authorization", "Bearer " + respMap["accessToken"].(string))
+	req.Header.Set("Authorization", "Bearer "+respMap["accessToken"].(string))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err1 := client.Do(req)
@@ -245,11 +245,11 @@ func HttpCmd2DeviceTelecom(imei string, cmdBody string) (respBody string, err er
 
 	req_body := bytes.NewBuffer([]byte(
 		"{\"appId\":\"uVWENSQL_XSY_yPE1nImoVVbUj4a\"," +
-			"\"deviceId\":\""+ imei + "\"," +
+			"\"deviceId\":\"" + imei + "\"," +
 			"\"command\":{\"serviceId\": \"DoorLock\",\"method\": \"CHANGE_STATUS\",\"paras\":{\"cmd\":\"" + cmdBody + "\"}}," +
 			"\"callbackUrl\":\"http://139.196.221.163:10702/telecom\", " +
 			"\"maxRetransmit\":3" +
-			"}" ))
+			"}"))
 	log.Debug(req_body)
 
 	ca_1Path := "cert/ca_1.pem"
@@ -288,9 +288,9 @@ func HttpCmd2DeviceTelecom(imei string, cmdBody string) (respBody string, err er
 
 	client := &http.Client{
 		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config {
-				RootCAs: pool,
-				Certificates: []tls.Certificate{cliCrt},
+			TLSClientConfig: &tls.Config{
+				RootCAs:            pool,
+				Certificates:       []tls.Certificate{cliCrt},
 				InsecureSkipVerify: true},
 			Dial: func(netw, addr string) (net.Conn, error) {
 				deadline := time.Now().Add(30 * time.Second)
@@ -315,7 +315,7 @@ func HttpCmd2DeviceTelecom(imei string, cmdBody string) (respBody string, err er
 	}
 
 	req.Header.Set("app_key", "uVWENSQL_XSY_yPE1nImoVVbUj4a")
-	req.Header.Set("Authorization", "Bearer " + respMap["accessToken"].(string))
+	req.Header.Set("Authorization", "Bearer "+respMap["accessToken"].(string))
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err1 := client.Do(req)
@@ -350,4 +350,3 @@ func HttpCmd2DeviceTelecom(imei string, cmdBody string) (respBody string, err er
 		return "", err1
 	}
 }
-

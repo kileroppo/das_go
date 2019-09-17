@@ -1,14 +1,14 @@
 package producer
 
 import (
-		"../../core/rabbitmq"
-	"github.com/dlintw/goconf"
 	"../../core/log"
+	"../../core/rabbitmq"
+	"github.com/dlintw/goconf"
 )
 
 var rmq_uri string
-var exchange string	// = "OneNET2APP"
-var exchangeType string	// = "direct"
+var exchange string     // = "OneNET2APP"
+var exchangeType string // = "direct"
 
 //初始化RabbitMQ交换器，消息队列名称
 func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {

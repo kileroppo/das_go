@@ -1,8 +1,8 @@
 package redis
 
 import (
-	"github.com/dlintw/goconf"
 	"fmt"
+	"github.com/dlintw/goconf"
 	"github.com/garyburd/redigo/redis"
 )
 
@@ -21,7 +21,7 @@ func InitRedisSingle(conf *goconf.ConfigFile) {
 	redisPassword_s, _ = conf.GetString("redisPool", "redis_password")
 }
 
-func SetActTime(devId string, time int64)  {
+func SetActTime(devId string, time int64) {
 	c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -37,8 +37,7 @@ func SetActTime(devId string, time int64)  {
 	}
 }
 
-
-func SetDevicePlatform(devId string, platform string)  {
+func SetDevicePlatform(devId string, platform string) {
 	c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -48,14 +47,14 @@ func SetDevicePlatform(devId string, platform string)  {
 	defer c.Close()
 
 	// 写入值60S后过期
-	_, err = c.Do("SET", devId + "_platform", platform, "EX", "2592000")
+	_, err = c.Do("SET", devId+"_platform", platform, "EX", "2592000")
 
 	if err != nil {
 		fmt.Println("redis set failed:", err)
 	}
 }
 
-func GetDevicePlatform(devId string) (string, error)  {
+func GetDevicePlatform(devId string) (string, error) {
 	c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -65,7 +64,7 @@ func GetDevicePlatform(devId string) (string, error)  {
 	defer c.Close()
 
 	var retPlat string
-	retPlat, err = redis.String(c.Do("GET", devId + "_platform"))
+	retPlat, err = redis.String(c.Do("GET", devId+"_platform"))
 	if err != nil {
 		fmt.Println("redis get failed:", err)
 		return "", err

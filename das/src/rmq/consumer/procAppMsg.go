@@ -16,7 +16,6 @@ import (
 	"strings"
 )
 
-
 /*
 *	处理APP发送过来的命令消息
 *

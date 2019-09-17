@@ -1,16 +1,16 @@
 package consumer
 
 import (
+	"../../core/jobque"
+	"../../core/log"
 	"../../core/rabbitmq"
 	"github.com/dlintw/goconf"
-	"../../core/log"
-	"../../core/jobque"
 )
 
-var rmq_uri string;
-var exchange string;		// = "App2OneNET"
-var exchangeType string;	// = "direct"
-var routingKey string;		// = "wonlycloud"
+var rmq_uri string
+var exchange string     // = "App2OneNET"
+var exchangeType string // = "direct"
+var routingKey string   // = "wonlycloud"
 
 //初始化RabbitMQ交换器，消息队列名称
 func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
@@ -67,4 +67,3 @@ func ReceiveMQMsgFromAPP() {
 		<-forever
 	}
 }
-

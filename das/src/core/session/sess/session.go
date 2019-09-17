@@ -252,10 +252,10 @@ func (manager *Manager) SessionDestroy(w http.ResponseWriter, r *http.Request) {
 	if manager.config.EnableSetCookie {
 		expiration := time.Now()
 		cookie = &http.Cookie{Name: manager.config.CookieName,
-			Path: "/",
+			Path:     "/",
 			HttpOnly: !manager.config.DisableHTTPOnly,
-			Expires: expiration,
-			MaxAge: -1}
+			Expires:  expiration,
+			MaxAge:   -1}
 
 		http.SetCookie(w, cookie)
 	}
@@ -285,11 +285,11 @@ func (manager *Manager) SessionRegenerateID(w http.ResponseWriter, r *http.Reque
 		//delete old cookie
 		session, _ = manager.provider.SessionRead(sid)
 		cookie = &http.Cookie{Name: manager.config.CookieName,
-			Value: url.QueryEscape(sid),
-			Path: "/",
+			Value:    url.QueryEscape(sid),
+			Path:     "/",
 			HttpOnly: !manager.config.DisableHTTPOnly,
-			Secure: manager.isSecure(r),
-			Domain: manager.config.Domain,
+			Secure:   manager.isSecure(r),
+			Domain:   manager.config.Domain,
 		}
 	} else {
 		oldsid, _ := url.QueryUnescape(cookie.Value)

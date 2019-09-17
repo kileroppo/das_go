@@ -37,9 +37,9 @@ import (
 	"../../sess"
 	"github.com/garyburd/redigo/redis"
 	"net/http"
-	"sync"
-	"strings"
 	"strconv"
+	"strings"
+	"sync"
 )
 
 var redispder = &Provider{}

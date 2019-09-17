@@ -1,9 +1,9 @@
 package rabbitmq
 
 import (
+	"../log"
 	"github.com/dlintw/goconf"
 	"sync"
-	"../log"
 )
 
 var ProducerRabbitMq *BaseMq

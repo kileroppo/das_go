@@ -86,10 +86,10 @@ const (
 )
 
 const (
-	ONENET_PLATFORM 	= "onenet"
-	TELECOM_PLATFORM 	= "telecom"
-	ANDLINK_PLATFORM	= "andlink"
-	WIFI_PLATFORM		= "wifi"
+	ONENET_PLATFORM  = "onenet"
+	TELECOM_PLATFORM = "telecom"
+	ANDLINK_PLATFORM = "andlink"
+	WIFI_PLATFORM    = "wifi"
 )
 
 // 电信平台订阅消息类型

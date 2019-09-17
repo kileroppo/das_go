@@ -10,9 +10,8 @@ var (
 	// MaxWorker = runtime.NumCPU()/2
 	MaxWorker = runtime.NumCPU() - 1
 	// MaxWorker = 1
-	MaxQueue  = 1000
+	MaxQueue = 1000
 )
-
 
 type Job interface {
 	Handle()
@@ -23,14 +22,14 @@ var JobQueue chan Job
 type Worker struct {
 	WorkerPool chan chan Job
 	JobChannel chan Job
-	Quit chan bool
+	Quit       chan bool
 }
 
 func NewWorker(workPool chan chan Job) Worker {
-	return Worker {
-		WorkerPool:workPool,
-		JobChannel:make(chan Job),
-		Quit:make(chan bool),
+	return Worker{
+		WorkerPool: workPool,
+		JobChannel: make(chan Job),
+		Quit:       make(chan bool),
 	}
 }
 
@@ -57,7 +56,7 @@ func (w Worker) Stop() {
 type Dispatcher struct {
 	MaxWorkers int
 	WorkerPool chan chan Job
-	Quit chan bool
+	Quit       chan bool
 }
 
 func NewDispatcher(maxWorkers int) *Dispatcher {
@@ -128,7 +127,6 @@ func init() {
 }
 
 func checkToken(msg string, nonce string, signature string, token string) bool {
-
 
 	return true
 }

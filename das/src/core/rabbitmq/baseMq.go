@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"time"
-	)
+)
 
 type MqConnection struct {
 	Lock       sync.RWMutex
@@ -25,7 +25,7 @@ type ChannelContext struct {
 	Durable      bool
 	ChannelId    string
 	Channel      *amqp.Channel
-	ReSendNum	 int		// 重发次数
+	ReSendNum    int // 重发次数
 }
 
 type BaseMq struct {
@@ -101,10 +101,10 @@ func (bmq *BaseMq) refreshConnectionAndChannel(channelContext *ChannelContext) e
 		channelContext.Exchange,     // name
 		channelContext.ExchangeType, // type
 		channelContext.Durable,      // durable
-		false,            // auto-deleted
-		false,               // internal
-		false,               // noWait
-		nil,                   // arguments
+		false,                       // auto-deleted
+		false,                       // internal
+		false,                       // noWait
+		nil,                         // arguments
 	); err != nil {
 		log.Error("channel exchange deflare failed refreshConnectionAndChannel again", err)
 		return err
@@ -119,7 +119,7 @@ func (bmq *BaseMq) refreshConnectionAndChannel(channelContext *ChannelContext) e
 *	publish message
 *
 *	发给APP的消息
-*/
+ */
 func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
@@ -130,14 +130,14 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 	}
 
 	queue_name, qerr := channelContext.Channel.QueueDeclare(
-		"",  					// name, leave empty to generate a unique name
-		false,  				// durable
-		false, 			// delete when usused
-		false, 			// exclusive
-		false, 				// noWait
+		"",    // name, leave empty to generate a unique name
+		false, // durable
+		false, // delete when usused
+		false, // exclusive
+		false, // noWait
 		amqp.Table{
 			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(1000)},   // arguments
+			"x-expires": int32(1000)}, // arguments
 	)
 	if nil != qerr {
 		log.Error("Publish2App, channelContext.Channel.QueueDeclare, err: ", qerr)
@@ -146,11 +146,11 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 	}
 
 	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,    // name of the queue
-		channelContext.RoutingKey,   // bindingKey
-		channelContext.Exchange, // sourceExchange
-		false,    // noWait
-		nil,      	  // arguments
+		queue_name.Name,           // name of the queue
+		channelContext.RoutingKey, // bindingKey
+		channelContext.Exchange,   // sourceExchange
+		false,                     // noWait
+		nil,                       // arguments
 	)
 	if nil != qbinderr {
 		log.Error("Publish2App, channelContext.Channel.QueueBind, err: ", qbinderr)
@@ -159,10 +159,10 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 	}
 
 	if err := channelContext.Channel.Publish(
-		channelContext.Exchange,    // publish to an exchange
-		channelContext.RoutingKey,  // routing to 0 or more queues
-		false,            // mandatory
-		false,            // immediate
+		channelContext.Exchange,   // publish to an exchange
+		channelContext.RoutingKey, // routing to 0 or more queues
+		false,                     // mandatory
+		false,                     // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
 			ContentType:     "application/json",
@@ -193,7 +193,7 @@ func (bmq *BaseMq) Publish2App(channelContext *ChannelContext, body string) erro
 *	publish message
 *
 *	存到mongodb数据库
-*/
+ */
 func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
@@ -204,12 +204,12 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 	}
 
 	queue_name, qerr := channelContext.Channel.QueueDeclare(
-		channelContext.RoutingKey,  // name, leave empty to generate a unique name
-		true,  				// durable
-		false, 			// delete when usused
-		false, 			// exclusive
-		false, 				// noWait
-		nil,   // arguments
+		channelContext.RoutingKey, // name, leave empty to generate a unique name
+		true,                      // durable
+		false,                     // delete when usused
+		false,                     // exclusive
+		false,                     // noWait
+		nil,                       // arguments
 	)
 	if nil != qerr {
 		log.Error("Publish2Db, channelContext.Channel.QueueDeclare, err: ", qerr)
@@ -218,11 +218,11 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 	}
 
 	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,    // name of the queue
-		"",      		// bindingKey
+		queue_name.Name,         // name of the queue
+		"",                      // bindingKey
 		channelContext.Exchange, // sourceExchange
-		false,    // noWait
-		nil,      	  // arguments
+		false,                   // noWait
+		nil,                     // arguments
 	)
 	if nil != qbinderr {
 		log.Error("Publish2Db, channelContext.Channel.QueueBind, err: ", qbinderr)
@@ -231,10 +231,10 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 	}
 
 	if err := channelContext.Channel.Publish(
-		channelContext.Exchange,    // publish to an exchange
-		queue_name.Name,  // routing to 0 or more queues
-		false,            // mandatory
-		false,            // immediate
+		channelContext.Exchange, // publish to an exchange
+		queue_name.Name,         // routing to 0 or more queues
+		false,                   // mandatory
+		false,                   // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
 			ContentType:     "text/plain",
@@ -265,7 +265,7 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 *	publish message
 *
 *	发给平板设备的消息
-*/
+ */
 func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
@@ -276,14 +276,14 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 	}
 
 	queue_name, qerr := channelContext.Channel.QueueDeclare(
-		"",  					// name, leave empty to generate a unique name
-		false,  				// durable
-		false, 			// delete when usused
-		false, 			// exclusive
-		false, 				// noWait
+		"",    // name, leave empty to generate a unique name
+		false, // durable
+		false, // delete when usused
+		false, // exclusive
+		false, // noWait
 		amqp.Table{
 			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(2000)},   // arguments
+			"x-expires": int32(2000)}, // arguments
 	)
 	if nil != qerr {
 		log.Error("Publish2Device, channelContext.Channel.QueueDeclare, err: ", qerr)
@@ -292,11 +292,11 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 	}
 
 	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,    // name of the queue
-		channelContext.RoutingKey,   // bindingKey
-		channelContext.Exchange, // sourceExchange
-		false,    // noWait
-		nil,      	  // arguments
+		queue_name.Name,           // name of the queue
+		channelContext.RoutingKey, // bindingKey
+		channelContext.Exchange,   // sourceExchange
+		false,                     // noWait
+		nil,                       // arguments
 	)
 	if nil != qbinderr {
 		log.Error("Publish2Device, channelContext.Channel.QueueBind, err: ", qbinderr)
@@ -305,10 +305,10 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 	}
 
 	if err := channelContext.Channel.Publish(
-		channelContext.Exchange,    // publish to an exchange
-		channelContext.RoutingKey,  // routing to 0 or more queues
-		false,            // mandatory
-		false,            // immediate
+		channelContext.Exchange,   // publish to an exchange
+		channelContext.RoutingKey, // routing to 0 or more queues
+		false,                     // mandatory
+		false,                     // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
 			ContentType:     "application/json",
@@ -337,7 +337,7 @@ func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) e
 
 /*
 *	QueueDeclare
-*/
+ */
 func (bmq *BaseMq) QueueDeclare(channelContext *ChannelContext) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
@@ -347,20 +347,20 @@ func (bmq *BaseMq) QueueDeclare(channelContext *ChannelContext) error {
 	}
 
 	queue_name, err := channelContext.Channel.QueueDeclare(
-		channelContext.RoutingKey,  // name, leave empty to generate a unique name
-		true,  				// durable
-		false, 			// delete when usused
-		false, 			// exclusive
-		false, 				// noWait
-		nil,   // arguments
+		channelContext.RoutingKey, // name, leave empty to generate a unique name
+		true,                      // durable
+		false,                     // delete when usused
+		false,                     // exclusive
+		false,                     // noWait
+		nil,                       // arguments
 	)
 
 	err = channelContext.Channel.QueueBind(
-		queue_name.Name,    // name of the queue
-		"",      		// bindingKey
+		queue_name.Name,         // name of the queue
+		"",                      // bindingKey
 		channelContext.Exchange, // sourceExchange
-		false,    // noWait
-		nil,      	  // arguments
+		false,                   // noWait
+		nil,                     // arguments
 	)
 
 	if err != nil {
@@ -373,7 +373,7 @@ func (bmq *BaseMq) QueueDeclare(channelContext *ChannelContext) error {
 
 /*
 *	consumer message
-*/
+ */
 func (bmq *BaseMq) Consumer(channelContext *ChannelContext) <-chan amqp.Delivery {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
@@ -383,12 +383,12 @@ func (bmq *BaseMq) Consumer(channelContext *ChannelContext) <-chan amqp.Delivery
 	}
 	//for {
 	msgs, err := channelContext.Channel.Consume(
-		channelContext.RoutingKey, 		// queue
-		"",                   // consumer
-		true,                  // auto-ack
-		false,                 // exclusive
-		false,                  // no-local
-		false,                   // no-wait
+		channelContext.RoutingKey, // queue
+		"",                        // consumer
+		true,                      // auto-ack
+		false,                     // exclusive
+		false,                     // no-local
+		false,                     // no-wait
 		nil,                       // args
 	)
 	if err != nil {
@@ -399,6 +399,7 @@ func (bmq *BaseMq) Consumer(channelContext *ChannelContext) <-chan amqp.Delivery
 	return msgs
 	//}
 }
+
 /*func (bmq *BaseMq) Consumer(channelContext *ChannelContext, calllback func(string) bool) error {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
@@ -438,4 +439,3 @@ func (bmq *BaseMq) Consumer(channelContext *ChannelContext) <-chan amqp.Delivery
 	}
 	return nil
 }*/
-

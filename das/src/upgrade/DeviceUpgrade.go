@@ -1,82 +1,82 @@
 package upgrade
 
 import (
+	"../core/constant"
+	"../core/entity"
 	"../core/httpgo"
+	"../core/log"
+	"../core/util"
+	"bytes"
 	"encoding/base64"
 	"encoding/binary"
-	"encoding/json"
-	"../core/log"
-	"strings"
-	"net/http"
-	"os"
-	"io"
-	"fmt"
-	"path"
-	"net/url"
-	"time"
-	"../core/constant"
-	"bytes"
 	"encoding/hex"
-	"../core/util"
-	"../core/entity"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"path"
+	"strings"
+	"time"
 )
 
 type Msg struct {
-	Pus PusMsg				`json:"PUS"`
+	Pus PusMsg `json:"PUS"`
 }
 
 type PusMsg struct {
-	Head Header				`json:"header"`
-	Body PusDowloadBody		`json:"body"`
+	Head Header         `json:"header"`
+	Body PusDowloadBody `json:"body"`
 }
 
 type Header struct {
-	Api_version string		`json:"api_version"`
-	Return_string string	`json:"return_string"`
-	Seq_id string 			`json:"seq_id"`
-	Http_code string 		`json:"http_code"`
-	Message_type string 	`json:"message_type"`
+	Api_version   string `json:"api_version"`
+	Return_string string `json:"return_string"`
+	Seq_id        string `json:"seq_id"`
+	Http_code     string `json:"http_code"`
+	Message_type  string `json:"message_type"`
 }
 
 type PusDowloadBody struct {
-	New_version string		`json:"new_version"`
-	Endpoint_type string	`json:"endpoint_type"`
-	Force_upgrade string 	`json:"force_upgrade"`
-	Md5 string				`json:"md5"`
-	Vendor_name string		`json:"vendor_name"`
-	Url string 				`json:"url"`
-	Platform string			`json:"platform"`
-	Part string				`json:"part"`
-	Readme string 			`json:"readme"`
+	New_version   string `json:"new_version"`
+	Endpoint_type string `json:"endpoint_type"`
+	Force_upgrade string `json:"force_upgrade"`
+	Md5           string `json:"md5"`
+	Vendor_name   string `json:"vendor_name"`
+	Url           string `json:"url"`
+	Platform      string `json:"platform"`
+	Part          string `json:"part"`
+	Readme        string `json:"readme"`
 }
 
 type QueryPkgInfo struct {
-	Cmd int				`json:"cmd"`
-	Ack int      		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId string 		`json:"devId"`
-	SeqId int			`json:"seqId"`
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	SeqId   int    `json:"seqId"`
 
-	Part int			`json:"part"`
-	FileName string		`json:"fileName"`
-	FileSize int64		`json:"fileSize"`
-	MD5 string			`json:"MD5"`
+	Part     int    `json:"part"`
+	FileName string `json:"fileName"`
+	FileSize int64  `json:"fileSize"`
+	MD5      string `json:"MD5"`
 }
 
 type TransferPkgData struct {
-	Cmd int				`json:"cmd"`
-	Ack int      		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId string 		`json:"devId"`
-	SeqId int			`json:"seqId"`
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	SeqId   int    `json:"seqId"`
 
-	Part int			`json:"part"`
-	Offset int64		`json:"offset"`
-	FileData string		`json:"fileData"`
+	Part     int    `json:"part"`
+	Offset   int64  `json:"offset"`
+	FileData string `json:"fileData"`
 }
 
 func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
-	body1, err1:= httpgo.Http2WonlyUpgrade(devType)
+	body1, err1 := httpgo.Http2WonlyUpgrade(devType)
 	if nil != err1 {
 		log.Error("get upgrade file from wonly pus failed, err: ", err1)
 		return
@@ -156,7 +156,7 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 		}*/
 
 		toDevHead.CheckSum = util.CheckSum(toDevice_fileInfo)
-		toDevHead.MsgLen =  (uint16)(strings.Count(string(toDevice_fileInfo),"") - 1)
+		toDevHead.MsgLen = (uint16)(strings.Count(string(toDevice_fileInfo), "") - 1)
 
 		buf := new(bytes.Buffer)
 		binary.Write(buf, binary.BigEndian, toDevHead)
@@ -207,7 +207,7 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 
 	defer newFile.Close()
 
-	client := http.Client{ Timeout: 900 * time.Second }
+	client := http.Client{Timeout: 900 * time.Second}
 	resp, err4 := client.Get(fileUrl)
 	if err4 != nil {
 		// panic(err4)
@@ -276,7 +276,7 @@ func TransferFileData(devId string, devType string, seqId int, offset int64, fil
 		}*/
 
 		toDevHead.CheckSum = util.CheckSum(toDevice_fileData)
-		toDevHead.MsgLen =  (uint16)(strings.Count(string(toDevice_fileData),"") - 1)
+		toDevHead.MsgLen = (uint16)(strings.Count(string(toDevice_fileData), "") - 1)
 
 		buf := new(bytes.Buffer)
 		binary.Write(buf, binary.BigEndian, toDevHead)

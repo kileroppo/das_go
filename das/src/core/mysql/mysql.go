@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"../constant"
 	"../log"
 	"database/sql"
 	"errors"
@@ -11,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"../constant"
 )
 
 type ORMModel struct {
@@ -140,7 +140,7 @@ func (m *ORMModel) Insert(db *sql.DB, param map[string]interface{}) (num int, er
 		err = errors.New("insert error")
 	}
 	return s, err
-	
+
 }
 
 func (m *ORMModel) Fileds(param ...string) *ORMModel {
@@ -253,7 +253,7 @@ func (m *ORMModel) Query(db *sql.DB, sql string) interface{} {
 	}
 	result, _ := db.Exec(query)
 	return result
-	
+
 }
 
 func QueryResult(rows *sql.Rows) map[int]map[string]interface{} {

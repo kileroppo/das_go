@@ -1,6 +1,7 @@
 package procnbmsg
 
 import (
+	"../cmdto"
 	"../core/constant"
 	"../core/entity"
 	"../core/log"
@@ -8,16 +9,15 @@ import (
 	"../core/util"
 	"../rmq/producer"
 	"../upgrade"
-	"../cmdto"
 
 	"bytes"
-	"strings"
-	"time"
-	"errors"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"github.com/ZZMarquis/gm/sm2"
+	"strings"
+	"time"
 )
 
 func ProcessNbMsg(DValue string, Imei string) error {

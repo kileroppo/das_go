@@ -1,17 +1,16 @@
 package dindingtask
 
 import (
-	"../core/timer/cron"
-	"github.com/dlintw/goconf"
 	"../core/httpgo"
 	"../core/log"
-		"time"
+	"../core/timer/cron"
+	"github.com/dlintw/goconf"
+	"time"
 )
 
 /*var (
 	timerCtl *timer.TimerHeapHandler
 )*/
-
 
 var timer_is_start int
 var cronJob *cron.Cron
@@ -21,13 +20,13 @@ func InitTimer_IsStart(conf *goconf.ConfigFile) {
 	timer_is_start, _ = conf.GetInt("timer", "is_start")
 }
 
-func StartMyTimer()  {
+func StartMyTimer() {
 	if 1 == timer_is_start {
-		log.Debug("StartMyTimer()......" )
+		log.Debug("StartMyTimer()......")
 
 		cronJob = cron.New()
-		specDaily 	:= "0 0 17 * * 1-5" 		// 定义执行时间点 参照上面的说明可知 执行时间为：周一至周五每天17:00:00执行
-		specWeek 	:= "0 0 15 * * 5" 			// 定义执行时间点 参照上面的说明可知 执行时间为：每周的周五15:00:00执行
+		specDaily := "0 0 17 * * 1-5" // 定义执行时间点 参照上面的说明可知 执行时间为：周一至周五每天17:00:00执行
+		specWeek := "0 0 15 * * 5"    // 定义执行时间点 参照上面的说明可知 执行时间为：每周的周五15:00:00执行
 		// specMonth 	:= "0 0 16 25-28 * *" 		// 定义执行时间点 参照上面的说明可知 执行时间为：每个月的25日至28日16:00:00执行
 		// specYear 	:= "0 30 16 15-20 12 *" 	// 定义执行时间点 参照上面的说明可知 执行时间为：12月15-20日16:30:00执行
 
@@ -68,12 +67,12 @@ func StartMyTimer()  {
 	}
 }
 
-func StopMyTimer()  {
+func StopMyTimer() {
 	if 1 == timer_is_start {
-		log.Debug("StopMyTimer()......" )
+		log.Debug("StopMyTimer()......")
 
 		// Remove an entry from the cron by name.
-		log.Debug("StopMyTimer() RemoveJob()......" )
+		log.Debug("StopMyTimer() RemoveJob()......")
 		cronJob.RemoveJob("DingDailyTask")
 		cronJob.RemoveJob("DingWeekTask")
 		// cronJob.RemoveJob("DingMonthTask")
