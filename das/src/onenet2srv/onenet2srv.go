@@ -29,9 +29,8 @@ func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 		os.Exit(1)
 	}
 
+	httpgo.InitOneNETConfig(conf)
 	httpPort, _ = conf.GetInt("onenet2http", "onenet2http_port")
-	httpgo.OneNET_Url, _ = conf.GetString("onenet2http", "onenet_url")
-	httpgo.OneNET_Apikey, _ = conf.GetString("onenet2http", "onenet_apikey")
 
 	srv := &http.Server{Addr: ":" + strconv.Itoa(httpPort)}
 
