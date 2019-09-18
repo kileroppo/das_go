@@ -264,6 +264,78 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body string) error
 /*
 *	publish message
 *
+*	存到mongodb数据库 -2
+ */
+func (bmq *BaseMq) Publish2Db2(channelContext *ChannelContext, body string) error {
+	channelContext.ChannelId = bmq.generateChannelId(channelContext)
+	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
+		log.Error("Publish2Db2() 1-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
+		bmq.refreshConnectionAndChannel(channelContext)
+	} else {
+		channelContext = bmq.ChannelContexts[channelContext.ChannelId]
+	}
+
+	queue_name, qerr := channelContext.Channel.QueueDeclare(
+		channelContext.RoutingKey, // name, leave empty to generate a unique name
+		true,                      // durable
+		false,                     // delete when usused
+		false,                     // exclusive
+		false,                     // noWait
+		nil,                       // arguments
+	)
+	if nil != qerr {
+		log.Error("Publish2Db2, channelContext.Channel.QueueDeclare, err: ", qerr)
+		bmq.refreshConnectionAndChannel(channelContext)
+		//return qerr
+	}
+
+	qbinderr := channelContext.Channel.QueueBind(
+		queue_name.Name,         		// name of the queue
+		channelContext.RoutingKey, 		// bindingKey
+		channelContext.Exchange, 		// sourceExchange
+		false,                  // noWait
+		nil,                     	// arguments
+	)
+	if nil != qbinderr {
+		log.Error("Publish2Db2, channelContext.Channel.QueueBind, err: ", qbinderr)
+		bmq.refreshConnectionAndChannel(channelContext)
+		// return qerr
+	}
+
+	if err := channelContext.Channel.Publish(
+		channelContext.Exchange, 		// publish to an exchange
+		channelContext.RoutingKey,      // routing to 0 or more queues
+		false,                // mandatory
+		false,                // immediate
+		amqp.Publishing{
+			Headers:         amqp.Table{},
+			ContentType:     "text/plain",
+			ContentEncoding: "",
+			Body:            []byte(body),
+			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
+			Priority:        0,              // 0-9
+			// a bunch of application/implementation-specific fields
+		},
+	); err != nil {
+		log.Error("Publish2Db2() send message failed refresh connection", err)
+		time.Sleep(10 * time.Second)
+		log.Error("Publish2Db2() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
+		recon_err := bmq.refreshConnectionAndChannel(channelContext)
+		if nil != recon_err {
+			if channelContext.ReSendNum < 1 {
+				log.Error("Publish2Db2 ReSend message=", body, ", num=", channelContext.ReSendNum)
+				channelContext.ReSendNum++
+				bmq.Publish2Db(channelContext, body)
+			}
+		}
+	}
+
+	return nil
+}
+
+/*
+*	publish message
+*
 *	发给平板设备的消息
  */
 func (bmq *BaseMq) Publish2Device(channelContext *ChannelContext, body string) error {
