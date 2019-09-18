@@ -24,7 +24,7 @@ func ProcessFeibeeMsg(pushData []byte) (err error) {
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
 		err := errors.New("the feibee message's structure is invalid")
-		log.Info(err)
+		log.Debug(err)
 		return err
 	}
 

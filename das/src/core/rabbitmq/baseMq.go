@@ -290,11 +290,11 @@ func (bmq *BaseMq) Publish2Db2(channelContext *ChannelContext, body string) erro
 	}
 
 	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,         		// name of the queue
-		channelContext.RoutingKey, 		// bindingKey
-		channelContext.Exchange, 		// sourceExchange
-		false,                  // noWait
-		nil,                     	// arguments
+		queue_name.Name,           // name of the queue
+		channelContext.RoutingKey, // bindingKey
+		channelContext.Exchange,   // sourceExchange
+		false,                     // noWait
+		nil,                       // arguments
 	)
 	if nil != qbinderr {
 		log.Error("Publish2Db2, channelContext.Channel.QueueBind, err: ", qbinderr)
@@ -303,10 +303,10 @@ func (bmq *BaseMq) Publish2Db2(channelContext *ChannelContext, body string) erro
 	}
 
 	if err := channelContext.Channel.Publish(
-		channelContext.Exchange, 		// publish to an exchange
-		channelContext.RoutingKey,      // routing to 0 or more queues
-		false,                // mandatory
-		false,                // immediate
+		channelContext.Exchange,   // publish to an exchange
+		channelContext.RoutingKey, // routing to 0 or more queues
+		false,                     // mandatory
+		false,                     // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
 			ContentType:     "text/plain",
