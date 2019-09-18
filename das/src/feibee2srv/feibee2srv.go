@@ -67,7 +67,7 @@ func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 func FeibeeHandler(res http.ResponseWriter, req *http.Request) {
 
 	if req.Method != "POST" {
-		log.Error("feibee推送http接口http方法错误")
+		log.Debug("feibee推送的http方法不匹配")
 	} else {
 		rawData, err := ioutil.ReadAll(req.Body)
 

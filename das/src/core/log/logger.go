@@ -90,53 +90,20 @@ func ReNewLogger(pathDir string, level string) {
 	}
 }
 
-func Info(args ...interface{}) {
-	log.Info(args...)
-}
-
-func Infof(format string, args ...interface{}) {
-	log.Infof(format, args...)
-}
-
-func Notice(args ...interface{}) {
-	log.Notice(args...)
-}
-
-func Noticef(format string, args ...interface{}) {
-	log.Noticef(format, args...)
-}
-
-func Debug(args ...interface{}) {
-	log.Debug(args...)
-}
-
-func Debugf(format string, args ...interface{}) {
-	log.Debugf(format, args...)
-}
-
-func Warning(args ...interface{}) {
-	log.Warning(args...)
-}
-
-func Warningf(format string, args ...interface{}) {
-	log.Warningf(format, args...)
-}
-
-func Error(args ...interface{}) {
-	log.Error(args...)
-}
-
-func Errorf(format string, args ...interface{}) {
-	log.Errorf(format, args...)
-}
-
-func Critical(args ...interface{}) {
-	log.Critical(args...)
-}
-
-func Criticalf(format string, args ...interface{}) {
-	log.Criticalf(format, args...)
-}
+var (
+	Info      = log.Info
+	Infof     = log.Infof
+	Notice    = log.Notice
+	Noticef   = log.Noticef
+	Debug     = log.Debug
+	Debugf    = log.Debugf
+	Warning   = log.Warning
+	Warningf  = log.Warningf
+	Error     = log.Error
+	Errorf    = log.Errorf
+	Critical  = log.Critical
+	Criticalf = log.Criticalf
+)
 
 func CheckError(err error) {
 	if err != nil {
