@@ -54,7 +54,11 @@ func ReceiveMQMsgFromAPP() {
 	log.Info("Consumer ReceiveMQMsgFromAPP......")
 	// go程循环去读消息，并放到Job去处理
 	for {
-		msgs := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
+		msgs, err := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
+		if nil != err {
+			continue
+		}
+
 		forever := make(chan bool)
 		go func() {
 			for d := range msgs {
@@ -63,6 +67,7 @@ func ReceiveMQMsgFromAPP() {
 				// work := Job{appMsg: AppMsg{pri: string(d.Body)}}
 				jobque.JobQueue <- NewConsumerJob(string(d.Body))
 			}
+			forever <- true // 退出
 		}()
 		<-forever
 	}

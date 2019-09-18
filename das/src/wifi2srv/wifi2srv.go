@@ -60,7 +60,10 @@ func ReceiveMQMsgFromDevice() {
 	log.Info("Consumer ReceiveMQMsgFromDevice......")
 	// go程循环去读消息，并放到Job去处理
 	for {
-		msgs := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
+		msgs, err:= rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
+		if nil != err {
+			continue
+		}
 		forever := make(chan bool)
 		go func() {
 			for d := range msgs {
@@ -87,6 +90,7 @@ func ReceiveMQMsgFromDevice() {
 				// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
 				jobque.JobQueue <- NewWifiPlatJob(devData, devID)
 			}
+			forever <- true // 退出
 		}()
 		<-forever
 	}

@@ -446,7 +446,7 @@ func (bmq *BaseMq) QueueDeclare(channelContext *ChannelContext) error {
 /*
 *	consumer message
  */
-func (bmq *BaseMq) Consumer(channelContext *ChannelContext) <-chan amqp.Delivery {
+func (bmq *BaseMq) Consumer(channelContext *ChannelContext) (<-chan amqp.Delivery, error) {
 	channelContext.ChannelId = bmq.generateChannelId(channelContext)
 	if bmq.ChannelContexts[channelContext.ChannelId] == nil {
 		bmq.refreshConnectionAndChannel(channelContext)
@@ -467,8 +467,9 @@ func (bmq *BaseMq) Consumer(channelContext *ChannelContext) <-chan amqp.Delivery
 		log.Error(err)
 		log.Error("Failed to register a consumer")
 		bmq.refreshConnectionAndChannel(channelContext)
+		return nil, err
 	}
-	return msgs
+	return msgs, nil
 	//}
 }
 
