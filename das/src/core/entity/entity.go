@@ -252,8 +252,9 @@ type Feibee2AppMsg struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
-	Note      string `json:"note"`
+	Note      string `json:"note"` //设备别名
 	Deviceuid int    `json:"deviceuid"`
 	Online    int    `json:"online"`
 	Battery   int    `json:"battery"`
+	OpType    string `json:"opType"`
 }
