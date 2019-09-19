@@ -6,11 +6,20 @@ import (
 
 	"../core/entity"
 	"../core/log"
-	"../rmq/producer"
+	"../mq"
 )
 
 type FeibeeData struct {
 	entity.FeibeeData
+}
+
+var MQPool mq.MQChannelPool
+
+func init() {
+
+	MQPool = mq.NewMQChannelPool()
+	MQPool.Init("amqp://wonly:Wl2016822@139.196.221.163:5672/")
+
 }
 
 func ProcessFeibeeMsg(pushData []byte) (err error) {
@@ -94,15 +103,15 @@ func (f FeibeeData) push2mq() error {
 
 func (f FeibeeData) push2mq2app() error {
 
-	feibee2appMsg := dataFormat(f.Msg[0])
+	//feibee2appMsg := dataFormat(f.Msg[0])
+	//
+	//data, err := json.Marshal(feibee2appMsg)
+	//if err != nil {
+	//	log.Error("json.Marshal() error = ", err)
+	//	return err
+	//}
 
-	data, err := json.Marshal(feibee2appMsg)
-	if err != nil {
-		log.Error("json.Marshal() error = ", err)
-		return err
-	}
-
-	producer.SendMQMsg2APP(f.Msg[0].Bindid, string(data))
+	//producer.SendMQMsg2APP(f.Msg[0].Bindid, string(data))
 	return nil
 }
 
@@ -114,7 +123,7 @@ func (f FeibeeData) push2mq2db() error {
 		log.Error("json.Marshal() error = ", err)
 	}
 
-	producer.SendMQMsg2Db2(string(data))
+	sendMQMsg2Db(data)
 	return nil
 }
 
@@ -134,4 +143,13 @@ func dataFormat(msg entity.FeibeeDevMsg) entity.Feibee2AppMsg {
 		Battery:   msg.Battery,
 	}
 
+}
+
+func sendMQMsg2Db(data []byte) {
+	conf := mq.MQConfig{
+		Exchange:     "Device2Db_ex2",
+		ExchangeType: "fanout",
+		RoutingKey:   "Device2Db_queue2",
+	}
+	MQPool.Product(data, conf)
 }
