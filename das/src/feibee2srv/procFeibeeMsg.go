@@ -13,13 +13,7 @@ type FeibeeData struct {
 	entity.FeibeeData
 }
 
-func ProcessFeibeeMsg(pushData []byte) (err error) {
-
-	var feibeeData FeibeeData
-	if feibeeData, err = NewFeibeeData(pushData); err != nil {
-		log.Error("NewFeibeeData() error=", err)
-		return
-	}
+func ProcessFeibeeMsg(feibeeData FeibeeData) (err error) {
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
@@ -55,10 +49,9 @@ func (f FeibeeData) isDataValid() bool {
 			if len(f.Msg) > 0 {
 				return true
 			}
-		case 15, 32:
-			if len(f.Gateway) > 0 {
-				return true
-			}
+		case 2, 15, 32:
+			return true
+
 		default:
 			return false
 		}
