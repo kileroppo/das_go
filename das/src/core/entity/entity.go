@@ -260,7 +260,7 @@ type FeibeeRecordsMsg struct {
 	Pushstring string
 }
 
-//设备入网通知(推送给app)
+//feibee设备消息通知(推送给app)
 type Feibee2AppMsg struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -274,4 +274,11 @@ type Feibee2AppMsg struct {
 	Online    int    `json:"online"`
 	Battery   int    `json:"battery"`
 	OpType    string `json:"opType"`
+	Time      int    `json:"time"`
+}
+
+//feibee设备消息通知(推送给db)
+type Feibee2DBMsg struct {
+	Feibee2AppMsg
+	Bindid string `json:"bindid"`
 }

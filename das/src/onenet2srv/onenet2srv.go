@@ -3,10 +3,10 @@ package onenet2srv
 import (
 	"../core/constant"
 	"../core/entity"
+	"../core/httpgo"
 	"../core/jobque"
 	"../core/log"
 	"../core/redis"
-	"../core/httpgo"
 	"../procnbmsg"
 	"../rmq/producer"
 	"bytes"

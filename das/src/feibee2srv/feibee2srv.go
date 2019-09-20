@@ -26,6 +26,12 @@ func NewFeibeeJob(rawData []byte) FeibeeJob {
 }
 
 func (f FeibeeJob) Handle() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error(err)
+		}
+	}()
+
 	log.Debug("feibee2srv.Handle() get: ", bytes.NewBuffer(f.rawData).String())
 	if feibeeData, err := NewFeibeeData(f.rawData); err != nil {
 		log.Error("NewFeibeeData() error=", err)
