@@ -27,19 +27,10 @@ type ChannelContext struct {
 
 type BaseMq struct {
 	MqConnection *MqConnection
-	//rabbitMq通道缓存
-	//ChannelContexts map[string]*ChannelContext
 }
 
 func (bmq *BaseMq) Init() {
-	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
-		var err error
-		bmq.MqConnection.Connection, err = amqp.Dial(bmq.MqConnection.MqUri)
-		if err != nil {
-			log.Error("amqp.Dial() error = ", err)
-			panic(err)
-		}
-	}
+	bmq.refreshConnectionAndChannel()
 }
 
 // One would typically keep a channel of publishings, a sequence number, and a
@@ -71,45 +62,6 @@ func (bmq *BaseMq) refreshConnectionAndChannel() (err error) {
 	}
 
 	return nil
-	//if bmq.MqConnection.Connection != nil {
-	//	log.Error("refreshConnectionAndChannel() bmq.MqConnection.Connection != nil, bmq.MqConnection.Connection.Channel()->openChannel().")
-	//	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-	//} else {
-	//	log.Error("connection not init, dial first time......")
-	//	err = errors.New("connection nil")
-	//}
-	//
-	//// reconnect connection
-	//if err != nil {
-	//	for {
-	//		bmq.MqConnection.Connection, err = amqp.Dial(bmq.MqConnection.MqUri)
-	//		if err != nil {
-	//			log.Error("connect mq get connection error,retry..." + bmq.MqConnection.MqUri)
-	//			time.Sleep(10 * time.Second)
-	//		} else {
-	//			log.Info("connection RabbitMQ......")
-	//			channelContext.Channel, _ = bmq.MqConnection.Connection.Channel()
-	//			break
-	//		}
-	//	}
-	//}
-	//
-	//if err = channelContext.Channel.ExchangeDeclare(
-	//	channelContext.Exchange,     // name
-	//	channelContext.ExchangeType, // type
-	//	channelContext.Durable,      // durable
-	//	false,                       // auto-deleted
-	//	false,                       // internal
-	//	false,                       // noWait
-	//	nil,                         // arguments
-	//); err != nil {
-	//	log.Error("channel exchange deflare failed refreshConnectionAndChannel again", err)
-	//	return err
-	//}
-	//
-	////add channel to channel cache
-	//bmq.ChannelContexts[channelContext.ChannelId] = channelContext
-	//return nil
 }
 
 /*
@@ -271,13 +223,7 @@ func (bmq *BaseMq) Publish2Db(channelContext *ChannelContext, body []byte) error
 *	存到mongodb数据库 -2
  */
 func (bmq *BaseMq) Publish2Db2(channelContext *ChannelContext, body []byte) error {
-	//channelContext.ChannelId = bmq.generateChannelId(channelContext)
-	//if bmq.ChannelContexts[channelContext.ChannelId] == nil {
-	//	log.Error("Publish2Db2() 1-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
-	//	bmq.refreshConnectionAndChannel(channelContext)
-	//} else {
-	//	channelContext = bmq.ChannelContexts[channelContext.ChannelId]
-	//}
+
 	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
 		bmq.refreshConnectionAndChannel()
 	}
