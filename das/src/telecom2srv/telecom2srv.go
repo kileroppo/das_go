@@ -38,13 +38,13 @@ func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 			serverCrt, _ := conf.GetString("https", "https_server_crt")
 			serverKey, _ := conf.GetString("https", "https_server_key")
 			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
-				log.Error("Telecom2HttpSrvStart ListenAndServeTLS(): %s", err_https)
+				log.Error("Telecom2HttpSrvStart ListenAndServeTLS() error = ", err_https)
 			}
 		} else {
 			log.Info("Telecom2HttpSrvStart ListenAndServe() start...")
 			if err_http := srv.ListenAndServe(); err_http != nil {
 				// cannot panic, because this probably is an intentional close
-				log.Error("Telecom2HttpSrvStart ListenAndServe(): %s", err_http)
+				log.Error("Telecom2HttpSrvStart ListenAndServe() error = ", err_http)
 			}
 		}
 	}()

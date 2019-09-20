@@ -37,7 +37,7 @@ func SendMQMsg2Db(message string) {
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Info("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
-	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, []byte(message))
+	rabbitmq.ProducerRabbitMq2Db.Publish2Db(channleContxt, []byte(message))
 }
 
 func SendMQMsg2Db2(message []byte) {
@@ -49,16 +49,5 @@ func SendMQMsg2Db2(message []byte) {
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", string(message))
-	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, message)
-}
-
-func SendMQMsg2DBTest(message []byte) {
-	if rabbitmq.ProducerRabbitMq2Db == nil {
-		log.Error("SendMQMsg2Db2: rabbitmq.ProducerRabbitMq2Db is nil.")
-		return
-	}
-
-	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
-	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", message)
-	rabbitmq.ProducerRabbitMq2Db.Publish2Db2(&channleContxt, message)
+	rabbitmq.ProducerRabbitMq2Db.Publish2Db(channleContxt, message)
 }

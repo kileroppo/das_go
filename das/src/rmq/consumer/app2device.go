@@ -49,7 +49,7 @@ func ReceiveMQMsgFromAPP() {
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true, ReSendNum: 0}
 
-	rabbitmq.ConsumerRabbitMq.QueueDeclare(&channleContxt)
+	rabbitmq.ConsumerRabbitMq.QueueDeclare(channleContxt)
 
 	log.Info("Consumer ReceiveMQMsgFromAPP......")
 	// go程循环去读消息，并放到Job去处理
