@@ -207,6 +207,7 @@ type FeibeeData struct {
 	Ver     string             `json:"ver"`
 	Msg     []FeibeeDevMsg     `json:"msg"`
 	Gateway []FeibeeGatewayMsg `json:"gateway"`
+	Records []FeibeeRecordsMsg `json:"records"`
 }
 
 //feibee推送的设备信息
@@ -243,7 +244,23 @@ type FeibeeGatewayMsg struct {
 	Online   int    `json:"online"`
 }
 
-//设备入网通知(推送给app)
+//feibee推送的操作设备状态
+type FeibeeRecordsMsg struct {
+	Bindid     string
+	Deviceuid  int
+	Uuid       string
+	Devicetype string
+	Zonetype   int
+	Deviceid   int
+	Cid        int
+	Aid        int
+	Value      string
+	Orgdata    string
+	Uptime     int
+	Pushstring string
+}
+
+//feibee设备消息通知(推送给app)
 type Feibee2AppMsg struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -257,4 +274,11 @@ type Feibee2AppMsg struct {
 	Online    int    `json:"online"`
 	Battery   int    `json:"battery"`
 	OpType    string `json:"opType"`
+	Time      int    `json:"time"`
+}
+
+//feibee设备消息通知(推送给db)
+type Feibee2DBMsg struct {
+	Feibee2AppMsg
+	Bindid string `json:"bindid"`
 }

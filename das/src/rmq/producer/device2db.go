@@ -7,7 +7,7 @@ import (
 )
 
 var rmq_uri_mgo string
-var exchange_mgo string         // = "OneNET2APP"
+var exchange_mgo string // = "OneNET2APP"
 var exchange_mgo2 string
 var exchangeType_mgo string     // = "direct"
 var routingKey_mgo string = ""  // 设备的uuid
@@ -37,10 +37,10 @@ func SendMQMsg2Db(message string) {
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Info("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
-	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, message)
+	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, []byte(message))
 }
 
-func SendMQMsg2Db2(message string) {
+func SendMQMsg2Db2(message []byte) {
 	if rabbitmq.ProducerRabbitMq2Db == nil {
 		log.Error("SendMQMsg2Db2: rabbitmq.ProducerRabbitMq2Db is nil.")
 		return
@@ -48,6 +48,17 @@ func SendMQMsg2Db2(message string) {
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
 
-	log.Info("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
+	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", string(message))
 	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, message)
+}
+
+func SendMQMsg2DBTest(message []byte) {
+	if rabbitmq.ProducerRabbitMq2Db == nil {
+		log.Error("SendMQMsg2Db2: rabbitmq.ProducerRabbitMq2Db is nil.")
+		return
+	}
+
+	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
+	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", message)
+	rabbitmq.ProducerRabbitMq2Db.Publish2Db2(&channleContxt, message)
 }
