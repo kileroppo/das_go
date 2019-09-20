@@ -22,8 +22,8 @@ type MQChannelPool struct {
 	conn *amqp.Connection
 }
 
-func NewMQChannelPool() MQChannelPool {
-	return MQChannelPool{
+func NewMQChannelPool() *MQChannelPool {
+	return &MQChannelPool{
 		conn: nil,
 	}
 }
@@ -36,13 +36,14 @@ func (m *MQChannelPool) Init(amqpURL string) error {
 		log.Error(err)
 		return err
 	}
-
+	log.Debug("MQChannelPool init successed")
 	return nil
 }
 
 func (m *MQChannelPool) Product(data []byte, conf MQConfig) error {
 
 	channel, err := m.conn.Channel()
+	defer channel.Close()
 
 	if err != nil {
 		log.Error(err)

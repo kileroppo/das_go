@@ -10,7 +10,7 @@ var (
 	// MaxWorker = runtime.NumCPU()/2
 	MaxWorker = runtime.NumCPU() - 1
 	// MaxWorker = 1
-	MaxQueue = 1000
+	MaxQueue = 500
 )
 
 type Job interface {

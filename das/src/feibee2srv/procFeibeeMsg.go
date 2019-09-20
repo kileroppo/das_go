@@ -13,22 +13,14 @@ type FeibeeData struct {
 	entity.FeibeeData
 }
 
-var MQPool mq.MQChannelPool
+var MQPool *mq.MQChannelPool
 
 func init() {
-
 	MQPool = mq.NewMQChannelPool()
 	MQPool.Init("amqp://wonly:Wl2016822@139.196.221.163:5672/")
-
 }
 
-func ProcessFeibeeMsg(pushData []byte) (err error) {
-
-	var feibeeData FeibeeData
-	if feibeeData, err = NewFeibeeData(pushData); err != nil {
-		log.Error("NewFeibeeData() error=", err)
-		return
-	}
+func ProcessFeibeeMsg(feibeeData FeibeeData) (err error) {
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
@@ -64,10 +56,9 @@ func (f FeibeeData) isDataValid() bool {
 			if len(f.Msg) > 0 {
 				return true
 			}
-		case 15, 32:
-			if len(f.Gateway) > 0 {
-				return true
-			}
+		case 2, 15, 32:
+			return true
+
 		default:
 			return false
 		}
@@ -79,21 +70,21 @@ func (f FeibeeData) push2mq() error {
 
 	switch f.Code {
 	//设备入网数据推送到app和db
-	case 3:
+	case 3, 4, 5, 12:
 
 		if err := f.push2mq2app(); err != nil {
 			log.Error("f.push2mq2app() error = ", err)
 			return err
 		}
 
-		if err := f.push2mq2db(); err != nil {
+		if err := f.push2mq2db2(); err != nil {
 			log.Error("f.push2mq2db() error = ", err)
 			return err
 		}
 
 	//其他消息推送到db
 	default:
-		if err := f.push2mq2db(); err != nil {
+		if err := f.push2mq2db2(); err != nil {
 			log.Error("f.push2mq2db() error = ", err)
 			return err
 		}
@@ -103,19 +94,22 @@ func (f FeibeeData) push2mq() error {
 
 func (f FeibeeData) push2mq2app() error {
 
-	//feibee2appMsg := dataFormat(f.Msg[0])
+	//feibee2appMsg := dataFormat(f)
 	//
 	//data, err := json.Marshal(feibee2appMsg)
 	//if err != nil {
 	//	log.Error("json.Marshal() error = ", err)
 	//	return err
 	//}
+	//msg := string(data)
 
-	//producer.SendMQMsg2APP(f.Msg[0].Bindid, string(data))
+	//producer.SendMQMsg2Db(msg)
+	//producer.SendMQMsg2APP(f.Msg[0].Bindid, msg)
+
 	return nil
 }
 
-func (f FeibeeData) push2mq2db() error {
+func (f FeibeeData) push2mq2db2() error {
 
 	data, err := json.Marshal(f)
 
@@ -127,9 +121,9 @@ func (f FeibeeData) push2mq2db() error {
 	return nil
 }
 
-func dataFormat(msg entity.FeibeeDevMsg) entity.Feibee2AppMsg {
-
-	return entity.Feibee2AppMsg{
+func dataFormat(data FeibeeData) entity.Feibee2AppMsg {
+	msg := data.Msg[0]
+	res := entity.Feibee2AppMsg{
 		Cmd:     0xfb,
 		Ack:     0,
 		DevType: msg.Devicetype,
@@ -142,6 +136,22 @@ func dataFormat(msg entity.FeibeeDevMsg) entity.Feibee2AppMsg {
 		Online:    msg.Online,
 		Battery:   msg.Battery,
 	}
+
+	switch data.Code {
+	case 3:
+		res.OpType = "newdevice"
+	case 4:
+		res.OpType = "newonline"
+		res.Battery = 0xff
+	case 5:
+		res.OpType = "devdelete"
+		res.Battery = 0xff
+	case 12:
+		res.OpType = "devnewname"
+		res.Battery = 0xff
+	}
+
+	return res
 
 }
 
