@@ -20,6 +20,7 @@ func getProducerRabbitMq(uri string) *BaseMq {
 		ProducerRabbitMq = &BaseMq{
 			MqConnection: &MqConnection{MqUri: uri},
 		}
+		log.Info("ProducerRabbitMq conn initial")
 		ProducerRabbitMq.Init()
 	})
 	return ProducerRabbitMq
@@ -30,6 +31,7 @@ func getProducerRabbitMq2Db(uri string) *BaseMq {
 		ProducerRabbitMq2Db = &BaseMq{
 			MqConnection: &MqConnection{MqUri: uri},
 		}
+		log.Info("ProducerRabbitMq2Db conn initial")
 		ProducerRabbitMq2Db.Init()
 	})
 	return ProducerRabbitMq2Db
@@ -40,6 +42,7 @@ func getConsumerRabbitMq(uri string) *BaseMq {
 		ConsumerRabbitMq = &BaseMq{
 			MqConnection: &MqConnection{MqUri: uri},
 		}
+		log.Info("ConsumerRabbitMq conn initial")
 		ConsumerRabbitMq.Init()
 	})
 	return ConsumerRabbitMq
@@ -50,6 +53,7 @@ func getProducerRabbitMq2Device(uri string) *BaseMq {
 		ProducerRabbitMq2Device = &BaseMq{
 			MqConnection: &MqConnection{MqUri: uri},
 		}
+		log.Info("ProducerRabbitMq2Device conn initial")
 		ProducerRabbitMq2Device.Init()
 	})
 	return ProducerRabbitMq2Device

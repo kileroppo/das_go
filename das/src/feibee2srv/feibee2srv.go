@@ -59,12 +59,14 @@ func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 	go func() {
 		if isHttps {
+			log.Info("Feibee2HttpSrvStart ListenAndServeTLS() start...")
 			serverCrt, _ := conf.GetString("https", "https_server_crt")
 			serverKey, _ := conf.GetString("https", "https_server_key")
 			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
-				log.Error("Feibee2HttpSrvStart: ListenAndServeTLS(): %s", err_https)
+				log.Error("Feibee2HttpSrvStart ListenAndServeTLS(): %s", err_https)
 			}
 		} else {
+			log.Info("Feibee2HttpSrvStart ListenAndServer() start...")
 			if err_http := srv.ListenAndServe(); err_http != nil {
 				log.Error("Feibee2HttpSrvStart ListenAndServer() error=", err_http)
 			}

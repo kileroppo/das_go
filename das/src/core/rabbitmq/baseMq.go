@@ -54,7 +54,7 @@ func (bmq *BaseMq) confirmOne(confirms <-chan amqp.Confirmation) {
 2. update connection then channel
 */
 func (bmq *BaseMq) refreshConnectionAndChannel() (err error) {
-	log.Debug("refreshConnectionAndChannel mq conn")
+
 	bmq.MqConnection.Connection, err = amqp.Dial(bmq.MqConnection.MqUri)
 	if err != nil {
 		log.Error(err)
