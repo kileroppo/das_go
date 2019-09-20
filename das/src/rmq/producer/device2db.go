@@ -7,7 +7,7 @@ import (
 )
 
 var rmq_uri_mgo string
-var exchange_mgo string         // = "OneNET2APP"
+var exchange_mgo string // = "OneNET2APP"
 var exchange_mgo2 string
 var exchangeType_mgo string     // = "direct"
 var routingKey_mgo string = ""  // 设备的uuid
@@ -48,6 +48,6 @@ func SendMQMsg2Db2(message string) {
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
 
-	log.Info("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
+	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", message)
 	rabbitmq.ProducerRabbitMq2Db.Publish2Db(&channleContxt, message)
 }
