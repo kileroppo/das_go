@@ -250,8 +250,8 @@ type FeibeeRecordsMsg struct {
 	Deviceuid  int
 	Uuid       string
 	Devicetype string
-	Zonetype   string
-	Deviceid   string
+	Zonetype   int
+	Deviceid   int
 	Cid        int
 	Aid        int
 	Value      string
