@@ -55,7 +55,7 @@ func SendMQMsg2Db2(message string) {
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", message)
-	err := rabbitmq.ProducerRabbitMq2Db.Publish2Db(channleContxt, []byte(message))
+	err := rabbitmq.ProducerRabbitMq2Db.Publish2Db2(channleContxt, []byte(message))
 
 	if err != nil {
 		log.Warning("ProducerRabbitMq2Db.Publish2Db() error = ", err)
