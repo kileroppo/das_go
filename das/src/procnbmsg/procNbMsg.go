@@ -499,6 +499,9 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//4. 回复到APP
 			producer.SendMQMsg2APP(head.DevId, DValue)
+
+			//5. 通知深圳中控，设备在线状态
+			producer.SendMQMsg2Db(DValue)
 		}
 	case constant.Real_Video: // 实时视频
 		{
