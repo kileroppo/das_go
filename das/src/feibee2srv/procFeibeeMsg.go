@@ -131,7 +131,7 @@ func (f FeibeeData) push2mq2db2() error {
 		log.Error("json.Marshal() error = ", err)
 	}
 
-	producer.SendMQMsg2Db(string(data))
+	producer.SendMQMsg2Db2(string(data))
 	return nil
 }
 
