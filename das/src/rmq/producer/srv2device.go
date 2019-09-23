@@ -1,9 +1,10 @@
 package producer
 
 import (
+	"github.com/dlintw/goconf"
+
 	"../../core/log"
 	"../../core/rabbitmq"
-	"github.com/dlintw/goconf"
 )
 
 var rmq_uri_device string

@@ -1,9 +1,10 @@
 package producer
 
 import (
+	"github.com/dlintw/goconf"
+
 	"../../core/log"
 	"../../core/rabbitmq"
-	"github.com/dlintw/goconf"
 )
 
 var rmq_uri string
@@ -29,6 +30,6 @@ func SendMQMsg2APP(uuid string, message string) {
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: uuid, Reliable: true, Durable: true, ReSendNum: 0}
 
-	log.Info("rabbitmq.ProducerRabbitMq.Publish2App:", message)
+	log.Debug("rabbitmq.ProducerRabbitMq.Publish2App:", message)
 	rabbitmq.ProducerRabbitMq.Publish2App(channleContxt, []byte(message))
 }

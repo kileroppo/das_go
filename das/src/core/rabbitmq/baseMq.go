@@ -1,12 +1,14 @@
 package rabbitmq
 
 import (
-	"../log"
-	"github.com/streadway/amqp"
-	"golang.org/x/tools/go/ssa/interp/testdata/src/fmt"
+	"fmt"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/streadway/amqp"
+
+	"../log"
 )
 
 var appExchangeInitOnce sync.Once
@@ -434,5 +436,7 @@ func (bmq *BaseMq) Consumer(channelContext *ChannelContext) (<-chan amqp.Deliver
 }
 
 func (b *BaseMq) Close() {
-	b.MqConnection.Connection.Close()
+	if err := b.MqConnection.Connection.Close(); err != nil {
+		log.Error("BaseMq.MqConnection.Connection.Close() error = ", err)
+	}
 }
