@@ -1,9 +1,10 @@
 package producer
 
 import (
+	"github.com/dlintw/goconf"
+
 	"../../core/log"
 	"../../core/rabbitmq"
-	"github.com/dlintw/goconf"
 )
 
 var rmq_uri_mgo string
@@ -36,7 +37,7 @@ func SendMQMsg2Db(message string) {
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo, Reliable: true, Durable: true, ReSendNum: 0}
 
-	log.Info("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
+	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db: ", message)
 	err := rabbitmq.ProducerRabbitMq2Db.Publish2Db(channleContxt, []byte(message))
 
 	if err != nil {
@@ -54,5 +55,9 @@ func SendMQMsg2Db2(message string) {
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", message)
-	rabbitmq.ProducerRabbitMq2Db.Publish2Db(channleContxt, []byte(message))
+	err := rabbitmq.ProducerRabbitMq2Db.Publish2Db(channleContxt, []byte(message))
+
+	if err != nil {
+		log.Warning("ProducerRabbitMq2Db.Publish2Db() error = ", err)
+	}
 }
