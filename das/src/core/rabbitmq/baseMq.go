@@ -208,10 +208,6 @@ func (bmq *BaseMq) Publish2Db(channelContext ChannelContext, body []byte) error 
 		bmq.initExchange(&channelContext)
 	})
 
-	db2ExchangeInitOnce.Do(func() {
-		bmq.initExchange(&channelContext)
-	})
-
 	queue_name, qerr := channelContext.Channel.QueueDeclare(
 		channelContext.RoutingKey, // name, leave empty to generate a unique name
 		true,                      // durable
@@ -262,6 +258,85 @@ func (bmq *BaseMq) Publish2Db(channelContext ChannelContext, body []byte) error 
 			log.Error("Publish2App ReSend message=", body, ", num=", channelContext.ReSendNum)
 			atomic.AddInt32(&channelContext.ReSendNum, -1)
 			bmq.Publish2Db(channelContext, body)
+		}
+	}
+
+	return nil
+}
+
+func (bmq *BaseMq) Publish2Db2(channelContext ChannelContext, body []byte) error {
+	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
+		err := bmq.refreshConnectionAndChannel()
+		if err != nil {
+			log.Error("bmq refreshConnectionAndChannel() error = ", err)
+			panic(err)
+			//return err
+		}
+	}
+
+	var err error
+	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
+	defer channelContext.Channel.Close()
+
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	db2ExchangeInitOnce.Do(func() {
+		bmq.initExchange(&channelContext)
+	})
+
+	queue_name, qerr := channelContext.Channel.QueueDeclare(
+		channelContext.RoutingKey, // name, leave empty to generate a unique name
+		true,                      // durable
+		false,                     // delete when usused
+		false,                     // exclusive
+		false,                     // noWait
+		nil,                       // arguments
+	)
+	if nil != qerr {
+		log.Error("Publish2Db2, channelContext.Channel.QueueDeclare, err: ", qerr)
+		//bmq.refreshConnectionAndChannel(channelContext)
+		return qerr
+	}
+
+	qbinderr := channelContext.Channel.QueueBind(
+		queue_name.Name,         // name of the queue
+		"",                      // bindingKey
+		channelContext.Exchange, // sourceExchange
+		false,                   // noWait
+		nil,                     // arguments
+	)
+	if nil != qbinderr {
+		log.Error("Publish2Db2, channelContext.Channel.QueueBind, err: ", qbinderr)
+		//bmq.refreshConnectionAndChannel(channelContext)
+		return qbinderr
+	}
+
+	if err := channelContext.Channel.Publish(
+		channelContext.Exchange, // publish to an exchange
+		queue_name.Name,         // routing to 0 or more queues
+		false,                   // mandatory
+		false,                   // immediate
+		amqp.Publishing{
+			Headers:         amqp.Table{},
+			ContentType:     "text/plain",
+			ContentEncoding: "",
+			Body:            body,
+			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
+			Priority:        0,              // 0-9
+			// a bunch of application/implementation-specific fields
+		},
+	); err != nil {
+		log.Error("send message failed refresh connection", err)
+		time.Sleep(10 * time.Second)
+		log.Error("Publish2Db2() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
+		//recon_err := bmq.refreshConnectionAndChannel(channelContext)
+		if atomic.LoadInt32(&channelContext.ReSendNum) > 0 {
+			log.Error("Publish2App2 ReSend message=", body, ", num=", channelContext.ReSendNum)
+			atomic.AddInt32(&channelContext.ReSendNum, -1)
+			bmq.Publish2Db2(channelContext, body)
 		}
 	}
 
