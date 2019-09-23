@@ -34,16 +34,17 @@ func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 	go func() {
 		if isHttps { //如果为https协议需要配置server.crt和server.key
+			log.Info("Telecom2HttpSrvStart ListenAndServeTLS() start...")
 			serverCrt, _ := conf.GetString("https", "https_server_crt")
 			serverKey, _ := conf.GetString("https", "https_server_key")
 			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
-				log.Error("Httpserver: ListenAndServeTLS(): %s", err_https)
+				log.Error("Telecom2HttpSrvStart ListenAndServeTLS() error = ", err_https)
 			}
 		} else {
-			log.Debug("httpServerStart http.ListenAndServe()......")
+			log.Info("Telecom2HttpSrvStart ListenAndServe() start...")
 			if err_http := srv.ListenAndServe(); err_http != nil {
 				// cannot panic, because this probably is an intentional close
-				log.Error("Httpserver: ListenAndServe(): %s", err_http)
+				log.Error("Telecom2HttpSrvStart ListenAndServe() error = ", err_http)
 			}
 		}
 	}()

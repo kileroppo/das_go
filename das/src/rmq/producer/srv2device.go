@@ -32,5 +32,5 @@ func SendMQMsg2Device(uuid string, message string, cmd string) {
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_device, ExchangeType: exchangeType_device, RoutingKey: rkey, Reliable: true, Durable: true, ReSendNum: 0}
 
 	log.Info("[ ", rkey, " ] "+cmd+" rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
-	rabbitmq.ProducerRabbitMq2Device.Publish2Device(&channleContxt, []byte(message))
+	rabbitmq.ProducerRabbitMq2Device.Publish2Device(channleContxt, []byte(message))
 }

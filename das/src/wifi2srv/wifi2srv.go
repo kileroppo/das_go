@@ -55,12 +55,12 @@ func ReceiveMQMsgFromDevice() {
 
 	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true, ReSendNum: 0}
 
-	rabbitmq.ConsumerRabbitMq.QueueDeclare(&channleContxt)
+	rabbitmq.ConsumerRabbitMq.QueueDeclare(channleContxt)
 
 	log.Info("Consumer ReceiveMQMsgFromDevice......")
 	// go程循环去读消息，并放到Job去处理
 	for {
-		msgs, err:= rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
+		msgs, err := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
 		if nil != err {
 			continue
 		}
