@@ -200,6 +200,18 @@ type YisumaStateRandom struct {
 	Random string `json:"random"`
 }
 
+//发送给PMS消息体
+type Feibee2PMS struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	FeibeeData `json:"fb_data"`
+}
+
 //feibee推送的消息体
 type FeibeeData struct {
 	Code    int                `josn:"code"`

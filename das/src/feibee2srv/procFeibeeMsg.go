@@ -75,14 +75,14 @@ func (f FeibeeData) push2mq() error {
 			return err
 		}
 
-		if err := f.push2mq2db2(); err != nil {
+		if err := f.push2pms(); err != nil {
 			log.Error("f.push2mq2db() error = ", err)
 			return err
 		}
 
 	//其他消息推送到db
 	default:
-		if err := f.push2mq2db2(); err != nil {
+		if err := f.push2pms(); err != nil {
 			log.Error("f.push2mq2db() error = ", err)
 			return err
 		}
@@ -92,7 +92,7 @@ func (f FeibeeData) push2mq() error {
 
 func (f FeibeeData) push2mq2app() error {
 
-	feibee2appMsg, bindid := dataFormat(f)
+	feibee2appMsg, bindid := msg2appDataFormat(f)
 	data, err := json.Marshal(feibee2appMsg)
 	if err != nil {
 		log.Error("json.Marshal() error = ", err)
@@ -104,7 +104,7 @@ func (f FeibeeData) push2mq2app() error {
 }
 
 func (f FeibeeData) push2mq2db() error {
-	feibee2appMsg, bindid := dataFormat(f)
+	feibee2appMsg, bindid := msg2appDataFormat(f)
 
 	feibee2dbMsg := entity.Feibee2DBMsg{
 		feibee2appMsg,
@@ -123,7 +123,7 @@ func (f FeibeeData) push2mq2db() error {
 	return nil
 }
 
-func (f FeibeeData) push2mq2db2() error {
+func (f FeibeeData) push2pms() error {
 
 	data, err := json.Marshal(f)
 
@@ -131,11 +131,11 @@ func (f FeibeeData) push2mq2db2() error {
 		log.Error("json.Marshal() error = ", err)
 	}
 
-	producer.SendMQMsg2Db2(string(data))
+	producer.SendMQMsg2PMS(string(data))
 	return nil
 }
 
-func dataFormat(data FeibeeData) (res entity.Feibee2AppMsg, bindid string) {
+func msg2appDataFormat(data FeibeeData) (res entity.Feibee2AppMsg, bindid string) {
 
 	switch data.Code {
 	case 2:
@@ -193,5 +193,8 @@ func dataFormat(data FeibeeData) (res entity.Feibee2AppMsg, bindid string) {
 	}
 
 	return
+}
+
+func msg2pmsDataFormat(data FeibeeData) {
 
 }

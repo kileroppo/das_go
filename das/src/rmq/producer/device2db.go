@@ -46,7 +46,7 @@ func SendMQMsg2Db(message string) {
 
 }
 
-func SendMQMsg2Db2(message string) {
+func SendMQMsg2PMS(message string) {
 	if rabbitmq.ProducerRabbitMq2Db == nil {
 		log.Error("SendMQMsg2Db2: rabbitmq.ProducerRabbitMq2Db is nil.")
 		return
