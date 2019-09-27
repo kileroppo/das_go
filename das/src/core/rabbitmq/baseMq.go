@@ -125,7 +125,7 @@ func (bmq *BaseMq) Publish2App(channelContext ChannelContext, body []byte) error
 		false, // noWait
 		amqp.Table{
 			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(1000)}, // arguments
+			"x-expires": int32(8000)}, // arguments
 	)
 	if nil != qerr {
 		log.Error("Publish2App, channelContext.Channel.QueueDeclare, err: ", qerr)
