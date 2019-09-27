@@ -9,9 +9,11 @@ import (
 	"../rmq/producer"
 )
 
-type FeibeeData struct {
-	entity.FeibeeData
-}
+//type FeibeeData struct {
+//	entity.FeibeeData
+//}
+
+type FeibeeData entity.FeibeeData
 
 func ProcessFeibeeMsg(feibeeData FeibeeData) (err error) {
 
@@ -65,116 +67,138 @@ func (f FeibeeData) push2mq() error {
 	//设备入网数据推送到app和db
 	case 2, 3, 4, 5, 12:
 
-		if err := f.push2mq2app(); err != nil {
-			log.Error("f.push2mq2app() error = ", err)
-			return err
-		}
+		f.push2mq2app()
 
-		if err := f.push2mq2db(); err != nil {
-			log.Error("f.push2mq2db() error = ", err)
-			return err
-		}
+		f.push2mq2db()
 
-		if err := f.push2mq2db2(); err != nil {
-			log.Error("f.push2mq2db() error = ", err)
-			return err
-		}
+		f.push2pms()
 
 	//其他消息推送到db
 	default:
-		if err := f.push2mq2db2(); err != nil {
-			log.Error("f.push2mq2db() error = ", err)
-			return err
+		f.push2pms()
+	}
+	return nil
+}
+
+func (f FeibeeData) push2mq2app() {
+
+	sendOneMsg := func(index int) {
+		feibee2appMsg, bindid := msg2appDataFormat(f, index)
+		data, err := json.Marshal(feibee2appMsg)
+		if err != nil {
+			log.Error("One Msg push2mq2app() error = ", err)
 		}
+		producer.SendMQMsg2APP(bindid, string(data))
 	}
-	return nil
+	msgNums := 0
+	switch f.Code {
+	case 2:
+		msgNums = len(f.Records)
+	default:
+		msgNums = len(f.Msg)
+	}
+
+	for i := 0; i < msgNums; i++ {
+		go sendOneMsg(i)
+	}
+
 }
 
-func (f FeibeeData) push2mq2app() error {
+func (f FeibeeData) push2mq2db() {
 
-	feibee2appMsg, bindid := dataFormat(f)
-	data, err := json.Marshal(feibee2appMsg)
-	if err != nil {
-		log.Error("json.Marshal() error = ", err)
-		return err
+	sendOneMsg := func(index int) {
+		feibee2appMsg, bindid := msg2appDataFormat(f, index)
+		feibee2dbMsg := entity.Feibee2DBMsg{
+			feibee2appMsg,
+			bindid,
+		}
+
+		data, err := json.Marshal(feibee2dbMsg)
+		if err != nil {
+			log.Error("One Msg push2mq2db() error = ", err)
+		}
+
+		producer.SendMQMsg2Db(string(data))
 	}
-	producer.SendMQMsg2APP(bindid, string(data))
 
-	return nil
+	msgNums := 0
+	switch f.Code {
+	case 2:
+		msgNums = len(f.Records)
+	default:
+		msgNums = len(f.Msg)
+	}
+
+	for i := 0; i < msgNums; i++ {
+		go sendOneMsg(i)
+	}
 }
 
-func (f FeibeeData) push2mq2db() error {
-	feibee2appMsg, bindid := dataFormat(f)
+func (f FeibeeData) push2pms() {
 
-	feibee2dbMsg := entity.Feibee2DBMsg{
-		feibee2appMsg,
-		bindid,
+	sendOneMsg := func(index int) {
+		msg := msg2pmsDataFormat(f, index)
+
+		data, err := json.Marshal(msg)
+		if err != nil {
+			log.Error("One Msg push2pms() error = ", err)
+		}
+		producer.SendMQMsg2PMS(string(data))
+	}
+	msgNums := 1
+	switch f.Code {
+	case 2:
+		msgNums = len(f.Records)
+	case 3, 4, 5, 12:
+		msgNums = len(f.Msg)
 	}
 
-	data, err := json.Marshal(feibee2dbMsg)
-
-	if err != nil {
-		log.Error("json.Marshal() error = ", err)
-		return err
+	for i := 0; i < msgNums; i++ {
+		go sendOneMsg(i)
 	}
 
-	producer.SendMQMsg2Db(string(data))
-
-	return nil
 }
 
-func (f FeibeeData) push2mq2db2() error {
-
-	data, err := json.Marshal(f)
-
-	if err != nil {
-		log.Error("json.Marshal() error = ", err)
-	}
-
-	producer.SendMQMsg2Db2(string(data))
-	return nil
-}
-
-func dataFormat(data FeibeeData) (res entity.Feibee2AppMsg, bindid string) {
+func msg2appDataFormat(data FeibeeData, index int) (res entity.Feibee2AppMsg, bindid string) {
 
 	switch data.Code {
 	case 2:
 		res = entity.Feibee2AppMsg{
 			Cmd:     0xfb,
 			Ack:     0,
-			DevType: data.Records[0].Devicetype,
-			Devid:   data.Records[0].Uuid,
+			DevType: data.Records[index].Devicetype,
+			Devid:   data.Records[index].Uuid,
 			Vendor:  "feibee",
 			SeqId:   1,
 
 			Note:      "",
-			Deviceuid: data.Records[0].Deviceuid,
+			Deviceuid: data.Records[index].Deviceuid,
 			Online:    1,
 			Battery:   0xff,
-			Time:      data.Records[0].Uptime,
+			Time:      data.Records[index].Uptime,
 		}
-		bindid = data.Records[0].Bindid
+		bindid = data.Records[index].Bindid
 	default:
 		res = entity.Feibee2AppMsg{
 			Cmd:     0xfb,
 			Ack:     0,
-			DevType: data.Msg[0].Devicetype,
-			Devid:   data.Msg[0].Uuid,
+			DevType: data.Msg[index].Devicetype,
+			Devid:   data.Msg[index].Uuid,
 			Vendor:  "feibee",
 			SeqId:   1,
 
-			Note:      data.Msg[0].Name,
-			Deviceuid: data.Msg[0].Deviceuid,
-			Online:    data.Msg[0].Online,
-			Battery:   data.Msg[0].Battery,
+			Note:      data.Msg[index].Name,
+			Deviceuid: data.Msg[index].Deviceuid,
+			Online:    data.Msg[index].Online,
+			Battery:   data.Msg[index].Battery,
 			Time:      -1,
 		}
-		bindid = data.Msg[0].Bindid
+		bindid = data.Msg[index].Bindid
 	}
 
 	switch data.Code {
 	case 2:
-		if data.Records[0].Value == "00" {
+		if data.Records[index].Value == "00" {
 			res.OpType = "switchclose"
 		} else {
 			res.OpType = "switchopen"
@@ -193,5 +217,27 @@ func dataFormat(data FeibeeData) (res entity.Feibee2AppMsg, bindid string) {
 	}
 
 	return
+}
 
+func msg2pmsDataFormat(data FeibeeData, index int) (res entity.Feibee2PMS) {
+	res.Cmd = 0xfa
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+
+	res.FeibeeData = entity.FeibeeData(data)
+
+	switch data.Code {
+	case 2:
+		res.DevType = data.Records[index].Devicetype
+		res.DevId = data.Records[index].Uuid
+		res.Records = []entity.FeibeeRecordsMsg{data.Records[index]}
+	case 3, 4, 5, 12:
+		res.DevType = data.Msg[index].Devicetype
+		res.DevId = data.Msg[index].Uuid
+		res.Msg = []entity.FeibeeDevMsg{data.Msg[index]}
+	default:
+	}
+
+	return
 }

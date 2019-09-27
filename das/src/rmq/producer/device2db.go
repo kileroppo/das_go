@@ -9,10 +9,10 @@ import (
 
 var rmq_uri_mgo string
 var exchange_mgo string // = "OneNET2APP"
-var exchange_mgo2 string
-var exchangeType_mgo string     // = "direct"
-var routingKey_mgo string = ""  // 设备的uuid
-var routingKey_mgo2 string = "" // 设备的uuid
+var exchange_pms string
+var exchangeType_mgo string    // = "direct"
+var routingKey_mgo string = "" // 设备的uuid
+var routingKey_pms string = "" // 设备的uuid
 
 //初始化RabbitMQ交换器，消息队列名称
 func InitRmq_Ex_Que_Name_mongo(conf *goconf.ConfigFile) {
@@ -25,8 +25,8 @@ func InitRmq_Ex_Que_Name_mongo(conf *goconf.ConfigFile) {
 	exchangeType_mgo, _ = conf.GetString("rabbitmq", "device2db_ex_type")
 	routingKey_mgo, _ = conf.GetString("rabbitmq", "device2db_que")
 
-	exchange_mgo2, _ = conf.GetString("rabbitmq", "Device2Db_ex2")
-	routingKey_mgo2, _ = conf.GetString("rabbitmq", "device2db_que2")
+	exchange_pms, _ = conf.GetString("rabbitmq", "das2pms_ex")
+	routingKey_pms, _ = conf.GetString("rabbitmq", "das2pms_que")
 }
 
 func SendMQMsg2Db(message string) {
@@ -46,18 +46,18 @@ func SendMQMsg2Db(message string) {
 
 }
 
-func SendMQMsg2Db2(message string) {
+func SendMQMsg2PMS(message string) {
 	if rabbitmq.ProducerRabbitMq2Db == nil {
-		log.Error("SendMQMsg2Db2: rabbitmq.ProducerRabbitMq2Db is nil.")
+		log.Error("SendMQMsg2PMS: rabbitmq.ProducerRabbitMq2Db is nil.")
 		return
 	}
 
-	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_mgo2, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_mgo2, Reliable: true, Durable: true, ReSendNum: 0}
+	channleContxt := rabbitmq.ChannelContext{Exchange: exchange_pms, ExchangeType: exchangeType_mgo, RoutingKey: routingKey_pms, Reliable: true, Durable: true, ReSendNum: 0}
 
-	log.Debug("rabbitmq.ProducerRabbitMq.Publish2Db2: ", message)
-	err := rabbitmq.ProducerRabbitMq2Db.Publish2Db2(channleContxt, []byte(message))
+	log.Debug("rabbitmq.ProducerRabbitMq.Publish2PMS: ", message)
+	err := rabbitmq.ProducerRabbitMq2Db.Publish2PMS(channleContxt, []byte(message))
 
 	if err != nil {
-		log.Warning("ProducerRabbitMq2Db.Publish2Db() error = ", err)
+		log.Warning("ProducerRabbitMq2Db.Publish2PMS() error = ", err)
 	}
 }

@@ -451,6 +451,8 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(DValue)
+			//可能触发场景，发送给PMS
+			producer.SendMQMsg2PMS(DValue)
 		}
 	case constant.Lock_PIC_Upload: // 视频锁图片上报
 		{
