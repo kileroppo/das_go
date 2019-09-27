@@ -9,9 +9,11 @@ import (
 	"../rmq/producer"
 )
 
-type FeibeeData struct {
-	entity.FeibeeData
-}
+//type FeibeeData struct {
+//	entity.FeibeeData
+//}
+
+type FeibeeData entity.FeibeeData
 
 func ProcessFeibeeMsg(feibeeData FeibeeData) (err error) {
 
@@ -125,12 +127,15 @@ func (f FeibeeData) push2mq2db() error {
 
 func (f FeibeeData) push2pms() error {
 
-	data, err := json.Marshal(f)
+	msg := msg2pmsDataFormat(f)
 
+	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Error("json.Marshal() error = ", err)
+		return err
 	}
 
+	log.Debugf("feibee2pms: %s", string(data))
 	producer.SendMQMsg2PMS(string(data))
 	return nil
 }
@@ -195,6 +200,22 @@ func msg2appDataFormat(data FeibeeData) (res entity.Feibee2AppMsg, bindid string
 	return
 }
 
-func msg2pmsDataFormat(data FeibeeData) {
+func msg2pmsDataFormat(data FeibeeData) (res entity.Feibee2PMS) {
+	res.Cmd = 0xfa
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
 
+	switch data.Code {
+	case 2:
+		res.DevType = data.Records[0].Devicetype
+		res.DevId = data.Records[0].Uuid
+	case 3, 4, 5, 12:
+		res.DevType = data.Msg[0].Devicetype
+		res.DevId = data.Msg[0].Uuid
+	default:
+	}
+
+	res.FeibeeData = entity.FeibeeData(data)
+	return
 }

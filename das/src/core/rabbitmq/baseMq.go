@@ -264,7 +264,7 @@ func (bmq *BaseMq) Publish2Db(channelContext ChannelContext, body []byte) error 
 	return nil
 }
 
-func (bmq *BaseMq) Publish2Db2(channelContext ChannelContext, body []byte) error {
+func (bmq *BaseMq) Publish2PMS(channelContext ChannelContext, body []byte) error {
 	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
 		err := bmq.refreshConnectionAndChannel()
 		if err != nil {
@@ -336,7 +336,7 @@ func (bmq *BaseMq) Publish2Db2(channelContext ChannelContext, body []byte) error
 		if atomic.LoadInt32(&channelContext.ReSendNum) > 0 {
 			log.Error("Publish2App2 ReSend message=", body, ", num=", channelContext.ReSendNum)
 			atomic.AddInt32(&channelContext.ReSendNum, -1)
-			bmq.Publish2Db2(channelContext, body)
+			bmq.Publish2PMS(channelContext, body)
 		}
 	}
 
