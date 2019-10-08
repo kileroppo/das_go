@@ -74,7 +74,7 @@ func (f FeibeeData) push2mq() error {
 
 		f.push2mq2app()
 
-		f.push2mq2db()
+		//f.push2mq2db()
 
 		f.push2pms()
 
@@ -86,13 +86,13 @@ func (f FeibeeData) push2mq() error {
 }
 
 func (f FeibeeData) push2mq2app() {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Error("GetMsg2app() error = ", err)
-		}
-	}()
 
 	sendOneMsg := func(index int) {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error("sendOneMsg() error = ", err)
+			}
+		}()
 
 		if isAlarmMsg(f, index) {
 			devAlarm := NewDevAlarm(f, index)
@@ -114,70 +114,31 @@ func (f FeibeeData) push2mq2app() {
 			for _, data := range datas {
 				if len(data) > 0 {
 					producer.SendMQMsg2APP(f.Records[index].Bindid, string(data))
-				}
-			}
-			return
-		}
-		feibee2appMsg, bindid := msg2appDataFormat(f, index)
-		data, err := json.Marshal(feibee2appMsg)
-		if err != nil {
-			log.Error("One Msg push2mq2app() error = ", err)
-		}
-		producer.SendMQMsg2APP(bindid, string(data))
-	}
-	msgNums := 0
-	switch f.Code {
-	case 2:
-		msgNums = len(f.Records)
-	default:
-		msgNums = len(f.Msg)
-	}
-
-	for i := 0; i < msgNums; i++ {
-		go sendOneMsg(i)
-	}
-
-}
-
-func (f FeibeeData) push2mq2db() {
-
-	sendOneMsg := func(index int) {
-		if isAlarmMsg(f, index) {
-			devAlarm := NewDevAlarm(f, index)
-			if devAlarm == nil {
-				log.Error("该报警设备类型未支持")
-				return
-			}
-
-			datas, err := devAlarm.GetMsg2app(index)
-			if err != nil {
-				log.Error("alarmMsg2app error = ", err)
-			}
-
-			if len(datas) <= 0 {
-				return
-			}
-			for _, data := range datas {
-				if len(data) > 0 {
 					producer.SendMQMsg2Db(string(data))
 				}
 			}
 			return
 		}
 		feibee2appMsg, bindid := msg2appDataFormat(f, index)
-		feibee2dbMsg := entity.Feibee2DBMsg{
+
+		data2app, err := json.Marshal(feibee2appMsg)
+		if err != nil {
+			log.Error("One Msg push2mq2app() error = ", err)
+		} else {
+			producer.SendMQMsg2APP(bindid, string(data2app))
+		}
+
+		data2db, err := json.Marshal(entity.Feibee2DBMsg{
 			feibee2appMsg,
 			bindid,
-		}
-
-		data, err := json.Marshal(feibee2dbMsg)
+		})
 		if err != nil {
-			log.Error("One Msg push2mq2db() error = ", err)
+			log.Error("One Msg push2mq2app() error = ", err)
+		} else {
+			producer.SendMQMsg2Db(string(data2db))
 		}
 
-		producer.SendMQMsg2Db(string(data))
 	}
-
 	msgNums := 0
 	switch f.Code {
 	case 2:
@@ -189,6 +150,7 @@ func (f FeibeeData) push2mq2db() {
 	for i := 0; i < msgNums; i++ {
 		go sendOneMsg(i)
 	}
+
 }
 
 func (f FeibeeData) push2pms() {
