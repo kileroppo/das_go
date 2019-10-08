@@ -294,3 +294,17 @@ type Feibee2DBMsg struct {
 	Feibee2AppMsg
 	Bindid string `json:"bindid"`
 }
+
+//feibee设备报警消息通知(推送给app)
+type FeibeeAlarm2AppMsg struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	Devid   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+	Time    int    `json:"time"`
+
+	AlarmType  string `json:"alarmType"`
+	AlarmValue string `json:"alarmValue"`
+}

@@ -15,7 +15,12 @@ import (
 
 type FeibeeData entity.FeibeeData
 
-func ProcessFeibeeMsg(feibeeData FeibeeData) (err error) {
+func ProcessFeibeeMsg(rawData []byte) (err error) {
+
+	feibeeData, err := NewFeibeeData(rawData)
+	if err != nil {
+		return err
+	}
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
@@ -81,8 +86,38 @@ func (f FeibeeData) push2mq() error {
 }
 
 func (f FeibeeData) push2mq2app() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("GetMsg2app() error = ", err)
+		}
+	}()
 
 	sendOneMsg := func(index int) {
+
+		if isAlarmMsg(f, index) {
+			devAlarm := NewDevAlarm(f, index)
+			if devAlarm == nil {
+				log.Error("该报警设备类型未支持")
+				return
+			}
+
+			datas, err := devAlarm.GetMsg2app(index)
+			if err != nil {
+				log.Error("alarmMsg2app error = ", err)
+				return
+			}
+
+			if len(datas) <= 0 {
+				return
+			}
+
+			for _, data := range datas {
+				if len(data) > 0 {
+					producer.SendMQMsg2APP(f.Records[index].Bindid, string(data))
+				}
+			}
+			return
+		}
 		feibee2appMsg, bindid := msg2appDataFormat(f, index)
 		data, err := json.Marshal(feibee2appMsg)
 		if err != nil {
@@ -107,6 +142,28 @@ func (f FeibeeData) push2mq2app() {
 func (f FeibeeData) push2mq2db() {
 
 	sendOneMsg := func(index int) {
+		if isAlarmMsg(f, index) {
+			devAlarm := NewDevAlarm(f, index)
+			if devAlarm == nil {
+				log.Error("该报警设备类型未支持")
+				return
+			}
+
+			datas, err := devAlarm.GetMsg2app(index)
+			if err != nil {
+				log.Error("alarmMsg2app error = ", err)
+			}
+
+			if len(datas) <= 0 {
+				return
+			}
+			for _, data := range datas {
+				if len(data) > 0 {
+					producer.SendMQMsg2Db(string(data))
+				}
+			}
+			return
+		}
 		feibee2appMsg, bindid := msg2appDataFormat(f, index)
 		feibee2dbMsg := entity.Feibee2DBMsg{
 			feibee2appMsg,
@@ -197,12 +254,6 @@ func msg2appDataFormat(data FeibeeData, index int) (res entity.Feibee2AppMsg, bi
 	}
 
 	switch data.Code {
-	case 2:
-		if data.Records[index].Value == "00" {
-			res.OpType = "switchclose"
-		} else {
-			res.OpType = "switchopen"
-		}
 	case 3:
 		res.OpType = "newdevice"
 	case 4:
@@ -240,4 +291,16 @@ func msg2pmsDataFormat(data FeibeeData, index int) (res entity.Feibee2PMS) {
 	}
 
 	return
+}
+
+func isAlarmMsg(data FeibeeData, index int) bool {
+
+	if data.Code == 2 && len(data.Records) > 0 {
+		rawData := data.Records[index].Orgdata
+		if rawData[0:4] == "700B" || rawData[0:4] == "7015" {
+			return true
+		}
+	}
+
+	return false
 }

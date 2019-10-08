@@ -33,12 +33,7 @@ func (f FeibeeJob) Handle() {
 	}()
 
 	log.Debug("feibee2srv.Handle() get: ", bytes.NewBuffer(f.rawData).String())
-	if feibeeData, err := NewFeibeeData(f.rawData); err != nil {
-		log.Error("NewFeibeeData() error=", err)
-		return
-	} else {
-		ProcessFeibeeMsg(feibeeData)
-	}
+	ProcessFeibeeMsg(f.rawData)
 }
 
 func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
