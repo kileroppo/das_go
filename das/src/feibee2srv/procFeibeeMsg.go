@@ -79,8 +79,6 @@ func (f FeibeeData) push2mq() error {
 
 		f.push2mq2app()
 
-		//f.push2mq2db()
-
 		f.push2pms()
 
 	//其他消息推送到db
@@ -124,6 +122,7 @@ func (f FeibeeData) push2mq2app() {
 			}
 			return
 		}
+
 		feibee2appMsg, bindid := msg2appDataFormat(f, index)
 
 		data2app, err := json.Marshal(feibee2appMsg)
@@ -142,7 +141,6 @@ func (f FeibeeData) push2mq2app() {
 		} else {
 			producer.SendMQMsg2Db(string(data2db))
 		}
-
 	}
 	msgNums := 0
 	switch f.Code {
@@ -153,7 +151,7 @@ func (f FeibeeData) push2mq2app() {
 	}
 
 	for i := 0; i < msgNums; i++ {
-		go sendOneMsg(i)
+		sendOneMsg(i)
 	}
 
 }
@@ -161,6 +159,10 @@ func (f FeibeeData) push2mq2app() {
 func (f FeibeeData) push2pms() {
 
 	sendOneMsg := func(index int) {
+		if isAlarmMsg(f, index) {
+			return
+		}
+
 		msg := msg2pmsDataFormat(f, index)
 
 		data, err := json.Marshal(msg)
@@ -178,7 +180,7 @@ func (f FeibeeData) push2pms() {
 	}
 
 	for i := 0; i < msgNums; i++ {
-		go sendOneMsg(i)
+		sendOneMsg(i)
 	}
 
 }
