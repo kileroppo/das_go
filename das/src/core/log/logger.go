@@ -26,7 +26,7 @@ var (
 var log = logging.MustGetLogger("das_go")
 
 var format = logging.MustStringFormatter(
-	`%{color}%{time} %{shortfunc} > %{level:.4s} %{pid}%{color:reset} %{message}`,
+	`%{color}%{time} %{pid} %{shortfile} %{longfunc} > %{level:.4s} %{color:reset} %{message}: `,
 )
 
 func NewLogger(pathDir string, level string) {
