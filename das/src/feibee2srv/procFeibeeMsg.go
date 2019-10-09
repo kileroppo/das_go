@@ -52,13 +52,18 @@ func NewFeibeeData(data []byte) (FeibeeData, error) {
 func (f FeibeeData) isDataValid() bool {
 	if f.Status != "" && f.Ver != "" {
 		switch f.Code {
-		case 3, 4, 5, 12:
+		case 3, 4, 5, 7, 12:
 			if len(f.Msg) > 0 {
 				return true
 			}
-		case 2, 15, 32:
-			return true
-
+		case 2:
+			if len(f.Records) > 0 {
+				return true
+			}
+		case 15, 32:
+			if len(f.Gateway) > 0 {
+				return true
+			}
 		default:
 			return false
 		}

@@ -212,10 +212,10 @@ func (self GasSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 	}
 
 	if self.alarmFlag == "1" {
-		alarmMsg.AlarmValue = "有烟"
+		alarmMsg.AlarmValue = "有气体"
 		alarmMsg.AlarmType = "gas"
 	} else if self.alarmFlag == "0" {
-		alarmMsg.AlarmValue = "无烟"
+		alarmMsg.AlarmValue = "无气体"
 		alarmMsg.AlarmType = "gas"
 	} else {
 		alarmMsg.AlarmType = self.alarmFlag
