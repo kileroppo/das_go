@@ -297,7 +297,7 @@ func (self FloodSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, alarmValue string) {
 
 	rawData := msg.Orgdata
-	if rawData[0:4] == "700B" && rawData[16:20] == "8000" {
+	if rawData[0:4] == "720b" && rawData[16:20] == "8000" {
 		bitFlagInt, err := strconv.ParseInt(msg.Value[0:2], 16, 64)
 		if err != nil {
 			log.Error("strconv.ParseInt() error = ", err)
@@ -318,7 +318,7 @@ func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, al
 		return
 	}
 
-	if rawData[0:4] == "7015" {
+	if rawData[0:4] == "7215" {
 
 		if msg.Aid == 62 {
 			alarmFlag = "lowVoltage"

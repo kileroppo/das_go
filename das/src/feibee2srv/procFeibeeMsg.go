@@ -266,7 +266,7 @@ func isAlarmMsg(data FeibeeData, index int) bool {
 
 	if data.Code == 2 && len(data.Records) > 0 {
 		rawData := data.Records[index].Orgdata
-		if rawData[0:4] == "700B" || rawData[0:4] == "7015" {
+		if rawData[0:4] == "720b" || rawData[0:4] == "7215" {
 			return true
 		}
 	}
