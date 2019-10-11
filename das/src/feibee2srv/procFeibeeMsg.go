@@ -1,8 +1,10 @@
 package feibee2srv
 
 import (
-	"encoding/json"
 	"errors"
+	"strconv"
+
+	"encoding/json"
 
 	"../core/entity"
 	"../core/log"
@@ -230,7 +232,7 @@ func msg2appDataFormat(data FeibeeData, index int) (res entity.Feibee2AppMsg, bi
 		res = entity.Feibee2AppMsg{
 			Cmd:     0xfb,
 			Ack:     0,
-			DevType: data.Records[index].Devicetype,
+			DevType: devTypeConv(data.Records[index].Deviceid, data.Records[index].Zonetype),
 			Devid:   data.Records[index].Uuid,
 			Vendor:  "feibee",
 			SeqId:   1,
@@ -246,7 +248,7 @@ func msg2appDataFormat(data FeibeeData, index int) (res entity.Feibee2AppMsg, bi
 		res = entity.Feibee2AppMsg{
 			Cmd:     0xfb,
 			Ack:     0,
-			DevType: data.Msg[index].Devicetype,
+			DevType: devTypeConv(data.Msg[index].Deviceid, data.Msg[index].Zonetype),
 			Devid:   data.Msg[index].Uuid,
 			Vendor:  "feibee",
 			SeqId:   1,
@@ -304,11 +306,11 @@ func msg2pmsDataFormat(data FeibeeData, index int) (res entity.Feibee2PMS) {
 
 	switch data.Code {
 	case 2:
-		res.DevType = data.Records[index].Devicetype
+		res.DevType = devTypeConv(data.Records[index].Deviceid, data.Records[index].Zonetype)
 		res.DevId = data.Records[index].Uuid
 		res.Records = []entity.FeibeeRecordsMsg{data.Records[index]}
 	case 3, 4, 5, 7, 12:
-		res.DevType = data.Msg[index].Devicetype
+		res.DevType = devTypeConv(data.Msg[index].Deviceid, data.Msg[index].Zonetype)
 		res.DevId = data.Msg[index].Uuid
 		res.Msg = []entity.FeibeeDevMsg{data.Msg[index]}
 	case 15, 32:
@@ -349,4 +351,24 @@ func isManualOpMsg(data FeibeeData, index int) bool {
 	}
 
 	return false
+}
+
+func devTypeConv(devId, zoneType int) string {
+	pre := strconv.FormatInt(int64(devId), 16)
+	tail := strconv.FormatInt(int64(zoneType), 16)
+	lenPre := len(pre)
+	lenTail := len(tail)
+
+	if lenPre < 4 {
+		for i := 0; i < 4-lenPre; i++ {
+			pre = "0" + pre
+		}
+	}
+
+	if lenTail < 4 {
+		for i := 0; i < 4-lenTail; i++ {
+			tail = "0" + tail
+		}
+	}
+	return "0x" + pre + tail
 }
