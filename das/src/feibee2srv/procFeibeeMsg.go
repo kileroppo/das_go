@@ -42,7 +42,7 @@ func NewFeibeeData(data []byte) (FeibeeData, error) {
 	var feibeeData FeibeeData
 
 	if err := json.Unmarshal(data, &feibeeData); err != nil {
-		log.Error("json.Unmarshal() error = ", err)
+		log.Error("NewFeibeeData() unmarshal error = ", err)
 		return feibeeData, err
 	}
 
@@ -74,11 +74,12 @@ func (f FeibeeData) isDataValid() bool {
 func (f FeibeeData) push2mq() error {
 
 	switch f.Code {
-	//设备入网数据推送到app和db
-	case 2, 3, 4, 5, 12:
+	case 2:
+		f.code2MsgPush2app()
+		f.push2pms()
 
-		f.push2mq2app()
-
+	case 3, 4, 5, 12:
+		f.push2app()
 		f.push2pms()
 
 	//其他消息推送到db
@@ -88,9 +89,40 @@ func (f FeibeeData) push2mq() error {
 	return nil
 }
 
-func (f FeibeeData) push2mq2app() {
+func (f FeibeeData) push2app() {
 
 	sendOneMsg := func(index int) {
+
+		feibee2appMsg, bindid := msg2appDataFormat(f, index)
+
+		data2app, err := json.Marshal(feibee2appMsg)
+		if err != nil {
+			log.Error("One Msg push2mq2app() error = ", err)
+		} else {
+			producer.SendMQMsg2APP(bindid, string(data2app))
+		}
+
+		data2db, err := json.Marshal(entity.Feibee2DBMsg{
+			feibee2appMsg,
+			bindid,
+		})
+		if err != nil {
+			log.Error("One Msg push2mq2app() error = ", err)
+		} else {
+			producer.SendMQMsg2Db(string(data2db))
+		}
+	}
+
+	for i := 0; i < len(f.Msg); i++ {
+		sendOneMsg(i)
+	}
+
+}
+
+func (f FeibeeData) code2MsgPush2app() {
+
+	sendOneMsg := func(index int) {
+
 		defer func() {
 			if err := recover(); err != nil {
 				log.Error("sendOneMsg() error = ", err)
@@ -123,34 +155,29 @@ func (f FeibeeData) push2mq2app() {
 			return
 		}
 
-		feibee2appMsg, bindid := msg2appDataFormat(f, index)
+		if isManualOpMsg(f, index) {
+			feibee2appMsg, bindid := msg2appDataFormat(f, index)
 
-		data2app, err := json.Marshal(feibee2appMsg)
-		if err != nil {
-			log.Error("One Msg push2mq2app() error = ", err)
-		} else {
-			producer.SendMQMsg2APP(bindid, string(data2app))
-		}
+			data2app, err := json.Marshal(feibee2appMsg)
+			if err != nil {
+				log.Error("One Msg push2mq2app() error = ", err)
+			} else {
+				producer.SendMQMsg2APP(bindid, string(data2app))
+			}
 
-		data2db, err := json.Marshal(entity.Feibee2DBMsg{
-			feibee2appMsg,
-			bindid,
-		})
-		if err != nil {
-			log.Error("One Msg push2mq2app() error = ", err)
-		} else {
-			producer.SendMQMsg2Db(string(data2db))
+			data2db, err := json.Marshal(entity.Feibee2DBMsg{
+				feibee2appMsg,
+				bindid,
+			})
+			if err != nil {
+				log.Error("One Msg push2mq2app() error = ", err)
+			} else {
+				producer.SendMQMsg2Db(string(data2db))
+			}
 		}
 	}
-	msgNums := 0
-	switch f.Code {
-	case 2:
-		msgNums = len(f.Records)
-	default:
-		msgNums = len(f.Msg)
-	}
 
-	for i := 0; i < msgNums; i++ {
+	for i := 0; i < len(f.Records); i++ {
 		sendOneMsg(i)
 	}
 
@@ -159,8 +186,15 @@ func (f FeibeeData) push2mq2app() {
 func (f FeibeeData) push2pms() {
 
 	sendOneMsg := func(index int) {
-		if isAlarmMsg(f, index) {
-			return
+
+		if f.Code == 2 {
+			if isAlarmMsg(f, index) {
+				return
+			}
+
+			if !isManualOpMsg(f, index) {
+				return
+			}
 		}
 
 		msg := msg2pmsDataFormat(f, index)
@@ -169,14 +203,18 @@ func (f FeibeeData) push2pms() {
 		if err != nil {
 			log.Error("One Msg push2pms() error = ", err)
 		}
+
 		producer.SendMQMsg2PMS(string(data))
 	}
+
 	msgNums := 1
 	switch f.Code {
 	case 2:
 		msgNums = len(f.Records)
-	case 3, 4, 5, 12:
+	case 3, 4, 5, 7, 12:
 		msgNums = len(f.Msg)
+	case 15, 32:
+		msgNums = len(f.Gateway)
 	}
 
 	for i := 0; i < msgNums; i++ {
@@ -223,16 +261,33 @@ func msg2appDataFormat(data FeibeeData, index int) (res entity.Feibee2AppMsg, bi
 	}
 
 	switch data.Code {
+	case 2:
+		if data.Records[index].Value == "00" {
+			res.OpType = "devOff"
+		} else if data.Records[index].Value == "01" {
+			res.OpType = "devOn"
+		} else if data.Records[index].Value == "02" {
+			res.OpType = "devStop"
+		}
 	case 3:
-		res.OpType = "newdevice"
+		res.OpType = "newDevice"
 	case 4:
-		res.OpType = "newonline"
+		res.OpType = "newOnline"
 		res.Battery = 0xff
 	case 5:
-		res.OpType = "devdelete"
+		res.OpType = "devDelete"
 		res.Battery = 0xff
+	case 7:
+		if data.Msg[index].Onoff == 1 {
+			res.OpType = "devRemoteOn"
+		} else if data.Msg[index].Onoff == 0 {
+			res.OpType = "devRemoteOff"
+		} else if data.Msg[index].Onoff == 2 {
+			res.OpType = "devRemoteStop"
+		}
+
 	case 12:
-		res.OpType = "devnewname"
+		res.OpType = "devNewName"
 		res.Battery = 0xff
 	}
 
@@ -252,11 +307,12 @@ func msg2pmsDataFormat(data FeibeeData, index int) (res entity.Feibee2PMS) {
 		res.DevType = data.Records[index].Devicetype
 		res.DevId = data.Records[index].Uuid
 		res.Records = []entity.FeibeeRecordsMsg{data.Records[index]}
-	case 3, 4, 5, 12:
+	case 3, 4, 5, 7, 12:
 		res.DevType = data.Msg[index].Devicetype
 		res.DevId = data.Msg[index].Uuid
 		res.Msg = []entity.FeibeeDevMsg{data.Msg[index]}
-	default:
+	case 15, 32:
+		res.Gateway = []entity.FeibeeGatewayMsg{data.Gateway[index]}
 	}
 
 	return
@@ -265,8 +321,29 @@ func msg2pmsDataFormat(data FeibeeData, index int) (res entity.Feibee2PMS) {
 func isAlarmMsg(data FeibeeData, index int) bool {
 
 	if data.Code == 2 && len(data.Records) > 0 {
-		rawData := data.Records[index].Orgdata
-		if rawData[0:4] == "720b" || rawData[0:4] == "7215" {
+		cid := data.Records[index].Cid
+		aid := data.Records[index].Aid
+		if cid == 1280 && aid == 128 {
+			return true
+		}
+
+		if (cid == 1 && aid == 33) || (cid == 1 && aid == 53) {
+			return true
+		}
+
+		if (cid == 1 && aid == 32) || (cid == 1 && aid == 62) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isManualOpMsg(data FeibeeData, index int) bool {
+
+	if data.Code == 2 && len(data.Records) > 0 {
+
+		if data.Records[index].Cid == 6 && data.Records[index].Aid == 0 {
 			return true
 		}
 	}

@@ -258,18 +258,18 @@ type FeibeeGatewayMsg struct {
 
 //feibee推送的操作设备状态
 type FeibeeRecordsMsg struct {
-	Bindid     string
-	Deviceuid  int
-	Uuid       string
-	Devicetype string
-	Zonetype   int
-	Deviceid   int
-	Cid        int
-	Aid        int
-	Value      string
-	Orgdata    string
-	Uptime     int
-	Pushstring string
+	Bindid     string      `json:"bindid"`
+	Deviceuid  int         `json:"deviceuid"`
+	Uuid       string      `json:"uuid"`
+	Devicetype string      `json:"devicetype"`
+	Zonetype   interface{} `json:"zonetype"`
+	Deviceid   interface{} `json:"deviceid"`
+	Cid        int         `json:"cid"`
+	Aid        int         `json:"aid"`
+	Value      string      `json:"value"`
+	Orgdata    string      `json:"orgdata"`
+	Uptime     int         `json:"uptime"`
+	Pushstring string      `json:"pushstring"`
 }
 
 //feibee设备消息通知(推送给app)
