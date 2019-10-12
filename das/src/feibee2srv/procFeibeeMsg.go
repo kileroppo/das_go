@@ -190,20 +190,23 @@ func (f FeibeeData) push2pms() {
 	sendOneMsg := func(index int) {
 
 		if f.Code == 2 {
-			if isAlarmMsg(f, index) {
-				return
-			}
-
-			if !isManualOpMsg(f, index) {
+			if !isAlarmMsg(f, index) && !isManualOpMsg(f, index) {
 				return
 			}
 		}
 
-		msg := msg2pmsDataFormat(f, index)
+		var data []byte
+		var err error
 
-		data, err := json.Marshal(msg)
+		if isAlarmMsg(f, index) {
+			data, err = json.Marshal(autoScene2pmsDataFormat(f, index))
+		} else {
+			data, err = json.Marshal(msg2pmsDataFormat(f, index))
+		}
+
 		if err != nil {
 			log.Error("One Msg push2pms() error = ", err)
+			return
 		}
 
 		producer.SendMQMsg2PMS(string(data))
@@ -316,6 +319,18 @@ func msg2pmsDataFormat(data FeibeeData, index int) (res entity.Feibee2PMS) {
 	case 15, 32:
 		res.Gateway = []entity.FeibeeGatewayMsg{data.Gateway[index]}
 	}
+	return
+}
+
+func autoScene2pmsDataFormat(data FeibeeData, index int) (res entity.FeibeeAutoScene2pmsMsg) {
+	res.Cmd = 0xf1
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.DevType = devTypeConv(data.Records[index].Deviceid, data.Records[index].Zonetype)
+	res.Devid = data.Records[index].Uuid
+	res.TriggerType = 0
+	res.Zone = "hz"
 
 	return
 }
