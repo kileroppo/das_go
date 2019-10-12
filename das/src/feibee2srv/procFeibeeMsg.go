@@ -312,10 +312,12 @@ func msg2pmsDataFormat(data FeibeeData, index int) (res entity.Feibee2PMS) {
 		res.DevType = devTypeConv(data.Records[index].Deviceid, data.Records[index].Zonetype)
 		res.DevId = data.Records[index].Uuid
 		res.Records = []entity.FeibeeRecordsMsg{data.Records[index]}
+		res.Records[index].Devicetype = res.DevType
 	case 3, 4, 5, 7, 12:
 		res.DevType = devTypeConv(data.Msg[index].Deviceid, data.Msg[index].Zonetype)
 		res.DevId = data.Msg[index].Uuid
 		res.Msg = []entity.FeibeeDevMsg{data.Msg[index]}
+		res.Msg[index].Devicetype = res.DevType
 	case 15, 32:
 		res.Gateway = []entity.FeibeeGatewayMsg{data.Gateway[index]}
 	}
