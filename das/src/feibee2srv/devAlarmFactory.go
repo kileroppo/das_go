@@ -320,14 +320,21 @@ func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, al
 	if (msg.Cid == 1 && msg.Aid == 33) || (msg.Cid == 1 && msg.Aid == 53) {
 
 		alarmFlag = "lowPower"
-		alarmValue = batteryValueParse(msg.Orgdata[30:32])
-
+		if msg.Aid == 33 {
+			alarmValue = batteryValueParse(msg.Value)
+		} else {
+			alarmValue = batteryValueParse(msg.Orgdata[30:32])
+		}
 		return
 	}
 
 	if (msg.Cid == 1 && msg.Aid == 32) || (msg.Cid == 1 && msg.Aid == 62) {
 		alarmFlag = "lowVoltage"
-		alarmValue = voltageValueParse(msg.Orgdata[22:24])
+		if msg.Aid == 32 {
+			alarmValue = voltageValueParse(msg.Value)
+		} else {
+			alarmValue = voltageValueParse(msg.Orgdata[22:24])
+		}
 	}
 
 	return
