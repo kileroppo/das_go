@@ -14,7 +14,7 @@ type DevAlarmer interface {
 	GetMsg2app(int) ([][]byte, error)
 }
 
-func NewDevAlarm(feibeeData FeibeeData, index int) (res DevAlarmer) {
+func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 	res = nil
 
 	switch feibeeData.Records[index].Deviceid {
@@ -73,7 +73,7 @@ func NewDevAlarm(feibeeData FeibeeData, index int) (res DevAlarmer) {
 }
 
 type BaseSensorAlarm struct {
-	feibeeMsg        FeibeeData
+	feibeeMsg        entity.FeibeeData
 	alarmFlag        string
 	alarmVal         string
 	removalAlarmFlag string
