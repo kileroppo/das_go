@@ -166,10 +166,10 @@ func (self DoorMagneticSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 
 	if self.alarmFlag == "1" {
 		alarmMsg.AlarmValue = "开门"
-		alarmMsg.AlarmType = "doorMagnet"
+		alarmMsg.AlarmType = "doorContact"
 	} else if self.alarmFlag == "0" {
 		alarmMsg.AlarmValue = "关门"
-		alarmMsg.AlarmType = "doorMagnet"
+		alarmMsg.AlarmType = "doorContact"
 	} else {
 		alarmMsg.AlarmType = self.alarmFlag
 		alarmMsg.AlarmValue = self.alarmVal
