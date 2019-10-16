@@ -7,7 +7,7 @@ import (
 	"../core/entity"
 	"../core/log"
 	"../rmq/producer"
-)
+	)
 
 type MsgType int32
 
@@ -85,15 +85,33 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 			typ = SensorAlarm
 		}
 
+		if (data.Records[0].Cid == 1024 && data.Records[0].Aid == 0) {
+			//光照度上报
+			typ = SensorAlarm
+		}
+
+		if (data.Records[0].Cid == 1026 && data.Records[0].Aid == 0) {
+			//温度上报
+			typ = SensorAlarm
+		}
+
+		if (data.Records[0].Cid == 1029 && data.Records[0].Aid == 0) {
+			//湿度上报
+			typ = SensorAlarm
+		}
+
 		if (data.Records[0].Cid == 1 && data.Records[0].Aid == 33) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 53) {
+			//电量上报
 			typ = SensorAlarm
 		}
 
 		if (data.Records[0].Cid == 1 && data.Records[0].Aid == 32) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 62) {
+			//电压上报
 			typ = SensorAlarm
 		}
 
-		if data.Records[0].Deviceid == 355 && data.Records[0].Zonetype == 255 {
+		if data.Records[0].Cid == 0 && data.Records[0].Aid == 16394 {
+			//红外宝
 			typ = InfraredTreasure
 		}
 	}
@@ -193,6 +211,67 @@ func (self SensorMsgHandle) PushMsg() {
 type RemoteOpMsgHandle struct {
 	data entity.FeibeeData
 	msgType MsgType
+}
+
+type InfraredTreasureHandle struct {
+	data entity.FeibeeData
+}
+
+func (self InfraredTreasureHandle) PushMsg() {
+
+}
+
+func (self InfraredTreasureHandle) pushMsgByType() []byte {
+	flag,err := strconv.ParseInt(self.data.Records[0].Value[0:4], 16, 64)
+	if err != nil {
+		log.Warning("InfraredTreasure msg type parse error = ", err)
+		return nil
+	}
+
+	switch flag {
+	case 10: //红外宝固件版本上报
+
+	case 5: //码组上传上报
+
+	default:
+		if len(self.data.Records[0].Value) < 26 {
+			log.Warning("InfraredTreasure msg type parse error")
+			return nil
+		}
+
+		funcCode,err := strconv.ParseInt(self.data.Records[0].Value[22:26], 16, 64)
+		if err != nil {
+			log.Warning("InfraredTreasure msg type parse error = ", err)
+			return nil
+		}
+		switch funcCode {
+		case 0x8100: //匹配上报
+		case 0x8200: //控制上报
+		case 0x8300: //学习上报
+		case 0x8700: //码库更新通知上报
+		case 0x8800: //码库保存上报
+		}
+	}
+
+	return nil
+}
+
+func (self InfraredTreasureHandle) getFirmwareVer() (ver string) {
+	if len(self.data.Records[0].Value) == 22 {
+		ver = self.data.Records[0].Value[8:20]
+	}
+	return
+}
+
+func (self InfraredTreasureHandle) getMatchResult()  int {
+    if len(self.data.Records[0].Value) == 30 {
+        flag := self.data.Records[0].Value[26:28]
+        res,err := strconv.ParseInt(flag, 16, 64)
+        if err != nil {
+			return int(res)
+		}
+	}
+	return 0
 }
 
 func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, bindid string) {
