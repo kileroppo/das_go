@@ -366,7 +366,7 @@ func (bmq *BaseMq) Publish2Device(channelContext ChannelContext, body []byte) er
 
 	var err error
 	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-	defer channelContext.Channel.Close()
+	//defer channelContext.Channel.Close()
 
 	if err != nil {
 		log.Error(err)
@@ -389,6 +389,7 @@ func (bmq *BaseMq) Publish2Device(channelContext ChannelContext, body []byte) er
 	)
 	if nil != qerr {
 		log.Error("Publish2Device, channelContext.Channel.QueueDeclare, err: ", qerr)
+		channelContext.Channel.Close()
 		return qerr
 	}
 
@@ -401,7 +402,7 @@ func (bmq *BaseMq) Publish2Device(channelContext ChannelContext, body []byte) er
 	)
 	if nil != qbinderr {
 		log.Error("Publish2Device, channelContext.Channel.QueueBind, err: ", qbinderr)
-		//bmq.refreshConnectionAndChannel(channelContext)
+		channelContext.Channel.Close()
 		return qbinderr
 	}
 
@@ -428,8 +429,11 @@ func (bmq *BaseMq) Publish2Device(channelContext ChannelContext, body []byte) er
 			atomic.AddInt32(&channelContext.ReSendNum, -1)
 			bmq.Publish2Device(channelContext, body)
 		}
+		channelContext.Channel.Close()
+		return nil
 	}
 
+	channelContext.Channel.Close()
 	return nil
 }
 
