@@ -62,7 +62,7 @@ func ProcAppMsg(appMsg string) error {
 		}
 		addDevUserStr, err1 := json.Marshal(addDevUser)
 		if err1 != nil {
-			log.Error("Get YisumaRandom json.Marshal failed, err=", err1)
+			log.Error("Get addDevUser json.Marshal failed, err=", err1)
 			return err1
 		}
 		appMsg = string(addDevUserStr)
