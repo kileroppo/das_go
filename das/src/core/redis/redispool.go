@@ -200,8 +200,8 @@ func SetDevUserNotePool(devId string, userNote string, strTime string) error {
 	// 用完后将连接放回连接池
 	defer rc.Close()
 
-	// 写入值60S后过期
-	_, err := rc.Do("HSET", devId + "_usernote", strTime, userNote, "EX", "60")
+	// 写入值120S后过期
+	_, err := rc.Do("HSET", devId + "_usernote", strTime, userNote, "EX", "120")
 	if err != nil {
 		fmt.Println("redis HSET failed:", err)
 		return err
