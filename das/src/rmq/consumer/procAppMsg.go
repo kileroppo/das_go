@@ -55,11 +55,12 @@ func ProcAppMsg(appMsg string) error {
 		}
 
 		userNoteTag := strconv.FormatInt(time.Now().Unix(), 10)
-		addDevUser.UserNote = userNoteTag
-		if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, addDevUser.UserNote, userNoteTag); uNoteErr != nil {
+		if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userNoteTag, addDevUser.UserNote); uNoteErr != nil {
 			log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
 			return uNoteErr
 		}
+
+		addDevUser.UserNote = userNoteTag // 值跟KEY交换，下发到锁端
 		addDevUserStr, err1 := json.Marshal(addDevUser)
 		if err1 != nil {
 			log.Error("Get addDevUser json.Marshal failed, err=", err1)

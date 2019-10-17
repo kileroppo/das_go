@@ -188,7 +188,7 @@ func GetDeviceYisumaRandomfromPool(devId string) (string, error) {
 	return retPlat, nil
 }
 
-func SetDevUserNotePool(devId string, userNote string, strTime string) error {
+func SetDevUserNotePool(devId string, strTime string, userNote string) error {
 	/*c, err := redis.Dial("tcp", redisServer_s)
 	if err != nil {
 		fmt.Println("Connect to redis error", err)
@@ -206,7 +206,7 @@ func SetDevUserNotePool(devId string, userNote string, strTime string) error {
 		fmt.Println("redis HSET failed:", err)
 		return err
 	}
-	_, err = rc.Do("EXPIRE", devId + "_usernote", 120)
+	_, err = rc.Do("EXPIRE", devId + "_usernote", 600)
 	if err != nil {
 		fmt.Println("redis EXPIRE failed:", err)
 	}
