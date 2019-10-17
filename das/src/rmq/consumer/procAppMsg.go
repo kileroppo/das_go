@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 )
 
 /*
@@ -31,7 +32,8 @@ func ProcAppMsg(appMsg string) error {
 	}
 
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
-	if head.Cmd == constant.Remote_open {
+	switch head.Cmd {
+	case constant.Remote_open: {
 		//1. 先判断是否为亿速码加签名，查询redis，若为远程开锁流程且能查到random，则需要加签名
 		random, err0 := redis.GetDeviceYisumaRandomfromPool(head.DevId)
 		if err0 == nil {
@@ -45,6 +47,27 @@ func ProcAppMsg(appMsg string) error {
 				appMsg = signRandom
 			}
 		}
+	}
+	case constant.Add_dev_user: {	// 添加锁用户，用户名
+		var addDevUser entity.AddDevUser
+		if err := json.Unmarshal([]byte(appMsg), &addDevUser); err != nil {
+			log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
+		}
+
+		userNoteTag := strconv.FormatInt(time.Now().Unix(), 10)
+		addDevUser.UserNote = userNoteTag
+		if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, addDevUser.UserNote, userNoteTag); uNoteErr != nil {
+			log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
+			return uNoteErr
+		}
+		addDevUserStr, err1 := json.Marshal(addDevUser)
+		if err1 != nil {
+			log.Error("Get YisumaRandom json.Marshal failed, err=", err1)
+			return err1
+		}
+		appMsg = string(addDevUserStr)
+		log.Debug("ProcAppMsg , appMsg=", appMsg)
+	}
 	}
 
 	// 将命令发到OneNET

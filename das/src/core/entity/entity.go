@@ -92,6 +92,18 @@ type RespOneNET struct {
 	RespError string `json:"error"`
 }
 
+type AddDevUser struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	UserId    int `json:"userId"`    // 设备用户ID
+	UserNote  string `json:"userNote"`  // 设备用户别名
+}
+
 type AddDevUserStep struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`

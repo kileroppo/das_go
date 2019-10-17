@@ -187,3 +187,25 @@ func GetDeviceYisumaRandomfromPool(devId string) (string, error) {
 
 	return retPlat, nil
 }
+
+func SetDevUserNotePool(devId string, userNote string, strTime string) error {
+	/*c, err := redis.Dial("tcp", redisServer_s)
+	if err != nil {
+		fmt.Println("Connect to redis error", err)
+		return
+	}*/
+	// 从池里获取连接
+	rc := RedisClient.Get()
+
+	// 用完后将连接放回连接池
+	defer rc.Close()
+
+	// 写入值60S后过期
+	_, err := rc.Do("HSET", devId + "_usernote", strTime, userNote, "EX", "60")
+	if err != nil {
+		fmt.Println("redis HSET failed:", err)
+		return err
+	}
+
+	return nil
+}
