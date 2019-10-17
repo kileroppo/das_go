@@ -201,10 +201,14 @@ func SetDevUserNotePool(devId string, userNote string, strTime string) error {
 	defer rc.Close()
 
 	// 写入值120S后过期
-	_, err := rc.Do("HSET", devId + "_usernote", strTime, userNote, "EX", "120")
+	_, err := rc.Do("HSET", devId + "_usernote", strTime, userNote)
 	if err != nil {
 		fmt.Println("redis HSET failed:", err)
 		return err
+	}
+	_, err = rc.Do("EXPIRE", devId + "_usernote", 120)
+	if err != nil {
+		fmt.Println("redis EXPIRE failed:", err)
 	}
 
 	return nil
