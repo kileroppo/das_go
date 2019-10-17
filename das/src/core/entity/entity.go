@@ -98,22 +98,23 @@ type MyDTM struct {
 }
 
 type AddDevUser struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
+	Cmd     int    		`json:"cmd"`
+	Ack     int    		`json:"ack"`
+	DevType string 		`json:"devType"`
+	DevId   string 		`json:"devId"`
+	Vendor  string 		`json:"vendor"`
+	SeqId   int    		`json:"seqId"`
 
-	UserId    int 		`json:"userId"`    	// 设备用户ID
-	UserNote  string 	`json:"userNote"`  	// 设备用户别名
-	UserType  int 		`json:"userType"`  	// 用户类型（0-管理员，1-普通用户，2-临时用户）
-	MainOpen  int 		`json:"mainOpen"`  	// 主开锁方式（1-密码，2-刷卡，3-指纹）
-	SubOpen   int 		`json:"subOpen"`   	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-	Passwd  string 		`json:"passwd"`		// 如果是添加密码需要填写
-	Count   int			`json:"count"` 		// 开门次数，0xffff为无限次
-	MyDate	MyDTM		`json:"date"`		// 开始有效时间
-	MyTime	[3]MyDTM	`json:"time"`		// 时段
+	UserId    int 		`json:"userId"`    		// 设备用户ID
+	UserNote  string 	`json:"userNote"`  		// 设备用户别名
+	UserType  int 		`json:"userType"`  		// 用户类型（0-管理员，1-普通用户，2-临时用户）
+	MainOpen  int 		`json:"mainOpen"`  		// 主开锁方式（1-密码，2-刷卡，3-指纹）
+	SubOpen   int 		`json:"subOpen"`   		// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+	Passwd  string 		`json:"passwd"`			// 如果是添加密码需要填写
+	Count   int			`json:"count"` 			// 开门次数，0xffff为无限次
+	MyDate	MyDTM		`json:"date"`			// 开始有效时间
+	MyTime	[3]MyDTM	`json:"time"`			// 时段
+	TimeLen int			`json:"time_length"`	// 兼容捷博生产商，临时用户时长
 }
 
 type AddDevUserStep struct {
