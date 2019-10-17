@@ -54,7 +54,7 @@ func ProcAppMsg(appMsg string) error {
 			log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		}
 
-		userNoteTag := strconv.FormatInt(time.Now().Unix(), 10)
+		userNoteTag := strconv.FormatInt(time.Now().Unix(), 16)
 		if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userNoteTag, addDevUser.UserNote); uNoteErr != nil {
 			log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
 			return uNoteErr
