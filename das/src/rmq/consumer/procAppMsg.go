@@ -22,7 +22,7 @@ import (
 *
  */
 func ProcAppMsg(appMsg string) error {
-	log.Debug("ProcAppMsg process msg from app: ", appMsg)
+	log.Debug("ProcAppMsg process msg from app.")
 	// 1、解析消息
 	//json str 转struct(部份字段)
 	var head entity.Header
