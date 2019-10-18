@@ -3,10 +3,13 @@ package feibee2srv
 import (
 	"encoding/json"
 	"strconv"
+	"errors"
+	"time"
 
 	"../core/entity"
 	"../core/log"
 	"../rmq/producer"
+
 )
 
 type MsgType int32
@@ -54,7 +57,8 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 
 	case InfraredTreasure:
 		msgHandle = InfraredTreasureHandle{
-			data:data,
+			data: data,
+			msgType:typ,
 		}
 
 	default:
@@ -218,57 +222,87 @@ type RemoteOpMsgHandle struct {
 
 type InfraredTreasureHandle struct {
 	data entity.FeibeeData
+	msgType MsgType
 }
 
 func (self InfraredTreasureHandle) PushMsg() {
-
 	self.pushMsgByType()
-
 }
 
-func (self InfraredTreasureHandle) pushMsgByType() []byte {
+func (self InfraredTreasureHandle) pushMsgByType() {
 	if len(self.data.Records[0].Value) < 2 {
-		log.Error("InfraredTreasure msg type parse error")
-		return nil
+		log.Error("InfraredTreasureHandle.pushMsgByType() error = msg type parse error")
+		return
 	}
 	flag, err := strconv.ParseInt(self.data.Records[0].Value[0:2], 16, 64)
 	if err != nil {
-		log.Warning("InfraredTreasure msg type parse error = ", err)
-		return nil
+		log.Warning("InfraredTreasureHandle.pushMsgByType() error = ", err)
+		return
 	}
+
+	data, bindid := createMsg2App(self.data, self.msgType)
 
 	switch flag {
 	case 10: //红外宝固件版本上报
-	    log.Debug("红外宝 固件版本上报")
+		log.Debug("红外宝 固件版本上报")
+		data.OpType = "devMatch"
+		data.OpValue = self.getFirmwareVer()
 
 	case 5: //码组上传上报
-	    log.Debug("红外宝 码组上传上报")
+		log.Debug("红外宝 码组上传上报")
 
 	default:
 		if len(self.data.Records[0].Value) < 24 {
-			log.Warning("InfraredTreasure msg type parse error")
-			return nil
+			log.Warning("InfraredTreasureHandle.pushMsgByType() error = msg type parse error")
+			return
 		}
 
 		funcCode, err := strconv.ParseInt(self.data.Records[0].Value[20:24], 16, 64)
 		if err != nil {
-			log.Warning("InfraredTreasure msg type parse error = ", err)
-			return nil
+			log.Warning("InfraredTreasureHandle.pushMsgByType() error = ", err)
+			return
 		}
+
 		switch funcCode {
 		case 0x8100: //匹配上报
 			log.Debug("红外宝 匹配上报")
+			data.OpType = "devMatch"
+			data.OpValue = self.getMatchResult()
+			if err := self.push2app(data,bindid); err != nil {
+				log.Error("InfraredTreasureHandle.pushMsgByType() error = ", err)
+			}
+			return
 		case 0x8200: //控制上报
-		    log.Debug("红外宝 控制上报")
+			log.Debug("红外宝 控制上报")
 		case 0x8300: //学习上报
-		    log.Debug("红外宝 学习上报")
+			log.Debug("红外宝 学习上报")
+			data.OpType = "devTrain"
+			data.OpValue = self.getTrainResult()
+			if err := self.push2app(data,bindid); err != nil {
+				log.Error("InfraredTreasureHandle.pushMsgByType() error = ", err)
+			}
+			return
 		case 0x8700: //码库更新通知上报
-		    log.Debug("红外宝 码库更新通知上报")
+			log.Debug("红外宝 码库更新通知上报")
 		case 0x8800: //码库保存上报
-		    log.Debug("红外宝 码库保存上报")
+			log.Debug("红外宝 码库保存上报")
 		}
 	}
+	return
+}
 
+func (self InfraredTreasureHandle) push2app(data entity.Feibee2AppMsg, bindid string) error {
+	if len(data.OpType) <= 0 || len(data.OpValue) <= 0 {
+		err := errors.New("optype or opvalue error")
+		return err
+	}
+
+	rawData,err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	producer.SendMQMsg2APP(bindid, string(rawData))
 	return nil
 }
 
@@ -279,15 +313,39 @@ func (self InfraredTreasureHandle) getFirmwareVer() (ver string) {
 	return
 }
 
-func (self InfraredTreasureHandle) getMatchResult() int {
-	if len(self.data.Records[0].Value) == 30 {
-		flag := self.data.Records[0].Value[26:28]
-		res, err := strconv.ParseInt(flag, 16, 64)
-		if err != nil {
-			return int(res)
-		}
+func (self InfraredTreasureHandle) getMatchResult() (res string) {
+	if len(self.data.Records[0].Value) < 30 {
+		return
 	}
-	return 0
+	return self.parseValue(26, 28)
+}
+
+func (self InfraredTreasureHandle) getTrainResult() (res string) {
+	if len(self.data.Records[0].Value) < 34 {
+		return
+	}
+	return self.parseValue(30, 32)
+}
+
+func (self InfraredTreasureHandle) parseValue(start, end int) (res string) {
+	if start < 0 || end > len(self.data.Records[0].Value) {
+		return
+	}
+
+	flag, err := strconv.ParseInt(self.data.Records[0].Value[start:end], 16, 64)
+	if err != nil {
+		log.Error("InfraredTreasureHandle.getMatchResult() error = ", err)
+		return
+	}
+	switch flag {
+	case 0:
+		res = "0"
+	case 1:
+		res = "1"
+	case 2:
+		res = "2"
+	}
+	return
 }
 
 func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, bindid string) {
@@ -295,7 +353,8 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
-	res.Time = -1
+	res.Time = int(time.Now().Unix())
+	res.Battery = 0xff
 
 	switch msgType {
 	case NewDev, DevOnline, DevDelete, DevRename:
@@ -313,29 +372,32 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 			res.OpType = "newDevice"
 		case DevOnline:
 			res.OpType = "newOnline"
-			res.Battery = 0xff
 		case DevDelete:
 			res.OpType = "devDelete"
-			res.Battery = 0xff
 		case DevRename:
 			res.OpType = "devNewName"
-			res.Battery = 0xff
 		}
 
-	case ManualOpDev:
+	case ManualOpDev, InfraredTreasure:
 		res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
 		res.Devid = data.Records[0].Uuid
 		res.Deviceuid = data.Records[0].Deviceuid
-
-		if data.Records[0].Value == "00" {
-			res.OpType = "devOff"
-		} else if data.Records[0].Value == "01" {
-			res.OpType = "devOn"
-		} else if data.Records[0].Value == "02" {
-			res.OpType = "devStop"
-		}
-
 		bindid = data.Records[0].Bindid
+
+		switch msgType {
+
+		case ManualOpDev:
+			if data.Records[0].Value == "00" {
+				res.OpType = "devOff"
+			} else if data.Records[0].Value == "01" {
+				res.OpType = "devOn"
+			} else if data.Records[0].Value == "02" {
+				res.OpType = "devStop"
+			}
+
+		case InfraredTreasure:
+
+		}
 
 	case RemoteOpDev:
 		if data.Msg[0].Onoff == 1 {
