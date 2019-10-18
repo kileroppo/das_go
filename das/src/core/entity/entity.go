@@ -114,7 +114,7 @@ type AddDevUser struct {
 	Count   int			`json:"count"` 			// 开门次数，0xffff为无限次
 	MyDate	MyDTM		`json:"date"`			// 开始有效时间
 	MyTime	[3]MyDTM	`json:"time"`			// 时段
-	TimeLen int			`json:"time_length"`	// 兼容捷博生产商，临时用户时长
+	TimeLen int			`json:"time_length"`	// 兼容捷博生产商，临时用户时长（单位：秒）
 }
 
 type AddDevUserStep struct {
