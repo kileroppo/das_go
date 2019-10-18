@@ -22,7 +22,7 @@ import (
 
 func ProcessNbMsg(DValue string, Imei string) error {
 	// 处理OneNET推送过来的消息
-	log.Info("ProcessNbMsg msg from before: ", DValue)
+	log.Info("[", Imei, "] ProcessNbMsg msg from before: ", DValue)
 
 	myKey := util.MD52Bytes(Imei)
 
@@ -30,7 +30,6 @@ func ProcessNbMsg(DValue string, Imei string) error {
 	// 1、 获取包头部分 8个字节
 	var myHead entity.MyHeader
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
-		log.Debug("[", Imei, "] get aes data: ", DValue)
 		lens := strings.Count(DValue, "") - 1
 		if lens < 16 {
 			log.Error("[", Imei, "] ProcessNbMsg() error msg : ", DValue, ", len: ", lens)
