@@ -93,8 +93,8 @@ type RespOneNET struct {
 }
 
 type MyDTM struct {
-	Start   int    `json:"start"`
-	End     int    `json:"end"`
+	Start int `json:"start"`
+	End   int `json:"end"`
 }
 
 type AddDevUser struct {
@@ -311,6 +311,7 @@ type Feibee2AppMsg struct {
 	Online    int    `json:"online"`
 	Battery   int    `json:"battery"`
 	OpType    string `json:"opType"`
+	OpValue   string `json:"opValue"`
 	Time      int    `json:"time"`
 }
 
