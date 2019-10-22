@@ -202,15 +202,19 @@ func (self SensorMsgHandle) PushMsg() {
 		if len(data) > 0 {
 			producer.SendMQMsg2APP(self.data.Records[0].Bindid, string(data))
 			producer.SendMQMsg2Db(string(data))
+			producer.SendMQMsg2PMS(string(data))
 		}
 	}
 
+	//报警设备作为触发设备
 	data2pms, err := json.Marshal(createSceneMsg2pms(self.data))
 	if err != nil {
 		log.Error("One Msg push2pms() error = ", err)
 	} else {
 		producer.SendMQMsg2PMS(string(data2pms))
 	}
+
+
 
 	return
 }

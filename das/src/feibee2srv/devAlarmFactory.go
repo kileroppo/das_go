@@ -139,7 +139,7 @@ func (b *BaseSensorAlarm) getMsg2app(index int) (msg entity.FeibeeAlarm2AppMsg, 
 
 	msg.Cmd = 0xfc
 	msg.Ack = 0
-	msg.DevType = b.feibeeMsg.Records[index].Devicetype
+	msg.DevType = devTypeConv(b.feibeeMsg.Records[index].Deviceid, b.feibeeMsg.Records[index].Zonetype)
 	msg.Devid = b.feibeeMsg.Records[index].Uuid
 	msg.Vendor = "feibee"
 	msg.SeqId = 1
