@@ -142,15 +142,19 @@ func (self NormalMsgHandle) PushMsg() {
 		producer.SendMQMsg2APP(bindid, string(data2app))
 	}
 
-	//发送给DB
-	data2db, err := json.Marshal(entity.Feibee2DBMsg{
-		res,
-		bindid,
-	})
-	if err != nil {
-		log.Error("One Msg push2db() error = ", err)
+	//发送给DB(设备入网不发?)
+	if self.msgType == NewDev {
+
 	} else {
-		producer.SendMQMsg2Db(string(data2db))
+		data2db, err := json.Marshal(entity.Feibee2DBMsg{
+			res,
+			bindid,
+		})
+		if err != nil {
+			log.Error("One Msg push2db() error = ", err)
+		} else {
+			producer.SendMQMsg2Db(string(data2db))
+		}
 	}
 
 	//发送给PMS
