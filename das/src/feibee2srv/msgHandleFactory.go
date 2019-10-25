@@ -200,7 +200,7 @@ func (self SensorMsgHandle) PushMsg() {
 
 	for _, data := range datas {
 		if len(data) > 0 {
-			producer.SendMQMsg2APP(self.data.Records[0].Bindid, string(data))
+			//producer.SendMQMsg2APP(self.data.Records[0].Bindid, string(data))
 			producer.SendMQMsg2Db(string(data))
 			producer.SendMQMsg2PMS(string(data))
 		}
@@ -247,8 +247,8 @@ func (self InfraredTreasureHandle) pushMsgByType() {
 	switch flag {
 	case 10: //红外宝固件版本上报
 		log.Debug("红外宝 固件版本上报")
-		data.OpType = "devMatch"
-		data.OpValue = self.getFirmwareVer()
+		//data.OpType = "devVersion"
+		//data.OpValue = self.getFirmwareVer()
 
 	case 5: //码组上传上报
 		log.Debug("红外宝 码组上传上报")
