@@ -345,6 +345,7 @@ type FeibeeAutoScene2pmsMsg struct {
 	Time    int    `json:"time"`
 
 	TriggerType int    `json:"triggerT"`
+	TriggerValue string `json:"triggerValue"`
 	SceneId     string `json:"sceneId"`
 	Zone        string `json:"zone"`
 }

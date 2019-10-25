@@ -207,14 +207,12 @@ func (self SensorMsgHandle) PushMsg() {
 	}
 
 	//报警设备作为触发设备
-	data2pms, err := json.Marshal(createSceneMsg2pms(self.data))
+	data2pms, err := json.Marshal(createSceneMsg2pms(self.data, devAlarm.GetAlarmValue()))
 	if err != nil {
 		log.Error("One Msg push2pms() error = ", err)
 	} else {
 		producer.SendMQMsg2PMS(string(data2pms))
 	}
-
-
 
 	return
 }
@@ -448,7 +446,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 	return
 }
 
-func createSceneMsg2pms(data entity.FeibeeData) (res entity.FeibeeAutoScene2pmsMsg) {
+func createSceneMsg2pms(data entity.FeibeeData, alarmValue string) (res entity.FeibeeAutoScene2pmsMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -457,6 +455,7 @@ func createSceneMsg2pms(data entity.FeibeeData) (res entity.FeibeeAutoScene2pmsM
 	res.Devid = data.Records[0].Uuid
 	res.TriggerType = 0
 	res.Zone = "hz"
+	res.TriggerValue = alarmValue
 
 	return
 }

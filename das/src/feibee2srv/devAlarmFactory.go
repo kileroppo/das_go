@@ -16,6 +16,7 @@ var (
 
 type DevAlarmer interface {
 	GetMsg2app(int) ([][]byte, error)
+	GetAlarmValue() string
 }
 
 func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
@@ -25,7 +26,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 		switch feibeeData.Records[index].Deviceid {
 		//光照度传感器
 		case 0x0106:
-			res = IlluminanceSensorAlarm{
+			res = &IlluminanceSensorAlarm{
 				BaseSensorAlarm{
 					feibeeMsg:feibeeData,
 				},
@@ -33,7 +34,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 			//温湿度传感器
 		case 0x0302:
-			res = TemperAndHumiditySensorAlarm{
+			res = &TemperAndHumiditySensorAlarm{
 				BaseSensorAlarm{
 					feibeeMsg:feibeeData,
 				},
@@ -44,7 +45,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 			//人体红外传感器
 			case 0x000d:
-				res = InfraredSensorAlarm{
+				res = &InfraredSensorAlarm{
 					BaseSensorAlarm{
 						feibeeMsg: feibeeData,
 					},
@@ -52,7 +53,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 				//门磁传感器
 			case 0x0015:
-				res = DoorMagneticSensorAlarm{
+				res = &DoorMagneticSensorAlarm{
 					BaseSensorAlarm{
 						feibeeMsg: feibeeData,
 					},
@@ -63,7 +64,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 				//水浸传感器
 			case 0x002A:
-				res = FloodSensorAlarm{
+				res = &FloodSensorAlarm{
 					BaseSensorAlarm{
 						feibeeMsg: feibeeData,
 					},
@@ -71,7 +72,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 				//可燃气体传感器
 			case 0x002B:
-				res = GasSensorAlarm{
+				res = &GasSensorAlarm{
 					BaseSensorAlarm{
 						feibeeMsg: feibeeData,
 					},
@@ -87,7 +88,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 		if (feibeeData.Records[0].Cid == 1024 && feibeeData.Records[0].Aid == 0) {
 			//光照度
-			res = IlluminanceSensorAlarm{
+			res = &IlluminanceSensorAlarm{
 				BaseSensorAlarm{
 					feibeeMsg:feibeeData,
 				},
@@ -96,7 +97,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 		if (feibeeData.Records[0].Cid == 1026 && feibeeData.Records[0].Aid == 0) || (feibeeData.Records[0].Cid == 1029 && feibeeData.Records[0].Aid == 0){
 			//温湿度
-			res = TemperAndHumiditySensorAlarm{
+			res = &TemperAndHumiditySensorAlarm{
 				BaseSensorAlarm{
 					feibeeMsg:feibeeData,
 				},
@@ -106,7 +107,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 		if (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 33) || (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 53) {
 			//电量上报
-			res = BaseSensorAlarm{
+			res = &BaseSensorAlarm{
 				feibeeMsg:feibeeData,
 			}
 
@@ -114,7 +115,7 @@ func NewDevAlarm(feibeeData entity.FeibeeData, index int) (res DevAlarmer) {
 
 		if (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 32) || (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 62) {
 			//电压上报
-			res = BaseSensorAlarm{
+			res = &BaseSensorAlarm{
 				feibeeMsg:feibeeData,
 			}
 		}
@@ -158,7 +159,7 @@ func (b *BaseSensorAlarm) getMsg2app(index int) (msg entity.FeibeeAlarm2AppMsg, 
 	return
 }
 
-func (self BaseSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
+func (self *BaseSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 
 	alarmMsg,err := self.getMsg2app(index)
 	if err != nil {
@@ -183,11 +184,15 @@ func (self BaseSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 	return [][]byte{alarmRawData}, nil
 }
 
+func (self *BaseSensorAlarm) GetAlarmValue() string {
+    return self.alarmVal
+}
+
 type InfraredSensorAlarm struct {
 	BaseSensorAlarm
 }
 
-func (self InfraredSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
+func (self *InfraredSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 	alarmMsg, err := self.getMsg2app(index)
 	if err != nil {
 		log.Error("InfraredSensorAlarm getMsg2app() error = ", err)
@@ -204,6 +209,9 @@ func (self InfraredSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 		alarmMsg.AlarmType = self.alarmFlag
 		alarmMsg.AlarmValue = self.alarmVal
 	}
+
+	self.alarmVal = alarmMsg.AlarmValue
+	self.alarmFlag = alarmMsg.AlarmType
 
 	alarmRawData, err := json.Marshal(alarmMsg)
 	if err != nil {
@@ -234,7 +242,7 @@ type DoorMagneticSensorAlarm struct {
 	BaseSensorAlarm
 }
 
-func (self DoorMagneticSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
+func (self *DoorMagneticSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 	alarmMsg, err := self.getMsg2app(index)
 	if err != nil {
 		log.Error("DoorMagneticSensorAlarm getMsg2app() error = ", err)
@@ -251,6 +259,9 @@ func (self DoorMagneticSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 		alarmMsg.AlarmType = self.alarmFlag
 		alarmMsg.AlarmValue = self.alarmVal
 	}
+
+	self.alarmVal = alarmMsg.AlarmValue
+	self.alarmFlag = alarmMsg.AlarmType
 
 	alarmRawData, err := json.Marshal(alarmMsg)
 	if err != nil {
@@ -281,7 +292,7 @@ type GasSensorAlarm struct {
 	BaseSensorAlarm
 }
 
-func (self GasSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
+func (self *GasSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 	alarmMsg, err := self.getMsg2app(index)
 	if err != nil {
 		log.Error("GasSensorAlarm getMsg2app() error = ", err)
@@ -298,6 +309,9 @@ func (self GasSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 		alarmMsg.AlarmType = self.alarmFlag
 		alarmMsg.AlarmValue = self.alarmVal
 	}
+
+	self.alarmVal = alarmMsg.AlarmValue
+	self.alarmFlag = alarmMsg.AlarmType
 
 	alarmRawData, err := json.Marshal(alarmMsg)
 	if err != nil {
@@ -328,7 +342,7 @@ type FloodSensorAlarm struct {
 	BaseSensorAlarm
 }
 
-func (self FloodSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
+func (self *FloodSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 	alarmMsg, err := self.getMsg2app(index)
 	if err != nil {
 		log.Error("getMsg2app() error = ", err)
@@ -345,6 +359,9 @@ func (self FloodSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 		alarmMsg.AlarmType = self.alarmFlag
 		alarmMsg.AlarmValue = self.alarmVal
 	}
+
+	self.alarmVal = alarmMsg.AlarmValue
+	self.alarmFlag = alarmMsg.AlarmType
 
 	alarmRawData, err := json.Marshal(alarmMsg)
 	if err != nil {
@@ -375,7 +392,7 @@ type IlluminanceSensorAlarm struct {
 	BaseSensorAlarm
 }
 
-func (self IlluminanceSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
+func (self *IlluminanceSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
     alarmMsg,_ := self.getMsg2app(index)
 
     alarmMsg.AlarmValue = self.getIlluminance()
@@ -390,6 +407,9 @@ func (self IlluminanceSensorAlarm) GetMsg2app(index int) ([][]byte, error) {
     	log.Error("IlluminanceSensorAlarm GetMsg2app() error = ", err)
     	return nil,err
 	}
+
+	self.alarmVal = alarmMsg.AlarmValue
+	self.alarmFlag = alarmMsg.AlarmType
 
     return [][]byte{res}, nil
 }
@@ -411,7 +431,7 @@ type TemperAndHumiditySensorAlarm struct {
 	BaseSensorAlarm
 }
 
-func (self TemperAndHumiditySensorAlarm) GetMsg2app(index int) ([][]byte, error) {
+func (self *TemperAndHumiditySensorAlarm) GetMsg2app(index int) ([][]byte, error) {
 	alarmMsg,_ := self.getMsg2app(index)
 
 	cid,aid :=  self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid
@@ -433,6 +453,9 @@ func (self TemperAndHumiditySensorAlarm) GetMsg2app(index int) ([][]byte, error)
 	} else {
 		return nil, SensorMsgTypeErr
 	}
+
+	self.alarmVal = alarmMsg.AlarmValue
+	self.alarmFlag = alarmMsg.AlarmType
 
 	res, err := json.Marshal(alarmMsg)
 	if err != nil {
