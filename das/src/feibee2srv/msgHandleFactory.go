@@ -142,15 +142,19 @@ func (self NormalMsgHandle) PushMsg() {
 		producer.SendMQMsg2APP(bindid, string(data2app))
 	}
 
-	//发送给DB
-	data2db, err := json.Marshal(entity.Feibee2DBMsg{
-		res,
-		bindid,
-	})
-	if err != nil {
-		log.Error("One Msg push2db() error = ", err)
+	//发送给DB(设备入网不发?)
+	if self.msgType == NewDev {
+
 	} else {
-		producer.SendMQMsg2Db(string(data2db))
+		data2db, err := json.Marshal(entity.Feibee2DBMsg{
+			res,
+			bindid,
+		})
+		if err != nil {
+			log.Error("One Msg push2db() error = ", err)
+		} else {
+			producer.SendMQMsg2Db(string(data2db))
+		}
 	}
 
 	//发送给PMS
@@ -200,12 +204,14 @@ func (self SensorMsgHandle) PushMsg() {
 
 	for _, data := range datas {
 		if len(data) > 0 {
-			producer.SendMQMsg2APP(self.data.Records[0].Bindid, string(data))
+			//producer.SendMQMsg2APP(self.data.Records[0].Bindid, string(data))
 			producer.SendMQMsg2Db(string(data))
+			producer.SendMQMsg2PMS(string(data))
 		}
 	}
 
-	data2pms, err := json.Marshal(createSceneMsg2pms(self.data))
+	//报警设备作为触发设备
+	data2pms, err := json.Marshal(createSceneMsg2pms(self.data, devAlarm.GetAlarmValue()))
 	if err != nil {
 		log.Error("One Msg push2pms() error = ", err)
 	} else {
@@ -245,8 +251,8 @@ func (self InfraredTreasureHandle) pushMsgByType() {
 	switch flag {
 	case 10: //红外宝固件版本上报
 		log.Debug("红外宝 固件版本上报")
-		data.OpType = "devMatch"
-		data.OpValue = self.getFirmwareVer()
+		//data.OpType = "devVersion"
+		//data.OpValue = self.getFirmwareVer()
 
 	case 5: //码组上传上报
 		log.Debug("红外宝 码组上传上报")
@@ -444,7 +450,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 	return
 }
 
-func createSceneMsg2pms(data entity.FeibeeData) (res entity.FeibeeAutoScene2pmsMsg) {
+func createSceneMsg2pms(data entity.FeibeeData, alarmValue string) (res entity.FeibeeAutoScene2pmsMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -453,6 +459,7 @@ func createSceneMsg2pms(data entity.FeibeeData) (res entity.FeibeeAutoScene2pmsM
 	res.Devid = data.Records[0].Uuid
 	res.TriggerType = 0
 	res.Zone = "hz"
+	res.TriggerValue = alarmValue
 
 	return
 }
