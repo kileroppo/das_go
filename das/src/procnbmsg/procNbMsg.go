@@ -112,10 +112,10 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				break
 			}
 
-			if 1 == addUserStep.StepState {
-				// 回复到APP
-				producer.SendMQMsg2APP(head.DevId, DValue)
-			}
+			//if 1 == addUserStep.StepState {
+			// 回复到APP
+			producer.SendMQMsg2APP(head.DevId, DValue)
+			//}
 		}
 	case constant.Del_dev_user: // 删除设备用户
 		{
