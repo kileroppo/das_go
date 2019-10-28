@@ -2,14 +2,13 @@ package feibee2srv
 
 import (
 	"encoding/json"
-	"strconv"
 	"errors"
+	"strconv"
 	"time"
 
 	"../core/entity"
 	"../core/log"
 	"../rmq/producer"
-
 )
 
 type MsgType int32
@@ -28,6 +27,7 @@ const (
 	//特殊设备
 	SensorAlarm      //传感器报警
 	InfraredTreasure //红外宝
+	WonlyLGuard      //小卫士
 )
 
 type MsgHandler interface {
@@ -57,12 +57,18 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 
 	case InfraredTreasure:
 		msgHandle = InfraredTreasureHandle{
+			data:    data,
+			msgType: typ,
+		}
+
+	case WonlyLGuard:
+		msgHandle = WonlyGuardHandle{
 			data: data,
 			msgType:typ,
 		}
 
 	default:
-		return nil
+		msgHandle = nil
 	}
 
 	return
@@ -72,7 +78,11 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 	typ = -1
 	switch data.Code {
 	case 3:
-		typ = NewDev
+		if data.Msg[0].Deviceid == 779 {
+			typ = WonlyLGuard
+		} else {
+			typ = NewDev
+		}
 	case 4:
 		typ = DevOnline
 	case 5:
@@ -84,40 +94,14 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 	case 32:
 		typ = GtwOnline
 	case 2:
-		if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
+		if data.Records[0].Deviceid == 779 {
+			//小卫士
+			typ = WonlyLGuard
+		} else if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
 			typ = ManualOpDev
-		}
-
-		if data.Records[0].Cid == 1280 && data.Records[0].Aid == 128 {
+		} else if isDevAlarm(data) {
 			typ = SensorAlarm
-		}
-
-		if data.Records[0].Cid == 1024 && data.Records[0].Aid == 0 {
-			//光照度上报
-			typ = SensorAlarm
-		}
-
-		if data.Records[0].Cid == 1026 && data.Records[0].Aid == 0 {
-			//温度上报
-			typ = SensorAlarm
-		}
-
-		if data.Records[0].Cid == 1029 && data.Records[0].Aid == 0 {
-			//湿度上报
-			typ = SensorAlarm
-		}
-
-		if (data.Records[0].Cid == 1 && data.Records[0].Aid == 33) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 53) {
-			//电量上报
-			typ = SensorAlarm
-		}
-
-		if (data.Records[0].Cid == 1 && data.Records[0].Aid == 32) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 62) {
-			//电压上报
-			typ = SensorAlarm
-		}
-
-		if data.Records[0].Cid == 0 && data.Records[0].Aid == 16394 {
+		} else if data.Records[0].Cid == 0 && data.Records[0].Aid == 16394 {
 			//红外宝
 			typ = InfraredTreasure
 		}
@@ -227,7 +211,7 @@ type RemoteOpMsgHandle struct {
 }
 
 type InfraredTreasureHandle struct {
-	data entity.FeibeeData
+	data    entity.FeibeeData
 	msgType MsgType
 }
 
@@ -274,7 +258,7 @@ func (self InfraredTreasureHandle) pushMsgByType() {
 			log.Debug("红外宝 匹配上报")
 			data.OpType = "devMatch"
 			data.OpValue = self.getMatchResult()
-			if err := self.push2app(data,bindid); err != nil {
+			if err := self.push2app(data, bindid); err != nil {
 				log.Error("InfraredTreasureHandle.pushMsgByType() error = ", err)
 			}
 			return
@@ -284,7 +268,7 @@ func (self InfraredTreasureHandle) pushMsgByType() {
 			log.Debug("红外宝 学习上报")
 			data.OpType = "devTrain"
 			data.OpValue = self.getTrainResult()
-			if err := self.push2app(data,bindid); err != nil {
+			if err := self.push2app(data, bindid); err != nil {
 				log.Error("InfraredTreasureHandle.pushMsgByType() error = ", err)
 			}
 			return
@@ -303,7 +287,7 @@ func (self InfraredTreasureHandle) push2app(data entity.Feibee2AppMsg, bindid st
 		return err
 	}
 
-	rawData,err := json.Marshal(data)
+	rawData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
@@ -352,6 +336,90 @@ func (self InfraredTreasureHandle) parseValue(start, end int) (res string) {
 		res = "2"
 	}
 	return
+}
+
+type WonlyGuardHandle struct {
+	data entity.FeibeeData
+	msgType MsgType
+}
+
+func (self WonlyGuardHandle) pushMsgByType() {
+
+	switch self.data.Code {
+    //设备入网
+	case 3:
+		msg2pms := self.createMsg2PMS()
+		data2pms,err := json.Marshal(msg2pms)
+		if err != nil {
+			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
+		} else {
+			producer.SendMQMsg2PMS(string(data2pms))
+		}
+
+		msg2app := self.createMsg2App()
+		data2app,err := json.Marshal(msg2app)
+		routingKey := self.data.Msg[0].Bindid + ".hz.app"
+		if err != nil {
+			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
+		} else {
+			producer.SendGuardMsg2APP(routingKey, data2app)
+		}
+
+	case 2:
+		msg2db := self.createMsg2DB()
+		data2db,err := json.Marshal(msg2db)
+		if err != nil {
+			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
+		} else {
+			producer.SendMQMsg2Db(string(data2db))
+		}
+	}
+}
+
+func (self WonlyGuardHandle) PushMsg() {
+	self.pushMsgByType()
+}
+
+func (self WonlyGuardHandle) createMsg2PMS() (res entity.Feibee2PMS){
+	return createMsg2pms(self.data, self.msgType)
+}
+
+func (self WonlyGuardHandle) createMsg2DB() (res entity.Feibee2DBMsg) {
+	res.Cmd = 0xfb
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Time = int(time.Now().Unix())
+	res.Battery = 0xff
+
+	res.Devid = self.data.Records[0].Uuid
+	res.Deviceuid = self.data.Records[0].Deviceuid
+
+	res.OpType = "WonlyGuard"
+	res.OpValue = self.data.Records[0].Value
+
+	res.Bindid = self.data.Records[0].Bindid
+	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+
+	return res
+}
+
+func (self WonlyGuardHandle) createMsg2App() (res entity.Feibee2AppMsg) {
+	res.Cmd = 0xfb
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Time = int(time.Now().Unix())
+
+	res.Battery = self.data.Msg[0].Battery
+	res.Devid = self.data.Msg[0].Uuid
+	res.Deviceuid = self.data.Msg[0].Deviceuid
+	res.Online = self.data.Msg[0].Online
+	res.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
+
+	res.OpType = "newDevice"
+
+	return res
 }
 
 func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, bindid string) {
@@ -429,7 +497,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 
 	switch msgType {
 
-	case NewDev, DevOnline, DevDelete, DevRename, RemoteOpDev:
+	case NewDev, DevOnline, DevDelete, DevRename, RemoteOpDev, WonlyLGuard:
 		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
 		res.DevId = data.Msg[0].Uuid
 		res.Msg = []entity.FeibeeDevMsg{data.Msg[0]}
@@ -482,4 +550,34 @@ func devTypeConv(devId, zoneType int) string {
 		}
 	}
 	return "0x" + pre + tail
+}
+
+func isDevAlarm(data entity.FeibeeData) bool {
+	
+	if data.Records[0].Cid == 1280 && data.Records[0].Aid == 128 {
+		return true
+	}
+	
+	if data.Records[0].Cid == 1024 && data.Records[0].Aid == 0 {
+		//光照度上报
+		return true
+	} 
+	if data.Records[0].Cid == 1026 && data.Records[0].Aid == 0 {
+		//温度上报
+		return true
+	}
+	if data.Records[0].Cid == 1029 && data.Records[0].Aid == 0 {
+		//湿度上报
+		return true
+	}
+	if (data.Records[0].Cid == 1 && data.Records[0].Aid == 33) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 53) {
+		//电量上报
+		return true
+	}
+	if (data.Records[0].Cid == 1 && data.Records[0].Aid == 32) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 62) {
+		//电压上报
+		return true
+	}
+
+	return false
 }
