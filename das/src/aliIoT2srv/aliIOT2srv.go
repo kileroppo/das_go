@@ -2,7 +2,8 @@ package aliIot2srv
 
 import (
 	"context"
-		"github.com/dlintw/goconf"
+
+	"github.com/dlintw/goconf"
 
 	"../core/entity"
 	"../core/h2client"
@@ -12,12 +13,12 @@ import (
 
 type AliIOTSrv struct {
 	rawUrl string
-	topic string
+	topic  string
 
-	appKey string
+	appKey    string
 	appSecret string
 
-	ctx context.Context
+	ctx    context.Context
 	cancel context.CancelFunc
 }
 
@@ -60,44 +61,42 @@ func (a *AliIOTSrv) Shutdown() {
 	log.Info("AliIOTSrv closed")
 }
 
-
 func NewAliIOT2Srv(conf *goconf.ConfigFile) *AliIOTSrv {
 	ctx, cancel := context.WithCancel(context.Background())
 
-	rawUrl,err := conf.GetString("aliIoT2http2", "ali_url")
+	rawUrl, err := conf.GetString("aliIoT2http2", "ali_url")
 	if err != nil {
 		log.Error("get-aliIoT2http2-endPoint error = ", err)
 		return nil
 	}
 
-	topic,err := conf.GetString("aliIoT2http2", "topic")
+	topic, err := conf.GetString("aliIoT2http2", "topic")
 	if err != nil {
 		log.Error("get-aliIoT2http2-topic error = ", err)
 		return nil
 	}
 
-	appKey,err := conf.GetString("aliIoT2http2", "appKey")
+	appKey, err := conf.GetString("aliIoT2http2", "appKey")
 	if err != nil {
 		log.Error("get-aliIoT2http2-topic error = ", err)
 		return nil
 	}
 
-	appSecret,err := conf.GetString("aliIoT2http2", "appSecret")
+	appSecret, err := conf.GetString("aliIoT2http2", "appSecret")
 	if err != nil {
 		log.Error("get-aliIoT2http2-topic error = ", err)
 		return nil
 	}
-
 
 	return &AliIOTSrv{
-		ctx:ctx,
-		cancel:cancel,
+		ctx:    ctx,
+		cancel: cancel,
 
-		rawUrl:rawUrl,
-		topic:topic,
+		rawUrl: rawUrl,
+		topic:  topic,
 
-		appKey:appKey,
-		appSecret:appSecret,
+		appKey:    appKey,
+		appSecret: appSecret,
 	}
 }
 

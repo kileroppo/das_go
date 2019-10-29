@@ -17,13 +17,13 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"context"
 
 	"golang.org/x/net/http/httpguts"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
 
 	"../log"
-	"context"
 )
 
 const (
