@@ -12,11 +12,13 @@ import (
 	"./telecom2srv"
 	"./wifi2srv"
 	"./feibee2srv"
+	"./aliIoT2srv"
 	"flag"
 	"github.com/dlintw/goconf"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
 func main() {
@@ -70,6 +72,9 @@ func main() {
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
+	// 启动ali IOT推送接收服务
+	aliIot2srv.AliIOT2SrvStart(conf)
+
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -100,6 +105,8 @@ SERVER_EXIT:
 		}
 	}
 
+	aliIot2srv.Shutdown()
+
 	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
@@ -126,6 +133,8 @@ SERVER_EXIT:
 
 	// 21. 停止定时器
 	dindingtask.StopMyTimer()
+
+	time.Sleep(3*time.Second)
 
 	log.Info("das_go server quit......")
 }
