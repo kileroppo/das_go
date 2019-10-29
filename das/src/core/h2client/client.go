@@ -26,11 +26,6 @@ import (
 	"context"
 )
 
-var (
-	appKey    = "27912450"
-	appSecret = "062013d6ddb42f2af80d44b54146922e"
-)
-
 const (
 	ClientPreface = "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 )
@@ -118,7 +113,7 @@ func (h2 *H2Client) SetHeader(key, value string) {
 	h2.request.Header.Set(key, value)
 }
 
-func (h2 *H2Client) SetAliHeader() {
+func (h2 *H2Client) SetAliHeader(appKey,appSecret string) {
 	request := h2.request
 	random := rand.Int63()
 	signContent := "random=" + strconv.FormatInt(random, 10)

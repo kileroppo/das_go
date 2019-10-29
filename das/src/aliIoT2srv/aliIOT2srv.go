@@ -2,9 +2,7 @@ package aliIot2srv
 
 import (
 	"context"
-	"time"
-
-	"github.com/dlintw/goconf"
+		"github.com/dlintw/goconf"
 
 	"../core/entity"
 	"../core/h2client"
@@ -12,29 +10,30 @@ import (
 	"../core/log"
 )
 
-var (
-	URL    = "https://ilop.iot-as-http2.cn-shanghai.aliyuncs.com"
-	Topic  = "/message/ack"
-	ctx    context.Context
-	cancel context.CancelFunc
-)
+type AliIOTSrv struct {
+	rawUrl string
+	topic string
 
-func init() {
-	ctx, cancel = context.WithCancel(context.Background())
+	appKey string
+	appSecret string
+
+	ctx context.Context
+	cancel context.CancelFunc
 }
 
-func AliIOT2SrvStart(conf *goconf.ConfigFile) {
+func (a *AliIOTSrv) Run() {
+
 	go func() {
 		for {
 			select {
-			case <-ctx.Done():
+			case <-a.ctx.Done():
 				close(h2client.AliDataCh)
 				return
 			default:
-				err := conn(URL, Topic)
+				err := a.conn()
 				if err != nil {
-					log.Warning("重连中...")
-					time.Sleep(time.Second * 3)
+					log.Warning("AliIOTSrv重连中...")
+					//time.Sleep(time.Second * 3)
 					continue
 				}
 			}
@@ -47,17 +46,59 @@ func AliIOT2SrvStart(conf *goconf.ConfigFile) {
 		}
 		log.Debug("AliDataCh close")
 	}()
+
 }
 
-func conn(addr, topic string) error {
-	h2 := h2client.Newh2Client(ctx)
-	h2.SetAliHeader()
-	return h2.Get(addr + topic)
+func (a AliIOTSrv) conn() error {
+	h2 := h2client.Newh2Client(a.ctx)
+	h2.SetAliHeader(a.appKey, a.appSecret)
+	return h2.Get(a.rawUrl + a.topic)
 }
 
-func Shutdown() {
-	cancel()
-	log.Info("AliIOT2Srv closed")
+func (a *AliIOTSrv) Shutdown() {
+	a.cancel()
+	log.Info("AliIOTSrv closed")
+}
+
+
+func NewAliIOT2Srv(conf *goconf.ConfigFile) *AliIOTSrv {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	rawUrl,err := conf.GetString("aliIoT2http2", "ali_url")
+	if err != nil {
+		log.Error("get-aliIoT2http2-endPoint error = ", err)
+		return nil
+	}
+
+	topic,err := conf.GetString("aliIoT2http2", "topic")
+	if err != nil {
+		log.Error("get-aliIoT2http2-topic error = ", err)
+		return nil
+	}
+
+	appKey,err := conf.GetString("aliIoT2http2", "appKey")
+	if err != nil {
+		log.Error("get-aliIoT2http2-topic error = ", err)
+		return nil
+	}
+
+	appSecret,err := conf.GetString("aliIoT2http2", "appSecret")
+	if err != nil {
+		log.Error("get-aliIoT2http2-topic error = ", err)
+		return nil
+	}
+
+
+	return &AliIOTSrv{
+		ctx:ctx,
+		cancel:cancel,
+
+		rawUrl:rawUrl,
+		topic:topic,
+
+		appKey:appKey,
+		appSecret:appSecret,
+	}
 }
 
 type AliIOTJob struct {
