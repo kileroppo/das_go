@@ -73,7 +73,8 @@ func main() {
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	// 启动ali IOT推送接收服务
-	aliIot2srv.AliIOT2SrvStart(conf)
+	aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
+	aliIOTsrv.Run()
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -104,8 +105,8 @@ SERVER_EXIT:
 			break SERVER_EXIT
 		}
 	}
-
-	aliIot2srv.Shutdown()
+    //停止ali消息接收
+	aliIOTsrv.Shutdown()
 
 	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
@@ -134,7 +135,7 @@ SERVER_EXIT:
 	// 21. 停止定时器
 	dindingtask.StopMyTimer()
 
-	time.Sleep(3*time.Second)
+	time.Sleep(1*time.Second)
 
 	log.Info("das_go server quit......")
 }
