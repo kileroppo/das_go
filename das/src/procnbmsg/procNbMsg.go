@@ -420,30 +420,35 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Noatmpt_alarm")
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(DValue)
+			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Forced_break_alarm: // 强拆报警
 		{
 			log.Info("[", head.DevId, "] constant.Forced_break_alarm")
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(DValue)
+			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Fakelock_alarm: // 假锁报警
 		{
 			log.Info("[", head.DevId, "] constant.Fakelock_alarm")
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(DValue)
+			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Nolock_alarm: // 门未关报警
 		{
 			log.Info("[", head.DevId, "] constant.Nolock_alarm")
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(DValue)
+			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Low_battery_alarm: // 锁体的电池，低电量报警
 		{
 			log.Info("[", head.DevId, "] constant.Low_battery_alarm")
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(DValue)
+			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Infrared_alarm: // 人体感应报警（infra红外感应)
 		{
@@ -451,8 +456,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//1. 需要存到mongodb
 			producer.SendMQMsg2Db(DValue)
-			//可能触发场景，发送给PMS
-			producer.SendMQMsg2PMS(DValue)
+			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Lock_PIC_Upload: // 视频锁图片上报
 		{
@@ -636,4 +640,42 @@ func ProcessNbMsg(DValue string, Imei string) error {
 	}
 
 	return nil
+}
+
+func sendMsg2pmsForSceneTrigger(head entity.Header) {
+	var msg entity.FeibeeAutoScene2pmsMsg
+
+	msg.Cmd = 0xf1
+	msg.Ack = 0
+	msg.DevType = head.DevType
+	msg.Devid = head.DevId
+
+	msg.TriggerType = 0
+	msg.Time = int(time.Now().Unix())
+	msg.AlarmType = "NBLock"
+
+	switch head.Cmd {
+	case constant.Noatmpt_alarm:
+		msg.AlarmValue = "非法操作报警"
+	case constant.Forced_break_alarm:
+		msg.AlarmValue = "强拆报警"
+	case constant.Fakelock_alarm:
+		msg.AlarmValue = "假锁报警"
+	case constant.Nolock_alarm:
+		msg.AlarmValue = "门未关报警"
+	case constant.Low_battery_alarm:
+		msg.AlarmValue = "低压报警"
+	case constant.Infrared_alarm:
+		msg.AlarmValue = "人体感应报警"
+	default:
+		return
+	}
+
+	data,err := json.Marshal(msg)
+	if err != nil {
+		log.Warning("createMsg2pmsForSceneTrigger json.Marshal() error = ", err)
+		return
+	}
+
+	producer.SendMQMsg2PMS(string(data))
 }
