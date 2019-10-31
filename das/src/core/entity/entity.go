@@ -332,6 +332,8 @@ type FeibeeAlarm2AppMsg struct {
 
 	AlarmType  string `json:"alarmType"`
 	AlarmValue string `json:"alarmValue"`
+
+	Bindid     string `json:"bindid"`
 }
 
 //feibee传感器报警消息 作为自动场景触发消息(推送给pms)
@@ -344,10 +346,11 @@ type FeibeeAutoScene2pmsMsg struct {
 	SeqId   int    `json:"seqId"`
 	Time    int    `json:"time"`
 
-	TriggerType  int    `json:"triggerT"`
-	TriggerValue string `json:"triggerValue"`
-	SceneId      string `json:"sceneId"`
-	Zone         string `json:"zone"`
+	TriggerType int    `json:"triggerT"`
+	AlarmValue  string `json:"alarmValue"`
+	AlarmType   string `json:"alarmType"`
+	SceneId     string `json:"sceneId"`
+	Zone        string `json:"zone"`
 }
 
 type AliRawData struct {
