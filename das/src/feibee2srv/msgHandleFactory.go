@@ -28,6 +28,7 @@ const (
 	SensorAlarm      //传感器报警
 	InfraredTreasure //红外宝
 	WonlyLGuard      //小卫士
+	SceneSwitch      //情景开关
 )
 
 type MsgHandler interface {
@@ -67,6 +68,11 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 			msgType:typ,
 		}
 
+	case SceneSwitch:
+		msgHandle = SceneSwitchHandle{
+			data:data,
+		}
+
 	default:
 		msgHandle = nil
 	}
@@ -104,6 +110,9 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 		} else if data.Records[0].Cid == 0 && data.Records[0].Aid == 16394 {
 			//红外宝
 			typ = InfraredTreasure
+		} else if data.Records[0].Cid == 61680 && data.Records[0].Aid == 61680 {
+			//情景开关触发
+			typ = SceneSwitch
 		}
 	}
 	return
@@ -170,39 +179,13 @@ type SensorMsgHandle struct {
 }
 
 func (self SensorMsgHandle) PushMsg() {
-	devAlarm := NewDevAlarm(self.data, 0)
+	devAlarm := DevAlarmFactory(self.data)
 	if devAlarm == nil {
 		log.Error("该报警设备类型未支持")
 		return
 	}
 
-	datas, err := devAlarm.GetMsg2app(0)
-	if err != nil {
-		log.Error("alarmMsg2app error = ", err)
-		return
-	}
-
-	if len(datas) <= 0 {
-		return
-	}
-
-	for _, data := range datas {
-		if len(data) > 0 {
-			//producer.SendMQMsg2APP(self.data.Records[0].Bindid, string(data))
-			producer.SendMQMsg2Db(string(data))
-			producer.SendMQMsg2PMS(string(data))
-		}
-	}
-
-	//报警设备作为触发设备
-	data2pms, err := json.Marshal(createSceneMsg2pms(self.data, devAlarm.GetAlarmValue()))
-	if err != nil {
-		log.Error("One Msg push2pms() error = ", err)
-	} else {
-		producer.SendMQMsg2PMS(string(data2pms))
-	}
-
-	return
+	devAlarm.PushMsg()
 }
 
 type RemoteOpMsgHandle struct {
@@ -422,6 +405,27 @@ func (self WonlyGuardHandle) createMsg2App() (res entity.Feibee2AppMsg) {
 	return res
 }
 
+type SceneSwitchHandle struct {
+	data entity.FeibeeData
+}
+
+func (self SceneSwitchHandle) PushMsg() {
+
+	sceneMsg2pms := self.createSceneMsg2pms()
+	sceneData2pms,err := json.Marshal(sceneMsg2pms)
+	if err != nil {
+		log.Warning("SceneSwitchHandle sceneMsg2pms json.Marshal() error = ", err)
+	} else {
+		producer.SendMQMsg2PMS(string(sceneData2pms))
+	}
+}
+
+func (self SceneSwitchHandle) createSceneMsg2pms() (res entity.FeibeeAutoScene2pmsMsg) {
+	//情景开关作为无触发值的触发设备
+    res = createSceneMsg2pms(self.data, "", "sceneSwitch")
+    return
+}
+
 func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, bindid string) {
 	res.Cmd = 0xfb
 	res.Ack = 0
@@ -518,7 +522,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 	return
 }
 
-func createSceneMsg2pms(data entity.FeibeeData, alarmValue string) (res entity.FeibeeAutoScene2pmsMsg) {
+func createSceneMsg2pms(data entity.FeibeeData, alarmValue,alarmType string) (res entity.FeibeeAutoScene2pmsMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -526,8 +530,9 @@ func createSceneMsg2pms(data entity.FeibeeData, alarmValue string) (res entity.F
 	res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
 	res.Devid = data.Records[0].Uuid
 	res.TriggerType = 0
-	res.Zone = "hz"
-	res.TriggerValue = alarmValue
+
+	res.AlarmValue = alarmValue
+	res.AlarmType = alarmType
 
 	return
 }
