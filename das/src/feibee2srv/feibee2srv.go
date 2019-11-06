@@ -74,15 +74,13 @@ func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 func FeibeeHandler(res http.ResponseWriter, req *http.Request) {
 
-	if req.Method != "POST" {
-		log.Debug("feibee推送的http方法不匹配")
-	} else {
-		rawData, err := ioutil.ReadAll(req.Body)
+	rawData, err := ioutil.ReadAll(req.Body)
+	defer req.Body.Close()
 
-		if err != nil {
-			log.Error("get feibee http Body failed")
-		} else {
-			jobque.JobQueue <- NewFeibeeJob(rawData)
-		}
+	if err != nil {
+		log.Error("get feibee http Body failed")
+	} else {
+		jobque.JobQueue <- NewFeibeeJob(rawData)
 	}
+
 }

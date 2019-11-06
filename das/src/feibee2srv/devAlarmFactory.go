@@ -61,6 +61,11 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 
 				//烟雾传感器
 			case 0x0028:
+				res = &SmokeSensorAlarm{
+					BaseSensorAlarm{
+						feibeeMsg:feibeeData,
+					},
+				}
 
 				//水浸传感器
 			case 0x002A:
@@ -342,6 +347,23 @@ func (self *FloodSensorAlarm) PushMsg() {
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无水"
 		self.alarmType = "flood"
+	}
+
+	self.BaseSensorAlarm.PushMsg()
+}
+
+type SmokeSensorAlarm struct {
+	BaseSensorAlarm
+}
+
+func (self *SmokeSensorAlarm) PushMsg() {
+	self.parseAlarmMsg()
+	if self.alarmType == "1" {
+		self.alarmVal = "有烟"
+		self.alarmType = "smoke"
+	} else if self.alarmType == "0" {
+		self.alarmVal = "无烟"
+		self.alarmType = "smoke"
 	}
 
 	self.BaseSensorAlarm.PushMsg()
