@@ -469,7 +469,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Upload_lock_active")
 
 			//1. 解析锁激活上报包
-			var lockActive entity.DeviceActive
+			var lockActive entity.DeviceActiveResp
 			if err_lockActive := json.Unmarshal([]byte(DValue), &lockActive); err_lockActive != nil {
 				log.Error("[", head.DevId, "] entity.Upload_lock_active json.Unmarshal, err_lockActive=", err_lockActive)
 				break

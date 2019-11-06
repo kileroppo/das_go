@@ -178,6 +178,16 @@ func ECBEncrypt(rawData, key []byte) (string, error) {
 	return base64.StdEncoding.EncodeToString(data), nil
 }
 
+func ECBEncryptByte(rawData, key []byte) ([]byte, error) {
+	data, err := aesECBEncrypt(rawData, key)
+	// fmt.Printf("%02x\n", data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func CBCDecrypt(rawData string, key []byte) (string, error) {
 	data, err := base64.StdEncoding.DecodeString(rawData)
 	// data, err := hex.DecodeString(rawData)
@@ -203,4 +213,18 @@ func ECBDecrypt(rawData string, key []byte) (string, error) {
 		return "", err
 	}
 	return string(dnData), nil
+}
+
+func ECBDecryptByte(rawData []byte, key []byte) ([]byte, error) {
+	// data, err := base64.StdEncoding.DecodeString(rawData)
+	/*data, err := hex.DecodeString(rawData)
+	if err != nil {
+		return nil, err
+	}*/
+
+	dnData, err := aesECBDecrypt(rawData, key)
+	if err != nil {
+		return nil, err
+	}
+	return dnData, nil
 }
