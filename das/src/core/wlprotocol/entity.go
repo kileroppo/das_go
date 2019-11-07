@@ -186,7 +186,7 @@ type OpenLockMsg struct {
 //19. 在线离线(0x46)(后板-->服务器)
 type OnOffLine struct {
 	OnOff uint8		// 标志:0:离线;1在线
-	Time int32		// 时间戳
+	// Time int32		// 时间戳 TODO:JHHE 去掉时间
 }
 
 //20. 远程开锁命令(0x52)(服务器->前板)

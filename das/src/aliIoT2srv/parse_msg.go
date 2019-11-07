@@ -687,7 +687,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Upload_lock_active:	// 在线离线(0x46)(后板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Lock_PIC_Upload")
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_lock_active")
 		pdu := &wlprotocol.OnOffLine{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -705,7 +705,7 @@ func parseData(hexData string) error {
 			SeqId: int(wlMsg.SeqId),
 		}
 		if 1 == pdu.OnOff {
-			deviceActive.Time = pdu.Time
+			deviceActive.Time = 1
 		} else {
 			deviceActive.Time = 0
 		}

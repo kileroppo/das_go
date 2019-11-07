@@ -668,10 +668,11 @@ func (pdu *OnOffLine) Decode(bBody []byte, uuid string) error {
 		log.Error("binary.Read failed:", err)
 		return err
 	}
+	/*TODO:JHHE
 	if err = binary.Read(buf, binary.BigEndian, &pdu.Time); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
-	}
+	}*/
 
 	return err
 }
