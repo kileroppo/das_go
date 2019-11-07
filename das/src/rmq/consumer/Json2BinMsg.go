@@ -25,7 +25,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		Cmd: uint8(head.Cmd),			// 命令
 		Ack: uint8(head.Ack),			// 回应标志
 		Type: 1,						// 设备类型
-		DevId: wlprotocol.DeviceId{
+		DevId: wlprotocol.DeviceId{		// 设备编号
 			Len: uint8(len(head.DevId)),
 			Uuid: head.DevId,
 		},
