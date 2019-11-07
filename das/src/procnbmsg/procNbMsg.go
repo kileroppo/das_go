@@ -9,6 +9,7 @@ import (
 	"../core/util"
 	"../rmq/producer"
 	"../upgrade"
+	"strconv"
 
 	"bytes"
 	"encoding/binary"
@@ -207,7 +208,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			toDev.SeqId = 0
 			toDev.ParaNo = 7
 			toDev.PaValue = t.Unix()
-			toDev.Time = int32(t.Unix())
+			toDev.Time = strconv.Itoa(int(t.Unix()))
 			if toDevice_byte, err := json.Marshal(toDev); err == nil {
 				log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, constant.Set_dev_para to device, ", string(toDevice_byte))
 				var strToDevData string
