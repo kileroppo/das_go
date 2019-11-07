@@ -12,8 +12,7 @@ import (
 	"./telecom2srv"
 	"./wifi2srv"
 	"./feibee2srv"
-	"./aliIoT2srv"
-	"flag"
+		"flag"
 	"github.com/dlintw/goconf"
 	"os"
 	"os/signal"
@@ -73,8 +72,8 @@ func main() {
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	// 启动ali IOT推送接收服务
-	aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliIOTsrv.Run()
+	//aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
+	//aliIOTsrv.Run()
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -106,7 +105,7 @@ SERVER_EXIT:
 		}
 	}
     //停止ali消息接收
-	aliIOTsrv.Shutdown()
+	//aliIOTsrv.Shutdown()
 
 	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
