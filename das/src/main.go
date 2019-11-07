@@ -1,7 +1,6 @@
 package main
 
 import (
-	"./aliIoT2srv"
 	"./andlink2srv"
 	"./core/log"
 	"./core/rabbitmq"
@@ -13,6 +12,7 @@ import (
 	"./rmq/producer"
 	"./telecom2srv"
 	"./wifi2srv"
+	"./aliIoT2srv"
 	"flag"
 	"github.com/dlintw/goconf"
 	"os"
