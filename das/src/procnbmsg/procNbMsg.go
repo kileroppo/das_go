@@ -22,7 +22,7 @@ import (
 
 func ProcessNbMsg(DValue string, Imei string) error {
 	// 处理OneNET推送过来的消息
-	log.Info("ProcessNbMsg msg from before: ", DValue)
+	log.Info("[", Imei, "] ProcessNbMsg msg from before: ", DValue)
 
 	myKey := util.MD52Bytes(Imei)
 
@@ -30,7 +30,6 @@ func ProcessNbMsg(DValue string, Imei string) error {
 	// 1、 获取包头部分 8个字节
 	var myHead entity.MyHeader
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
-		log.Debug("[", Imei, "] get aes data: ", DValue)
 		lens := strings.Count(DValue, "") - 1
 		if lens < 16 {
 			log.Error("[", Imei, "] ProcessNbMsg() error msg : ", DValue, ", len: ", lens)
@@ -113,10 +112,10 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				break
 			}
 
-			if 1 == addUserStep.StepState {
-				// 回复到APP
-				producer.SendMQMsg2APP(head.DevId, DValue)
-			}
+			//if 1 == addUserStep.StepState {
+			// 回复到APP
+			producer.SendMQMsg2APP(head.DevId, DValue)
+			//}
 		}
 	case constant.Del_dev_user: // 删除设备用户
 		{
@@ -470,7 +469,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Upload_lock_active")
 
 			//1. 解析锁激活上报包
-			var lockActive entity.DeviceActive
+			var lockActive entity.DeviceActiveResp
 			if err_lockActive := json.Unmarshal([]byte(DValue), &lockActive); err_lockActive != nil {
 				log.Error("[", head.DevId, "] entity.Upload_lock_active json.Unmarshal, err_lockActive=", err_lockActive)
 				break

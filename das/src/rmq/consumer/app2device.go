@@ -62,7 +62,7 @@ func ReceiveMQMsgFromAPP() {
 		forever := make(chan bool)
 		go func() {
 			for d := range msgs {
-				log.Error("Consumer ReceiveMQMsgFromAPP 1: ", string(d.Body))
+				log.Error("Consumer ReceiveMQMsgFromAPP: ", string(d.Body))
 				// fetch job
 				// work := Job{appMsg: AppMsg{pri: string(d.Body)}}
 				jobque.JobQueue <- NewConsumerJob(string(d.Body))

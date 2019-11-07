@@ -9,6 +9,7 @@ import (
 	"../core/h2client"
 	"../core/jobque"
 	"../core/log"
+	"../core/httpgo"
 )
 
 type AliIOTSrv struct {
@@ -87,6 +88,8 @@ func NewAliIOT2Srv(conf *goconf.ConfigFile) *AliIOTSrv {
 		log.Error("get-aliIoT2http2-topic error = ", err)
 		return nil
 	}
+
+	httpgo.InitAliIoTConfig(appKey, appSecret)
 
 	return &AliIOTSrv{
 		ctx:    ctx,

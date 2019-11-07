@@ -47,6 +47,7 @@ const (
 	// Factory_reset = 0x75		// 恢复出厂设置
 	Factory_reset   = 0xEA // 恢复出厂设置
 	Upload_open_log = 0x40 // 门锁开门日志上报
+	Uplocal_open_log = 0x42 // 用户进入菜单-门锁开门日志上报
 
 	// 报警
 	Noatmpt_alarm      = 0x20 // 非法操作报警
@@ -90,6 +91,7 @@ const (
 	TELECOM_PLATFORM = "telecom"
 	ANDLINK_PLATFORM = "andlink"
 	WIFI_PLATFORM    = "wifi"
+	ALIIOT_PLATFORM = "aliIoT"
 )
 
 // 电信平台订阅消息类型

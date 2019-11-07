@@ -9,7 +9,6 @@ import (
 	"../core/redis"
 	"../procnbmsg"
 	"../rmq/producer"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/dlintw/goconf"
@@ -68,7 +67,7 @@ func NewOnenetJob(rawData []byte) OnenetJob {
 }
 
 func (o OnenetJob) Handle() {
-	log.Debug("onenet2srv.Handle() get: ", bytes.NewBuffer(o.rawData).String())
+	// log.Debug("onenet2srv.Handle() get: ", bytes.NewBuffer(o.rawData).String())
 
 	// 1、解析OneNET消息
 	var data entity.OneNETData
@@ -103,7 +102,8 @@ func (o OnenetJob) Handle() {
 			toApp.Vendor = ""
 			toApp.DevId = data.Msg.Imei
 			toApp.SeqId = 0
-			toApp.Time = nTime
+			toApp.Signal = 0
+			toApp.Time = int32(nTime)
 
 			if toApp_str, err := json.Marshal(toApp); err == nil {
 				//2. 回复到APP

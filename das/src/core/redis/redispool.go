@@ -213,3 +213,36 @@ func SetDevUserNotePool(devId string, strTime string, userNote string) error {
 
 	return nil
 }
+
+func SetAliIoTtoken(token, expireTime string) (string, error) {
+	// 从池里获取连接
+	rc := RedisClient.Get()
+
+	// 用完后将连接放回连接池
+	defer rc.Close()
+
+	var retPlat string
+	_, err := rc.Do("SET", "ALI_IOT_TOKEN", token, "EX", expireTime)
+	if err != nil {
+		fmt.Println("redis get failed:", err)
+		return "", err
+	}
+
+	return retPlat, nil
+}
+
+func GetAliIoTtoken() (string, error) {
+	// 从池里获取连接
+	rc := RedisClient.Get()
+
+	// 用完后将连接放回连接池
+	defer rc.Close()
+
+	token, err := redis.String(rc.Do("GET", "ALI_IOT_TOKEN"))
+	if err != nil {
+		fmt.Println("redis get failed:", err)
+		return "", err
+	}
+
+	return token, nil
+}

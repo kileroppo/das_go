@@ -20,17 +20,17 @@ import (
 /*
 *	处理APP发送过来的命令消息
 *
- */
+*/
 func ProcAppMsg(appMsg string) error {
-	log.Debug("ProcAppMsg process msg from app: ", appMsg)
+	log.Debug("ProcAppMsg process msg from app.")
 	// 1、解析消息
-	//json str 转struct(部份字段)
 	var head entity.Header
 	if err := json.Unmarshal([]byte(appMsg), &head); err != nil {
 		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		return err
 	}
 
+	//2. 数据干预处理
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
 	switch head.Cmd {
 	case constant.Remote_open: {
@@ -71,37 +71,33 @@ func ProcAppMsg(appMsg string) error {
 	}
 	}
 
-	// 将命令发到OneNET
-	imei := head.DevId
-
-	// 加密数据
-	var toDevHead entity.MyHeader
-	toDevHead.ApiVersion = constant.API_VERSION
-	toDevHead.ServiceType = constant.SERVICE_TYPE
-
-	myKey := util.MD52Bytes(head.DevId)
-	var strToDevData string
-	var err error
-	// if strToDevData, toDevHead.CheckSum, err = util.ECBEncrypt([]byte(p.pri), myKey); err == nil {
-	if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
-		toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-		toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
-
-		buf := new(bytes.Buffer)
-		binary.Write(buf, binary.BigEndian, toDevHead)
-		strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
-	}
-
-	platform, errPlat := redis.GetDevicePlatformPool(imei)
+	platform, errPlat := redis.GetDevicePlatformPool(head.DevId)
 	if errPlat != nil {
 		log.Error("Get Platform from redis failed, err=", errPlat)
 		return errPlat
 	}
 
 	switch platform {
-	case constant.ONENET_PLATFORM:
+	case constant.ONENET_PLATFORM:	// 移动OneNET平台
 		{
-			respStr, err := httpgo.Http2OneNET_write(imei, strToDevData, strconv.Itoa(head.Cmd))
+			// 加密数据
+			var toDevHead entity.MyHeader
+			toDevHead.ApiVersion = constant.API_VERSION
+			toDevHead.ServiceType = constant.SERVICE_TYPE
+
+			myKey := util.MD52Bytes(head.DevId)
+			var strToDevData string
+			var err error
+			if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
+				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+
+				buf := new(bytes.Buffer)
+				binary.Write(buf, binary.BigEndian, toDevHead)
+				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+			}
+
+			respStr, err := httpgo.Http2OneNET_write(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
 			if "" != respStr && nil == err {
 				var respOneNET entity.RespOneNET
 				if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {
@@ -117,6 +113,7 @@ func ProcAppMsg(appMsg string) error {
 					devAct.DevId = head.DevId
 					devAct.Vendor = head.Vendor
 					devAct.SeqId = 0
+					devAct.Signal = 0
 					devAct.Time = 0
 
 					//1. 回复APP，设备离线状态
@@ -128,21 +125,42 @@ func ProcAppMsg(appMsg string) error {
 					}
 
 					//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
-					redis.SetActTimePool(devAct.DevId, devAct.Time)
+					redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
 				}
 			}
 		}
-	case constant.TELECOM_PLATFORM:
+	case constant.TELECOM_PLATFORM: {}	// 电信平台
+	case constant.ANDLINK_PLATFORM: {}	// 移动AndLink平台
+	case constant.WIFI_PLATFORM:		// WiFi平板锁
 		{
+			// 加密数据
+			var toDevHead entity.MyHeader
+			toDevHead.ApiVersion = constant.API_VERSION
+			toDevHead.ServiceType = constant.SERVICE_TYPE
 
-		}
-	case constant.ANDLINK_PLATFORM:
-		{
+			myKey := util.MD52Bytes(head.DevId)
+			var strToDevData string
+			var err error
+			if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
+				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
+				buf := new(bytes.Buffer)
+				binary.Write(buf, binary.BigEndian, toDevHead)
+				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+			}
+
+			producer.SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
 		}
-	case constant.WIFI_PLATFORM:
+	case constant.ALIIOT_PLATFORM:	// 阿里云飞燕平台
 		{
-			producer.SendMQMsg2Device(imei, strToDevData, strconv.Itoa(head.Cmd))
+			bData, err_ := WlJson2BinMsg(appMsg)
+			if nil != err_ {
+				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
+				return err_
+			}
+
+			httpgo.HttpSetAliPro(head.DevId, hex.EncodeToString(bData), strconv.Itoa(head.Cmd))
 		}
 	default:
 		{
