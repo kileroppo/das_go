@@ -53,7 +53,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 			MainOpen: addDevUser.MainOpen,		// 主开锁方式，开锁方式：附表开锁方式，如果该字段是0，表示删除该用户
 			SubOpen: addDevUser.SubOpen,		// 是否胁迫，是否胁迫：0-正常，1-胁迫
 			UserType: addDevUser.UserType,		// 用户类型(1)，用户类型:  0 - 管理员，1 - 普通用户，2 - 临时用户
-			// Passwd: addDevUser.Passwd,			// 密码(6)，密码开锁方式，目前是6个字节.如果添加的是其他验证方式,则为0xff.密码位数少于10位时,多余的填0xff
+			// Passwd: addDevUser.Passwd,		// 密码(6)，密码开锁方式，目前是6个字节.如果添加的是其他验证方式,则为0xff.密码位数少于10位时,多余的填0xff
 			UserNote: int32(nRandom),			// 用户别名-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
 			PermitNum: addDevUser.Count,	 	// 允许开门次数
 		}

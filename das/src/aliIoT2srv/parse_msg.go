@@ -579,10 +579,10 @@ func parseData(hexData string) error {
 			Battery: int(pdu.Battery),
 		}
 		var lockLog entity.OpenLockLog
-		lockLog.UserId = pdu.UserNo 			// 设备用户ID
+		lockLog.UserId = pdu.UserNo 		// 设备用户ID
 		lockLog.MainOpen = pdu.MainOpen 	// 主开锁方式（1-密码，2-刷卡，3-指纹）
 		lockLog.SubOpen = pdu.SubOpen   	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-		lockLog.SinMul = pdu.SinMul		// 开门模式（1：表示单人模式, 2：表示双人模式）
+		lockLog.SinMul = pdu.SinMul			// 开门模式（1：表示单人模式, 2：表示双人模式）
 		lockLog.Remainder = pdu.Remainder 	// 0表示成功，1表示失败
 		lockLog.Time = pdu.Time
 		openLogUpload.LogList = append(openLogUpload.LogList, lockLog)

@@ -278,6 +278,8 @@ func (h2 *H2Client) heartBeat() {
 				log.Error("heartBeat() error = ", err)
 				log.Info("重连中...")
 				go h2.do()
+
+				return	// 退出
 			} else {
 				log.Info("heartBeat ...")
 				h2.bw.Flush()
