@@ -71,7 +71,7 @@ type AddDevUserStep struct {
 	SubOpen   int `json:"subOpen"`   // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
 	Step      int `json:"step"`      // 步骤序号（指纹：需要4步，1，2，3，4分别代表上下左右；刷卡：需要1步；密码：需要2步，分别是第一次输入密码和第二次输入密码）
 	StepState int `json:"stepState"` // 0表示成功，1表示失败
-	Time      int `json:"time"`
+	Time      int32 `json:"time"`
 }
 
 //4. 删除设备用户（APP-->后台-->锁）
@@ -237,7 +237,7 @@ type SetDeviceTime struct {
 
 	ParaNo  int   `json:"paraNo"`
 	PaValue int64 `json:"paValue"`
-	Time    int64 `json:"time"`
+	Time    int32 `json:"time"`
 }
 type SetLockParamReq struct {
 	Cmd     int    `json:"cmd"`
@@ -268,11 +268,11 @@ type LockParam struct {
 //11. 主动上报门锁开门消息
 type OpenLockLog struct {
 	UserId    uint16 `json:"userId"`    // 设备用户ID
-	MainOpen  int `json:"mainOpen"`  // 主开锁方式（1-密码，2-刷卡，3-指纹）
-	SubOpen   int `json:"subOpen"`   // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-	SinMul 	  int `json:"sin_mul"`	 // 开门模式（1：表示单人模式, 2：表示双人模式）
-	Remainder int `json:"remainder"` // 0表示成功，1表示失败
-	Time      int `json:"time"`
+	MainOpen  uint8 `json:"mainOpen"`  // 主开锁方式（1-密码，2-刷卡，3-指纹）
+	SubOpen   uint8 `json:"subOpen"`   // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+	SinMul 	  uint8 `json:"sin_mul"`	 // 开门模式（1：表示单人模式, 2：表示双人模式）
+	Remainder uint16 `json:"remainder"` // 0表示成功，1表示失败
+	Time      int32 `json:"time"`
 }
 type UploadOpenLockLog struct {
 	Cmd     int    `json:"cmd"`
@@ -296,7 +296,7 @@ type AlarmMsg struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
-	Time    int    `json:"time"`
+	Time    int32    `json:"time"`
 }
 
 // 低电压告警
@@ -309,7 +309,7 @@ type AlarmMsgBatt struct {
 	SeqId   int    `json:"seqId"`
 
 	Value   int    `json:"value"`		// 电量百分比 低压报警带有电池电压告警
-	Time    int    `json:"time"`
+	Time    int32    `json:"time"`
 }
 
 //13. 锁激活状态上报
@@ -332,7 +332,7 @@ type DeviceActiveResp struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
-	Time int64 `json:"time"`
+	Time int32 `json:"time"`
 }
 
 //14. 实时视频（APP->锁）
@@ -369,7 +369,7 @@ type DoorBellCall struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
-	Time int `json:"time"`
+	Time int32 `json:"time"`
 }
 
 //17. 视频锁图片上报（锁—后台—>APP）

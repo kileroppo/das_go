@@ -67,46 +67,49 @@ func (pdu *SyncDevUserResp) Decode(bBody []byte, uuid string) error {
 
 	var i uint16
 	for  i =0; i < pdu.DevUserNum; i++ {
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].UserType); err != nil {
+		var devUserInfo DevUserInfo
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.UserType); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].UserNo); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.UserNo); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].OpenBitMap); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.OpenBitMap); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].PermitNum); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.PermitNum); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].Remainder); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.Remainder); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].StartDate); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.StartDate); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].EndDate); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.EndDate); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].TimeSlot1); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.TimeSlot1); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].TimeSlot2); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.TimeSlot2); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
-		if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserInfos[i].TimeSlot3); err != nil {
+		if err = binary.Read(buf, binary.BigEndian, &devUserInfo.TimeSlot3); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
+
+		pdu.DevUserInfos = append(pdu.DevUserInfos, devUserInfo)
 	}
 
 	return err

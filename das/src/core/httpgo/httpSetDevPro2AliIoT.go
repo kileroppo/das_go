@@ -5,6 +5,7 @@ import (
 	"../log"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -94,7 +95,8 @@ func getAliIoTCloudToken() (token string, err error) {
 		}
 
 		log.Debug("getAliIoTCloudToken() ", string(body))
-		return "", err1
+		err2 := errors.New("get aliIoT Token failed.")
+		return "", err2
 	}
 
 	return "", nil

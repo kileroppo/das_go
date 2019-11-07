@@ -77,15 +77,27 @@ func NewAliIOT2Srv(conf *goconf.ConfigFile) *AliIOTSrv {
 		return nil
 	}
 
-	appKey, err := conf.GetString("aliIoT2http2", "appKey")
+	appKeyH2, err := conf.GetString("aliIoT2http2", "appKey")
 	if err != nil {
 		log.Error("get-aliIoT2http2-topic error = ", err)
 		return nil
 	}
 
-	appSecret, err := conf.GetString("aliIoT2http2", "appSecret")
+	appSecretH2, err := conf.GetString("aliIoT2http2", "appSecret")
 	if err != nil {
 		log.Error("get-aliIoT2http2-topic error = ", err)
+		return nil
+	}
+
+	appKey, err := conf.GetString("aliIoT2http", "appKey")
+	if err != nil {
+		log.Error("get-aliIoT2http-appKey error = ", err)
+		return nil
+	}
+
+	appSecret, err := conf.GetString("aliIoT2http", "appSecret")
+	if err != nil {
+		log.Error("get-aliIoT2http-appSecret error = ", err)
 		return nil
 	}
 
@@ -98,8 +110,8 @@ func NewAliIOT2Srv(conf *goconf.ConfigFile) *AliIOTSrv {
 		rawUrl: rawUrl,
 		topic:  topic,
 
-		appKey:    appKey,
-		appSecret: appSecret,
+		appKey:    appKeyH2,
+		appSecret: appSecretH2,
 	}
 }
 

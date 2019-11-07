@@ -1,18 +1,18 @@
 package main
 
 import (
+	"./aliIoT2srv"
 	"./andlink2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
 	"./dindingtask"
+	"./feibee2srv"
+	"./onenet2srv"
 	"./rmq/consumer"
 	"./rmq/producer"
-	"./onenet2srv"
 	"./telecom2srv"
 	"./wifi2srv"
-	"./feibee2srv"
-	"./aliIoT2srv"
 	"flag"
 	"github.com/dlintw/goconf"
 	"os"

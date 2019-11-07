@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"../log"
 	"../util"
+	"errors"
 )
 
 /*
@@ -138,7 +139,11 @@ func (msg *WlMessage) PkDecode(pkg []byte) ([]byte, error) {
 	//2. 获取包体
 	var bBody []byte
 	bBody = buf.Next(int(msg.Length))
-
+	checkSum := util.CheckSum(bBody)
+	if msg.Check != checkSum { // 包体校验和
+		log.Error("CheckSum is not Equal, msg.Check=", msg.Check, ", checkSum=", checkSum)
+		return nil, errors.New("CheckSum is not Equal")
+	}
 	if err = binary.Read(buf, binary.BigEndian, &msg.Ended); err != nil {
 		log.Error("binary.Read failed:", err)
 		return nil, err

@@ -95,7 +95,7 @@ func parseData(hexData string) error {
 			SubOpen: int(pdu.SubOpen),
 			Step: int(pdu.StepNo),
 			StepState: int(pdu.StepState),
-			Time: int(pdu.Time),
+			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(addDevUserStep); err == nil {
 			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
@@ -252,16 +252,17 @@ func parseData(hexData string) error {
 		syncDevUser.UserVer = pdu.DevUserVer
 		syncDevUser.Num = int(pdu.DevUserNum)
 		for i:=0;i<syncDevUser.Num;i++ {
-			syncDevUser.UserList[i].UserId = pdu.DevUserInfos[i].UserNo
-			syncDevUser.UserList[i].UserType = int(pdu.DevUserInfos[i].UserType)
-			syncDevUser.UserList[i].Passwd = int(pdu.DevUserInfos[i].OpenBitMap & 0x01)
-			syncDevUser.UserList[i].Card = int(pdu.DevUserInfos[i].OpenBitMap >> 1 & 0x01)
-			syncDevUser.UserList[i].Finger = int((pdu.DevUserInfos[i].OpenBitMap >> 2 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 3 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 4 & 0x01))
-			syncDevUser.UserList[i].Ffinger = int((pdu.DevUserInfos[i].OpenBitMap >> 5 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 6 & 0x01))
-			syncDevUser.UserList[i].Face = int(pdu.DevUserInfos[i].OpenBitMap >> 7 & 0x01)
-			syncDevUser.UserList[i].Bluetooth = int(pdu.DevUserInfos[i].OpenBitMap >> 7 & 0x01)
-			syncDevUser.UserList[i].Count = int(pdu.DevUserInfos[i].PermitNum)
-			syncDevUser.UserList[i].Remainder = int(pdu.DevUserInfos[i].Remainder)
+			var devUser entity.DevUser
+			devUser.UserId = pdu.DevUserInfos[i].UserNo
+			devUser.UserType = int(pdu.DevUserInfos[i].UserType)
+			devUser.Passwd = int(pdu.DevUserInfos[i].OpenBitMap & 0x01)
+			devUser.Card = int(pdu.DevUserInfos[i].OpenBitMap >> 1 & 0x01)
+			devUser.Finger = int((pdu.DevUserInfos[i].OpenBitMap >> 2 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 3 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 4 & 0x01))
+			devUser.Ffinger = int((pdu.DevUserInfos[i].OpenBitMap >> 5 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 6 & 0x01))
+			devUser.Face = int(pdu.DevUserInfos[i].OpenBitMap >> 7 & 0x01)
+			devUser.Bluetooth = int(pdu.DevUserInfos[i].OpenBitMap >> 7 & 0x01)
+			devUser.Count = int(pdu.DevUserInfos[i].PermitNum)
+			devUser.Remainder = int(pdu.DevUserInfos[i].Remainder)
 
 			// 开始日期
 			// 转10进制
@@ -271,7 +272,7 @@ func parseData(hexData string) error {
 			if nil != err2 {
 				log.Error("parseData strconv.ParseInt, err2: ", err2)
 			}
-			syncDevUser.UserList[i].MyDate.Start = int32(nSDate)
+			devUser.MyDate.Start = int32(nSDate)
 
 			// 结束日期
 			// 转10进制
@@ -281,7 +282,7 @@ func parseData(hexData string) error {
 			if nil != err3 {
 				log.Error("parseData strconv.ParseInt, err3: ", err3)
 			}
-			syncDevUser.UserList[i].MyDate.End = int32(nEDate)
+			devUser.MyDate.End = int32(nEDate)
 
 			// 时段1 - 开始
 			mTimeSlot1_s := (int32(pdu.DevUserInfos[i].TimeSlot1[0]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[1])
@@ -290,7 +291,7 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			syncDevUser.UserList[i].MyTime[0].Start = int32(nTimeSlot1_s)
+			devUser.MyTime[0].Start = int32(nTimeSlot1_s)
 
 			// 时段1 - 结束
 			mTimeSlot1_e := (int32(pdu.DevUserInfos[i].TimeSlot1[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[3])
@@ -299,7 +300,7 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			syncDevUser.UserList[i].MyTime[0].End = int32(nTimeSlot1_e)
+			devUser.MyTime[0].End = int32(nTimeSlot1_e)
 
 			// 时段2 - 开始
 			mTimeSlot2_s := (int32(pdu.DevUserInfos[i].TimeSlot2[0]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot2[1])
@@ -308,7 +309,7 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			syncDevUser.UserList[i].MyTime[1].Start = int32(nTimeSlot2_s)
+			devUser.MyTime[1].Start = int32(nTimeSlot2_s)
 
 			// 时段2 - 结束
 			mTimeSlot2_e := (int32(pdu.DevUserInfos[i].TimeSlot2[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[3])
@@ -317,7 +318,7 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			syncDevUser.UserList[i].MyTime[0].Start = int32(nTimeSlot2_e)
+			devUser.MyTime[1].Start = int32(nTimeSlot2_e)
 
 			// 时段3 - 开始
 			mTimeSlot3_s := (int32(pdu.DevUserInfos[i].TimeSlot3[0]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot3[1])
@@ -326,7 +327,7 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			syncDevUser.UserList[i].MyTime[0].Start = int32(nTimeSlot3_s)
+			devUser.MyTime[2].Start = int32(nTimeSlot3_s)
 
 			// 时段3 - 结束
 			mTimeSlot3_e := (int32(pdu.DevUserInfos[i].TimeSlot3[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[3])
@@ -335,7 +336,9 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			syncDevUser.UserList[i].MyTime[0].Start = int32(nTimeSlot3_e)
+			devUser.MyTime[2].Start = int32(nTimeSlot3_e)
+
+			syncDevUser.UserList = append(syncDevUser.UserList, devUser)
 		}
 
 		if toPms_byte, err1 := json.Marshal(syncDevUser); err == nil {
@@ -575,19 +578,22 @@ func parseData(hexData string) error {
 			UserVer: pdu.DevUserVer,
 			Battery: int(pdu.Battery),
 		}
-		openLogUpload.LogList[0].UserId = pdu.UserNo 			// 设备用户ID
-		openLogUpload.LogList[0].MainOpen = int(pdu.MainOpen) 		// 主开锁方式（1-密码，2-刷卡，3-指纹）
-		openLogUpload.LogList[0].SubOpen = int(pdu.SubOpen)   		// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-		openLogUpload.LogList[0].SinMul = int(pdu.SinMul)		 	// 开门模式（1：表示单人模式, 2：表示双人模式）
-		openLogUpload.LogList[0].Remainder = int(pdu.Remainder) 	// 0表示成功，1表示失败
-		openLogUpload.LogList[0].Time = int(pdu.Time)
+		var lockLog entity.OpenLockLog
+		lockLog.UserId = pdu.UserNo 			// 设备用户ID
+		lockLog.MainOpen = pdu.MainOpen 	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+		lockLog.SubOpen = pdu.SubOpen   	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+		lockLog.SinMul = pdu.SinMul		// 开门模式（1：表示单人模式, 2：表示双人模式）
+		lockLog.Remainder = pdu.Remainder 	// 0表示成功，1表示失败
+		lockLog.Time = pdu.Time
+		openLogUpload.LogList = append(openLogUpload.LogList, lockLog)
 		if 2 == pdu.SinMul { // 双人模式
-			openLogUpload.LogList[1].UserId = pdu.UserNo2       	// 设备用户ID
-			openLogUpload.LogList[1].MainOpen = int(pdu.MainOpen2)   	// 主开锁方式（1-密码，2-刷卡，3-指纹）
-			openLogUpload.LogList[1].SubOpen = int(pdu.SubOpen2)     	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-			openLogUpload.LogList[1].SinMul = int(pdu.SinMul)       	// 开门模式（1：表示单人模式, 2：表示双人模式）
-			openLogUpload.LogList[1].Remainder = int(pdu.Remainder2) 	// 0表示成功，1表示失败
-			openLogUpload.LogList[1].Time = int(pdu.Time)
+			lockLog.UserId = pdu.UserNo2       	// 设备用户ID
+			lockLog.MainOpen = pdu.MainOpen2   	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+			lockLog.SubOpen = pdu.SubOpen2     	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+			lockLog.SinMul = pdu.SinMul     	// 开门模式（1：表示单人模式, 2：表示双人模式）
+			lockLog.Remainder = pdu.Remainder2 	// 0表示成功，1表示失败
+			lockLog.Time = pdu.Time
+			openLogUpload.LogList = append(openLogUpload.LogList, lockLog)
 		}
 
 		if to_byte, err1 := json.Marshal(openLogUpload); err == nil {
@@ -615,7 +621,7 @@ func parseData(hexData string) error {
 			Vendor: "general",
 			SeqId: int(wlMsg.SeqId),
 
-			Time: int(pdu.Time),
+			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(alarmMsg); err == nil {
 			producer.SendMQMsg2PMS(string(to_byte))
@@ -644,7 +650,7 @@ func parseData(hexData string) error {
 			SeqId: int(wlMsg.SeqId),
 
 			Value: int(pdu.Battery),
-			Time: int(pdu.Time),
+			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
 			producer.SendMQMsg2PMS(string(to_byte))
@@ -787,7 +793,7 @@ func parseData(hexData string) error {
 			Vendor: "general",
 			SeqId: int(wlMsg.SeqId),
 
-			Time: int(pdu.Time),
+			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
 			producer.SendMQMsg2PMS(string(to_byte))

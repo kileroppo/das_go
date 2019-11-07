@@ -207,7 +207,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			toDev.SeqId = 0
 			toDev.ParaNo = 7
 			toDev.PaValue = t.Unix()
-			toDev.Time = t.Unix()
+			toDev.Time = int32(t.Unix())
 			if toDevice_byte, err := json.Marshal(toDev); err == nil {
 				log.Info("[", head.DevId, "] constant.Upload_dev_info, resp to device, constant.Set_dev_para to device, ", string(toDevice_byte))
 				var strToDevData string
@@ -475,7 +475,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				break
 			}
 
-			var lockTime int64
+			var lockTime int32
 			lockTime = lockActive.Time
 
 			//2. 回复设备
@@ -500,7 +500,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			}
 
 			//3. 锁唤醒，存入redis
-			redis.SetActTimePool(lockActive.DevId, lockTime)
+			redis.SetActTimePool(lockActive.DevId, int64(lockTime))
 
 			//4. 回复到APP
 			producer.SendMQMsg2APP(head.DevId, DValue)

@@ -55,10 +55,12 @@ type H2Client struct {
 
 	timeout time.Duration
 	ctx     context.Context
+
+	lastTime time.Time
+	curTime time.Time
 }
 
 func Newh2Client(ctx context.Context) *H2Client {
-
 	h2 := &H2Client{
 		dialer: &net.Dialer{},
 		tlsConfig: &tls.Config{
@@ -160,6 +162,7 @@ func (h2 *H2Client) do() error {
 	}
 
 	h2.sendPreface()
+
 	//h2.framer.WriteWindowUpdate(0, 1<<30)
 	//h2.bw.Flush()
 	if err := h2.sendHeadersFrame(); err != nil {
@@ -172,6 +175,8 @@ func (h2 *H2Client) do() error {
 		go h2.ctxDetect(ctx)
 	}
 
+	go h2.heartBeat()
+
 	if err := h2.readLoop(); err != nil {
 		log.Error("H2Client.readLoop() error = ", err)
 		return err
@@ -179,7 +184,6 @@ func (h2 *H2Client) do() error {
 
 	return nil
 }
-
 
 func (h2 *H2Client) Close() error {
 	var err error
@@ -266,13 +270,18 @@ func (h2 *H2Client) sendHeadersFrame() error {
 func (h2 *H2Client) heartBeat() {
 	for {
 		time.Sleep(time.Second * 10)
-		if err := h2.framer.WritePing(true, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
-			log.Error("heartBeat() error = ", err)
-			log.Info("重连中...")
-			go h2.do()
-		} else {
-			log.Info("heartBeat ...")
-			h2.bw.Flush()
+		// 判断超过30秒 发ping包
+		h2.curTime = time.Now()
+		tm_spand := h2.curTime.Unix() - h2.lastTime.Unix()
+		if tm_spand >= 25 {
+			if err := h2.framer.WritePing(true, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
+				log.Error("heartBeat() error = ", err)
+				log.Info("重连中...")
+				go h2.do()
+			} else {
+				log.Info("heartBeat ...")
+				h2.bw.Flush()
+			}
 		}
 	}
 }
@@ -284,13 +293,15 @@ func (h2 *H2Client) readLoop() error {
 	for {
 		fra, err := h2.framer.ReadFrame()
 
+		// 上次收到的数据包时间
+		h2.lastTime = time.Now()
+
 		if err != nil {
 			log.Error("ReadFrame() error = ", err)
 			h2.Close()
 			return ReadFrameErr
 		}
 		//帧处理
-
 		switch f := fra.(type) {
 		case *http2.HeadersFrame:
 			log.Info("Receive HeadersFrame: ", f.Header().String())
