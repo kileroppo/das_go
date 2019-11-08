@@ -7,11 +7,13 @@ import (
 	"../core/redis"
 	"../core/wlprotocol"
 	"../rmq/producer"
+	"../cmdto"
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 /*
@@ -20,7 +22,7 @@ import (
 *	2、根据包头来确定包体
 *	3、组JSON包后转发APP，PMS模块
 */
-func ParseData(hexData string) error {
+func parseData(hexData string) error {
 	data, err := hex.DecodeString(hexData)
 	if nil != err {
 		log.Error("parseData hex.DecodeString, err=", err)
@@ -386,7 +388,7 @@ func ParseData(hexData string) error {
 	case constant.Upload_dev_info:		// 发送设备信息(0x70)(前板，后板-->服务器)
 		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_dev_info")
 		//1. 回复锁
-		/*tPdu := &wlprotocol.UploadDevInfoResp{
+		tPdu := &wlprotocol.UploadDevInfoResp{
 			Time: int32(time.Now().Unix()),
 		}
 		wlMsg.Ack = 1
@@ -395,7 +397,7 @@ func ParseData(hexData string) error {
 			log.Error("parseData() Upload_dev_info wlMsg.PkEncode, error: ", err_)
 			return err_
 		}
-		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")*/
+		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
 
 		//2. 解包体
 		pdu := &wlprotocol.UploadDevInfo{}

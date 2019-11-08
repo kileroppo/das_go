@@ -51,7 +51,7 @@ func ProcessAliMsg(data []byte, topic string) error {
 		redis.SetDevicePlatformPool(aliData.DeviceName, constant.ALIIOT_PLATFORM)
 
 		// 数据解析
-		err = ParseData(aliData.Items.UserData.Value)
+		err = parseData(aliData.Items.UserData.Value)
 		if nil != err {
 			log.Error("ProcessAliMsg parseData, err=", err)
 			return err
