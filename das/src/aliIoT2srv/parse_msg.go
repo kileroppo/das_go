@@ -7,12 +7,11 @@ import (
 	"../core/redis"
 	"../core/wlprotocol"
 	"../rmq/producer"
-	"../cmdto"
+	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"time"
 )
 
 /*
@@ -21,7 +20,7 @@ import (
 *	2、根据包头来确定包体
 *	3、组JSON包后转发APP，PMS模块
 */
-func parseData(hexData string) error {
+func ParseData(hexData string) error {
 	data, err := hex.DecodeString(hexData)
 	if nil != err {
 		log.Error("parseData hex.DecodeString, err=", err)
@@ -387,7 +386,7 @@ func parseData(hexData string) error {
 	case constant.Upload_dev_info:		// 发送设备信息(0x70)(前板，后板-->服务器)
 		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_dev_info")
 		//1. 回复锁
-		tPdu := &wlprotocol.UploadDevInfoResp{
+		/*tPdu := &wlprotocol.UploadDevInfoResp{
 			Time: int32(time.Now().Unix()),
 		}
 		wlMsg.Ack = 1
@@ -396,7 +395,7 @@ func parseData(hexData string) error {
 			log.Error("parseData() Upload_dev_info wlMsg.PkEncode, error: ", err_)
 			return err_
 		}
-		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
+		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")*/
 
 		//2. 解包体
 		pdu := &wlprotocol.UploadDevInfo{}
@@ -437,11 +436,43 @@ func parseData(hexData string) error {
 		uploadDevInfo.InfraSwitch =	pdu.InfraSwitch // 人体感应报警开关，0：关闭，1：唤醒，但不推送消息，2：唤醒并且推送消息
 		uploadDevInfo.InfraTime = pdu.InfraTime		// 人体感应报警，红外持续监测到多少秒 就上报消息
 		uploadDevInfo.AlarmSwitch =	pdu.AlarmSwitch // 报警类型开关，0：关闭，1：拍照+录像，2：拍照
-		uploadDevInfo.WifiSsid = string(pdu.Ssid[:])		// wifi的ssid
+		var byteData []byte
+		rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
+		for m:=0;m<len(pdu.Ssid);m++{
+			byteData =  append(byteData, pdu.Ssid[m])
+		}
+		index := bytes.IndexByte(byteData, 0)
+		if -1 == index {
+			rbyf_pn = byteData[0:len(byteData)]
+		} else {
+			rbyf_pn = byteData[0:index]
+		}
+		uploadDevInfo.WifiSsid = string(rbyf_pn[:])		// wifi的ssid
 		uploadDevInfo.BellSwitch = pdu.BellSwitch	// 门铃开关 0：关闭，1：开启
-		uploadDevInfo.ProductID = string(pdu.ProductId[:])		// 产品序列号
+
+		byteData = byteData[0:0]
+		for m:=0;m<len(pdu.ProductId);m++{
+			byteData = append(byteData, pdu.ProductId[m])
+		}
+		index = bytes.IndexByte(byteData, 0)
+		if -1 == index {
+			rbyf_pn = byteData[0:len(byteData)]
+		} else {
+			rbyf_pn = byteData[0:index]
+		}
+		uploadDevInfo.ProductID = string(rbyf_pn[:])		// 产品序列号
 		// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
-		uploadDevInfo.IpcSn = string(pdu.IpcSn[:])			// 视频设备（IPC）序列号
+		byteData = byteData[0:0]
+		for m:=0;m<len(pdu.ProductId);m++{
+			byteData = append(byteData, pdu.IpcSn[m])
+		}
+		index = bytes.IndexByte(byteData, 0)
+		if -1 == index {
+			rbyf_pn = byteData[0:len(byteData)]
+		} else {
+			rbyf_pn = byteData[0:index]
+		}
+		uploadDevInfo.IpcSn = string(rbyf_pn[:])			// 视频设备（IPC）序列号
 
 		// 亿速码安全芯片相关参数
 		uploadDevInfo.UId =	"" 			// 安全芯片id
@@ -780,9 +811,35 @@ func parseData(hexData string) error {
 			Vendor: "general",
 			SeqId: int(wlMsg.SeqId),
 
-			WifiSsid: string(pdu.Ssid[:]),
-			WifiPwd: string(pdu.Passwd[:]),
+			//WifiSsid: string(pdu.Ssid[:]),
+			//WifiPwd: string(pdu.Passwd[:]),
 		}
+
+		var byteData []byte
+		rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
+		for m:=0;m<len(pdu.Ssid);m++{
+			byteData =  append(byteData, pdu.Ssid[m])
+		}
+		index := bytes.IndexByte(byteData, 0)
+		if -1 == index {
+			rbyf_pn = byteData[0:len(byteData)]
+		} else {
+			rbyf_pn = byteData[0:index]
+		}
+		setLockWiFi.WifiSsid = string(rbyf_pn[:])
+
+		byteData = byteData[0:0]
+		for m:=0;m<len(pdu.Passwd);m++{
+			byteData = append(byteData, pdu.Passwd[m])
+		}
+		index = bytes.IndexByte(byteData, 0)
+		if -1 == index {
+			rbyf_pn = byteData[0:len(byteData)]
+		} else {
+			rbyf_pn = byteData[0:index]
+		}
+		setLockWiFi.WifiPwd = string(rbyf_pn[:])
+
 		if to_byte, err1 := json.Marshal(setLockWiFi); err == nil {
 			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
 		} else {
