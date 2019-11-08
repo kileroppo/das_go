@@ -1045,3 +1045,27 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 
 	return nil
 }
+func (pdu *UploadDevInfoResp) Encode(uuid string) ([]byte, error) {
+	buf := new(bytes.Buffer) // 定义一个buffer，给了打包数据使用
+
+	// 组body
+	var err error
+	if err = binary.Write(buf, binary.BigEndian, pdu.Time); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+
+	toDevice_byte := buf.Bytes()
+
+	var toDevData []byte
+	myKey := util.MD52Bytes(uuid)
+	if toDevData, err = util.ECBEncryptByte(toDevice_byte, myKey); err != nil {
+		log.Error("ECBEncryptByte failed, err=", err)
+		return nil, err
+	}
+
+	return toDevData, nil
+}
+func (pdu *UploadDevInfoResp) Decode(bBody []byte, uuid string) error {
+	return nil
+}

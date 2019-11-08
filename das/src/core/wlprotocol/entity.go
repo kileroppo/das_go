@@ -313,3 +313,7 @@ type UploadDevInfo struct {
 	RemoteSwitch uint8		// 远程开关（0：无法使用远程开锁，1：可以使用远程开锁）
 	ProductId [12]byte		// 12字节字符串，例：Z12345670001
 }
+
+type UploadDevInfoResp struct {
+	Time int32
+}

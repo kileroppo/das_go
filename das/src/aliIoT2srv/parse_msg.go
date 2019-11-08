@@ -7,11 +7,12 @@ import (
 	"../core/wlprotocol"
 	"../rmq/producer"
 	"../core/redis"
+	"../cmdto"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
-
+	"time"
 )
 
 /*
@@ -438,7 +439,19 @@ func parseData(hexData string) error {
 		// 兼容字段，某些功能不支持的NB锁
 		uploadDevInfo.Unsupport = 0 		// 0-所有功能支持，1-临时用户时段不支持
 
-		//2. 发送到PMS模块
+		//2. 回复锁
+		tPdu := &wlprotocol.UploadDevInfoResp{
+			Time: int32(time.Now().Unix()),
+		}
+		wlMsg.Ack = 1
+		bData, err_ := wlMsg.PkEncode(tPdu)
+		if nil != err_ {
+			log.Error("WlJson2BinMsg() Set_dev_user_temp wlMsg.PkEncode, error: ", err_)
+			return err_
+		}
+		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
+
+		//3. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(uploadDevInfo); err == nil {
 			producer.SendMQMsg2PMS(string(to_byte))
 		} else {
