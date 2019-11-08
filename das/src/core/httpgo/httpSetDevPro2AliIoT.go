@@ -27,7 +27,7 @@ type aliIoTResp struct {
 
 type aliIoTResp2 struct {
 	Code int			`json:"code"`
-	AliData string		`json:"data"`
+	AliData interface{}	`json:"data"`
 	Id string			`json:"id"`
 }
 
