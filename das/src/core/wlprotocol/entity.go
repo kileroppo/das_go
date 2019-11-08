@@ -286,6 +286,7 @@ Ssid:模组连接的路由器的ssid 32字节
 常开模式：0常开关闭，1常开启用
 */
 type UploadDevInfo struct {
+	FLen uint8				// 前板信息长度
 	FMainVer uint8			// 版本号：0x01
 	FSubVer uint8			// 次版本号：0x01
 	FModVer uint16			// 修订版本号：0x78
@@ -306,6 +307,7 @@ type UploadDevInfo struct {
 	IpcSn [16]byte			// 视频模组sn码：16字节
 	Ssid [32]byte			// Ssid:模组连接的路由器的ssid 32字节
 
+	BLen uint8				// 后板信息长度
 	BMainVer uint8			// 后板主版本号：0x01
 	BSubVer uint8			// 后板次版本号：0x01
 	BModVer uint16			// 后板修订号：0x78

@@ -940,8 +940,12 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 
-	//3. 解包体
+	//3. 解包体 FLen
 	buf := bytes.NewBuffer(DValue)
+	if err = binary.Read(buf, binary.BigEndian, &pdu.FLen); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
 	if err = binary.Read(buf, binary.BigEndian, &pdu.FMainVer); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
@@ -1015,6 +1019,11 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 	if err = binary.Read(buf, binary.BigEndian, &pdu.Ssid); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+
+	if err = binary.Read(buf, binary.BigEndian, &pdu.BLen); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
 	}
