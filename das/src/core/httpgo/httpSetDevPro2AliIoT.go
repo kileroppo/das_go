@@ -25,6 +25,12 @@ type aliIoTResp struct {
 	Id string			`json:"id"`
 }
 
+type aliIoTResp2 struct {
+	Code int			`json:"code"`
+	AliData string		`json:"data"`
+	Id string			`json:"id"`
+}
+
 // 获取cloud/token
 func getAliIoTCloudToken() (token string, err error) {
 	log.Info("getAliIoTCloudToken start.")
@@ -207,7 +213,7 @@ func HttpSetAliPro(deviceName, data, cmd string) error {
 		log.Error("[", deviceName, "] HttpSetAliPro() setAliThingPro 1, err=", err2)
 	}
 
-	var aliResp aliIoTResp
+	var aliResp aliIoTResp2
 	if err = json.Unmarshal([]byte(resp), &aliResp); err != nil {
 		log.Error("[", deviceName, "] HttpSetAliPro() json.Unmarshal 2, err=", err)
 		return err // break

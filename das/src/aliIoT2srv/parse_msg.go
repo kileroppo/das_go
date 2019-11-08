@@ -4,9 +4,9 @@ import (
 	"../core/constant"
 	"../core/entity"
 	"../core/log"
+	"../core/redis"
 	"../core/wlprotocol"
 	"../rmq/producer"
-	"../core/redis"
 	"../cmdto"
 	"encoding/hex"
 	"encoding/json"
@@ -386,6 +386,19 @@ func parseData(hexData string) error {
 		}
 	case constant.Upload_dev_info:		// 发送设备信息(0x70)(前板，后板-->服务器)
 		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_dev_info")
+		//1. 回复锁
+		tPdu := &wlprotocol.UploadDevInfoResp{
+			Time: int32(time.Now().Unix()),
+		}
+		wlMsg.Ack = 1
+		bData, err_ := wlMsg.PkEncode(tPdu)
+		if nil != err_ {
+			log.Error("parseData() Upload_dev_info wlMsg.PkEncode, error: ", err_)
+			return err_
+		}
+		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
+
+		//2. 解包体
 		pdu := &wlprotocol.UploadDevInfo{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -393,7 +406,7 @@ func parseData(hexData string) error {
 			return err
 		}
 
-		// 组包
+		//3. 组json包
 		uploadDevInfo := entity.UploadDevInfo{
 			Cmd: int(wlMsg.Cmd),
 			Ack: int(wlMsg.Ack),
@@ -439,19 +452,7 @@ func parseData(hexData string) error {
 		// 兼容字段，某些功能不支持的NB锁
 		uploadDevInfo.Unsupport = 0 		// 0-所有功能支持，1-临时用户时段不支持
 
-		//2. 回复锁
-		tPdu := &wlprotocol.UploadDevInfoResp{
-			Time: int32(time.Now().Unix()),
-		}
-		wlMsg.Ack = 1
-		bData, err_ := wlMsg.PkEncode(tPdu)
-		if nil != err_ {
-			log.Error("WlJson2BinMsg() Set_dev_user_temp wlMsg.PkEncode, error: ", err_)
-			return err_
-		}
-		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
-
-		//3. 发送到PMS模块
+		//4. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(uploadDevInfo); err == nil {
 			producer.SendMQMsg2PMS(string(to_byte))
 		} else {
