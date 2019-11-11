@@ -274,6 +274,8 @@ func (h2 *H2Client) heartBeat() {
 		h2.curTime = time.Now()
 		tm_spand := h2.curTime.Unix() - h2.lastTime.Unix()
 		if tm_spand >= 25 {
+			// 上次收到的数据包时间
+			h2.lastTime = time.Now()
 			if err := h2.framer.WritePing(true, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
 				log.Info("重连中...")
