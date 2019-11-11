@@ -332,7 +332,7 @@ type DeviceActiveResp struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
-	Time int32 `json:"time"`
+	Time int64 `json:"time"`
 }
 
 //14. 实时视频（APP->锁）

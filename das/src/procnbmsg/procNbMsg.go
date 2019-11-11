@@ -477,7 +477,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			}
 
 			var lockTime int32
-			lockTime = lockActive.Time
+			lockTime = int32(lockActive.Time)
 
 			//2. 回复设备
 			lockActive.Ack = 1
