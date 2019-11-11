@@ -292,12 +292,12 @@ func (self *InfraredSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "有人"
 		self.alarmType = "infrared"
+		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无人"
 		self.alarmType = "infrared"
 	}
 
-    self.BaseSensorAlarm.PushMsg()
 }
 
 type DoorMagneticSensorAlarm struct {
@@ -326,12 +326,12 @@ func (self *GasSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "有气体"
 		self.alarmType = "gas"
+		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无气体"
 		self.alarmType = "gas"
+		self.BaseSensorAlarm.pushMsg2db()
 	}
-
-	self.BaseSensorAlarm.PushMsg()
 }
 
 
@@ -344,12 +344,12 @@ func (self *FloodSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "有水"
 		self.alarmType = "flood"
+		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无水"
 		self.alarmType = "flood"
+		self.BaseSensorAlarm.pushMsg2db()
 	}
-
-	self.BaseSensorAlarm.PushMsg()
 }
 
 type SmokeSensorAlarm struct {
@@ -361,12 +361,12 @@ func (self *SmokeSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "有烟"
 		self.alarmType = "smoke"
+		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无烟"
 		self.alarmType = "smoke"
+		self.BaseSensorAlarm.pushMsg2db()
 	}
-
-	self.BaseSensorAlarm.PushMsg()
 }
 
 
