@@ -322,7 +322,7 @@ type DeviceActive struct {
 	SeqId   int    `json:"seqId"`
 
 	Signal int		`json:"signal"`		// NB锁信号强度
-	Time int32 		`json:"time"`
+	Time int64 		`json:"time"`
 }
 type DeviceActiveResp struct {
 	Cmd     int    `json:"cmd"`
