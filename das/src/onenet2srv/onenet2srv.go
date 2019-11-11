@@ -103,7 +103,7 @@ func (o OnenetJob) Handle() {
 			toApp.DevId = data.Msg.Imei
 			toApp.SeqId = 0
 			toApp.Signal = 0
-			toApp.Time = int32(nTime)
+			toApp.Time = nTime
 
 			if toApp_str, err := json.Marshal(toApp); err == nil {
 				//2. 回复到APP
