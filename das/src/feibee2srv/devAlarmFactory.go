@@ -28,7 +28,7 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 		case 0x0106:
 			res = &IlluminanceSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg:feibeeData,
+					feibeeMsg: feibeeData,
 				},
 			}
 
@@ -36,7 +36,7 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 		case 0x0302:
 			res = &TemperAndHumiditySensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg:feibeeData,
+					feibeeMsg: feibeeData,
 				},
 			}
 
@@ -63,7 +63,7 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 			case 0x0028:
 				res = &SmokeSensorAlarm{
 					BaseSensorAlarm{
-						feibeeMsg:feibeeData,
+						feibeeMsg: feibeeData,
 					},
 				}
 
@@ -91,20 +91,20 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 		}
 	} else {
 
-		if (feibeeData.Records[0].Cid == 1024 && feibeeData.Records[0].Aid == 0) {
+		if feibeeData.Records[0].Cid == 1024 && feibeeData.Records[0].Aid == 0 {
 			//光照度
 			res = &IlluminanceSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg:feibeeData,
+					feibeeMsg: feibeeData,
 				},
 			}
 		}
 
-		if (feibeeData.Records[0].Cid == 1026 && feibeeData.Records[0].Aid == 0) || (feibeeData.Records[0].Cid == 1029 && feibeeData.Records[0].Aid == 0){
+		if (feibeeData.Records[0].Cid == 1026 && feibeeData.Records[0].Aid == 0) || (feibeeData.Records[0].Cid == 1029 && feibeeData.Records[0].Aid == 0) {
 			//温湿度
 			res = &TemperAndHumiditySensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg:feibeeData,
+					feibeeMsg: feibeeData,
 				},
 			}
 
@@ -113,7 +113,7 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 		if (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 33) || (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 53) {
 			//电量上报
 			res = &BaseSensorAlarm{
-				feibeeMsg:feibeeData,
+				feibeeMsg: feibeeData,
 			}
 
 		}
@@ -121,29 +121,29 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 		if (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 32) || (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 62) {
 			//电压上报
 			res = &BaseSensorAlarm{
-				feibeeMsg:feibeeData,
+				feibeeMsg: feibeeData,
 			}
 		}
 	}
-
 
 	return
 }
 
 type BaseSensorAlarm struct {
-	feibeeMsg        entity.FeibeeData
-	alarmType        string
-	alarmVal         string
+	feibeeMsg         entity.FeibeeData
+	alarmType         string
+	alarmVal          string
 	removalAlarmValue string
 
 	devType string
-	devid  string
-	time   int
+	devid   string
+	time    int
 
-	bindid string
+	alarmFlag int
+	bindid    string
 }
 
-func (b *BaseSensorAlarm) parseAlarmMsg() (err error){
+func (b *BaseSensorAlarm) parseAlarmMsg() (err error) {
 	b.devType = devTypeConv(b.feibeeMsg.Records[0].Deviceid, b.feibeeMsg.Records[0].Zonetype)
 	b.devid = b.feibeeMsg.Records[0].Uuid
 	b.time = int(time.Now().Unix())
@@ -171,7 +171,7 @@ func (self *BaseSensorAlarm) PushMsg() {
 func (self *BaseSensorAlarm) pushMsg2app() {
 	msg := self.createMsg2app()
 
-	data,err := json.Marshal(msg)
+	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Error("BaseSensorAlarm pushMsg2app() error = ", err)
 		return
@@ -183,7 +183,7 @@ func (self *BaseSensorAlarm) pushMsg2app() {
 func (self *BaseSensorAlarm) pushMsg2db() {
 	msg := self.createMsg2app()
 
-	data,err := json.Marshal(msg)
+	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 		return
@@ -193,8 +193,9 @@ func (self *BaseSensorAlarm) pushMsg2db() {
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
+		msg.AlarmFlag = 1
 
-		data,err = json.Marshal(msg)
+		data, err = json.Marshal(msg)
 		if err != nil {
 			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 			return
@@ -218,6 +219,7 @@ func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
 	msg.AlarmValue = self.alarmVal
 	msg.Time = self.time
 	msg.Bindid = self.bindid
+	msg.AlarmFlag = self.alarmFlag
 
 	return msg
 }
@@ -225,7 +227,7 @@ func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
 func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 	msg := self.createMsg2app()
 
-	data,err := json.Marshal(msg)
+	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Error("BaseSensorAlarm pushMsg2pmsForSave() error = ", err)
 		return
@@ -236,7 +238,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
 
-		data,err = json.Marshal(msg)
+		data, err = json.Marshal(msg)
 		if err != nil {
 			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 			return
@@ -263,7 +265,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 	msg.AlarmValue = self.alarmVal
 	msg.AlarmType = self.alarmType
 
-	data,err := json.Marshal(msg)
+	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Error("BaseSensorAlarm pushMsg2pmsForSceneTrigger() error = ", err)
 		return
@@ -274,7 +276,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
 
-		data,err = json.Marshal(msg)
+		data, err = json.Marshal(msg)
 		if err != nil {
 			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 			return
@@ -288,14 +290,17 @@ type InfraredSensorAlarm struct {
 }
 
 func (self *InfraredSensorAlarm) PushMsg() {
-    self.parseAlarmMsg()
+	self.parseAlarmMsg()
 	if self.alarmType == "1" {
 		self.alarmVal = "有人"
 		self.alarmType = "infrared"
+		self.alarmFlag = 1
 		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无人"
 		self.alarmType = "infrared"
+		self.alarmFlag = 0
+		self.pushMsg2pmsForSave()
 	}
 
 }
@@ -309,9 +314,11 @@ func (self *DoorMagneticSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "开门"
 		self.alarmType = "doorContact"
+		self.alarmFlag = 1
 	} else if self.alarmType == "0" {
 		self.alarmVal = "关门"
 		self.alarmType = "doorContact"
+		self.alarmFlag = 0
 	}
 
 	self.BaseSensorAlarm.PushMsg()
@@ -326,14 +333,16 @@ func (self *GasSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "有气体"
 		self.alarmType = "gas"
+		self.alarmFlag = 1
 		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无气体"
 		self.alarmType = "gas"
-		self.BaseSensorAlarm.pushMsg2db()
+		self.alarmFlag = 0
+		self.pushMsg2db()
+		self.pushMsg2pmsForSave()
 	}
 }
-
 
 type FloodSensorAlarm struct {
 	BaseSensorAlarm
@@ -344,11 +353,14 @@ func (self *FloodSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "有水"
 		self.alarmType = "flood"
+		self.alarmFlag = 1
 		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无水"
 		self.alarmType = "flood"
-		self.BaseSensorAlarm.pushMsg2db()
+		self.alarmFlag = 0
+		self.pushMsg2db()
+		self.pushMsg2pmsForSave()
 	}
 }
 
@@ -361,14 +373,16 @@ func (self *SmokeSensorAlarm) PushMsg() {
 	if self.alarmType == "1" {
 		self.alarmVal = "有烟"
 		self.alarmType = "smoke"
+		self.alarmFlag = 1
 		self.BaseSensorAlarm.PushMsg()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无烟"
 		self.alarmType = "smoke"
-		self.BaseSensorAlarm.pushMsg2db()
+		self.alarmFlag = 0
+		self.pushMsg2db()
+		self.pushMsg2pmsForSave()
 	}
 }
-
 
 type IlluminanceSensorAlarm struct {
 	BaseSensorAlarm
@@ -391,7 +405,7 @@ func (self IlluminanceSensorAlarm) getIlluminance() string {
 	}
 
 	value := self.feibeeMsg.Records[0].Value[2:4] + self.feibeeMsg.Records[0].Value[0:2]
-	illuminance,err := strconv.ParseInt(value, 16, 64)
+	illuminance, err := strconv.ParseInt(value, 16, 64)
 	if err != nil {
 		return ""
 	}
@@ -405,7 +419,7 @@ type TemperAndHumiditySensorAlarm struct {
 func (self *TemperAndHumiditySensorAlarm) PushMsg() {
 	self.parseAlarmMsg()
 
-	cid,aid :=  self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid
+	cid, aid := self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid
 
 	if cid == 1026 && aid == 0 {
 		self.alarmType = "temperature"
@@ -434,7 +448,7 @@ func (self TemperAndHumiditySensorAlarm) getTemper() string {
 	}
 
 	value := self.feibeeMsg.Records[0].Value[2:4] + self.feibeeMsg.Records[0].Value[0:2]
-	temper,err := strconv.ParseInt(value, 16, 64)
+	temper, err := strconv.ParseInt(value, 16, 64)
 	if err != nil {
 		return ""
 	}
@@ -447,7 +461,7 @@ func (self TemperAndHumiditySensorAlarm) getHumidity() string {
 	}
 
 	value := self.feibeeMsg.Records[0].Value[2:4] + self.feibeeMsg.Records[0].Value[0:2]
-	humidity,err := strconv.ParseInt(value, 16, 64)
+	humidity, err := strconv.ParseInt(value, 16, 64)
 	if err != nil {
 		return ""
 	}
@@ -508,7 +522,7 @@ func batteryValueParse(val string) string {
 		return ""
 	}
 
-	res := strconv.Itoa(int(valInt)/2)
+	res := strconv.Itoa(int(valInt) / 2)
 	return res
 }
 
@@ -520,6 +534,6 @@ func voltageValueParse(val string) string {
 		return ""
 	}
 
-	res := strconv.Itoa(int(valInt)/10)
+	res := strconv.Itoa(int(valInt) / 10)
 	return res
 }
