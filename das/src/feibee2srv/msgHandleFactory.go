@@ -508,7 +508,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 		res.Msg[0].Devicetype = res.DevType
 
 	case ManualOpDev:
-		res.DevType = devTypeConv(data.Records[0].Deviceuid, data.Records[0].Zonetype)
+		res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
 		res.DevId = data.Records[0].Uuid
 		res.Records = []entity.FeibeeRecordsMsg{
 			data.Records[0],
