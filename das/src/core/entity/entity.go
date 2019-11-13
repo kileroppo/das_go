@@ -160,7 +160,7 @@ type FeibeeAlarm2AppMsg struct {
 	AlarmType  string `json:"alarmType"`
 	AlarmValue string `json:"alarmValue"`
 
-	AlarmFlag int    `json:"alarmFlag"`
+	AlarmFlag int    `json:"alarmFlag,omitempty"`
 	Bindid    string `json:"bindid"`
 }
 

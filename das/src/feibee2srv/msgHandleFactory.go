@@ -29,6 +29,7 @@ const (
 	InfraredTreasure //红外宝
 	WonlyLGuard      //小卫士
 	SceneSwitch      //情景开关
+	ZigbeeLock       //飞比zigbee锁
 )
 
 type MsgHandler interface {
@@ -72,6 +73,8 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = SceneSwitchHandle{
 			data:data,
 		}
+	case ZigbeeLock:
+
 
 	default:
 		msgHandle = nil
@@ -103,6 +106,9 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 		if data.Records[0].Deviceid == 779 {
 			//小卫士
 			typ = WonlyLGuard
+		} else if data.Records[0].Deviceid == 0xa {
+			//飞比zigbee锁
+			typ = ZigbeeLock
 		} else if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
 			typ = ManualOpDev
 		} else if isDevAlarm(data) {
@@ -424,6 +430,34 @@ func (self SceneSwitchHandle) createSceneMsg2pms() (res entity.FeibeeAutoScene2p
 	//情景开关作为无触发值的触发设备
     res = createSceneMsg2pms(self.data, "", "sceneSwitch")
     return
+}
+
+type ZigbeeLockHandle struct {
+	data entity.FeibeeData
+}
+
+func (self ZigbeeLockHandle) pushByMsgType() {
+	cid, aid := self.data.Records[0].Cid, self.data.Records[0].Aid
+
+	if cid == 257 && aid == 61685 {
+		//远程开锁
+	} else if cid == 257 && aid == 0 {
+		//门锁状态
+	} else if cid == 9 && aid == 61685 {
+		//报警上报
+	} else if cid == 10 && aid == 0 {
+		//门锁时间
+	} else if cid == 1 && aid == 33 {
+		//电量
+	} else if cid == 1 && aid == 62 {
+		//电压
+	} else if cid == 1280 && aid == 130 {
+		//门铃上报
+	}
+}
+
+func (self ZigbeeLockHandle) PushMsg() {
+
 }
 
 func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, bindid string) {

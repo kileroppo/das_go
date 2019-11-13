@@ -22,94 +22,67 @@ type DevAlarmer interface {
 func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 	res = nil
 
-	if feibeeData.Records[0].Deviceid > 0 {
-		switch feibeeData.Records[0].Deviceid {
+	if len(feibeeData.Records) <= 0 {
+		return
+	}
+
+	switch feibeeData.Records[0].Deviceid {
+	case 0x0106:
 		//光照度传感器
-		case 0x0106:
-			res = &IlluminanceSensorAlarm{
-				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
-				},
-			}
-
-			//温湿度传感器
-		case 0x0302:
-			res = &TemperAndHumiditySensorAlarm{
-				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
-				},
-			}
-
-		case 0x0402:
-			switch feibeeData.Records[0].Zonetype {
-
+		res = &IlluminanceSensorAlarm{
+			BaseSensorAlarm{
+				feibeeMsg: feibeeData,
+			},
+		}
+	case 0x0302:
+		//温湿度传感器
+		res = &TemperAndHumiditySensorAlarm{
+			BaseSensorAlarm{
+				feibeeMsg: feibeeData,
+			},
+		}
+	case 0x0402:
+		//飞比传感器
+		switch feibeeData.Records[0].Zonetype {
+		case 0x000d:
 			//人体红外传感器
-			case 0x000d:
-				res = &InfraredSensorAlarm{
-					BaseSensorAlarm{
-						feibeeMsg: feibeeData,
-					},
-				}
-
-				//门磁传感器
-			case 0x0015:
-				res = &DoorMagneticSensorAlarm{
-					BaseSensorAlarm{
-						feibeeMsg: feibeeData,
-					},
-				}
-
-				//烟雾传感器
-			case 0x0028:
-				res = &SmokeSensorAlarm{
-					BaseSensorAlarm{
-						feibeeMsg: feibeeData,
-					},
-				}
-
-				//水浸传感器
-			case 0x002A:
-				res = &FloodSensorAlarm{
-					BaseSensorAlarm{
-						feibeeMsg: feibeeData,
-					},
-				}
-
-				//可燃气体传感器
-			case 0x002B:
-				res = &GasSensorAlarm{
-					BaseSensorAlarm{
-						feibeeMsg: feibeeData,
-					},
-				}
-
-				//一氧化碳传感器
-			case 0x8001:
-
-			}
-
-		}
-	} else {
-
-		if feibeeData.Records[0].Cid == 1024 && feibeeData.Records[0].Aid == 0 {
-			//光照度
-			res = &IlluminanceSensorAlarm{
+			res = &InfraredSensorAlarm{
 				BaseSensorAlarm{
 					feibeeMsg: feibeeData,
 				},
 			}
-		}
-
-		if (feibeeData.Records[0].Cid == 1026 && feibeeData.Records[0].Aid == 0) || (feibeeData.Records[0].Cid == 1029 && feibeeData.Records[0].Aid == 0) {
-			//温湿度
-			res = &TemperAndHumiditySensorAlarm{
+		case 0x0015:
+			//门磁传感器
+			res = &DoorMagneticSensorAlarm{
 				BaseSensorAlarm{
 					feibeeMsg: feibeeData,
 				},
 			}
-
+		case 0x0028:
+			//烟雾传感器
+			res = &SmokeSensorAlarm{
+				BaseSensorAlarm{
+					feibeeMsg: feibeeData,
+				},
+			}
+		case 0x002A:
+			//水浸传感器
+			res = &FloodSensorAlarm{
+				BaseSensorAlarm{
+					feibeeMsg: feibeeData,
+				},
+			}
+		case 0x002B:
+			//可燃气体传感器
+			res = &GasSensorAlarm{
+				BaseSensorAlarm{
+					feibeeMsg: feibeeData,
+				},
+			}
+		case 0x8001:
+			//一氧化碳传感器
 		}
-
+	default:
 		if (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 33) || (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 53) {
 			//电量上报
 			res = &BaseSensorAlarm{
@@ -125,7 +98,6 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 			}
 		}
 	}
-
 	return
 }
 
@@ -163,6 +135,7 @@ func (b *BaseSensorAlarm) parseAlarmMsg() (err error) {
 }
 
 func (self *BaseSensorAlarm) PushMsg() {
+	self.parseAlarmMsg()
 	self.pushMsg2db()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
@@ -295,12 +268,14 @@ func (self *InfraredSensorAlarm) PushMsg() {
 		self.alarmVal = "有人"
 		self.alarmType = "infrared"
 		self.alarmFlag = 1
-		self.BaseSensorAlarm.PushMsg()
+		self.pushMsg2db()
+		self.pushMsg2pmsForSave()
+		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无人"
 		self.alarmType = "infrared"
 		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
+		//self.pushMsg2pmsForSave()
 	}
 
 }
@@ -320,8 +295,9 @@ func (self *DoorMagneticSensorAlarm) PushMsg() {
 		self.alarmType = "doorContact"
 		self.alarmFlag = 0
 	}
-
-	self.BaseSensorAlarm.PushMsg()
+	self.pushMsg2db()
+	self.pushMsg2pmsForSave()
+	self.pushMsg2pmsForSceneTrigger()
 }
 
 type GasSensorAlarm struct {
@@ -334,13 +310,13 @@ func (self *GasSensorAlarm) PushMsg() {
 		self.alarmVal = "有气体"
 		self.alarmType = "gas"
 		self.alarmFlag = 1
-		self.BaseSensorAlarm.PushMsg()
+		self.pushMsg2db()
+		self.pushMsg2pmsForSave()
+		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无气体"
 		self.alarmType = "gas"
 		self.alarmFlag = 0
-		self.pushMsg2db()
-		self.pushMsg2pmsForSave()
 	}
 }
 
@@ -354,13 +330,13 @@ func (self *FloodSensorAlarm) PushMsg() {
 		self.alarmVal = "有水"
 		self.alarmType = "flood"
 		self.alarmFlag = 1
-		self.BaseSensorAlarm.PushMsg()
+		self.pushMsg2db()
+		self.pushMsg2pmsForSave()
+		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无水"
 		self.alarmType = "flood"
 		self.alarmFlag = 0
-		self.pushMsg2db()
-		self.pushMsg2pmsForSave()
 	}
 }
 
@@ -374,13 +350,13 @@ func (self *SmokeSensorAlarm) PushMsg() {
 		self.alarmVal = "有烟"
 		self.alarmType = "smoke"
 		self.alarmFlag = 1
-		self.BaseSensorAlarm.PushMsg()
+		self.pushMsg2db()
+		self.pushMsg2pmsForSave()
+		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无烟"
 		self.alarmType = "smoke"
 		self.alarmFlag = 0
-		self.pushMsg2db()
-		self.pushMsg2pmsForSave()
 	}
 }
 
@@ -396,7 +372,9 @@ func (self *IlluminanceSensorAlarm) PushMsg() {
 		return
 	}
 	self.alarmType = "illuminance"
-	self.BaseSensorAlarm.PushMsg()
+	self.pushMsg2db()
+	self.pushMsg2pmsForSave()
+	self.pushMsg2pmsForSceneTrigger()
 }
 
 func (self IlluminanceSensorAlarm) getIlluminance() string {
@@ -439,7 +417,9 @@ func (self *TemperAndHumiditySensorAlarm) PushMsg() {
 		return
 	}
 
-	self.BaseSensorAlarm.PushMsg()
+	self.pushMsg2db()
+	self.pushMsg2pmsForSave()
+	self.pushMsg2pmsForSceneTrigger()
 }
 
 func (self TemperAndHumiditySensorAlarm) getTemper() string {
