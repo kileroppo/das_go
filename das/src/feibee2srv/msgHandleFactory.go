@@ -65,16 +65,15 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 
 	case WonlyLGuard:
 		msgHandle = WonlyGuardHandle{
-			data: data,
-			msgType:typ,
+			data:    data,
+			msgType: typ,
 		}
 
 	case SceneSwitch:
 		msgHandle = SceneSwitchHandle{
-			data:data,
+			data: data,
 		}
 	case ZigbeeLock:
-
 
 	default:
 		msgHandle = nil
@@ -178,6 +177,27 @@ func (self GtwMsgHandle) PushMsg() {
 	} else {
 		producer.SendMQMsg2PMS(string(data2pms))
 	}
+
+	//发送给db
+	msg, bindId := createMsg2App(self.data, self.msgType)
+	data2app, err := json.Marshal(msg)
+	if err != nil {
+		log.Error("One Msg push2app(0 error = ", err)
+	} else {
+		producer.SendMQMsg2APP(bindId, string(data2app))
+	}
+
+	//发送给app
+	data2db, err := json.Marshal(entity.Feibee2DBMsg{
+		msg,
+		bindId,
+	})
+	if err != nil {
+		log.Error("One Msg push2db() error = ", err)
+	} else {
+		producer.SendMQMsg2Db(string(data2db))
+	}
+
 }
 
 type SensorMsgHandle struct {
@@ -328,17 +348,17 @@ func (self InfraredTreasureHandle) parseValue(start, end int) (res string) {
 }
 
 type WonlyGuardHandle struct {
-	data entity.FeibeeData
+	data    entity.FeibeeData
 	msgType MsgType
 }
 
 func (self WonlyGuardHandle) pushMsgByType() {
 
 	switch self.data.Code {
-    //设备入网
+	//设备入网
 	case 3:
 		msg2pms := self.createMsg2PMS()
-		data2pms,err := json.Marshal(msg2pms)
+		data2pms, err := json.Marshal(msg2pms)
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
@@ -346,7 +366,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		}
 
 		msg2app := self.createMsg2App()
-		data2app,err := json.Marshal(msg2app)
+		data2app, err := json.Marshal(msg2app)
 		routingKey := self.data.Msg[0].Bindid + ".hz.app"
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
@@ -356,7 +376,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 
 	case 2:
 		msg2db := self.createMsg2DB()
-		data2db,err := json.Marshal(msg2db)
+		data2db, err := json.Marshal(msg2db)
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
@@ -369,7 +389,7 @@ func (self WonlyGuardHandle) PushMsg() {
 	self.pushMsgByType()
 }
 
-func (self WonlyGuardHandle) createMsg2PMS() (res entity.Feibee2PMS){
+func (self WonlyGuardHandle) createMsg2PMS() (res entity.Feibee2PMS) {
 	return createMsg2pms(self.data, self.msgType)
 }
 
@@ -418,7 +438,7 @@ type SceneSwitchHandle struct {
 func (self SceneSwitchHandle) PushMsg() {
 
 	sceneMsg2pms := self.createSceneMsg2pms()
-	sceneData2pms,err := json.Marshal(sceneMsg2pms)
+	sceneData2pms, err := json.Marshal(sceneMsg2pms)
 	if err != nil {
 		log.Warning("SceneSwitchHandle sceneMsg2pms json.Marshal() error = ", err)
 	} else {
@@ -428,8 +448,8 @@ func (self SceneSwitchHandle) PushMsg() {
 
 func (self SceneSwitchHandle) createSceneMsg2pms() (res entity.FeibeeAutoScene2pmsMsg) {
 	//情景开关作为无触发值的触发设备
-    res = createSceneMsg2pms(self.data, "", "sceneSwitch")
-    return
+	res = createSceneMsg2pms(self.data, "", "sceneSwitch")
+	return
 }
 
 type ZigbeeLockHandle struct {
@@ -520,7 +540,7 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 			res.OpType = "devRemoteStop"
 		}
 
-		bindid = data.Records[0].Bindid
+		bindid = data.Msg[0].Bindid
 	}
 
 	return
@@ -556,7 +576,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 	return
 }
 
-func createSceneMsg2pms(data entity.FeibeeData, alarmValue,alarmType string) (res entity.FeibeeAutoScene2pmsMsg) {
+func createSceneMsg2pms(data entity.FeibeeData, alarmValue, alarmType string) (res entity.FeibeeAutoScene2pmsMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -592,15 +612,15 @@ func devTypeConv(devId, zoneType int) string {
 }
 
 func isDevAlarm(data entity.FeibeeData) bool {
-	
+
 	if data.Records[0].Cid == 1280 && data.Records[0].Aid == 128 {
 		return true
 	}
-	
+
 	if data.Records[0].Cid == 1024 && data.Records[0].Aid == 0 {
 		//光照度上报
 		return true
-	} 
+	}
 	if data.Records[0].Cid == 1026 && data.Records[0].Aid == 0 {
 		//温度上报
 		return true
