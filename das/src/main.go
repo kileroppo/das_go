@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"runtime/pprof"
 
 	"github.com/dlintw/goconf"
 
@@ -20,16 +21,15 @@ import (
 	"./rmq/consumer"
 	"./telecom2srv"
 	"./wifi2srv"
-	"runtime/pprof"
 )
 
-func loadCpuProfile() *os.File {
+func loadProfile() *os.File {
 	cpuProfile := flag.String("cpuprofile", "./cpu", "record the cpu profile to file")
 	if *cpuProfile == "" {
 		panic("cpu profile created error")
 	}
 
-	f, err := os.Create(*cpuProfile)
+	f, err := os.OpenFile(*cpuProfile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +38,7 @@ func loadCpuProfile() *os.File {
 }
 
 func main() {
-    f := loadCpuProfile()
+    f := loadProfile()
     pprof.StartCPUProfile(f)
     defer pprof.StopCPUProfile()
 
