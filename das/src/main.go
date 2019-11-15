@@ -14,15 +14,33 @@ import (
 	"./wifi2srv"
 	"flag"
 	"github.com/dlintw/goconf"
+	"runtime/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 )
 
+func loadProfile() *os.File {
+	cpuProfile := flag.String("cpuprofile", "./logs/cpu", "record the cpu profile to file")
+	if *cpuProfile == "" {
+		panic("cpu profile created error")
+	}
+
+	f, err := os.OpenFile(*cpuProfile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
 func main() {
+	f := loadProfile()
 	//1. 加载配置文件
 	conf := loadConfig()
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 
 	//2. 初始化日志
 	initLogger(conf)
