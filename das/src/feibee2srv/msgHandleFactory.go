@@ -8,7 +8,7 @@ import (
 
 	"../core/entity"
 	"../core/log"
-	"../rmq/producer"
+		"../core/rabbitmq"
 )
 
 type MsgType int32
@@ -137,21 +137,23 @@ func (self NormalMsgHandle) PushMsg() {
 	if err != nil {
 		log.Error("One Msg push2app() error = ", err)
 	} else {
-		producer.SendMQMsg2APP(bindid, string(data2app))
+		//producer.SendMQMsg2APP(bindid, string(data2app))
+		rabbitmq.Publish2app(data2app, bindid)
 	}
 
-	//发送给DB(设备入网不发?)
+	//发送给ums(设备入网不发?)
 	if self.msgType == NewDev {
 
 	} else {
-		data2db, err := json.Marshal(entity.Feibee2DBMsg{
+		data2ums, err := json.Marshal(entity.Feibee2DBMsg{
 			res,
 			bindid,
 		})
 		if err != nil {
 			log.Error("One Msg push2db() error = ", err)
 		} else {
-			producer.SendMQMsg2Db(string(data2db))
+			//producer.SendMQMsg2Db(string(data2db))
+			rabbitmq.Publish2ums(data2ums, "")
 		}
 	}
 
@@ -160,7 +162,8 @@ func (self NormalMsgHandle) PushMsg() {
 	if err != nil {
 		log.Error("One Msg push2pms() error = ", err)
 	} else {
-		producer.SendMQMsg2PMS(string(data2pms))
+		//producer.SendMQMsg2PMS(string(data2pms))
+		rabbitmq.Publish2pms(data2pms, "")
 	}
 }
 
@@ -175,27 +178,30 @@ func (self GtwMsgHandle) PushMsg() {
 	if err != nil {
 		log.Error("One Msg push2pms() error = ", err)
 	} else {
-		producer.SendMQMsg2PMS(string(data2pms))
+		//producer.SendMQMsg2PMS(string(data2pms))
+		rabbitmq.Publish2pms(data2pms, "")
 	}
 
-	//发送给db
+	//发送给app
 	msg, bindId := createMsg2App(self.data, self.msgType)
 	data2app, err := json.Marshal(msg)
 	if err != nil {
 		log.Error("One Msg push2app(0 error = ", err)
 	} else {
-		producer.SendMQMsg2APP(bindId, string(data2app))
+		//producer.SendMQMsg2APP(bindId, string(data2app))
+		rabbitmq.Publish2app(data2app, bindId)
 	}
 
-	//发送给app
-	data2db, err := json.Marshal(entity.Feibee2DBMsg{
+	//发送给ums
+	data2ums, err := json.Marshal(entity.Feibee2DBMsg{
 		msg,
 		bindId,
 	})
 	if err != nil {
 		log.Error("One Msg push2db() error = ", err)
 	} else {
-		producer.SendMQMsg2Db(string(data2db))
+		//producer.SendMQMsg2Db(string(data2db))
+		rabbitmq.Publish2ums(data2ums, "")
 	}
 
 }
@@ -301,7 +307,8 @@ func (self InfraredTreasureHandle) push2app(data entity.Feibee2AppMsg, bindid st
 		return err
 	}
 
-	producer.SendMQMsg2APP(bindid, string(rawData))
+	//producer.SendMQMsg2APP(bindid, string(rawData))
+	rabbitmq.Publish2app(rawData, bindid)
 	return nil
 }
 
@@ -362,8 +369,10 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
-			producer.SendMQMsg2PMS(string(data2pms))
+			//producer.SendMQMsg2PMS(string(data2pms))
+			rabbitmq.Publish2pms(data2pms, "")
 		}
+
 
 		msg2app := self.createMsg2App()
 		data2app, err := json.Marshal(msg2app)
@@ -371,17 +380,20 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
-			producer.SendGuardMsg2APP(routingKey, data2app)
+			//producer.SendGuardMsg2APP(routingKey, data2app)
+			rabbitmq.PublishGuard2app(data2app, routingKey)
 		}
 
 	case 2:
-		msg2db := self.createMsg2DB()
-		data2db, err := json.Marshal(msg2db)
+		msg2ums := self.createMsg2DB()
+		data2ums, err := json.Marshal(msg2ums)
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
-			producer.SendMQMsg2Db(string(data2db))
+			//producer.SendMQMsg2Db(string(data2db))
+			rabbitmq.Publish2ums(data2ums, "")
 		}
+
 	}
 }
 
@@ -442,7 +454,8 @@ func (self SceneSwitchHandle) PushMsg() {
 	if err != nil {
 		log.Warning("SceneSwitchHandle sceneMsg2pms json.Marshal() error = ", err)
 	} else {
-		producer.SendMQMsg2PMS(string(sceneData2pms))
+		//producer.SendMQMsg2PMS(string(sceneData2pms))
+		rabbitmq.Publish2pms(sceneData2pms, "")
 	}
 }
 

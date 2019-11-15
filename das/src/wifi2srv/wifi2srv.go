@@ -1,14 +1,15 @@
 package wifi2srv
 
 import (
+	"context"
+	"strings"
+
 	"../core/constant"
 	"../core/jobque"
 	"../core/log"
 	"../core/rabbitmq"
 	"../core/redis"
 	"../procnbmsg"
-	"github.com/dlintw/goconf"
-	"strings"
 )
 
 var rmq_uri string
@@ -16,17 +17,21 @@ var exchange string     // = "App2OneNET"
 var exchangeType string // = "direct"
 var routingKey string   // = "wonlycloud"
 
+var (
+	ctx, cancel = context.WithCancel(context.Background())
+)
+
 //初始化RabbitMQ交换器，消息队列名称
-func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
-	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
-	if rmq_uri == "" {
-		log.Error("未启用RabbitMq")
-		return
-	}
-	exchange, _ = conf.GetString("rabbitmq", "device2srv_ex")
-	exchangeType, _ = conf.GetString("rabbitmq", "device2srv_ex_type")
-	routingKey, _ = conf.GetString("rabbitmq", "device2srv_que")
-}
+//func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
+//	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
+//	if rmq_uri == "" {
+//		log.Error("未启用RabbitMq")
+//		return
+//	}
+//	exchange, _ = conf.GetString("rabbitmq", "device2srv_ex")
+//	exchangeType, _ = conf.GetString("rabbitmq", "device2srv_ex_type")
+//	routingKey, _ = conf.GetString("rabbitmq", "device2srv_que")
+//}
 
 type WifiPlatJob struct {
 	rawData string
@@ -44,54 +49,47 @@ func (w WifiPlatJob) Handle() {
 	procnbmsg.ProcessNbMsg(w.rawData, w.devID)
 }
 
-func ReceiveMQMsgFromDevice() {
+func Run() {
 	log.Info("start ReceiveMQMsgFromDevice......")
 
-	//初始化rabbitmq
-	if rabbitmq.ConsumerRabbitMq == nil {
-		log.Error("ReceiveMQMsgFromDevice: rabbitmq.ConsumerRabbitMq is nil.")
-		return
+	msgs, err := rabbitmq.Consumer2devMQ.Consumer()
+	if err != nil {
+		log.Error("Consumer2devMQ.Consumer() error = ", err)
+		panic(err)
 	}
-
-	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true, ReSendNum: 0}
-
-	rabbitmq.ConsumerRabbitMq.QueueDeclare(channleContxt)
-
-	log.Info("Consumer ReceiveMQMsgFromDevice......")
 	// go程循环去读消息，并放到Job去处理
 	for {
-		msgs, err := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
-		if nil != err {
-			continue
-		}
-		forever := make(chan bool)
-		go func() {
-			for d := range msgs {
-				log.Error("Consumer ReceiveMQMsgFromDevice 1: ", string(d.Body))
+		select {
+		case <-ctx.Done():
+			log.Info("ReceiveMQMsgFromDevice Close")
+			return
+		case d := <-msgs:
+			log.Error("Consumer ReceiveMQMsgFromDevice 1: ", string(d.Body))
 
-				//1. 检验数据是否合法
-				getData := string(d.Body)
-				if !strings.Contains(getData, "#") {
-					log.Error("ReceiveMQMsgFromDevice: rabbitmq.ConsumerRabbitMq error msg: ", getData)
-					continue
-				}
-
-				//2. 获取设备编号
-				prData := strings.Split(getData, "#")
-				var devID string
-				var devData string
-				devID = prData[0]
-				devData = prData[1]
-
-				//3. 锁对接的平台，存入redis
-				redis.SetDevicePlatformPool(devID, constant.WIFI_PLATFORM)
-
-				//4. fetch job
-				// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
-				jobque.JobQueue <- NewWifiPlatJob(devData, devID)
+			//1. 检验数据是否合法
+			getData := string(d.Body)
+			if !strings.Contains(getData, "#") {
+				log.Error("ReceiveMQMsgFromDevice: rabbitmq.ConsumerRabbitMq error msg: ", getData)
+				continue
 			}
-			forever <- true // 退出
-		}()
-		<-forever
+
+			//2. 获取设备编号
+			prData := strings.Split(getData, "#")
+			var devID string
+			var devData string
+			devID = prData[0]
+			devData = prData[1]
+
+			//3. 锁对接的平台，存入redis
+			redis.SetDevicePlatformPool(devID, constant.WIFI_PLATFORM)
+
+			//4. fetch job
+			// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
+			jobque.JobQueue <- NewWifiPlatJob(devData, devID)
+		}
 	}
+}
+
+func Close() {
+	cancel()
 }

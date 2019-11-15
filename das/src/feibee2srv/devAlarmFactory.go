@@ -8,7 +8,7 @@ import (
 
 	"../core/entity"
 	"../core/log"
-	"../rmq/producer"
+		"../core/rabbitmq"
 )
 
 var (
@@ -150,7 +150,8 @@ func (self *BaseSensorAlarm) pushMsg2app() {
 		return
 	}
 
-	producer.SendMQMsg2APP(self.bindid, string(data))
+	//producer.SendMQMsg2APP(self.bindid, string(data))
+	rabbitmq.Publish2app(data, self.bindid)
 }
 
 func (self *BaseSensorAlarm) pushMsg2db() {
@@ -161,7 +162,8 @@ func (self *BaseSensorAlarm) pushMsg2db() {
 		log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 		return
 	}
-	producer.SendMQMsg2Db(string(data))
+	//producer.SendMQMsg2Db(string(data))
+	rabbitmq.Publish2ums(data, "")
 
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"
@@ -173,7 +175,8 @@ func (self *BaseSensorAlarm) pushMsg2db() {
 			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 			return
 		}
-		producer.SendMQMsg2Db(string(data))
+		rabbitmq.Publish2ums(data, "")
+		//producer.SendMQMsg2Db(string(data))
 	}
 
 }
@@ -205,8 +208,8 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 		log.Error("BaseSensorAlarm pushMsg2pmsForSave() error = ", err)
 		return
 	}
-	producer.SendMQMsg2PMS(string(data))
-
+	//producer.SendMQMsg2PMS(string(data))
+    rabbitmq.Publish2pms(data, "")
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
@@ -216,7 +219,8 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 			return
 		}
-		producer.SendMQMsg2PMS(string(data))
+		//producer.SendMQMsg2PMS(string(data))
+		rabbitmq.Publish2pms(data, "")
 	}
 
 }
@@ -243,7 +247,8 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 		log.Error("BaseSensorAlarm pushMsg2pmsForSceneTrigger() error = ", err)
 		return
 	}
-	producer.SendMQMsg2PMS(string(data))
+	//producer.SendMQMsg2PMS(string(data))
+	rabbitmq.Publish2pms(data, "")
 
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"
@@ -254,7 +259,8 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
 			return
 		}
-		producer.SendMQMsg2PMS(string(data))
+		//producer.SendMQMsg2PMS(string(data))
+		rabbitmq.Publish2pms(data, "")
 	}
 }
 

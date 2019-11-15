@@ -1,6 +1,15 @@
 package main
 
 import (
+	"flag"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/dlintw/goconf"
+
+	"./aliIoT2srv"
 	"./andlink2srv"
 	"./core/log"
 	"./core/rabbitmq"
@@ -9,19 +18,30 @@ import (
 	"./feibee2srv"
 	"./onenet2srv"
 	"./rmq/consumer"
-	"./rmq/producer"
 	"./telecom2srv"
 	"./wifi2srv"
-	"./aliIoT2srv"
-	"flag"
-	"github.com/dlintw/goconf"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+	"runtime/pprof"
 )
 
+func loadCpuProfile() *os.File {
+	cpuProfile := flag.String("cpuprofile", "./cpu", "record the cpu profile to file")
+	if *cpuProfile == "" {
+		panic("cpu profile created error")
+	}
+
+	f, err := os.Create(*cpuProfile)
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
 func main() {
+    f := loadCpuProfile()
+    pprof.StartCPUProfile(f)
+    defer pprof.StopCPUProfile()
+
 	//1. 加载配置文件
 	conf := loadConfig()
 
@@ -31,30 +51,14 @@ func main() {
 	//3. 初始化Redis连接池
 	redis.InitRedisPool(conf)
 
-	//4. 初始化生产者rabbitmq_uri
-	rabbitmq.InitProducerMqConnection(conf)
-	rabbitmq.InitProducerMqConnection2Db(conf)
-	rabbitmq.InitProducerMqConnection2Device(conf)
+	//4. 初始化rabbitmq
+	rabbitmq.Init(conf)
 
-	//5. 初始化消费者rabbitmq_uri
-	rabbitmq.InitConsumerMqConnection(conf)
-
-	//6. 初始化到APP生成者交换器，消息队列的参数
-	producer.InitRmq_Ex_Que_Name(conf)
-
-	//7. 初始化到Mongodb生成者交换器，消息队列的参数
-	producer.InitRmq_Ex_Que_Name_mongo(conf)
-
-	//8. 初始化发送到平板设备的生成者交换器，消息队列的参数
-	producer.InitRmq_Ex_Que_Name_Device(conf)
-
-	//9. 初始化消费者交换器，消息队列的参数
-	consumer.InitRmq_Ex_Que_Name(conf)
-	go consumer.ReceiveMQMsgFromAPP()
+	//接收app消息
+	go consumer.Run()
 
 	//10. 初始化平板消费者交换器，消息队列的参数
-	wifi2srv.InitRmq_Ex_Que_Name(conf)
-	go wifi2srv.ReceiveMQMsgFromDevice()
+	go wifi2srv.Run()
 
 	//11. 启动定时器
 	dindingtask.InitTimer_IsStart(conf)
@@ -80,33 +84,37 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
-SERVER_EXIT:
-	// 处理信号
-	for {
-		s := <-ch
-		switch s {
-		case syscall.SIGINT:
-			log.Error("SIGINT: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGTERM:
-			log.Error("SIGTERM: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGQUIT:
-			log.Error("SIGSTOP: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGHUP:
-			log.Error("SIGHUP: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGKILL:
-			log.Error("SIGKILL: get signal: ", s)
-			break SERVER_EXIT
-		default:
-			log.Error("default: get signal: ", s)
-			break SERVER_EXIT
-		}
+	s := <-ch
+	switch s {
+	case syscall.SIGINT:
+		log.Error("SIGINT: get signal: ", s)
+	case syscall.SIGTERM:
+		log.Error("SIGTERM: get signal: ", s)
+
+	case syscall.SIGQUIT:
+		log.Error("SIGSTOP: get signal: ", s)
+
+	case syscall.SIGHUP:
+		log.Error("SIGHUP: get signal: ", s)
+
+	case syscall.SIGKILL:
+		log.Error("SIGKILL: get signal: ", s)
+
+	default:
+		log.Error("default: get signal: ", s)
+
 	}
-    //停止ali消息接收
+	//停止ali消息接收
 	aliIOTsrv.Shutdown()
+
+	//停止接收平板消息
+	wifi2srv.Close()
+
+	//停止接收app消息
+	consumer.Close()
+
+	//停止rabbitmq连接
+	rabbitmq.Close()
 
 	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
@@ -135,7 +143,7 @@ SERVER_EXIT:
 	// 21. 停止定时器
 	dindingtask.StopMyTimer()
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	log.Info("das_go server quit......")
 }

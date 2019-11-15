@@ -1,10 +1,11 @@
 package consumer
 
 import (
-	"../../core/jobque"
+	"context"
+
+		"../../core/jobque"
 	"../../core/log"
 	"../../core/rabbitmq"
-	"github.com/dlintw/goconf"
 )
 
 var rmq_uri string
@@ -12,17 +13,21 @@ var exchange string     // = "App2OneNET"
 var exchangeType string // = "direct"
 var routingKey string   // = "wonlycloud"
 
+var (
+	ctx, cancel = context.WithCancel(context.Background())
+)
+
 //初始化RabbitMQ交换器，消息队列名称
-func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
-	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
-	if rmq_uri == "" {
-		log.Error("未启用RabbitMq")
-		return
-	}
-	exchange, _ = conf.GetString("rabbitmq", "app2device_ex")
-	exchangeType, _ = conf.GetString("rabbitmq", "app2device_ex_type")
-	routingKey, _ = conf.GetString("rabbitmq", "app2device_que")
-}
+//func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
+//	rmq_uri, _ = conf.GetString("rabbitmq", "rabbitmq_uri")
+//	if rmq_uri == "" {
+//		log.Error("未启用RabbitMq")
+//		return
+//	}
+//	exchange, _ = conf.GetString("rabbitmq", "app2device_ex")
+//	exchangeType, _ = conf.GetString("rabbitmq", "app2device_ex_type")
+//	routingKey, _ = conf.GetString("rabbitmq", "app2device_que")
+//}
 
 type ConsumerJob struct {
 	rawData string
@@ -38,37 +43,44 @@ func (c ConsumerJob) Handle() {
 	ProcAppMsg(c.rawData)
 }
 
-func ReceiveMQMsgFromAPP() {
+func Run() {
 	log.Info("start ReceiveMQMsgFromAPP......")
 
-	//初始化rabbitmq
-	if rabbitmq.ConsumerRabbitMq == nil {
-		log.Error("ReceiveMQMsgFromAPP: rabbitmq.ConsumerRabbitMq is nil.")
-		return
-	}
-
-	channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true, ReSendNum: 0}
-
-	rabbitmq.ConsumerRabbitMq.QueueDeclare(channleContxt)
+	//channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true, ReSendNum: 0}
+	//
+	//rabbitmq.ConsumerRabbitMq.QueueDeclare(channleContxt)
 
 	log.Info("Consumer ReceiveMQMsgFromAPP......")
+	msgs, err := rabbitmq.Consumer2appMQ.Consumer()
+	if nil != err {
+		log.Error("Consumer2appMQ.Consumer() error = ", err)
+		panic(err)
+	}
 	// go程循环去读消息，并放到Job去处理
 	for {
-		msgs, err := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
-		if nil != err {
-			continue
+		//msgs, err := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
+		select {
+		case <-ctx.Done():
+			log.Info("ReceiveMQMsgFromAPP Close")
+			return
+		case msg := <-msgs:
+			log.Error("Consumer ReceiveMQMsgFromAPP: ", string(msg.Body))
+			jobque.JobQueue <- NewConsumerJob(string(msg.Body))
 		}
 
-		forever := make(chan bool)
-		go func() {
-			for d := range msgs {
-				log.Error("Consumer ReceiveMQMsgFromAPP: ", string(d.Body))
-				// fetch job
-				// work := Job{appMsg: AppMsg{pri: string(d.Body)}}
-				jobque.JobQueue <- NewConsumerJob(string(d.Body))
-			}
-			forever <- true // 退出
-		}()
-		<-forever
+		//go func() {
+		//	for d := range msgs {
+		//		log.Error("Consumer ReceiveMQMsgFromAPP: ", string(d.Body))
+		//		// fetch job
+		//		// work := Job{appMsg: AppMsg{pri: string(d.Body)}}
+		//		jobque.JobQueue <- NewConsumerJob(string(d.Body))
+		//	}
+		//	forever <- true // 退出
+		//}()
+		//<-forever
 	}
+}
+
+func Close() {
+	cancel()
 }

@@ -1,19 +1,20 @@
 package aliIot2srv
 
 import (
-	"../core/constant"
-	"../core/entity"
-	"../core/log"
-	"../core/redis"
-	"../core/wlprotocol"
-	"../rmq/producer"
-	"../cmdto"
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
+
+	"../core/constant"
+	"../core/entity"
+	"../core/log"
+	"../core/redis"
+	"../core/wlprotocol"
+	"../core/rabbitmq"
+	"../cmdto"
 )
 
 /*
@@ -48,7 +49,7 @@ func parseData(hexData string) error {
 				SeqId: int(wlMsg.SeqId),
 			}
 			if to_byte, err1 := json.Marshal(addDevUser); err == nil {
-				producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 			} else {
 				log.Error("[", wlMsg.DevId.Uuid, "] constant.Add_dev_user to_byte json.Marshal, err=", err1)
 				return err1
@@ -69,7 +70,8 @@ func parseData(hexData string) error {
 
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(factoryReset); err == nil {
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_dev_user_temp, err=", err1)
 			return err1
@@ -100,7 +102,8 @@ func parseData(hexData string) error {
 			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(addDevUserStep); err == nil {
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Add_dev_user_step to_byte json.Marshal, err=", err1)
 			return err1
@@ -117,7 +120,7 @@ func parseData(hexData string) error {
 				SeqId: int(wlMsg.SeqId),
 			}
 			if to_byte, err1 := json.Marshal(delDevUser); err == nil {
-				producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 			} else {
 				log.Error("[", wlMsg.DevId.Uuid, "] constant.Del_dev_user to_byte json.Marshal, err=", err1)
 				return err1
@@ -230,7 +233,8 @@ func parseData(hexData string) error {
 		devUserUpload.MyTime[0].Start = int32(nTimeSlot3_e)
 
 		if toPms_byte, err1 := json.Marshal(devUserUpload); err == nil {
-			producer.SendMQMsg2PMS(string(toPms_byte)) // 需存入数据库
+			// 需存入数据库
+			rabbitmq.Publish2pms(toPms_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] parseData constant.Update_dev_user toPms_byte json.Marshal, err=", err1)
 			return err1
@@ -344,7 +348,7 @@ func parseData(hexData string) error {
 		}
 
 		if toPms_byte, err1 := json.Marshal(syncDevUser); err == nil {
-			producer.SendMQMsg2PMS(string(toPms_byte)) // 需存入数据库
+			rabbitmq.Publish2pms(toPms_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] toPms_byte json.Marshal, err=", err1)
 			return err1
@@ -375,11 +379,11 @@ func parseData(hexData string) error {
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(remoteOpenLockResp); err == nil {
 			if 0 != wlMsg.Ack {
-				producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 			}
 
 			if 1 == wlMsg.Ack { // 开门成功才记录远程开锁记录
-				producer.SendMQMsg2PMS(string(to_byte))
+				rabbitmq.Publish2pms(to_byte, "")
 			}
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Remote_open, err=", err1)
@@ -487,7 +491,8 @@ func parseData(hexData string) error {
 
 		//4. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(uploadDevInfo); err == nil {
-			producer.SendMQMsg2PMS(string(to_byte))
+			//producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Upload_dev_info, err=", err1)
 			return err1
@@ -518,10 +523,12 @@ func parseData(hexData string) error {
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(lockParam); err == nil {
 			// 回复到APP
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 
 			if 1 == wlMsg.Ack { // 设置成功存入DB
-				producer.SendMQMsg2PMS(string(to_byte))
+				//producer.SendMQMsg2PMS(string(to_byte))
+				rabbitmq.Publish2pms(to_byte, "")
 			}
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_dev_para, err=", err1)
@@ -553,10 +560,10 @@ func parseData(hexData string) error {
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(lockParam); err == nil {
 			// 回复到APP
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 
 			// PMS存储到DB
-			producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_dev_para, err=", err1)
 			return err1
@@ -576,7 +583,7 @@ func parseData(hexData string) error {
 
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(softReset); err == nil {
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Soft_reset, err=", err1)
 			return err1
@@ -596,10 +603,10 @@ func parseData(hexData string) error {
 
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(factoryReset); err == nil {
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 
 			// PMS初始化设备信息的参数
-			producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Factory_reset, err=", err1)
 			return err1
@@ -644,7 +651,7 @@ func parseData(hexData string) error {
 		}
 
 		if to_byte, err1 := json.Marshal(openLogUpload); err == nil {
-			producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Upload_open_log, Uplocal_open_log, err=", err1)
 			return err1
@@ -671,7 +678,7 @@ func parseData(hexData string) error {
 			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(alarmMsg); err == nil {
-			producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, "")
 
 			// producer.SendMQMsg2Db(string(to_byte)) // MNS
 		} else {
@@ -700,7 +707,7 @@ func parseData(hexData string) error {
 			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
-			producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Low_battery_alarm, err=", err1)
 			return err1
@@ -728,7 +735,7 @@ func parseData(hexData string) error {
 			PicName: pdu.PicPath,
 		}
 		if to_byte, err1 := json.Marshal(picUpload); err == nil {
-			producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Lock_PIC_Upload, err=", err1)
 			return err1
@@ -763,10 +770,10 @@ func parseData(hexData string) error {
 		//3. 发送
 		if to_byte, err1 := json.Marshal(deviceActive); err == nil {
 			// 回复到APP
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 
 			// 到PMS模块
-			producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Upload_lock_active, err=", err1)
 			return err1
@@ -791,7 +798,8 @@ func parseData(hexData string) error {
 			Act: pdu.Act,
 		}
 		if to_byte, err1 := json.Marshal(realVideo); err == nil {
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Real_Video to_byte json.Marshal, err=", err1)
 			return err1
@@ -843,7 +851,8 @@ func parseData(hexData string) error {
 		setLockWiFi.WifiPwd = string(rbyf_pn[:])
 
 		if to_byte, err1 := json.Marshal(setLockWiFi); err == nil {
-			producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_Wifi to_byte json.Marshal, err=", err1)
 			return err1
@@ -869,7 +878,8 @@ func parseData(hexData string) error {
 			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
-			producer.SendMQMsg2PMS(string(to_byte))
+			//producer.SendMQMsg2PMS(string(to_byte))
+			rabbitmq.Publish2pms(to_byte, "")
 			// producer.SendMQMsg2Db(string(to_byte)) // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Door_Call to_byte json.Marshal, err=", err1)
