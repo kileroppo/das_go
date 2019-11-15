@@ -12,7 +12,6 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"./aliIoT2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
@@ -75,8 +74,8 @@ func main() {
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	// 启动ali IOT推送接收服务
-	aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliIOTsrv.Run()
+	//aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
+	//aliIOTsrv.Run()
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -103,7 +102,7 @@ func main() {
 
 	}
 	//停止ali消息接收
-	aliIOTsrv.Shutdown()
+	//aliIOTsrv.Shutdown()
 
 	//停止接收平板消息
 	wifi2srv.Close()
@@ -149,7 +148,7 @@ func loadConfig() *goconf.ConfigFile {
 	flag.Parse()
 	conf, err := goconf.ReadConfigFile(*conf_file)
 	if err != nil {
-		log.Errorf("加载配置文件失败，无法打开%q，%s\n", conf_file, err)
+		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
 		os.Exit(1)
 	}
 	return conf

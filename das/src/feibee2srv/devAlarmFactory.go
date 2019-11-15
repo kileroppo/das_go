@@ -486,7 +486,7 @@ func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, al
 		if msg.Aid == 33 {
 			alarmValue = batteryValueParse(msg.Value)
 		} else {
-			alarmValue = batteryValueParse(msg.Orgdata[30:32])
+			alarmValue = ""
 		}
 		return
 	}
@@ -496,7 +496,7 @@ func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, al
 		if msg.Aid == 32 {
 			alarmValue = voltageValueParse(msg.Value)
 		} else {
-			alarmValue = voltageValueParse(msg.Orgdata[22:24])
+			alarmValue = ""
 		}
 	}
 

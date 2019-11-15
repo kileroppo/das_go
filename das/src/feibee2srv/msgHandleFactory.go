@@ -551,6 +551,8 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 			res.OpType = "devRemoteStop"
 		}
 		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
+		res.Devid = data.Msg[0].Uuid
+		res.Deviceuid = data.Msg[0].Deviceuid
 		bindid = data.Msg[0].Bindid
 	}
 
