@@ -1,13 +1,19 @@
 package consumer
 
 import (
+	"fmt"
+	"strconv"
+
+	"github.com/json-iterator/go"
+
 	"../../core/constant"
 	"../../core/entity"
 	"../../core/log"
 	"../../core/wlprotocol"
-	"encoding/json"
-	"fmt"
-	"strconv"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
@@ -19,17 +25,17 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 	}
 
 	wlMsg := wlprotocol.WlMessage{
-		Started: wlprotocol.Started,	// 开始标志
-		Version: wlprotocol.Version,	// 协议版本号
-		SeqId: uint16(head.SeqId),		// 包序列号
-		Cmd: uint8(head.Cmd),			// 命令
-		Ack: uint8(head.Ack),			// 回应标志
-		Type: 1,						// 设备类型
-		DevId: wlprotocol.DeviceId{		// 设备编号
-			Len: uint8(len(head.DevId)),
+		Started: wlprotocol.Started, // 开始标志
+		Version: wlprotocol.Version, // 协议版本号
+		SeqId:   uint16(head.SeqId), // 包序列号
+		Cmd:     uint8(head.Cmd),    // 命令
+		Ack:     uint8(head.Ack),    // 回应标志
+		Type:    1,                  // 设备类型
+		DevId: wlprotocol.DeviceId{ // 设备编号
+			Len:  uint8(len(head.DevId)),
 			Uuid: head.DevId,
 		},
-		Ended: wlprotocol.Ended,		// 结束标志
+		Ended: wlprotocol.Ended, // 结束标志
 	}
 	fmt.Println(wlMsg)
 
@@ -49,51 +55,51 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		}
 
 		pdu := &wlprotocol.AddDevUser{
-			UserNo: addDevUser.UserId,			// 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
-			MainOpen: addDevUser.MainOpen,		// 主开锁方式，开锁方式：附表开锁方式，如果该字段是0，表示删除该用户
-			SubOpen: addDevUser.SubOpen,		// 是否胁迫，是否胁迫：0-正常，1-胁迫
-			UserType: addDevUser.UserType,		// 用户类型(1)，用户类型:  0 - 管理员，1 - 普通用户，2 - 临时用户
+			UserNo:   addDevUser.UserId,   // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
+			MainOpen: addDevUser.MainOpen, // 主开锁方式，开锁方式：附表开锁方式，如果该字段是0，表示删除该用户
+			SubOpen:  addDevUser.SubOpen,  // 是否胁迫，是否胁迫：0-正常，1-胁迫
+			UserType: addDevUser.UserType, // 用户类型(1)，用户类型:  0 - 管理员，1 - 普通用户，2 - 临时用户
 			// Passwd: addDevUser.Passwd,		// 密码(6)，密码开锁方式，目前是6个字节.如果添加的是其他验证方式,则为0xff.密码位数少于10位时,多余的填0xff
-			UserNote: int32(nRandom),			// 用户别名-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
-			PermitNum: addDevUser.Count,	 	// 允许开门次数
+			UserNote:  int32(nRandom),   // 用户别名-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
+			PermitNum: addDevUser.Count, // 允许开门次数
 		}
 		pwd := []byte(addDevUser.Passwd)
-		for i:=0;i<len(pwd);i++{
+		for i := 0; i < len(pwd); i++ {
 			if i < 6 {
 				pdu.Passwd[i] = pwd[i]
 			}
 		}
 
 		addDevUser.MyDate.Start = convertHexDateTime(addDevUser.MyDate.Start)
-		pdu.StartDate[0] = uint8(addDevUser.MyDate.Start / 10000)	// 开始日期
+		pdu.StartDate[0] = uint8(addDevUser.MyDate.Start / 10000) // 开始日期
 		pdu.StartDate[1] = uint8(addDevUser.MyDate.Start / 100 % 100)
 		pdu.StartDate[2] = uint8(addDevUser.MyDate.Start % 100)
 
 		addDevUser.MyDate.End = convertHexDateTime(addDevUser.MyDate.End)
-		pdu.EndDate[0] = uint8(addDevUser.MyDate.End / 10000)	// 结束日期
+		pdu.EndDate[0] = uint8(addDevUser.MyDate.End / 10000) // 结束日期
 		pdu.EndDate[1] = uint8(addDevUser.MyDate.End / 100 % 100)
 		pdu.EndDate[2] = uint8(addDevUser.MyDate.End % 100)
 
 		addDevUser.MyTime[0].Start = convertHexDateTime(addDevUser.MyTime[0].Start)
 		addDevUser.MyTime[0].End = convertHexDateTime(addDevUser.MyTime[0].End)
-		pdu.TimeSlot1[0] = uint8(addDevUser.MyTime[0].Start / 100)	// 小时
-		pdu.TimeSlot1[1] = uint8(addDevUser.MyTime[0].Start % 100) 	// 分钟
-		pdu.TimeSlot1[2] = uint8(addDevUser.MyTime[0].End / 100)	// 小时
-		pdu.TimeSlot1[3] = uint8(addDevUser.MyTime[0].End % 100) 	// 分钟
+		pdu.TimeSlot1[0] = uint8(addDevUser.MyTime[0].Start / 100) // 小时
+		pdu.TimeSlot1[1] = uint8(addDevUser.MyTime[0].Start % 100) // 分钟
+		pdu.TimeSlot1[2] = uint8(addDevUser.MyTime[0].End / 100)   // 小时
+		pdu.TimeSlot1[3] = uint8(addDevUser.MyTime[0].End % 100)   // 分钟
 
 		addDevUser.MyTime[1].Start = convertHexDateTime(addDevUser.MyTime[1].Start)
 		addDevUser.MyTime[1].End = convertHexDateTime(addDevUser.MyTime[1].End)
-		pdu.TimeSlot2[0] = uint8(addDevUser.MyTime[1].Start / 100)	// 小时
-		pdu.TimeSlot2[1] = uint8(addDevUser.MyTime[1].Start % 100) 	// 分钟
-		pdu.TimeSlot2[2] = uint8(addDevUser.MyTime[1].End / 100)	// 小时
-		pdu.TimeSlot2[3] = uint8(addDevUser.MyTime[1].End % 100) 	// 分钟
+		pdu.TimeSlot2[0] = uint8(addDevUser.MyTime[1].Start / 100) // 小时
+		pdu.TimeSlot2[1] = uint8(addDevUser.MyTime[1].Start % 100) // 分钟
+		pdu.TimeSlot2[2] = uint8(addDevUser.MyTime[1].End / 100)   // 小时
+		pdu.TimeSlot2[3] = uint8(addDevUser.MyTime[1].End % 100)   // 分钟
 
 		addDevUser.MyTime[2].Start = convertHexDateTime(addDevUser.MyTime[2].Start)
 		addDevUser.MyTime[2].End = convertHexDateTime(addDevUser.MyTime[2].End)
-		pdu.TimeSlot3[0] = uint8(addDevUser.MyTime[2].Start / 100)	// 小时
-		pdu.TimeSlot3[1] = uint8(addDevUser.MyTime[2].Start % 100) 	// 分钟
-		pdu.TimeSlot3[2] = uint8(addDevUser.MyTime[2].End / 100)	// 小时
-		pdu.TimeSlot3[3] = uint8(addDevUser.MyTime[2].End % 100) 	// 分钟
+		pdu.TimeSlot3[0] = uint8(addDevUser.MyTime[2].Start / 100) // 小时
+		pdu.TimeSlot3[1] = uint8(addDevUser.MyTime[2].Start % 100) // 分钟
+		pdu.TimeSlot3[2] = uint8(addDevUser.MyTime[2].End / 100)   // 小时
+		pdu.TimeSlot3[3] = uint8(addDevUser.MyTime[2].End % 100)   // 分钟
 
 		bData, err_ := wlMsg.PkEncode(pdu)
 		if nil != err_ {
@@ -110,40 +116,40 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		}
 
 		pdu := &wlprotocol.SetTmpDevUser{
-			UserNo: setTmpDevUser.UserId,		// 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
-			PermitNum: setTmpDevUser.Count,	 	// 允许开门次数
+			UserNo:    setTmpDevUser.UserId, // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
+			PermitNum: setTmpDevUser.Count,  // 允许开门次数
 		}
 
 		setTmpDevUser.MyDate.Start = convertHexDateTime(setTmpDevUser.MyDate.Start)
-		pdu.StartDate[0] = uint8(setTmpDevUser.MyDate.Start / 10000)	// 开始日期
+		pdu.StartDate[0] = uint8(setTmpDevUser.MyDate.Start / 10000) // 开始日期
 		pdu.StartDate[1] = uint8(setTmpDevUser.MyDate.Start / 100 % 100)
 		pdu.StartDate[2] = uint8(setTmpDevUser.MyDate.Start % 100)
 
 		setTmpDevUser.MyDate.End = convertHexDateTime(setTmpDevUser.MyDate.End)
-		pdu.EndDate[0] = uint8(setTmpDevUser.MyDate.End / 10000)		// 结束日期
+		pdu.EndDate[0] = uint8(setTmpDevUser.MyDate.End / 10000) // 结束日期
 		pdu.EndDate[1] = uint8(setTmpDevUser.MyDate.End / 100 % 100)
 		pdu.EndDate[2] = uint8(setTmpDevUser.MyDate.End % 100)
 
 		setTmpDevUser.MyTime[0].Start = convertHexDateTime(setTmpDevUser.MyTime[0].Start)
 		setTmpDevUser.MyTime[0].End = convertHexDateTime(setTmpDevUser.MyTime[0].End)
-		pdu.TimeSlot1[0] = uint8(setTmpDevUser.MyTime[0].Start / 100)	// 小时
-		pdu.TimeSlot1[1] = uint8(setTmpDevUser.MyTime[0].Start % 100) 	// 分钟
-		pdu.TimeSlot1[2] = uint8(setTmpDevUser.MyTime[0].End / 100)		// 小时
-		pdu.TimeSlot1[3] = uint8(setTmpDevUser.MyTime[0].End % 100) 	// 分钟
+		pdu.TimeSlot1[0] = uint8(setTmpDevUser.MyTime[0].Start / 100) // 小时
+		pdu.TimeSlot1[1] = uint8(setTmpDevUser.MyTime[0].Start % 100) // 分钟
+		pdu.TimeSlot1[2] = uint8(setTmpDevUser.MyTime[0].End / 100)   // 小时
+		pdu.TimeSlot1[3] = uint8(setTmpDevUser.MyTime[0].End % 100)   // 分钟
 
 		setTmpDevUser.MyTime[1].Start = convertHexDateTime(setTmpDevUser.MyTime[1].Start)
 		setTmpDevUser.MyTime[1].End = convertHexDateTime(setTmpDevUser.MyTime[1].End)
-		pdu.TimeSlot2[0] = uint8(setTmpDevUser.MyTime[1].Start / 100)	// 小时
-		pdu.TimeSlot2[1] = uint8(setTmpDevUser.MyTime[1].Start % 100) 	// 分钟
-		pdu.TimeSlot2[2] = uint8(setTmpDevUser.MyTime[1].End / 100)		// 小时
-		pdu.TimeSlot2[3] = uint8(setTmpDevUser.MyTime[1].End % 100) 	// 分钟
+		pdu.TimeSlot2[0] = uint8(setTmpDevUser.MyTime[1].Start / 100) // 小时
+		pdu.TimeSlot2[1] = uint8(setTmpDevUser.MyTime[1].Start % 100) // 分钟
+		pdu.TimeSlot2[2] = uint8(setTmpDevUser.MyTime[1].End / 100)   // 小时
+		pdu.TimeSlot2[3] = uint8(setTmpDevUser.MyTime[1].End % 100)   // 分钟
 
 		setTmpDevUser.MyTime[2].Start = convertHexDateTime(setTmpDevUser.MyTime[2].Start)
 		setTmpDevUser.MyTime[2].End = convertHexDateTime(setTmpDevUser.MyTime[2].End)
-		pdu.TimeSlot3[0] = uint8(setTmpDevUser.MyTime[2].Start / 100)	// 小时
-		pdu.TimeSlot3[1] = uint8(setTmpDevUser.MyTime[2].Start % 100) 	// 分钟
-		pdu.TimeSlot3[2] = uint8(setTmpDevUser.MyTime[2].End / 100)		// 小时
-		pdu.TimeSlot3[3] = uint8(setTmpDevUser.MyTime[2].End % 100) 	// 分钟
+		pdu.TimeSlot3[0] = uint8(setTmpDevUser.MyTime[2].Start / 100) // 小时
+		pdu.TimeSlot3[1] = uint8(setTmpDevUser.MyTime[2].Start % 100) // 分钟
+		pdu.TimeSlot3[2] = uint8(setTmpDevUser.MyTime[2].End / 100)   // 小时
+		pdu.TimeSlot3[3] = uint8(setTmpDevUser.MyTime[2].End % 100)   // 分钟
 
 		bData, err_ := wlMsg.PkEncode(pdu)
 		if nil != err_ {
@@ -161,10 +167,10 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		}
 
 		pdu := &wlprotocol.DelDevUser{
-			UserNo: delDevUser.UserId,			// 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
-			MainOpen: delDevUser.MainOpen,	 	// 允许开门次数
-			SubOpen: delDevUser.SubOpen,		// 是否胁迫，是否胁迫：0-正常，1-胁迫
-			Time: delDevUser.Time,				// 时间戳
+			UserNo:   delDevUser.UserId,   // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
+			MainOpen: delDevUser.MainOpen, // 允许开门次数
+			SubOpen:  delDevUser.SubOpen,  // 是否胁迫，是否胁迫：0-正常，1-胁迫
+			Time:     delDevUser.Time,     // 时间戳
 		}
 
 		bData, err_ := wlMsg.PkEncode(pdu)
@@ -204,10 +210,10 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		pdu := &wlprotocol.RemoteOpenLock{
 			/*Passwd: (remoteOpen.Passwd),	// 密码1（6）
 			Passwd2: remoteOpen.Passwd2,	// 密码2（6）*/
-			Time: remoteOpen.Time,			// 随机数（4）
+			Time: remoteOpen.Time, // 随机数（4）
 		}
 		pwd := []byte(remoteOpen.Passwd)
-		for i:=0;i<len(pwd);i++{
+		for i := 0; i < len(pwd); i++ {
 			if i < 6 {
 				pdu.Passwd[i] = pwd[i]
 			}
@@ -217,7 +223,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 			pdu.Passwd2[0] = 0xFF
 		} else {
 			pwd2 := []byte(remoteOpen.Passwd2)
-			for i:=0;i<len(pwd2);i++{
+			for i := 0; i < len(pwd2); i++ {
 				if i < 6 {
 					pdu.Passwd2[i] = pwd[i]
 				}
@@ -242,9 +248,9 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 			setParam.PaValue2 = 0xFF
 		}
 		pdu := &wlprotocol.SetLockParamReq{
-			ParamNo: setParam.ParaNo,		// 参数编号(1)
-			ParamValue: setParam.PaValue,	// 参数值(1)
-			ParamValue2: setParam.PaValue2,	// 参数值2(1)
+			ParamNo:     setParam.ParaNo,   // 参数编号(1)
+			ParamValue:  setParam.PaValue,  // 参数值(1)
+			ParamValue2: setParam.PaValue2, // 参数值2(1)
 			// Time: setParam.Time,			// 时间(4)
 		}
 		if nTime, err_0 := strconv.Atoi(setParam.Time); err_0 == nil {
@@ -308,13 +314,13 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 			// Passwd: setWifi.WifiPwd,		// 密码（16）
 		}
 		wifiSsid := []byte(setWifi.WifiSsid)
-		for i:=0;i<len(wifiSsid);i++{
+		for i := 0; i < len(wifiSsid); i++ {
 			if i < 32 {
 				pdu.Ssid[i] = wifiSsid[i]
 			}
 		}
 		wifiPwd := []byte(setWifi.WifiPwd)
-		for i:=0;i<len(wifiPwd);i++{
+		for i := 0; i < len(wifiPwd); i++ {
 			if i < 16 {
 				pdu.Ssid[i] = wifiSsid[i]
 			}
@@ -330,7 +336,6 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 	case constant.Notify_F_Upgrade: // 通知前板升级（APP—后台—>锁）
 		{
 			log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
-
 
 		}
 	case constant.Notify_B_Upgrade: // 通知后板升级（APP—后台—>锁）

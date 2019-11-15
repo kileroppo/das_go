@@ -1,17 +1,20 @@
 package feibee2srv
 
 import (
-	"encoding/json"
+	//"encoding/json"
 	"errors"
 	"strconv"
 	"time"
 
+	"github.com/json-iterator/go"
+
 	"../core/entity"
 	"../core/log"
-		"../core/rabbitmq"
+	"../core/rabbitmq"
 )
 
 var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 	SensorMsgTypeErr = errors.New("sensorAlarmMsg type error")
 )
 
@@ -209,7 +212,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 		return
 	}
 	//producer.SendMQMsg2PMS(string(data))
-    rabbitmq.Publish2pms(data, "")
+	rabbitmq.Publish2pms(data, "")
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"

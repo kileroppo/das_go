@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/ZZMarquis/gm/sm2"
+	"github.com/json-iterator/go"
 
 	"../cmdto"
 	"../core/constant"
@@ -20,6 +20,10 @@ import (
 	"../core/redis"
 	"../core/util"
 	"../upgrade"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func ProcessNbMsg(DValue string, Imei string) error {

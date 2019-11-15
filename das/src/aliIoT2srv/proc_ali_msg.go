@@ -1,44 +1,44 @@
 package aliIot2srv
 
 import (
-	"../core/log"
-	"encoding/json"
 	"strings"
+
 	"../core/constant"
+	"../core/log"
 	"../core/redis"
 )
 
 type AliData struct {
-	Value string		`json:"value"`
-	Time int64			`json:"time"`
+	Value string `json:"value"`
+	Time  int64  `json:"time"`
 }
 type AliItems struct {
-	UserData AliData	`json:"UserData"`
+	UserData AliData `json:"UserData"`
 }
-type AliIoTData struct{
-	DeviceType string	`json:"deviceType"`
-	IotId string		`json:"iotId"`
-	RequestId string	`json:"requestId"`
-	ProductKey string	`json:"productKey"`
-	GmtCreate int64		`json:"gmtCreate"`
-	DeviceName string	`json:"deviceName"`
-	Items AliItems		`json:"items"`
+type AliIoTData struct {
+	DeviceType string   `json:"deviceType"`
+	IotId      string   `json:"iotId"`
+	RequestId  string   `json:"requestId"`
+	ProductKey string   `json:"productKey"`
+	GmtCreate  int64    `json:"gmtCreate"`
+	DeviceName string   `json:"deviceName"`
+	Items      AliItems `json:"items"`
 }
 
 type AliIoTStatus struct {
-	DeviceType string	`json:"deviceType"`
-	IotId string		`json:"iotId"`
-	Action string		`json:"action"`
-	ProductKey string	`json:"productKey"`
-	GmtCreate string	`json:"gmtCreate"`
-	DeviceName string	`json:"deviceName"`
-	Status AliData		`json:"status"`
+	DeviceType string  `json:"deviceType"`
+	IotId      string  `json:"iotId"`
+	Action     string  `json:"action"`
+	ProductKey string  `json:"productKey"`
+	GmtCreate  string  `json:"gmtCreate"`
+	DeviceName string  `json:"deviceName"`
+	Status     AliData `json:"status"`
 }
 
 var DEVICETYPE = []string{"", "WlWiFiLock"}
 
 func ProcessAliMsg(data []byte, topic string) error {
-	log.Debugf("ali-topic: %s -> \n %s", topic , string(data))
+	log.Debugf("ali-topic: %s -> \n %s", topic, string(data))
 	var err error
 	if strings.Contains(topic, "thing/event/property/post") { // 数据
 		var aliData AliIoTData

@@ -1,7 +1,7 @@
 package producer
 
 import (
-		"../../core/log"
+	"../../core/log"
 	"../../core/rabbitmq"
 )
 

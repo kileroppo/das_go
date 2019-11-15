@@ -1,14 +1,13 @@
 package feibee2srv
 
 import (
-	"encoding/json"
 	"errors"
 	"strconv"
 	"time"
 
 	"../core/entity"
 	"../core/log"
-		"../core/rabbitmq"
+	"../core/rabbitmq"
 )
 
 type MsgType int32
@@ -372,7 +371,6 @@ func (self WonlyGuardHandle) pushMsgByType() {
 			//producer.SendMQMsg2PMS(string(data2pms))
 			rabbitmq.Publish2pms(data2pms, "")
 		}
-
 
 		msg2app := self.createMsg2App()
 		data2app, err := json.Marshal(msg2app)

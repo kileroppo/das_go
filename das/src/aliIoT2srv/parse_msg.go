@@ -3,10 +3,11 @@ package aliIot2srv
 import (
 	"bytes"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"time"
+
+	"github.com/json-iterator/go"
 
 	"../core/constant"
 	"../core/entity"
@@ -16,6 +17,11 @@ import (
 	"../core/rabbitmq"
 	"../cmdto"
 )
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
+)
+
 
 /*
 *	解包

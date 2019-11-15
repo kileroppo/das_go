@@ -1,7 +1,6 @@
 package onenet2srv
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -9,15 +8,20 @@ import (
 	"strconv"
 
 	"github.com/dlintw/goconf"
+	"github.com/json-iterator/go"
 
 	"../core/constant"
 	"../core/entity"
 	"../core/httpgo"
 	"../core/jobque"
 	"../core/log"
+	"../core/rabbitmq"
 	"../core/redis"
 	"../procnbmsg"
-		"../core/rabbitmq"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {

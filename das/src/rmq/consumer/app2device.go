@@ -3,7 +3,7 @@ package consumer
 import (
 	"context"
 
-		"../../core/jobque"
+	"../../core/jobque"
 	"../../core/log"
 	"../../core/rabbitmq"
 )

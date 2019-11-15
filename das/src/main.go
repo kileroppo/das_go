@@ -2,16 +2,17 @@ package main
 
 import (
 	"flag"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
+	"runtime/pprof"
 	"syscall"
 	"time"
-	"runtime/pprof"
 
 	"github.com/dlintw/goconf"
 
 	"./aliIoT2srv"
-	"./andlink2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
@@ -19,12 +20,11 @@ import (
 	"./feibee2srv"
 	"./onenet2srv"
 	"./rmq/consumer"
-	"./telecom2srv"
 	"./wifi2srv"
 )
 
 func loadProfile() *os.File {
-	cpuProfile := flag.String("cpuprofile", "./cpu", "record the cpu profile to file")
+	cpuProfile := flag.String("cpuprofile", "./logs/cpu", "record the cpu profile to file")
 	if *cpuProfile == "" {
 		panic("cpu profile created error")
 	}
@@ -38,9 +38,13 @@ func loadProfile() *os.File {
 }
 
 func main() {
-    f := loadProfile()
-    pprof.StartCPUProfile(f)
-    defer pprof.StopCPUProfile()
+	go func() {
+		http.ListenAndServe("localhost:6060", nil)
+	}()
+
+	f := loadProfile()
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 
 	//1. 加载配置文件
 	conf := loadConfig()
@@ -66,12 +70,6 @@ func main() {
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
-
-	//13. 启动http/https服务
-	telecom2srv := telecom2srv.Telecom2HttpSrvStart(conf)
-
-	//14. 启动http/https服务
-	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)
 
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
@@ -119,18 +117,6 @@ func main() {
 	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
-		// panic(err) // failure/timeout shutting down the server gracefully
-	}
-
-	// 18. 停止HTTP服务器
-	if err := telecom2srv.Shutdown(nil); err != nil {
-		log.Error("telecom2srv.Shutdown failed, err=", err)
-		// panic(err) // failure/timeout shutting down the server gracefully
-	}
-
-	// 19. 停止HTTP服务器
-	if err := andlink2srv.Shutdown(nil); err != nil {
-		log.Error("andlink2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
