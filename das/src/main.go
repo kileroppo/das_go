@@ -38,7 +38,7 @@ func loadProfile() *os.File {
 
 func main() {
 	go func() {
-		http.ListenAndServe(":6060",nil)
+		http.ListenAndServe(":14999",nil)
 	}()
 	//1. 加载配置文件
 	conf := loadConfig()
