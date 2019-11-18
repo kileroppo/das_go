@@ -14,7 +14,8 @@ import (
 	"./wifi2srv"
 	"flag"
 	"github.com/dlintw/goconf"
-	"runtime/pprof"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -36,11 +37,11 @@ func loadProfile() *os.File {
 }
 
 func main() {
-	f := loadProfile()
+	go func() {
+		http.ListenAndServe(":6060",nil)
+	}()
 	//1. 加载配置文件
 	conf := loadConfig()
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
 
 	//2. 初始化日志
 	initLogger(conf)
