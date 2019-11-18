@@ -38,7 +38,7 @@ func loadProfile() *os.File {
 
 func main() {
 	go func() {
-		http.ListenAndServe("localhost:6060", nil)
+		http.ListenAndServe(":6060", nil)
 	}()
 
 	//f := loadProfile()
