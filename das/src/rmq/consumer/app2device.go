@@ -6,7 +6,7 @@ import (
 	"../../core/jobque"
 	"../../core/log"
 	"../../core/rabbitmq"
-)
+	)
 
 var rmq_uri string
 var exchange string     // = "App2OneNET"
@@ -45,39 +45,30 @@ func (c ConsumerJob) Handle() {
 
 func Run() {
 	log.Info("start ReceiveMQMsgFromAPP......")
+	go consume()
+}
 
-	//channleContxt := rabbitmq.ChannelContext{Exchange: exchange, ExchangeType: exchangeType, RoutingKey: routingKey, Reliable: true, Durable: true, ReSendNum: 0}
-	//
-	//rabbitmq.ConsumerRabbitMq.QueueDeclare(channleContxt)
-
-	log.Info("Consumer ReceiveMQMsgFromAPP......")
+func consume() {
 	msgs, err := rabbitmq.Consumer2appMQ.Consumer()
-	if nil != err {
-		log.Error("Consumer2appMQ.Consumer() error = ", err)
-		panic(err)
+	if err != nil {
+		log.Error("Consumer2appMQ() error = ", err)
+		rabbitmq.Consumer2appMQ.ReConn()
+		go consume()
+		return
 	}
-	// go程循环去读消息，并放到Job去处理
-	for {
-		//msgs, err := rabbitmq.ConsumerRabbitMq.Consumer(&channleContxt)
-		select {
-		case <-ctx.Done():
-			log.Info("ReceiveMQMsgFromAPP Close")
-			return
-		case msg := <-msgs:
-			log.Error("Consumer ReceiveMQMsgFromAPP: ", string(msg.Body))
-			jobque.JobQueue <- NewConsumerJob(string(msg.Body))
-		}
 
-		//go func() {
-		//	for d := range msgs {
-		//		log.Error("Consumer ReceiveMQMsgFromAPP: ", string(d.Body))
-		//		// fetch job
-		//		// work := Job{appMsg: AppMsg{pri: string(d.Body)}}
-		//		jobque.JobQueue <- NewConsumerJob(string(d.Body))
-		//	}
-		//	forever <- true // 退出
-		//}()
-		//<-forever
+	for msg := range msgs {
+		log.Info("Consumer ReceiveMQMsgFromAPP: ", string(msg.Body))
+		jobque.JobQueue <- NewConsumerJob(string(msg.Body))
+	}
+
+	select {
+	case <- ctx.Done():
+		log.Info("ReceiveMQMsgFromAPP Close")
+		return
+	default:
+		rabbitmq.Consumer2devMQ.ReConn()
+		go consume()
 	}
 }
 

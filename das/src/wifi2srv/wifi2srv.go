@@ -51,42 +51,54 @@ func (w WifiPlatJob) Handle() {
 
 func Run() {
 	log.Info("start ReceiveMQMsgFromDevice......")
+	go consume()
+}
 
+func consume() {
 	msgs, err := rabbitmq.Consumer2devMQ.Consumer()
 	if err != nil {
-		log.Error("Consumer2devMQ.Consumer() error = ", err)
-		panic(err)
-	}
-	// go程循环去读消息，并放到Job去处理
-	for {
-		select {
-		case <-ctx.Done():
-			log.Info("ReceiveMQMsgFromDevice Close")
+		log.Error("PMSConsumer() error = ", err)
+		if err := rabbitmq.Consumer2devMQ.ReConn(); err != nil {
 			return
-		case d := <-msgs:
-			log.Error("Consumer ReceiveMQMsgFromDevice 1: ", string(d.Body))
-
-			//1. 检验数据是否合法
-			getData := string(d.Body)
-			if !strings.Contains(getData, "#") {
-				log.Error("ReceiveMQMsgFromDevice: rabbitmq.ConsumerRabbitMq error msg: ", getData)
-				continue
-			}
-
-			//2. 获取设备编号
-			prData := strings.Split(getData, "#")
-			var devID string
-			var devData string
-			devID = prData[0]
-			devData = prData[1]
-
-			//3. 锁对接的平台，存入redis
-			redis.SetDevicePlatformPool(devID, constant.WIFI_PLATFORM)
-
-			//4. fetch job
-			// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
-			jobque.JobQueue <- NewWifiPlatJob(devData, devID)
 		}
+		go consume()
+		return
+	}
+
+	for d := range msgs {
+		log.Info("Consumer ReceiveMQMsgFromDevice: ", string(d.Body))
+
+		//1. 检验数据是否合法
+		getData := string(d.Body)
+		if !strings.Contains(getData, "#") {
+			log.Error("ReceiveMQMsgFromDevice: rabbitmq.ConsumerRabbitMq error msg: ", getData)
+			continue
+		}
+
+		//2. 获取设备编号
+		prData := strings.Split(getData, "#")
+		var devID string
+		var devData string
+		devID = prData[0]
+		devData = prData[1]
+
+		//3. 锁对接的平台，存入redis
+		redis.SetDevicePlatformPool(devID, constant.WIFI_PLATFORM)
+
+		//4. fetch job
+		// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
+		jobque.JobQueue <- NewWifiPlatJob(devData, devID)
+	}
+
+	select {
+	case <- ctx.Done():
+		log.Info("ReceiveMQMsgFromDevice Close")
+		return
+	default:
+		if err := rabbitmq.Consumer2devMQ.ReConn(); err != nil {
+			return
+		}
+		go consume()
 	}
 }
 

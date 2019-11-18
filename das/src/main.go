@@ -103,7 +103,7 @@ func main() {
 
 	}
 	//停止ali消息接收
-	aliIOTsrv.Shutdown()
+	aliIOTsrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()

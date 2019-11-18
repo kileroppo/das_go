@@ -2,17 +2,18 @@ package rabbitmq
 
 import (
 	"errors"
+	"reflect"
 	"sync"
+	"sync/atomic"
 
 	"github.com/streadway/amqp"
 
 	"../log"
-	"time"
-	"reflect"
 )
 
 var (
 	ErrExchangeType = errors.New("exchange type was not supported")
+	ErrReConn       = errors.New("baseMQ reconnection failed")
 )
 
 type ChannelContext struct {
@@ -32,7 +33,11 @@ type baseMq struct {
 	channel    *amqp.Channel
 	mqUri      string
 	channelCtx ChannelContext
-	initOnce sync.Once
+	initOnce   sync.Once
+
+	reConnNum     int32
+	currReConnNum int32
+	mu            sync.Mutex
 }
 
 func (bmq *baseMq) init() (err error) {
@@ -84,7 +89,6 @@ func (bmq *baseMq) initConsumer() (err error) {
 }
 
 func (bmq *baseMq) initExchange() error {
-	log.Info("BaseMQ init exchange")
 	err := bmq.channel.ExchangeDeclare(
 		bmq.channelCtx.Exchange,
 		bmq.channelCtx.ExchangeType,
@@ -128,10 +132,8 @@ func (bmq *baseMq) Publish(data []byte, routingKey string) (err error) {
 }
 
 func (bmq *baseMq) Consumer() (ch <-chan amqp.Delivery, err error) {
-	reConn := func() {
-		time.Sleep(10 * time.Second)
-		bmq.reConn()
-		ch,err = bmq.Consumer()
+	if isNil(bmq.channel) {
+		bmq.ReConn()
 	}
 
 	ch, err = bmq.channel.Consume(
@@ -146,15 +148,35 @@ func (bmq *baseMq) Consumer() (ch <-chan amqp.Delivery, err error) {
 
 	if err != nil {
 		log.Error(err)
-		reConn()
 	}
 
 	return
 }
 
-func (bmq *baseMq) reConn() {
+func (bmq *baseMq) ReConn() error {
 	log.Info("MQ Reconnnecting...")
-	bmq.init()
+	var err error
+	bmq.mu.Lock()
+	defer bmq.mu.Unlock()
+	for atomic.LoadInt32(&bmq.currReConnNum) < bmq.reConnNum {
+		if isNil(bmq.connection) || bmq.connection.IsClosed() {
+			log.Infof("bmq第%d次重连", bmq.currReConnNum+1)
+			bmq.connection, err = amqp.Dial(bmq.mqUri)
+			if err != nil {
+				atomic.AddInt32(&bmq.currReConnNum, 1)
+				continue
+			}
+			bmq.channel, err = bmq.connection.Channel()
+			if err != nil {
+				atomic.AddInt32(&bmq.currReConnNum, 1)
+				continue
+			}
+			atomic.StoreInt32(&bmq.currReConnNum, 0)
+		}
+		log.Info("BaseMQ reConnected successfully")
+		return nil
+	}
+	return ErrReConn
 }
 
 func (bmq *baseMq) Close() error {
