@@ -6,12 +6,12 @@ import (
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
-	"runtime/pprof"
 	"syscall"
 	"time"
 
 	"github.com/dlintw/goconf"
 
+	"./aliIoT2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
@@ -20,7 +20,6 @@ import (
 	"./onenet2srv"
 	"./rmq/consumer"
 	"./wifi2srv"
-	"./aliIoT2srv"
 )
 
 func loadProfile() *os.File {
@@ -42,9 +41,9 @@ func main() {
 		http.ListenAndServe("localhost:6060", nil)
 	}()
 
-	f := loadProfile()
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+	//f := loadProfile()
+	//pprof.StartCPUProfile(f)
+	//defer pprof.StopCPUProfile()
 
 	//1. 加载配置文件
 	conf := loadConfig()
