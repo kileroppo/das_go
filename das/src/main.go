@@ -12,7 +12,6 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"./aliIoT2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
@@ -21,6 +20,7 @@ import (
 	"./onenet2srv"
 	"./rmq/consumer"
 	"./wifi2srv"
+	"./aliIoT2srv"
 )
 
 func loadProfile() *os.File {
@@ -149,7 +149,7 @@ func loadConfig() *goconf.ConfigFile {
 	flag.Parse()
 	conf, err := goconf.ReadConfigFile(*conf_file)
 	if err != nil {
-		log.Errorf("加载配置文件失败，无法打开%q，%s\n", conf_file, err)
+		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
 		os.Exit(1)
 	}
 	return conf
