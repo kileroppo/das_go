@@ -35,9 +35,5 @@ EXPOSE 10701
 EXPOSE 10702
 EXPOSE 10703
 EXPOSE 10704
-EXPOSE 6060
-<<<<<<< HEAD
 
-=======
->>>>>>> test
 CMD ["supervisord"]
