@@ -1,16 +1,10 @@
 package upgrade
 
 import (
-	"../core/constant"
-	"../core/entity"
-	"../core/httpgo"
-	"../core/log"
-	"../core/util"
 	"bytes"
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -19,6 +13,18 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/json-iterator/go"
+
+	"../core/constant"
+	"../core/entity"
+	"../core/httpgo"
+	"../core/log"
+	"../core/util"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type Msg struct {

@@ -1,7 +1,6 @@
 package feibee2srv
 
 import (
-	"encoding/json"
 	"errors"
 
 	"../core/entity"

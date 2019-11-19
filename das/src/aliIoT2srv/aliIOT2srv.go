@@ -57,7 +57,7 @@ func (a AliIOTSrv) conn() error {
 	return h2.Get(a.rawUrl + a.topic)
 }
 
-func (a *AliIOTSrv) Shutdown() {
+func (a *AliIOTSrv) Close() {
 	a.cancel()
 	log.Info("AliIOTSrv closed")
 }

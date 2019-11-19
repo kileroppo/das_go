@@ -1,19 +1,25 @@
 package telecom2srv
 
 import (
-	"../core/entity"
-	"../core/jobque"
-	"../core/log"
-	"../core/redis"
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/dlintw/goconf"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+
+	"github.com/dlintw/goconf"
+	"github.com/json-iterator/go"
+
 	"../core/constant"
+	"../core/entity"
+	"../core/jobque"
+	"../core/log"
+	"../core/redis"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {

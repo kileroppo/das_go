@@ -1,21 +1,27 @@
 package onenet2srv
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strconv"
+
+	"github.com/dlintw/goconf"
+	"github.com/json-iterator/go"
+
 	"../core/constant"
 	"../core/entity"
 	"../core/httpgo"
 	"../core/jobque"
 	"../core/log"
+	"../core/rabbitmq"
 	"../core/redis"
 	"../procnbmsg"
-	"../rmq/producer"
-	"encoding/json"
-	"fmt"
-	"github.com/dlintw/goconf"
-	"io/ioutil"
-	"net/http"
-	"os"
-	"strconv"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -107,7 +113,8 @@ func (o OnenetJob) Handle() {
 
 			if toApp_str, err := json.Marshal(toApp); err == nil {
 				//2. 回复到APP
-				producer.SendMQMsg2APP(data.Msg.Imei, string(toApp_str))
+				//producer.SendMQMsg2APP(data.Msg.Imei, string(toApp_str))
+				rabbitmq.Publish2app(toApp_str, data.Msg.Imei)
 			} else {
 				log.Error("toApp json.Marshal, err=", err)
 			}

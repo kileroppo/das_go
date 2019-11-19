@@ -1,26 +1,20 @@
 package rabbitmq
 
 import (
-	"fmt"
+	"errors"
+	"reflect"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/streadway/amqp"
 
 	"../log"
 )
 
-var appExchangeInitOnce sync.Once
-var dbExchangeInitOnce sync.Once
-var db2ExchangeInitOnce sync.Once
-var devExchangeInitOnce sync.Once
-
-type MqConnection struct {
-	Lock       sync.RWMutex
-	Connection *amqp.Connection
-	MqUri      string
-}
+var (
+	ErrExchangeType = errors.New("exchange type was not supported")
+	ErrReConn       = errors.New("baseMQ reconnection failed")
+)
 
 type ChannelContext struct {
 	Exchange     string
@@ -28,55 +22,77 @@ type ChannelContext struct {
 	RoutingKey   string
 	Reliable     bool
 	Durable      bool
+	AutoDelete   bool
 	ChannelId    string
-	Channel      *amqp.Channel
-	ReSendNum    int32 // 重发次数
+
+	ReSendNum int32 // 重发次数
 }
 
-type BaseMq struct {
-	MqConnection *MqConnection
+type baseMq struct {
+	connection *amqp.Connection
+	channel    *amqp.Channel
+	mqUri      string
+	channelCtx ChannelContext
+	initOnce   sync.Once
+
+	reConnNum     int32
+	currReConnNum int32
+	mu            sync.Mutex
 }
 
-func (bmq *BaseMq) Init() {
-	bmq.refreshConnectionAndChannel()
-}
-
-// One would typically keep a channel of publishings, a sequence number, and a
-// set of unacknowledged sequence numbers and loop until the publishing channel
-// is closed.
-func (bmq *BaseMq) confirmOne(confirms <-chan amqp.Confirmation) {
-	log.Info("waiting for confirmation of one publishing")
-	if confirmed := <-confirms; confirmed.Ack {
-		log.Info("confirmed delivery with delivery tag: %d", confirmed.DeliveryTag)
-	} else {
-		log.Error("failed delivery of delivery tag: %d", confirmed.DeliveryTag)
-	}
-}
-
-/*
- * get md5 from channel context
- */
-
-/*
-1. use old connection to generate channel
-2. update connection then channel
-*/
-func (bmq *BaseMq) refreshConnectionAndChannel() (err error) {
-
-	bmq.MqConnection.Connection, err = amqp.Dial(bmq.MqConnection.MqUri)
+func (bmq *baseMq) init() (err error) {
+	bmq.connection, err = amqp.Dial(bmq.mqUri)
 	if err != nil {
 		log.Error(err)
-		panic(fmt.Sprintf("amqp.Dial('%s') error = %s", bmq.MqConnection.MqUri, err))
+		panic(err)
+	}
+
+	bmq.channel, err = bmq.connection.Channel()
+	if err != nil {
+		log.Error("connection.Channel() error = ", err)
+		return err
 	}
 
 	return nil
 }
 
-func (bmq *BaseMq) initExchange(channelContext *ChannelContext) error {
-	err := channelContext.Channel.ExchangeDeclare(
-		channelContext.Exchange,
-		channelContext.ExchangeType,
-		channelContext.Durable,
+func (bmq *baseMq) initConsumer() (err error) {
+	log.Info("baseMQ init exchange: ", bmq.channelCtx.Exchange)
+
+	queue, err := bmq.channel.QueueDeclare(
+		bmq.channelCtx.RoutingKey, // name, leave empty to generate a unique name
+		bmq.channelCtx.Durable,    // durable
+		bmq.channelCtx.AutoDelete, // delete when usused
+		false,                     // exclusive
+		false,                     // noWait
+		nil,                       // arguments
+	)
+	if nil != err {
+		log.Error("baseMq QueueDeclare() error = ", err)
+		bmq.channel.Close()
+		return err
+	}
+	err = bmq.channel.QueueBind(
+		queue.Name,                // name of the queue
+		bmq.channelCtx.RoutingKey, // bindingKey
+		bmq.channelCtx.Exchange,   // sourceExchange
+		false,                     // noWait
+		nil,                       // arguments
+	)
+	if nil != err {
+		log.Error("baseMq, QueueBind() error = ", err)
+		bmq.channel.Close()
+		return err
+	}
+
+	return nil
+}
+
+func (bmq *baseMq) initExchange() error {
+	err := bmq.channel.ExchangeDeclare(
+		bmq.channelCtx.Exchange,
+		bmq.channelCtx.ExchangeType,
+		true,
 		false,
 		false,
 		false,
@@ -84,426 +100,44 @@ func (bmq *BaseMq) initExchange(channelContext *ChannelContext) error {
 	)
 
 	if err != nil {
-		log.Error(err)
+		log.Error("Channel.ExchangeDeclare() error = ", err)
+		return err
 	}
 
 	return nil
 }
 
-/*
-*	publish message
-*
-*	发给APP的消息
- */
-func (bmq *BaseMq) Publish2App(channelContext ChannelContext, body []byte) error {
-	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
-		err := bmq.refreshConnectionAndChannel()
-		if err != nil {
-			log.Error("bmq refreshConnectionAndChannel() error = ", err)
-			return err
-		}
-	}
-
-	var err error
-	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	appExchangeInitOnce.Do(func() {
-		bmq.initExchange(&channelContext)
-	})
-
-	queue_name, qerr := channelContext.Channel.QueueDeclare(
-		"",    // name, leave empty to generate a unique name
-		false, // durable
-		false, // delete when usused
-		false, // exclusive
-		false, // noWait
-		amqp.Table{
-			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(5000)}, // arguments
-	)
-	if nil != qerr {
-		log.Error("Publish2App, channelContext.Channel.QueueDeclare, err: ", qerr)
-		channelContext.Channel.Close()
-		return qerr
-	}
-
-	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,           // name of the queue
-		channelContext.RoutingKey, // bindingKey
-		channelContext.Exchange,   // sourceExchange
-		false,                     // noWait
-		nil,                       // arguments
-	)
-	if nil != qbinderr {
-		log.Error("Publish2App, channelContext.Channel.QueueBind, err: ", qbinderr)
-		channelContext.Channel.Close()
-		return qbinderr
-	}
-
-	if err := channelContext.Channel.Publish(
-		channelContext.Exchange,   // publish to an exchange
-		channelContext.RoutingKey, // routing to 0 or more queues
-		false,                     // mandatory
-		false,                     // immediate
-		amqp.Publishing{
-			Headers:         amqp.Table{},
-			ContentType:     "application/json",
-			ContentEncoding: "",
-			Body:            []byte(body),
-			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
-			Priority:        0,              // 0-9
-			// a bunch of application/implementation-specific fields
-		},
-	); err != nil {
-		log.Error("send message failed refresh connection", err)
-		//time.Sleep(10 * time.Second)
-		log.Error("Publish2App() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
-		if atomic.LoadInt32(&channelContext.ReSendNum) > 0 {
-			log.Error("Publish2App ReSend message=", body, ", num=", channelContext.ReSendNum)
-			atomic.AddInt32(&channelContext.ReSendNum, -1)
-			bmq.Publish2App(channelContext, body)
-		}
-
-		channelContext.Channel.Close()
-		return err
-	}
-
-	channelContext.Channel.Close()
-	return nil
-}
-
-func (bmq *BaseMq) refresh(channelContext ChannelContext) {
-
-}
-
-/*
-*	publish message
-*
-*	存到mongodb数据库
- */
-func (bmq *BaseMq) Publish2Db(channelContext ChannelContext, body []byte) error {
-	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
-		err := bmq.refreshConnectionAndChannel()
-		if err != nil {
-			log.Error("bmq refreshConnectionAndChannel() error = ", err)
-			panic(err)
-			//return err
-		}
-	}
-
-	var err error
-	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-
-	if err != nil {
-		log.Error("bmq.MqConnection.Connection.Channel() error = ", err)
-		return err
-	}
-
-	dbExchangeInitOnce.Do(func() {
-		bmq.initExchange(&channelContext)
-	})
-
-	queue_name, qerr := channelContext.Channel.QueueDeclare(
-		channelContext.RoutingKey, // name, leave empty to generate a unique name
-		true,                      // durable
-		false,                     // delete when usused
-		false,                     // exclusive
-		false,                     // noWait
-		nil,                       // arguments
-	)
-	if nil != qerr {
-		log.Error("Publish2Db, channelContext.Channel.QueueDeclare, error = ", qerr)
-		channelContext.Channel.Close()
-		return qerr
-	}
-
-	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,         // name of the queue
-		"",                      // bindingKey
-		channelContext.Exchange, // sourceExchange
-		false,                   // noWait
-		nil,                     // arguments
-	)
-	if nil != qbinderr {
-		log.Error("Publish2Db, channelContext.Channel.QueueBind, error = ", qbinderr)
-		channelContext.Channel.Close()
-		return qbinderr
-	}
-
-	if err := channelContext.Channel.Publish(
-		channelContext.Exchange, // publish to an exchange
-		queue_name.Name,         // routing to 0 or more queues
+func (bmq *baseMq) Publish(data []byte, routingKey string) (err error) {
+	err = bmq.channel.Publish(
+		bmq.channelCtx.Exchange, // publish to an exchange
+		routingKey,              // routing to 0 or more queues
 		false,                   // mandatory
 		false,                   // immediate
 		amqp.Publishing{
 			Headers:         amqp.Table{},
 			ContentType:     "text/plain",
 			ContentEncoding: "",
-			Body:            body,
+			Body:            data,
 			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
 			Priority:        0,              // 0-9
 			// a bunch of application/implementation-specific fields
 		},
-	); err != nil {
-		log.Error("send message failed refresh connection", err)
-		//time.Sleep(10 * time.Second)
-		log.Error("Publish2Db() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
-		//recon_err := bmq.refreshConnectionAndChannel(channelContext)
-		if atomic.LoadInt32(&channelContext.ReSendNum) > 0 {
-			log.Error("Publish2Db ReSend message=", body, ", num=", channelContext.ReSendNum)
-			atomic.AddInt32(&channelContext.ReSendNum, -1)
-			bmq.Publish2Db(channelContext, body)
-		}
-		channelContext.Channel.Close()
-		return err
+	)
+	if err != nil {
+		log.Error("bmq.channel.Publish error = ", err)
+		return
 	}
 
-	channelContext.Channel.Close()
 	return nil
 }
 
-func (bmq *BaseMq) Publish2PMS(channelContext ChannelContext, body []byte) error {
-	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
-		err := bmq.refreshConnectionAndChannel()
-		if err != nil {
-			log.Error("bmq refreshConnectionAndChannel() error = ", err)
-			panic(err)
-		}
+func (bmq *baseMq) Consumer() (ch <-chan amqp.Delivery, err error) {
+	if isNil(bmq.channel) {
+		bmq.ReConn()
 	}
 
-	var err error
-	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-	//defer channelContext.Channel.Close()
-
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	db2ExchangeInitOnce.Do(func() {
-		bmq.initExchange(&channelContext)
-	})
-
-	queue_name, qerr := channelContext.Channel.QueueDeclare(
-		channelContext.RoutingKey, // name, leave empty to generate a unique name
-		true,                      // durable
-		false,                     // delete when usused
-		false,                     // exclusive
-		false,                     // noWait
-		nil,                       // arguments
-	)
-	if nil != qerr {
-		log.Error("Publish2PMS, channelContext.Channel.QueueDeclare, err: ", qerr)
-		//bmq.refreshConnectionAndChannel(channelContext)
-		channelContext.Channel.Close()
-		return qerr
-	}
-
-	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,         // name of the queue
-		"",                      // bindingKey
-		channelContext.Exchange, // sourceExchange
-		false,                   // noWait
-		nil,                     // arguments
-	)
-	if nil != qbinderr {
-		log.Error("Publish2PMS, channelContext.Channel.QueueBind, err: ", qbinderr)
-		//bmq.refreshConnectionAndChannel(channelContext)
-		channelContext.Channel.Close()
-		return qbinderr
-	}
-
-	if err := channelContext.Channel.Publish(
-		channelContext.Exchange, // publish to an exchange
-		queue_name.Name,         // routing to 0 or more queues
-		false,                   // mandatory
-		false,                   // immediate
-		amqp.Publishing{
-			Headers:         amqp.Table{},
-			ContentType:     "text/plain",
-			ContentEncoding: "",
-			Body:            body,
-			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
-			Priority:        0,              // 0-9
-			// a bunch of application/implementation-specific fields
-		},
-	); err != nil {
-		log.Error("send message failed refresh connection", err)
-		//time.Sleep(10 * time.Second)
-		log.Error("Publish2PMS() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
-		//recon_err := bmq.refreshConnectionAndChannel(channelContext)
-		if atomic.LoadInt32(&channelContext.ReSendNum) > 0 {
-			log.Error("Publish2PMS ReSend message=", body, ", num=", channelContext.ReSendNum)
-			atomic.AddInt32(&channelContext.ReSendNum, -1)
-			bmq.Publish2PMS(channelContext, body)
-		}
-		channelContext.Channel.Close()
-		return err
-	}
-
-	channelContext.Channel.Close()
-	return nil
-}
-
-/*
-*	publish message
-*
-*	发给平板设备的消息
- */
-func (bmq *BaseMq) Publish2Device(channelContext ChannelContext, body []byte) error {
-	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
-		err := bmq.refreshConnectionAndChannel()
-		if err != nil {
-			log.Error("bmq refreshConnectionAndChannel() error = ", err)
-			return err
-		}
-	}
-
-	var err error
-	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-	//defer channelContext.Channel.Close()
-
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	devExchangeInitOnce.Do(func() {
-		bmq.initExchange(&channelContext)
-	})
-
-	queue_name, qerr := channelContext.Channel.QueueDeclare(
-		"",    // name, leave empty to generate a unique name
-		false, // durable
-		false, // delete when usused
-		false, // exclusive
-		false, // noWait
-		amqp.Table{
-			/*"x-message-ttl": int32(5000),*/
-			"x-expires": int32(2000)}, // arguments
-	)
-	if nil != qerr {
-		log.Error("Publish2Device, channelContext.Channel.QueueDeclare, err: ", qerr)
-		channelContext.Channel.Close()
-		return qerr
-	}
-
-	qbinderr := channelContext.Channel.QueueBind(
-		queue_name.Name,           // name of the queue
-		channelContext.RoutingKey, // bindingKey
-		channelContext.Exchange,   // sourceExchange
-		false,                     // noWait
-		nil,                       // arguments
-	)
-	if nil != qbinderr {
-		log.Error("Publish2Device, channelContext.Channel.QueueBind, err: ", qbinderr)
-		channelContext.Channel.Close()
-		return qbinderr
-	}
-
-	if err := channelContext.Channel.Publish(
-		channelContext.Exchange,   // publish to an exchange
-		channelContext.RoutingKey, // routing to 0 or more queues
-		false,                     // mandatory
-		false,                     // immediate
-		amqp.Publishing{
-			Headers:         amqp.Table{},
-			ContentType:     "application/json",
-			ContentEncoding: "",
-			Body:            []byte(body),
-			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
-			Priority:        0,              // 0-9
-			// a bunch of application/implementation-specific fields
-		},
-	); err != nil {
-		log.Error("send message failed refresh connection, err: ", err)
-		time.Sleep(10 * time.Second)
-		log.Error("Publish2Device() 2-bmq.ChannelContexts[" + channelContext.ChannelId + "] is nil, refreshConnectionAndChannel()")
-		if atomic.LoadInt32(&channelContext.ReSendNum) > 0 {
-			log.Error("Publish2App ReSend message=", body, ", num=", channelContext.ReSendNum)
-			atomic.AddInt32(&channelContext.ReSendNum, -1)
-			bmq.Publish2Device(channelContext, body)
-		}
-		channelContext.Channel.Close()
-		return nil
-	}
-
-	channelContext.Channel.Close()
-	return nil
-}
-
-/*
-*	QueueDeclare
- */
-func (bmq *BaseMq) QueueDeclare(channelContext ChannelContext) error {
-	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
-		err := bmq.refreshConnectionAndChannel()
-		if err != nil {
-			log.Error("bmq refreshConnectionAndChannel() error = ", err)
-			return err
-		}
-	}
-
-	var err error
-	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-
-	if err != nil {
-		log.Error(err)
-		return err
-	}
-
-	bmq.initExchange(&channelContext)
-
-	queue_name, err := channelContext.Channel.QueueDeclare(
-		channelContext.RoutingKey, // name, leave empty to generate a unique name
-		true,                      // durable
-		false,                     // delete when usused
-		false,                     // exclusive
-		false,                     // noWait
-		nil,                       // arguments
-	)
-
-	err = channelContext.Channel.QueueBind(
-		queue_name.Name,         // name of the queue
-		"",                      // bindingKey
-		channelContext.Exchange, // sourceExchange
-		false,                   // noWait
-		nil,                     // arguments
-	)
-
-	if err != nil {
-		log.Error(err)
-		log.Error("Failed to register a consumer")
-		bmq.refreshConnectionAndChannel()
-	}
-	return nil
-}
-
-/*
-*	consumer message
- */
-func (bmq *BaseMq) Consumer(channelContext *ChannelContext) (<-chan amqp.Delivery, error) {
-	if bmq.MqConnection.Connection == nil || bmq.MqConnection.Connection.IsClosed() {
-		bmq.refreshConnectionAndChannel()
-	}
-
-	//consumer的管道不能关闭，否则返回的channel将会关闭；
-	var err error
-	channelContext.Channel, err = bmq.MqConnection.Connection.Channel()
-	//defer channelContext.Channel.Close()
-
-	if err != nil {
-		log.Error(err)
-		return nil, err
-	}
-
-	msgs, err := channelContext.Channel.Consume(
-		channelContext.RoutingKey, // queue
+	ch, err = bmq.channel.Consume(
+		bmq.channelCtx.RoutingKey, // queue
 		"",                        // consumer
 		true,                      // auto-ack
 		false,                     // exclusive
@@ -511,18 +145,59 @@ func (bmq *BaseMq) Consumer(channelContext *ChannelContext) (<-chan amqp.Deliver
 		false,                     // no-wait
 		nil,                       // args
 	)
+
 	if err != nil {
 		log.Error(err)
-		log.Error("Failed to register a consumer")
-		//bmq.refreshConnectionAndChannel()
-		return nil, err
 	}
-	return msgs, nil
-	//}
+
+	return
 }
 
-func (b *BaseMq) Close() {
-	if err := b.MqConnection.Connection.Close(); err != nil {
-		log.Error("BaseMq.MqConnection.Connection.Close() error = ", err)
+func (bmq *baseMq) ReConn() error {
+	log.Info("MQ Reconnnecting...")
+	var err error
+	bmq.mu.Lock()
+	defer bmq.mu.Unlock()
+	for atomic.LoadInt32(&bmq.currReConnNum) < bmq.reConnNum {
+		if isNil(bmq.connection) || bmq.connection.IsClosed() {
+			log.Infof("bmq第%d次重连", bmq.currReConnNum+1)
+			bmq.connection, err = amqp.Dial(bmq.mqUri)
+			if err != nil {
+				atomic.AddInt32(&bmq.currReConnNum, 1)
+				continue
+			}
+			bmq.channel, err = bmq.connection.Channel()
+			if err != nil {
+				atomic.AddInt32(&bmq.currReConnNum, 1)
+				continue
+			}
+			atomic.StoreInt32(&bmq.currReConnNum, 0)
+		}
+		log.Info("BaseMQ reConnected successfully")
+		return nil
 	}
+	return ErrReConn
+}
+
+func (bmq *baseMq) Close() error {
+
+	bmq.channel.Close()
+	if !isNil(bmq.connection) && !bmq.connection.IsClosed() {
+		err := bmq.connection.Close()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func isNil(i interface{}) bool {
+	switch i.(type) {
+	case *amqp.Connection:
+		val := reflect.ValueOf(i)
+		return val.IsNil()
+	}
+
+	return false
 }

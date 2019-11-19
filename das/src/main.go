@@ -1,40 +1,25 @@
 package main
 
 import (
-	"./andlink2srv"
-	"./core/log"
-	"./core/rabbitmq"
-	"./core/redis"
-	"./dindingtask"
-	"./feibee2srv"
-	"./onenet2srv"
-	"./rmq/consumer"
-	"./rmq/producer"
-	"./telecom2srv"
-	"./wifi2srv"
 	"flag"
-	"github.com/dlintw/goconf"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/dlintw/goconf"
+
+		"./core/log"
+	"./core/rabbitmq"
+	"./core/redis"
+	"./dindingtask"
+	"./feibee2srv"
+	"./onenet2srv"
+	"./rmq/consumer"
+	"./wifi2srv"
 )
-
-func loadProfile() *os.File {
-	cpuProfile := flag.String("cpuprofile", "./logs/cpu", "record the cpu profile to file")
-	if *cpuProfile == "" {
-		panic("cpu profile created error")
-	}
-
-	f, err := os.OpenFile(*cpuProfile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
-	if err != nil {
-		panic(err)
-	}
-
-	return f
-}
 
 func main() {
 	go func() {
@@ -49,30 +34,14 @@ func main() {
 	//3. 初始化Redis连接池
 	redis.InitRedisPool(conf)
 
-	//4. 初始化生产者rabbitmq_uri
-	rabbitmq.InitProducerMqConnection(conf)
-	rabbitmq.InitProducerMqConnection2Db(conf)
-	rabbitmq.InitProducerMqConnection2Device(conf)
+	//4. 初始化rabbitmq
+	rabbitmq.Init(conf)
 
-	//5. 初始化消费者rabbitmq_uri
-	rabbitmq.InitConsumerMqConnection(conf)
-
-	//6. 初始化到APP生成者交换器，消息队列的参数
-	producer.InitRmq_Ex_Que_Name(conf)
-
-	//7. 初始化到Mongodb生成者交换器，消息队列的参数
-	producer.InitRmq_Ex_Que_Name_mongo(conf)
-
-	//8. 初始化发送到平板设备的生成者交换器，消息队列的参数
-	producer.InitRmq_Ex_Que_Name_Device(conf)
-
-	//9. 初始化消费者交换器，消息队列的参数
-	consumer.InitRmq_Ex_Que_Name(conf)
-	go consumer.ReceiveMQMsgFromAPP()
+	//接收app消息
+	go consumer.Run()
 
 	//10. 初始化平板消费者交换器，消息队列的参数
-	wifi2srv.InitRmq_Ex_Que_Name(conf)
-	go wifi2srv.ReceiveMQMsgFromDevice()
+	go wifi2srv.Run()
 
 	//11. 启动定时器
 	dindingtask.InitTimer_IsStart(conf)
@@ -80,12 +49,6 @@ func main() {
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
-
-	//13. 启动http/https服务
-	telecom2srv := telecom2srv.Telecom2HttpSrvStart(conf)
-
-	//14. 启动http/https服务
-	andlink2srv := andlink2srv.Andlink2HttpSrvStart(conf)
 
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
@@ -98,49 +61,40 @@ func main() {
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 
-SERVER_EXIT:
-	// 处理信号
-	for {
-		s := <-ch
-		switch s {
-		case syscall.SIGINT:
-			log.Error("SIGINT: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGTERM:
-			log.Error("SIGTERM: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGQUIT:
-			log.Error("SIGSTOP: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGHUP:
-			log.Error("SIGHUP: get signal: ", s)
-			break SERVER_EXIT
-		case syscall.SIGKILL:
-			log.Error("SIGKILL: get signal: ", s)
-			break SERVER_EXIT
-		default:
-			log.Error("default: get signal: ", s)
-			break SERVER_EXIT
-		}
+	s := <-ch
+	switch s {
+	case syscall.SIGINT:
+		log.Error("SIGINT: get signal: ", s)
+	case syscall.SIGTERM:
+		log.Error("SIGTERM: get signal: ", s)
+
+	case syscall.SIGQUIT:
+		log.Error("SIGSTOP: get signal: ", s)
+
+	case syscall.SIGHUP:
+		log.Error("SIGHUP: get signal: ", s)
+
+	case syscall.SIGKILL:
+		log.Error("SIGKILL: get signal: ", s)
+
+	default:
+		log.Error("default: get signal: ", s)
+
 	}
-    //停止ali消息接收
-	// TODO:JHHE 需要回滚 aliIOTsrv.Shutdown()
+	//aliIOTsrv.Close()
+
+	//停止接收平板消息
+	wifi2srv.Close()
+
+	//停止接收app消息
+	consumer.Close()
+
+	//停止rabbitmq连接
+	rabbitmq.Close()
 
 	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
-		// panic(err) // failure/timeout shutting down the server gracefully
-	}
-
-	// 18. 停止HTTP服务器
-	if err := telecom2srv.Shutdown(nil); err != nil {
-		log.Error("telecom2srv.Shutdown failed, err=", err)
-		// panic(err) // failure/timeout shutting down the server gracefully
-	}
-
-	// 19. 停止HTTP服务器
-	if err := andlink2srv.Shutdown(nil); err != nil {
-		log.Error("andlink2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
@@ -153,7 +107,7 @@ SERVER_EXIT:
 	// 21. 停止定时器
 	dindingtask.StopMyTimer()
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	log.Info("das_go server quit......")
 }
@@ -173,7 +127,7 @@ func loadConfig() *goconf.ConfigFile {
 	flag.Parse()
 	conf, err := goconf.ReadConfigFile(*conf_file)
 	if err != nil {
-		log.Errorf("加载配置文件失败，无法打开%q，%s\n", conf_file, err)
+		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
 		os.Exit(1)
 	}
 	return conf

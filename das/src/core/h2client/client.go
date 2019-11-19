@@ -3,6 +3,7 @@ package h2client
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"crypto/tls"
@@ -17,7 +18,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"context"
 
 	"golang.org/x/net/http/httpguts"
 	"golang.org/x/net/http2"
@@ -49,15 +49,13 @@ type H2Client struct {
 	dialer    *net.Dialer
 	tlsConfig *tls.Config
 
-	rawurl  string
-	method  string
-	addr    string
+	rawurl string
+	method string
+	addr   string
 
 	timeout time.Duration
 	ctx     context.Context
-
-	lastTime time.Time
-	curTime time.Time
+	reCh    chan struct{}
 }
 
 func Newh2Client(ctx context.Context) *H2Client {
@@ -68,7 +66,8 @@ func Newh2Client(ctx context.Context) *H2Client {
 			NextProtos:         []string{"h2", "h2-16"},
 		},
 		timeout: 0,
-		ctx:ctx,
+		ctx:     ctx,
+		reCh:    make(chan struct{}),
 	}
 	h2.request, _ = http.NewRequest("", "", nil)
 
@@ -115,7 +114,7 @@ func (h2 *H2Client) SetHeader(key, value string) {
 	h2.request.Header.Set(key, value)
 }
 
-func (h2 *H2Client) SetAliHeader(appKey,appSecret string) {
+func (h2 *H2Client) SetAliHeader(appKey, appSecret string) {
 	request := h2.request
 	random := rand.Int63()
 	signContent := "random=" + strconv.FormatInt(random, 10)
@@ -170,11 +169,7 @@ func (h2 *H2Client) do() error {
 		return err
 	}
 
-	if h2.timeout > 0 {
-		ctx,_ := context.WithTimeout(context.Background(), h2.timeout)
-		go h2.ctxDetect(ctx)
-	}
-
+	go h2.ctxDetect()
 	go h2.heartBeat()
 
 	if err := h2.readLoop(); err != nil {
@@ -269,19 +264,17 @@ func (h2 *H2Client) sendHeadersFrame() error {
 
 func (h2 *H2Client) heartBeat() {
 	for {
-		time.Sleep(time.Second * 10)
-		// 判断超过30秒 发ping包
-		h2.curTime = time.Now()
-		tm_spand := h2.curTime.Unix() - h2.lastTime.Unix()
-		if tm_spand >= 25 {
-			// 上次收到的数据包时间
-			h2.lastTime = time.Now()
+		select {
+		case <- h2.reCh:
+			continue
+		case <- time.After(time.Second*30):
+
 			if err := h2.framer.WritePing(true, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
 				log.Info("重连中...")
 				go h2.do()
 
-				return	// 退出
+				return // 退出
 			} else {
 				log.Info("heartBeat ...")
 				h2.bw.Flush()
@@ -296,9 +289,7 @@ func (h2 *H2Client) readLoop() error {
 	frameProc := NewFrameHandler(h2)
 	for {
 		fra, err := h2.framer.ReadFrame()
-
-		// 上次收到的数据包时间
-		h2.lastTime = time.Now()
+		h2.reCh <- struct{}{}
 
 		if err != nil {
 			log.Error("ReadFrame() error = ", err)
@@ -355,17 +346,12 @@ func (h2 *H2Client) readLoop() error {
 	return nil
 }
 
-func (h2 *H2Client) ctxDetect(ctx context.Context) {
-
+func (h2 *H2Client) ctxDetect() {
 	select {
-	case <- ctx.Done():
-		h2.Close()
-	    return
-	case <- h2.ctx.Done():
+	case <-h2.ctx.Done():
 		h2.Close()
 		return
 	}
-
 }
 
 func (cc *H2Client) encodeHeaders(req *http.Request, addGzipHeader bool, trailers string, contentLength int64) ([]byte, error) {
