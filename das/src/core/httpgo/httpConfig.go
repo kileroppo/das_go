@@ -6,6 +6,7 @@ import (
 
 var oneNET_Url string
 var oneNET_Apikey string
+var aliAppkey, aliAppSecret string
 
 func InitOneNETConfig(conf *goconf.ConfigFile) (err error) {
 	var errs error
@@ -20,4 +21,9 @@ func InitOneNETConfig(conf *goconf.ConfigFile) (err error) {
 	}
 
 	return errs
+}
+
+func InitAliIoTConfig(appkey, appSecret string) {
+	aliAppkey = appkey
+	aliAppSecret = appSecret
 }

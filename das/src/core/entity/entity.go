@@ -30,108 +30,9 @@ type OneNETData struct {
 	Msg           OneMsg `json:"msg"`
 }
 
-type Header struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-}
-
-type DeviceActive struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	Time int64 `json:"time"`
-}
-
-type SetDeviceTime struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	ParaNo  int   `json:"paraNo"`
-	PaValue int64 `json:"paValue"`
-	Time    int64 `json:"time"`
-}
-
-type UpgradeQuery struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	Part int `json:"part"`
-}
-
-type UpgradeReq struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	Part     int    `json:"part"`
-	Offset   int64  `json:"offset"`
-	FileName string `json:"fileName"`
-}
-
 type RespOneNET struct {
 	RespErrno int    `json:"errno"`
 	RespError string `json:"error"`
-}
-
-type MyDTM struct {
-	Start int `json:"start"`
-	End   int `json:"end"`
-}
-
-type AddDevUser struct {
-	Cmd     int    		`json:"cmd"`
-	Ack     int    		`json:"ack"`
-	DevType string 		`json:"devType"`
-	DevId   string 		`json:"devId"`
-	Vendor  string 		`json:"vendor"`
-	SeqId   int    		`json:"seqId"`
-
-	UserId    int 		`json:"userId"`    		// 设备用户ID
-	UserNote  string 	`json:"userNote"`  		// 设备用户别名
-	UserType  int 		`json:"userType"`  		// 用户类型（0-管理员，1-普通用户，2-临时用户）
-	MainOpen  int 		`json:"mainOpen"`  		// 主开锁方式（1-密码，2-刷卡，3-指纹）
-	SubOpen   int 		`json:"subOpen"`   		// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-	Passwd  string 		`json:"passwd"`			// 如果是添加密码需要填写
-	Count   int			`json:"count"` 			// 开门次数，0xffff为无限次
-	MyDate	MyDTM		`json:"date"`			// 开始有效时间
-	MyTime	[3]MyDTM	`json:"time"`			// 时段
-	TimeLen int			`json:"time_length"`	// 兼容捷博生产商，临时用户时长（单位：秒）
-}
-
-type AddDevUserStep struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	UserVer   int `json:"userVer"`   // 设备用户版本号
-	UserId    int `json:"userId"`    // 设备用户ID
-	MainOpen  int `json:"mainOpen"`  // 主开锁方式（1-密码，2-刷卡，3-指纹）
-	SubOpen   int `json:"subOpen"`   // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-	Step      int `json:"step"`      // 步骤序号（指纹：需要4步，1，2，3，4分别代表上下左右；刷卡：需要1步；密码：需要2步，分别是第一次输入密码和第二次输入密码）
-	StepState int `json:"stepState"` // 0表示成功，1表示失败
-	Time      int `json:"time"`
 }
 
 // 电信平台设备数据变化，推送的JSON
@@ -148,81 +49,6 @@ type TelecomDeviceDataChanged struct {
 	DeviceId   string `json:"deviceId"`
 	GatewayId  string `json:"gatewayId"`
 	Service    TelecomDeviceServiceData
-}
-
-//亿速码芯片激活
-type YisumaActiveSE struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	UId        string `json:"uId"`        // 安全芯片编号
-	ProjectNo  string `json:"projectNo"`  // 项目编号
-	MerchantNo string `json:"merchantNo"` // 商户号
-	Random     string `json:"random"`     // 随机数
-}
-
-//亿速码加签数据
-type YisumaSign struct {
-	UId           string `json:"uId"`
-	ProjectNo     string `json:"projectNo"`
-	MerchantNo    string `json:"merchantNo"`
-	CardChanllege string `json:"cardChanllege"`
-}
-
-//亿速码请求apdu
-type YisumaHttpsReq struct {
-	Body      YisumaSign `json:"body"`
-	Signature string     `json:"signature"`
-}
-
-//亿速码返回apdu
-type YisumaHttpsRes struct {
-	ResultCode string `json:"resultCode"`
-	ResultMsg  string `json:"resultMsg"`
-	Apdu       string `json:"apdu"`
-}
-
-//亿速码激活指令下发
-type YisumaActiveApdu struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	Apdu string `json:"apdu"`
-}
-
-//亿速码加签指令与锁端交互
-type YisumaRandomSign struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	Password  string `json:"passwd"`
-	Password2 string `json:"passwd2"`
-	Random    string `json:"random"`
-	Signature string `json:"signature"`
-}
-
-//锁端上报亿速码随机数
-type YisumaStateRandom struct {
-	Cmd     int    `json:"cmd"`
-	Ack     int    `json:"ack"`
-	DevType string `json:"devType"`
-	DevId   string `json:"devId"`
-	Vendor  string `json:"vendor"`
-	SeqId   int    `json:"seqId"`
-
-	Random string `json:"random"`
 }
 
 //发送给PMS消息体
@@ -333,6 +159,8 @@ type FeibeeAlarm2AppMsg struct {
 
 	AlarmType  string `json:"alarmType"`
 	AlarmValue string `json:"alarmValue"`
+
+	Bindid     string `json:"bindid"`
 }
 
 //feibee传感器报警消息 作为自动场景触发消息(推送给pms)
@@ -346,7 +174,13 @@ type FeibeeAutoScene2pmsMsg struct {
 	Time    int    `json:"time"`
 
 	TriggerType int    `json:"triggerT"`
-	TriggerValue string `json:"triggerValue"`
+	AlarmValue  string `json:"alarmValue"`
+	AlarmType   string `json:"alarmType"`
 	SceneId     string `json:"sceneId"`
 	Zone        string `json:"zone"`
+}
+
+type AliRawData struct {
+	RawData []byte
+	Topic   string
 }

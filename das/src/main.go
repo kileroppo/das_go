@@ -6,20 +6,40 @@ import (
 	"./core/rabbitmq"
 	"./core/redis"
 	"./dindingtask"
+	"./feibee2srv"
+	"./onenet2srv"
 	"./rmq/consumer"
 	"./rmq/producer"
-	"./onenet2srv"
 	"./telecom2srv"
 	"./wifi2srv"
-	"./feibee2srv"
 	"flag"
 	"github.com/dlintw/goconf"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 )
 
+func loadProfile() *os.File {
+	cpuProfile := flag.String("cpuprofile", "./logs/cpu", "record the cpu profile to file")
+	if *cpuProfile == "" {
+		panic("cpu profile created error")
+	}
+
+	f, err := os.OpenFile(*cpuProfile, os.O_CREATE|os.O_TRUNC|os.O_RDWR, 0666)
+	if err != nil {
+		panic(err)
+	}
+
+	return f
+}
+
 func main() {
+	go func() {
+		http.ListenAndServe(":14999",nil)
+	}()
 	//1. 加载配置文件
 	conf := loadConfig()
 
@@ -70,6 +90,10 @@ func main() {
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
+	// 启动ali IOT推送接收服务
+	// TODO:JHHE 需要回滚 aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
+	// TODO:JHHE 需要回滚 aliIOTsrv.Run()
+
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -99,6 +123,8 @@ SERVER_EXIT:
 			break SERVER_EXIT
 		}
 	}
+    //停止ali消息接收
+	// TODO:JHHE 需要回滚 aliIOTsrv.Shutdown()
 
 	// 17. 停止HTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
@@ -126,6 +152,8 @@ SERVER_EXIT:
 
 	// 21. 停止定时器
 	dindingtask.StopMyTimer()
+
+	time.Sleep(1*time.Second)
 
 	log.Info("das_go server quit......")
 }

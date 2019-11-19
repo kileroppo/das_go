@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"../core/constant"
 )
 
 func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -91,7 +92,7 @@ func TelecomHandler(res http.ResponseWriter, req *http.Request) {
 			}
 
 			//1. 锁对接的平台，存入redis
-			redis.SetDevicePlatformPool(data.DeviceId, "telecom")
+			redis.SetDevicePlatformPool(data.DeviceId, constant.TELECOM_PLATFORM)
 
 			// fetch job
 			//work := httpJob.Job{Serload: httpJob.Serload{DValue: data.Service.Data, Imei: data.DeviceId, MsgFrom: constant.NBIOT_MSG}}

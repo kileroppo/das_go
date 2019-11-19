@@ -1,19 +1,28 @@
 package log
 
 import (
-	"../file"
 	"errors"
 	"fmt"
 	"github.com/op/go-logging"
 	"os"
 	"strings"
 	"time"
+	"io/ioutil"
+	"strconv"
+	"sort"
+
+	"../file"
+
 )
 
 const MaxFileCap = 1024 * 1024 * 35
 
 var m_FileName string
 var m_PathName string
+
+var (
+	LogSurvivalDays = 7 //单位：天
+)
 
 var (
 	ArgsInvaild      = errors.New("args can be vaild")
@@ -70,6 +79,8 @@ func NewLogger(pathDir string, level string) {
 
 	// 负责检测文件大小，超过35M则分文件
 	go ReNewLogger(pathDir, level)
+	//自动清理日志文件，每天清理一次
+	go AutoClearLogFiles(pathDir)
 }
 
 func ReNewLogger(pathDir string, level string) {
@@ -108,5 +119,47 @@ var (
 func CheckError(err error) {
 	if err != nil {
 		Errorf("Fatal error: %s", err.Error())
+	}
+}
+
+//AutoClearLogFiles: Automatic clean-up of logs
+//Everytime the system start, delete the most previous 5 days' logfiles
+func AutoClearLogFiles(logsDirPath string) {
+	for {
+		if flag, err := file.IsExist(logsDirPath); err != nil || !flag {
+			time.Sleep(time.Hour * 24)
+			continue
+		}
+
+		logsSubFileList, err := ioutil.ReadDir(logsDirPath)
+		if err != nil {
+			time.Sleep(time.Hour * 24)
+			continue
+		}
+
+		var logDir []int
+		for _, f := range logsSubFileList {
+			v, err := strconv.Atoi(f.Name())
+			if err == nil {
+				logDir = append(logDir, v)
+			}
+		}
+
+		survivalDays := 0
+		if LogSurvivalDays <= 5 {
+			survivalDays = 5
+		} else {
+			survivalDays = LogSurvivalDays
+		}
+
+		if len(logDir) >= survivalDays {
+			sort.Ints(logDir)
+			for i := 0; i < len(logDir)-survivalDays; i++ {
+				fileDirName := fmt.Sprintf("%s/%d", logsDirPath, logDir[i])
+				os.RemoveAll(fileDirName)
+			}
+		}
+
+		time.Sleep(time.Hour * 24)
 	}
 }
