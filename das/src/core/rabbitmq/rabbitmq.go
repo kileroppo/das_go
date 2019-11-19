@@ -12,7 +12,7 @@ var (
 	producer2devMQ      *baseMq
 	producer2appMQ      *baseMq
 	producer2hzappMQ    *baseMq
-	producer2umsMQ      *baseMq
+	producer2mnsMQ      *baseMq
 	producer2pmsMQ      *baseMq
 	producerGuard2appMQ *baseMq
 	Consumer2devMQ      *baseMq
@@ -28,7 +28,7 @@ func Init(conf *goconf.ConfigFile) {
 		initProducer2appMQ(conf)
 		initProducer2devMQ(conf)
 		initProducer2pmsMQ(conf)
-		initProducer2umsMQ(conf)
+		initProducer2mnsMQ(conf)
 		initProducerGuard2appMQ(conf)
 		initProducer2hzappMQ(conf)
 	})
@@ -52,10 +52,10 @@ func Publish2dev(data []byte, routingKey string) {
 	}
 }
 
-func Publish2ums(data []byte, routingKey string) {
-	log.Debug("Publish2ums msg: ", string(data))
-	if err := producer2umsMQ.Publish(data, routingKey); err != nil {
-		log.Warning("Publish2ums error = ", err)
+func Publish2mns(data []byte, routingKey string) {
+	log.Debug("Publish2mns msg: ", string(data))
+	if err := producer2mnsMQ.Publish(data, routingKey); err != nil {
+		log.Warning("Publish2mns error = ", err)
 	}
 }
 
@@ -183,19 +183,19 @@ func initProducer2hzappMQ(conf *goconf.ConfigFile) {
 	}
 }
 
-func initProducer2umsMQ(conf *goconf.ConfigFile) {
+func initProducer2mnsMQ(conf *goconf.ConfigFile) {
 	log.Info("Producer2umsMQ init")
 	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
 	if err != nil {
-		panic("initProducer2umsMQ load uri conf error")
+		panic("initProducer2mnsMQ load uri conf error")
 	}
 	exchange, err := conf.GetString("rabbitmq", "device2db_ex")
 	if err != nil {
-		panic("initProducer2umsMQ load exchange conf error")
+		panic("initProducer2mnsMQ load exchange conf error")
 	}
 	exchangeType, err := conf.GetString("rabbitmq", "device2db_ex_type")
 	if err != nil {
-		panic("initProducer2umsMQ load exchangeType conf error")
+		panic("initProducer2mnsMQ load exchangeType conf error")
 	}
 
 	channelCtx := ChannelContext{
@@ -204,16 +204,16 @@ func initProducer2umsMQ(conf *goconf.ConfigFile) {
 		Durable:      false,
 		AutoDelete:   false,
 	}
-	producer2umsMQ = &baseMq{
+	producer2mnsMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
 	}
 
-	if err := producer2umsMQ.init(); err != nil {
+	if err := producer2mnsMQ.init(); err != nil {
 		panic(err)
 	}
 
-	if err := producer2umsMQ.initExchange(); err != nil {
+	if err := producer2mnsMQ.initExchange(); err != nil {
 		panic(err)
 	}
 }
@@ -370,7 +370,7 @@ func Close() {
 	}
 	log.Info("Producer2pmsMQ close")
 
-	if err := producer2umsMQ.Close(); err != nil {
+	if err := producer2mnsMQ.Close(); err != nil {
 		log.Error("Producer2umsMQ.Close() error = ", err)
 	}
 	log.Info("Producer2umsMQ close")

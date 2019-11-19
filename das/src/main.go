@@ -11,7 +11,7 @@ import (
 
 	"github.com/dlintw/goconf"
 
-		"./core/log"
+	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
 	"./dindingtask"
@@ -23,7 +23,7 @@ import (
 
 func main() {
 	go func() {
-		http.ListenAndServe(":14999",nil)
+		http.ListenAndServe(":14999", nil)
 	}()
 	//1. 加载配置文件
 	conf := loadConfig()

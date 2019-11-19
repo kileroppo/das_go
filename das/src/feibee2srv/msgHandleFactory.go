@@ -152,7 +152,7 @@ func (self NormalMsgHandle) PushMsg() {
 			log.Error("One Msg push2db() error = ", err)
 		} else {
 			//producer.SendMQMsg2Db(string(data2db))
-			rabbitmq.Publish2ums(data2ums, "")
+			rabbitmq.Publish2mns(data2ums, "")
 		}
 	}
 
@@ -200,7 +200,7 @@ func (self GtwMsgHandle) PushMsg() {
 		log.Error("One Msg push2db() error = ", err)
 	} else {
 		//producer.SendMQMsg2Db(string(data2db))
-		rabbitmq.Publish2ums(data2ums, "")
+		rabbitmq.Publish2mns(data2ums, "")
 	}
 
 }
@@ -389,7 +389,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
 			//producer.SendMQMsg2Db(string(data2db))
-			rabbitmq.Publish2ums(data2ums, "")
+			rabbitmq.Publish2mns(data2ums, "")
 		}
 
 	}
