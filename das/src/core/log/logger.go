@@ -74,7 +74,7 @@ func NewLogger(pathDir string, level string) {
 
 func ReNewLogger(pathDir string, level string) {
 	for {
-		time.Sleep(10000) // 10秒检测一次
+		time.Sleep(time.Hour*2) // 2小时检测一次
 
 		//1. 文件大小大于35M，另起文件
 		_, fileSize := file.GetFileByteSize(m_FileName)
