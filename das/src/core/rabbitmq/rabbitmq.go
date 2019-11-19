@@ -11,7 +11,6 @@ import (
 var (
 	producer2devMQ      *baseMq
 	producer2appMQ      *baseMq
-	producer2hzappMQ    *baseMq
 	producer2mnsMQ      *baseMq
 	producer2pmsMQ      *baseMq
 	producerGuard2appMQ *baseMq
@@ -30,7 +29,6 @@ func Init(conf *goconf.ConfigFile) {
 		initProducer2pmsMQ(conf)
 		initProducer2mnsMQ(conf)
 		initProducerGuard2appMQ(conf)
-		initProducer2hzappMQ(conf)
 	})
 }
 
@@ -38,10 +36,6 @@ func Publish2app(data []byte, routingKey string) {
 	log.Debug("Publish2app msg:", string(data))
 	if err := producer2appMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2app error = ", err)
-	}
-	log.Debug("Publish2hzapp msg:", string(data))
-	if err := producer2hzappMQ.Publish(data, routingKey+"_hz"); err != nil {
-		log.Warning("Publish2hzapp error = ", err)
 	}
 }
 
@@ -144,41 +138,6 @@ func initProducer2appMQ(conf *goconf.ConfigFile) {
 	}
 
 	if err := producer2appMQ.initExchange(); err != nil {
-		panic(err)
-	}
-}
-
-func initProducer2hzappMQ(conf *goconf.ConfigFile) {
-	log.Info("Producer2hzappMQ init")
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initProducer2hzappMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "device2hzapp_ex")
-	if err != nil {
-		panic("initProducer2hzappMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "device2hzapp_ex_type")
-	if err != nil {
-		panic("initProducer2hzappMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-	}
-	producer2hzappMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producer2hzappMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producer2hzappMQ.initExchange(); err != nil {
 		panic(err)
 	}
 }
@@ -359,11 +318,6 @@ func Close() {
 		log.Error("Producer2appMQ.Close() error = ", err)
 	}
 	log.Info("Producer2appMQ close")
-
-	if err := producer2hzappMQ.Close(); err != nil {
-		log.Error("producer2hzappMQ.Close() error = ", err)
-	}
-	log.Info("producer2hzappMQ close")
 
 	if err := producer2pmsMQ.Close(); err != nil {
 		log.Error("Producer2pmsMQ.Close() error = ", err)
