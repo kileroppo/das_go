@@ -57,7 +57,7 @@ func Run() {
 func consume() {
 	msgs, err := rabbitmq.Consumer2devMQ.Consumer()
 	if err != nil {
-		log.Error("PMSConsumer() error = ", err)
+		log.Error("Consumer2devMQ() error = ", err)
 		if err := rabbitmq.Consumer2devMQ.ReConn(); err != nil {
 			return
 		}

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-		"../../core/constant"
+	"../../core/constant"
 	"../../core/entity"
 	"../../core/httpgo"
 	"../../core/log"
@@ -17,6 +17,7 @@ import (
 	"../../core/util"
 	"../producer"
 )
+
 /*
 *	处理APP发送过来的命令消息
 *

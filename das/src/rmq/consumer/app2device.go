@@ -6,7 +6,7 @@ import (
 	"../../core/jobque"
 	"../../core/log"
 	"../../core/rabbitmq"
-	)
+)
 
 var rmq_uri string
 var exchange string     // = "App2OneNET"
@@ -63,11 +63,11 @@ func consume() {
 	}
 
 	select {
-	case <- ctx.Done():
+	case <-ctx.Done():
 		log.Info("ReceiveMQMsgFromAPP Close")
 		return
 	default:
-		rabbitmq.Consumer2devMQ.ReConn()
+		rabbitmq.Consumer2appMQ.ReConn()
 		go consume()
 	}
 }

@@ -9,13 +9,17 @@ import (
 	"strconv"
 
 	"github.com/dlintw/goconf"
-	json "github.com/json-iterator/go"
+	"github.com/json-iterator/go"
 
 	"../core/constant"
 	"../core/entity"
 	"../core/jobque"
 	"../core/log"
 	"../core/redis"
+)
+
+var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 func Telecom2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
