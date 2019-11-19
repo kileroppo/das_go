@@ -360,6 +360,11 @@ func Close() {
 	}
 	log.Info("Producer2appMQ close")
 
+	if err := producer2hzappMQ.Close(); err != nil {
+		log.Error("producer2hzappMQ.Close() error = ", err)
+	}
+	log.Info("producer2hzappMQ close")
+
 	if err := producer2pmsMQ.Close(); err != nil {
 		log.Error("Producer2pmsMQ.Close() error = ", err)
 	}
