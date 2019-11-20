@@ -29,7 +29,12 @@ func Http2FeibeeWonlyGuard(appData string) {
 	reqMsg.Act = "controlstate"
 	reqMsg.Code = "220"
 	reqMsg.Bindid = msg.Bindid
-	reqMsg.Bindstr = aesDecrypt(msg.Bindstr, "key")
+
+	md5Ctx := md5.New()
+	md5Ctx.Write([]byte("W" + msg.Devid + "only"))
+	key := md5Ctx.Sum(nil)
+
+	reqMsg.Bindstr = AESCBCDecrypt(msg.Bindstr, key)
 	reqMsg.Ver = "2.0"
 	reqMsg.Devs = append(reqMsg.Devs, entity.ReqDevInfo2Feibee{
 		Uuid:  msg.Devid,
@@ -57,13 +62,8 @@ func Http2FeibeeWonlyGuard(appData string) {
 	}
 }
 
-func aesEncrypt(originData, keyText string) string {
+func AESCBCEncrypt(originData string, key []byte) string {
 	originByte := []byte(originData)
-	key := []byte(keyText)
-
-	md5Ctx := md5.New()
-	md5Ctx.Write(key)
-	key = md5Ctx.Sum(nil)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -83,22 +83,16 @@ func aesEncrypt(originData, keyText string) string {
 	return hex.EncodeToString(res)
 }
 
-func aesDecrypt(ciphertext, keyText string) string {
+func AESCBCDecrypt(ciphertext string, key []byte) string {
 	cipherByte, _ := hex.DecodeString(ciphertext)
-	key := []byte(keyText)
-
-	md5Ctx := md5.New()
-	md5Ctx.Write(key)
-	key = md5Ctx.Sum(nil)
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
+
 	blockSize := block.BlockSize()
 	iv := key[:blockSize]
-
-	// cipherByte = cipherByte[blockSize:]
 
 	blockMode := cipher.NewCBCDecrypter(block, iv)
 
