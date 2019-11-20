@@ -82,10 +82,10 @@ type FeibeeDevMsg struct {
 	Deviceuid  int    `json:"deviceuid,omitempty"`
 	Snid       string `json:"snid,omitempty"`
 	Profileid  int    `json:"profileed,omitempty"`
-	Deviceid   int    `json:"deviceid,omitempty"`
-	Onoff      int    `json:"onoff,omitempty"`
+	Deviceid   int    `json:"deviceid"`
+	Onoff      int    `json:"onoff"`
 	Online     int    `json:"online"`
-	Zonetype   int    `json:"zonetype,omitempty"`
+	Zonetype   int    `json:"zonetype"`
 	Battery    int    `json:"battery,omitempty"`
 	Lastvalue  int    `json:"lastvalue,omitempty"`
 	IEEE       string `json:"IEEE,omitempty"`
@@ -116,8 +116,8 @@ type FeibeeRecordsMsg struct {
 	Devicetype string `json:"devicetype,omitempty"`
 	Zonetype   int    `json:"zonetype,omitempty"`
 	Deviceid   int    `json:"deviceid,omitempty"`
-	Cid        int    `json:"cid,omitempty"`
-	Aid        int    `json:"aid,omitempty"`
+	Cid        int    `json:"cid"`
+	Aid        int    `json:"aid"`
 	Value      string `json:"value,omitempty"`
 	Orgdata    string `json:"orgdata,omitempty"`
 	Uptime     int    `json:"uptime,omitempty"`
@@ -134,7 +134,7 @@ type Feibee2AppMsg struct {
 	SeqId   int    `json:"seqId"`
 
 	Note      string `json:"note,omitempty"` //设备别名
-	Deviceuid int    `json:"deviceuid,omitempty"`
+	Deviceuid int    `json:"deviceuid"`
 	Online    int    `json:"online"`
 	Battery   int    `json:"battery,omitempty"`
 	OpType    string `json:"opType,omitempty"`
@@ -185,4 +185,45 @@ type FeibeeAutoScene2pmsMsg struct {
 type AliRawData struct {
 	RawData []byte
 	Topic   string
+}
+
+type MsgHead struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	Devid   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+}
+
+//app透传至das的WonlyGuard消息
+type WonlyGuardMsgFromApp struct {
+	MsgHead
+
+	Bindid  string `json:"bindid"`
+	Bindstr string `json:"bindstr"`
+	Value   string `json:"value"`
+}
+
+type Req2Feibee struct {
+	Act      string `json:"act"`
+	Code     string `json:"code"`
+	AccessId string `json:"AccessID"`
+	Key      string `json:"key"`
+	Bindid   string `json:"bindid"`
+	Bindstr  string `json:"bindstr"`
+	Ver      string `json:"ver"`
+
+	Devs []ReqDevInfo2Feibee `json:"devs"`
+}
+
+type ReqDevInfo2Feibee struct {
+	Uuid  string `json:"uuid"`
+	Value string `json:"value"`
+}
+
+type RespFromFeibee struct {
+	Code   int    `json:"code"`
+	Status string `json:"status"`
+	Ver    string `json:"ver"`
 }

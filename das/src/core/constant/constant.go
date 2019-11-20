@@ -84,6 +84,8 @@ const (
 	//亿速码
 	Active_Yisuma_SE    = 0x68 //激活亿速码安全芯片
 	Random_Yisuma_State = 0x66 //亿速码随机数上报
+
+	Wonly_Guard_Msg = 0xfb
 )
 
 const (

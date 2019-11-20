@@ -72,6 +72,11 @@ func ProcAppMsg(appMsg string) error {
 			appMsg = string(addDevUserStr)
 			log.Debug("ProcAppMsg , appMsg=", appMsg)
 		}
+
+	case constant.Wonly_Guard_Msg:
+		//小卫士消息
+		httpgo.Http2FeibeeWonlyGuard(appMsg)
+
 	}
 
 	platform, errPlat := redis.GetDevicePlatformPool(head.DevId)

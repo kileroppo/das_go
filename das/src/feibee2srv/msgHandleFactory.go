@@ -390,11 +390,13 @@ func (self WonlyGuardHandle) pushMsgByType() {
 	case 2:
 		msg2ums := self.createMsg2DB()
 		data2ums, err := json.Marshal(msg2ums)
+		routingKey := self.data.Msg[0].Bindid + ".hz.app"
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
 			//producer.SendMQMsg2Db(string(data2db))
-			rabbitmq.Publish2mns(data2ums, "")
+			//rabbitmq.Publish2mns(data2ums, "")
+			rabbitmq.Publish2app(data2ums, routingKey)
 		}
 
 	}
@@ -410,11 +412,10 @@ func (self WonlyGuardHandle) createMsg2PMS() (res entity.Feibee2PMS) {
 
 func (self WonlyGuardHandle) createMsg2DB() (res entity.Feibee2DBMsg) {
 	res.Cmd = 0xfb
-	res.Ack = 0
+	res.Ack = 1
 	res.Vendor = "feibee"
 	res.SeqId = 1
 	res.Time = int(time.Now().Unix())
-	res.Battery = 0xff
 
 	res.Devid = self.data.Records[0].Uuid
 	res.Deviceuid = self.data.Records[0].Deviceuid

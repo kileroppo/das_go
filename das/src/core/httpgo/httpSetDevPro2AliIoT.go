@@ -4,7 +4,6 @@ import (
 	"../go-aliyun-sign"
 	"../log"
 	"bytes"
-	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net"
