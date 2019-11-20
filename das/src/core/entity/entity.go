@@ -75,52 +75,53 @@ type FeibeeData struct {
 
 //feibee推送的设备信息
 type FeibeeDevMsg struct {
-	Name       string `json:"name"`
-	Bindid     string `json:"bindid"`
-	Uuid       string `json:"uuid"`
-	Devicetype string `json:"devicetype"`
-	Deviceuid  int    `json:"deviceuid"`
-	Snid       string `json:"snid"`
-	Profileid  int    `json:"profileed"`
-	Deviceid   int    `json:"deviceid"`
-	Onoff      int    `json:"onoff"`
-	Online     int    `json:"online"`
-	Zonetype   int    `json:"zonetype"`
-	Battery    int    `json:"battery"`
-	Lastvalue  int    `json:"lastvalue"`
-	IEEE       string `json:"IEEE"`
-	Pushstring string `json:"pushstring"`
+	Name       string `json:"name,omitempty"`
+	Bindid     string `json:"bindid,omitempty"`
+	Uuid       string `json:"uuid,omitempty"`
+	Devicetype string `json:"devicetype,omitempty"`
+	Deviceuid  int    `json:"deviceuid,omitempty"`
+	Snid       string `json:"snid,omitempty"`
+	Profileid  int    `json:"profileed,omitempty"`
+	Deviceid   int    `json:"deviceid,omitempty"`
+	Onoff      int    `json:"onoff,omitempty"`
+	Online     int    `json:"online,omitempty"`
+	Zonetype   int    `json:"zonetype,omitempty"`
+	Battery    int    `json:"battery,omitempty"`
+	Lastvalue  int    `json:"lastvalue,omitempty"`
+	IEEE       string `json:"IEEE,omitempty"`
+	Pushstring string `json:"pushstring,omitempty"`
+	DevDegree  int    `json:"brightness,omitempty"`
 }
 
 //feibee推送的网关信息
 type FeibeeGatewayMsg struct {
-	Bindid   string `json:"bindid"`
-	Bindstr  string `json:"bindstr"`
-	Version  string `json:"version"`
-	Snid     string `json:"snid"`
-	Devnum   int    `json:"devnum"`
-	Areanum  int    `json:"areanum"`
-	Timernum int    `json:"timernum"`
-	Scenenum int    `json:"scenenum"`
-	Tasknum  int    `json:"tasknum"`
-	Uptime   int    `json:"uptime"`
-	Online   int    `json:"online"`
+	Bindid   string `json:"bindid,omitempty"`
+	Bindstr  string `json:"bindstr,omitempty"`
+	Version  string `json:"version,omitempty"`
+	Snid     string `json:"snid,omitempty"`
+	Devnum   int    `json:"devnum,omitempty"`
+	Areanum  int    `json:"areanum,omitempty"`
+	Timernum int    `json:"timernum,omitempty"`
+	Scenenum int    `json:"scenenum,omitempty"`
+	Tasknum  int    `json:"tasknum,omitempty"`
+	Uptime   int    `json:"uptime,omitempty"`
+	Online   int    `json:"online,omitempty"`
 }
 
 //feibee推送的操作设备状态
 type FeibeeRecordsMsg struct {
-	Bindid     string `json:"bindid"`
-	Deviceuid  int    `json:"deviceuid"`
-	Uuid       string `json:"uuid"`
-	Devicetype string `json:"devicetype"`
-	Zonetype   int    `json:"zonetype"`
-	Deviceid   int    `json:"deviceid"`
-	Cid        int    `json:"cid"`
-	Aid        int    `json:"aid"`
-	Value      string `json:"value"`
-	Orgdata    string `json:"orgdata"`
-	Uptime     int    `json:"uptime"`
-	Pushstring string `json:"pushstring"`
+	Bindid     string `json:"bindid,omitempty"`
+	Deviceuid  int    `json:"deviceuid,omitempty"`
+	Uuid       string `json:"uuid,omitempty"`
+	Devicetype string `json:"devicetype,omitempty"`
+	Zonetype   int    `json:"zonetype,omitempty"`
+	Deviceid   int    `json:"deviceid,omitempty"`
+	Cid        int    `json:"cid,omitempty"`
+	Aid        int    `json:"aid,omitempty"`
+	Value      string `json:"value,omitempty"`
+	Orgdata    string `json:"orgdata,omitempty"`
+	Uptime     int    `json:"uptime,omitempty"`
+	Pushstring string `json:"pushstring,omitempty"`
 }
 
 //feibee设备消息通知(推送给app)
@@ -132,13 +133,13 @@ type Feibee2AppMsg struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
-	Note      string `json:"note"` //设备别名
-	Deviceuid int    `json:"deviceuid"`
-	Online    int    `json:"online"`
-	Battery   int    `json:"battery"`
-	OpType    string `json:"opType"`
-	OpValue   string `json:"opValue"`
-	Time      int    `json:"time"`
+	Note      string `json:"note,omitempty"` //设备别名
+	Deviceuid int    `json:"deviceuid,omitempty"`
+	Online    int    `json:"online,omitempty"`
+	Battery   int    `json:"battery,omitempty"`
+	OpType    string `json:"opType,omitempty"`
+	OpValue   string `json:"opValue,omitempty"`
+	Time      int    `json:"time,omitempty"`
 }
 
 //feibee设备消息通知(推送给db)
@@ -157,8 +158,8 @@ type FeibeeAlarm2AppMsg struct {
 	SeqId   int    `json:"seqId"`
 	Time    int    `json:"time"`
 
-	AlarmType  string `json:"alarmType"`
-	AlarmValue string `json:"alarmValue"`
+	AlarmType  string `json:"alarmType,omitempty"`
+	AlarmValue string `json:"alarmValue,omitempty"`
 
 	AlarmFlag int    `json:"alarmFlag,omitempty"`
 	Bindid    string `json:"bindid"`
