@@ -84,7 +84,7 @@ type FeibeeDevMsg struct {
 	Profileid  int    `json:"profileed,omitempty"`
 	Deviceid   int    `json:"deviceid,omitempty"`
 	Onoff      int    `json:"onoff,omitempty"`
-	Online     int    `json:"online,omitempty"`
+	Online     int    `json:"online"`
 	Zonetype   int    `json:"zonetype,omitempty"`
 	Battery    int    `json:"battery,omitempty"`
 	Lastvalue  int    `json:"lastvalue,omitempty"`
@@ -135,7 +135,7 @@ type Feibee2AppMsg struct {
 
 	Note      string `json:"note,omitempty"` //设备别名
 	Deviceuid int    `json:"deviceuid,omitempty"`
-	Online    int    `json:"online,omitempty"`
+	Online    int    `json:"online"`
 	Battery   int    `json:"battery,omitempty"`
 	OpType    string `json:"opType,omitempty"`
 	OpValue   string `json:"opValue,omitempty"`
