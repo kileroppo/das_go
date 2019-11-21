@@ -2,17 +2,15 @@ package httpgo
 
 import (
 	"bytes"
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/md5"
-	"encoding/hex"
-	"io/ioutil"
+			"crypto/md5"
+		"io/ioutil"
 	"net/http"
 
 	"github.com/json-iterator/go"
 
 	"../entity"
 	"../log"
+	"../util"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -34,7 +32,12 @@ func Http2FeibeeWonlyGuard(appData string) {
 	md5Ctx.Write([]byte("W" + msg.Devid + "only"))
 	key := md5Ctx.Sum(nil)
 
-	reqMsg.Bindstr = AESCBCDecrypt(msg.Bindstr, key)
+	var err error
+	reqMsg.Bindstr,err = util.ECBDecrypt(msg.Bindstr, key)
+	if err != nil {
+		log.Warningf("Http2FeibeeWonlyGuard ECBDecrypt() error = ", err)
+		return
+	}
 	reqMsg.Ver = "2.0"
 	reqMsg.Devs = append(reqMsg.Devs, entity.ReqDevInfo2Feibee{
 		Uuid:  msg.Devid,
@@ -60,61 +63,6 @@ func Http2FeibeeWonlyGuard(appData string) {
 	} else {
 		log.Info("Control WonlyGuard successfully")
 	}
-}
-
-func AESCBCEncrypt(originData string, key []byte) string {
-	originByte := []byte(originData)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-
-	blockSize := block.BlockSize()
-	originByte = PKCS7Padding(originByte, blockSize)
-	// ciphertext := make([]byte, blockSize+len(originByte))
-	//设置初始化向量
-	iv := key[:blockSize]
-	blockMode := cipher.NewCBCEncrypter(block, iv)
-
-	res := make([]byte, len(originByte))
-	blockMode.CryptBlocks(res, originByte)
-
-	return hex.EncodeToString(res)
-}
-
-func AESCBCDecrypt(ciphertext string, key []byte) string {
-	cipherByte, _ := hex.DecodeString(ciphertext)
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err)
-	}
-
-	blockSize := block.BlockSize()
-	iv := key[:blockSize]
-
-	blockMode := cipher.NewCBCDecrypter(block, iv)
-
-	res := make([]byte, len(cipherByte))
-	blockMode.CryptBlocks(res, cipherByte)
-
-	res = PKCS7UnPadding(res)
-	return string(res)
-}
-
-//填充
-func PKCS7Padding(ciphertext []byte, blocksize int) []byte {
-	padding := blocksize - len(ciphertext)%blocksize
-	padtext := bytes.Repeat([]byte{byte(padding)}, padding)
-	return append(ciphertext, padtext...)
-}
-
-//取消填充
-func PKCS7UnPadding(origData []byte) []byte {
-	length := len(origData)
-	unpadding := int(origData[length-1])
-	return origData[:(length - unpadding)]
 }
 
 func doHttpReq(method, url string, data []byte) (respData []byte, err error) {
