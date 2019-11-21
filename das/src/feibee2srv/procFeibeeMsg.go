@@ -45,7 +45,7 @@ func NewFeibeeData(data []byte) (FeibeeData, error) {
 func (f FeibeeData) isDataValid() bool {
 	if f.data.Status != "" && f.data.Ver != "" {
 		switch f.data.Code {
-		case 3, 4, 5, 7, 12:
+		case 3, 4, 5, 7, 10, 12:
 			if len(f.data.Msg) > 0 {
 				return true
 			}
@@ -81,7 +81,7 @@ func (f FeibeeData) push2MQ() {
 func splitFeibeeMsg(data entity.FeibeeData) (datas []entity.FeibeeData) {
 
 	switch data.Code {
-	case 3, 4, 5, 7, 12:
+	case 3, 4, 5, 7, 12, 10:
 		datas = make([]entity.FeibeeData, len(data.Msg))
 		for i := 0; i < len(data.Msg); i++ {
 			datas[i].Msg = []entity.FeibeeDevMsg{

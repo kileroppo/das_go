@@ -81,7 +81,7 @@ func initConsumer2appMQ(conf *goconf.ConfigFile) {
 	if err != nil {
 		panic("initConsumer2appMQ load exchangeType conf error")
 	}
-	routingKey, err := conf.GetString("rabbitmq", "app2device_que")
+	queueName, err := conf.GetString("rabbitmq", "app2device_que")
 	if err != nil {
 		panic("initConsumer2appMQ load routingKey conf error")
 	}
@@ -89,7 +89,8 @@ func initConsumer2appMQ(conf *goconf.ConfigFile) {
 	channelCtx := ChannelContext{
 		Exchange:     exchange,
 		ExchangeType: exchangeType,
-		RoutingKey:   routingKey,
+		RoutingKey:   "",
+		QueueName:    queueName,
 		Durable:      true,
 		AutoDelete:   false,
 	}
@@ -226,7 +227,7 @@ func initConsumer2devMQ(conf *goconf.ConfigFile) {
 	if err != nil {
 		panic("initConsumer2devMQ load exchangeType conf error")
 	}
-	routingKey, err := conf.GetString("rabbitmq", "device2srv_que")
+	queueName, err := conf.GetString("rabbitmq", "device2srv_que")
 	if err != nil {
 		panic("initConsumer2devMQ load queue conf error")
 	}
@@ -234,7 +235,8 @@ func initConsumer2devMQ(conf *goconf.ConfigFile) {
 	channelCtx := ChannelContext{
 		Exchange:     exchange,
 		ExchangeType: exchangeType,
-		RoutingKey:   routingKey,
+		RoutingKey:   "",
+		QueueName:    queueName,
 		Durable:      true,
 		AutoDelete:   false,
 	}

@@ -5,7 +5,6 @@ import (
 	"../log"
 	"bytes"
 	"crypto/tls"
-	"encoding/json"
 	"io/ioutil"
 	"net/http"
 )

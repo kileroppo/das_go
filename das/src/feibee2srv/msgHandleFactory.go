@@ -18,6 +18,7 @@ const (
 	DevDelete                    //设备删除
 	DevRename                    //设备重命名
 	GtwOnline                    //网关离上线
+	DevDegree                    //设备控制程度通知（窗帘开关程度）
 
 	//设备操作消息
 	ManualOpDev //手动操作设备
@@ -39,7 +40,7 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 	typ := getMsgType(data)
 	switch typ {
 
-	case NewDev, DevOnline, DevRename, DevDelete, ManualOpDev:
+	case NewDev, DevOnline, DevRename, DevDelete, ManualOpDev, DevDegree:
 		msgHandle = NormalMsgHandle{
 			data:    data,
 			msgType: typ,
@@ -96,6 +97,10 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 		typ = DevDelete
 	case 7:
 		typ = RemoteOpDev
+	case 10:
+		if data.Msg[0].Deviceid == 0x0202 {
+			typ = DevDegree
+		}
 	case 12:
 		typ = DevRename
 	case 32:
@@ -385,11 +390,13 @@ func (self WonlyGuardHandle) pushMsgByType() {
 	case 2:
 		msg2ums := self.createMsg2DB()
 		data2ums, err := json.Marshal(msg2ums)
+		routingKey := self.data.Msg[0].Bindid + ".hz.app"
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
 			//producer.SendMQMsg2Db(string(data2db))
-			rabbitmq.Publish2mns(data2ums, "")
+			//rabbitmq.Publish2mns(data2ums, "")
+			rabbitmq.Publish2app(data2ums, routingKey)
 		}
 
 	}
@@ -405,11 +412,10 @@ func (self WonlyGuardHandle) createMsg2PMS() (res entity.Feibee2PMS) {
 
 func (self WonlyGuardHandle) createMsg2DB() (res entity.Feibee2DBMsg) {
 	res.Cmd = 0xfb
-	res.Ack = 0
+	res.Ack = 1
 	res.Vendor = "feibee"
 	res.SeqId = 1
 	res.Time = int(time.Now().Unix())
-	res.Battery = 0xff
 
 	res.Devid = self.data.Records[0].Uuid
 	res.Deviceuid = self.data.Records[0].Deviceuid
@@ -500,7 +506,7 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 	res.Battery = 0xff
 
 	switch msgType {
-	case NewDev, DevOnline, DevDelete, DevRename:
+	case NewDev, DevOnline, DevDelete, DevRename, DevDegree:
 		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
 		res.Devid = data.Msg[0].Uuid
 		res.Note = data.Msg[0].Name
@@ -519,6 +525,9 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 			res.OpType = "devDelete"
 		case DevRename:
 			res.OpType = "devNewName"
+		case DevDegree:
+			res.OpType = "devDegree"
+			res.OpValue = strconv.Itoa(data.Msg[0].DevDegree)
 		}
 
 	case ManualOpDev, InfraredTreasure:
