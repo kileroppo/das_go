@@ -19,6 +19,7 @@ var (
 type ChannelContext struct {
 	Exchange     string
 	ExchangeType string
+	QueueName    string
 	RoutingKey   string
 	Reliable     bool
 	Durable      bool
@@ -60,7 +61,7 @@ func (bmq *baseMq) initConsumer() (err error) {
 	log.Info("baseMQ init exchange: ", bmq.channelCtx.Exchange)
 
 	queue, err := bmq.channel.QueueDeclare(
-		bmq.channelCtx.RoutingKey, // name, leave empty to generate a unique name
+		bmq.channelCtx.QueueName, // name, leave empty to generate a unique name
 		bmq.channelCtx.Durable,    // durable
 		bmq.channelCtx.AutoDelete, // delete when usused
 		false,                     // exclusive
