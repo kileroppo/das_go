@@ -2,8 +2,7 @@ package httpgo
 
 import (
 	"bytes"
-			"crypto/md5"
-		"io/ioutil"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/json-iterator/go"
@@ -27,13 +26,10 @@ func Http2FeibeeWonlyGuard(appData string) {
 	reqMsg.Act = "controlstate"
 	reqMsg.Code = "220"
 	reqMsg.Bindid = msg.Bindid
-
-	md5Ctx := md5.New()
-	md5Ctx.Write([]byte("W" + msg.Devid + "only"))
-	key := md5Ctx.Sum(nil)
-
+	
+	key := util.Md5("W" + msg.Devid + "only")
 	var err error
-	reqMsg.Bindstr,err = util.ECBDecrypt(msg.Bindstr, key)
+	reqMsg.Bindstr, err = util.ECBDecrypt(msg.Bindstr, []byte(key))
 	if err != nil {
 		log.Warningf("Http2FeibeeWonlyGuard ECBDecrypt() error = ", err)
 		return
