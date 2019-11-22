@@ -15,11 +15,13 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func Http2FeibeeWonlyGuard(appData string) {
+
 	var msg entity.WonlyGuardMsgFromApp
 	if err := json.Unmarshal([]byte(appData), &msg); err != nil {
 		log.Warning("Http2FeibeeWonlyGuard json.Unmarshal() error = ", err)
 		return
 	}
+	log.Infof("Send WonlyGuard '%s' control to feibee", msg.Devid)
 
 	var reqMsg entity.Req2Feibee
 
