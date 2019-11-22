@@ -32,5 +32,5 @@ func SendMQMsg2Device(uuid string, message string, cmd string) {
 
 	log.Info("[ ", rkey, " ] "+cmd+" rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
 	//rabbitmq.ProducerRabbitMq2Device.Publish2Device(channleContxt, []byte(message))
-	rabbitmq.Publish2dev([]byte(message), "")
+	rabbitmq.Publish2dev([]byte(message), rkey)
 }

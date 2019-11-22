@@ -33,37 +33,42 @@ func Init(conf *goconf.ConfigFile) {
 }
 
 func Publish2app(data []byte, routingKey string) {
-	log.Debug("Publish2app msg:", string(data))
 	if err := producer2appMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2app error = ", err)
+	} else {
+		log.Debug("Publish2app msg:", string(data))
 	}
 }
 
 func Publish2dev(data []byte, routingKey string) {
-	log.Debug("Publish2dev msg:", string(data))
 	if err := producer2devMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2dev error = ", err)
+	} else {
+		log.Debug("Publish2dev msg:", string(data))
 	}
 }
 
 func Publish2mns(data []byte, routingKey string) {
-	log.Debug("Publish2mns msg: ", string(data))
 	if err := producer2mnsMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2mns error = ", err)
+	} else {
+		log.Debug("Publish2mns msg: ", string(data))
 	}
 }
 
 func Publish2pms(data []byte, routingKey string) {
-	log.Debug("Publish2pms msg: ", string(data))
 	if err := producer2pmsMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2pms error = ", err)
+	} else {
+		log.Debug("Publish2pms msg: ", string(data))
 	}
 }
 
 func PublishGuard2app(data []byte, routingKey string) {
-	log.Debug("PublishGuard2app msg: ", string(data))
 	if err := producerGuard2appMQ.Publish(data, routingKey); err != nil {
 		log.Warning("PublishGuard2app error = ", err)
+	} else {
+		log.Debug("PublishGuard2app msg: ", string(data))
 	}
 }
 
@@ -282,21 +287,26 @@ func initProducerGuard2appMQ(conf *goconf.ConfigFile) {
 	if err := producerGuard2appMQ.init(); err != nil {
 		panic(err)
 	}
+
+	if err := producerGuard2appMQ.initExchange(); err != nil {
+		panic(err)
+	}
+
 }
 
 func initProducer2devMQ(conf *goconf.ConfigFile) {
 	log.Info("Producer2devMQ init")
 	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
 	if err != nil {
-		panic("initProducerGuard2appMQ load uri conf error")
+		panic("initProducer2devMQ load uri conf error")
 	}
 	exchange, err := conf.GetString("rabbitmq", "srv2device_ex")
 	if err != nil {
-		panic("initProducerGuard2appMQ load exchange conf error")
+		panic("initProducer2devMQ load exchange conf error")
 	}
 	exchangeType, err := conf.GetString("rabbitmq", "srv2device_ex_type")
 	if err != nil {
-		panic("initProducerGuard2appMQ load exchangeType conf error")
+		panic("initProducer2devMQ load exchangeType conf error")
 	}
 
 	channelCtx := ChannelContext{
@@ -313,6 +323,10 @@ func initProducer2devMQ(conf *goconf.ConfigFile) {
 	if err := producer2devMQ.init(); err != nil {
 		panic(err)
 	}
+
+	if err := producer2devMQ.initExchange(); err != nil {
+		panic(err)
+	}
 }
 
 func Close() {
@@ -327,9 +341,9 @@ func Close() {
 	log.Info("Producer2pmsMQ close")
 
 	if err := producer2mnsMQ.Close(); err != nil {
-		log.Error("Producer2umsMQ.Close() error = ", err)
+		log.Error("Producer2mnsMQ.Close() error = ", err)
 	}
-	log.Info("Producer2umsMQ close")
+	log.Info("Producer2mnsMQ close")
 
 	if err := producerGuard2appMQ.Close(); err != nil {
 		log.Error("ProducerGuard2appMQ.Close() error = ", err)
