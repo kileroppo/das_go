@@ -32,6 +32,10 @@ const (
 	ZigbeeLock       //飞比zigbee锁
 )
 
+var (
+	ErrMsgStruct = errors.New("Feibee Msg structure was inValid")
+)
+
 type MsgHandler interface {
 	PushMsg()
 }
@@ -83,6 +87,12 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 }
 
 func getMsgType(data entity.FeibeeData) (typ MsgType) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Warning(ErrMsgStruct)
+		}
+	}()
+
 	typ = -1
 	switch data.Code {
 	case 3:
@@ -375,9 +385,13 @@ func (self WonlyGuardHandle) pushMsgByType() {
 			rabbitmq.Publish2pms(data2pms, "")
 		}
 
-		msg2app := self.createMsg2App()
+		msg2app,routingKey,err := self.createNewDevMsg2App()
+		if err != nil {
+			log.Warning(err)
+			return
+		}
+
 		data2app, err := json.Marshal(msg2app)
-		routingKey := self.data.Msg[0].Uuid
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
@@ -386,9 +400,12 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		}
 
 	case 2:
-		msg2ums := self.createMsg2DB()
+		msg2ums,routingKey,err := self.createOtherMsg2App()
+		if err != nil {
+			log.Warning(err)
+			return
+		}
 		data2ums, err := json.Marshal(msg2ums)
-		routingKey := self.data.Records[0].Uuid
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
@@ -408,7 +425,12 @@ func (self WonlyGuardHandle) createMsg2PMS() (res entity.Feibee2PMS) {
 	return createMsg2pms(self.data, self.msgType)
 }
 
-func (self WonlyGuardHandle) createMsg2DB() (res entity.Feibee2DBMsg) {
+func (self WonlyGuardHandle) createOtherMsg2App() (res entity.Feibee2DBMsg, routingKey string, err error) {
+	if len(self.data.Records) <= 0 {
+		err = ErrMsgStruct
+		return
+	}
+
 	res.Cmd = 0xfb
 	res.Ack = 1
 	res.Vendor = "feibee"
@@ -424,10 +446,15 @@ func (self WonlyGuardHandle) createMsg2DB() (res entity.Feibee2DBMsg) {
 	res.Bindid = self.data.Records[0].Bindid
 	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
 
-	return res
+	routingKey = self.data.Records[0].Uuid
+	return
 }
 
-func (self WonlyGuardHandle) createMsg2App() (res entity.Feibee2AppMsg) {
+func (self WonlyGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg,routingKey string, err error) {
+	if len(self.data.Msg) <= 0 {
+		err = ErrMsgStruct
+		return
+	}
 	res.Cmd = 0xfb
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -441,8 +468,9 @@ func (self WonlyGuardHandle) createMsg2App() (res entity.Feibee2AppMsg) {
 	res.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
 
 	res.OpType = "newDevice"
+	routingKey = self.data.Msg[0].Uuid
 
-	return res
+	return
 }
 
 type SceneSwitchHandle struct {

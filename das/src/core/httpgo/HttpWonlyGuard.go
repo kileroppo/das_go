@@ -11,6 +11,7 @@ import (
 	"../entity"
 	"../log"
 	"../util"
+	"strings"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -95,7 +96,7 @@ func WonlyGuardAESDecrypt(cipher, key string) (res string ,err error) {
 	if err != nil {
 		return "", err
 	}
-	keyByte := []byte(util.Md5(key))
+	keyByte := []byte(strings.ToUpper(util.Md5(key)))
 
 	data,err := util.ECBDecryptByte(cipherByte, keyByte)
 	if err != nil {
