@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"net/http"
+	"encoding/hex"
 
 	"github.com/json-iterator/go"
 
@@ -35,11 +36,11 @@ func Http2FeibeeWonlyGuard(appData string) {
 	reqMsg.Code = "286"
 	reqMsg.Bindid = msg.Bindid
 	
-	key := util.Md5("W" + msg.Devid + "only")
+	key := "W" + msg.Devid + "only"
 	var err error
-	reqMsg.Bindstr, err = util.ECBDecrypt(msg.Bindstr, []byte(key))
+	reqMsg.Bindstr, err = WonlyGuardAESDecrypt(msg.Bindstr, key)
 	if err != nil {
-		log.Warningf("Http2FeibeeWonlyGuard ECBDecrypt() error = ", err)
+		log.Warningf("Http2FeibeeWonlyGuard WonlyGuardAESDecrypt() error = ", err)
 		return
 	}
 	reqMsg.Ver = "2.0"
@@ -87,4 +88,19 @@ func doHttpReq(method, url string, data []byte) (respData []byte, err error) {
 	respData, err = ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
 	return
+}
+
+func WonlyGuardAESDecrypt(cipher, key string) (res string ,err error) {
+	cipherByte,err := hex.DecodeString(cipher)
+	if err != nil {
+		return "", err
+	}
+	keyByte := []byte(util.Md5(key))
+
+	data,err := util.ECBDecryptByte(cipherByte, keyByte)
+	if err != nil {
+		return "", err
+	}
+
+	return string(data), nil
 }
