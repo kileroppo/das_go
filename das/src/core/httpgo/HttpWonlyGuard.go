@@ -23,8 +23,8 @@ func Http2FeibeeWonlyGuard(appData string) {
 
 	var reqMsg entity.Req2Feibee
 
-	reqMsg.Act = "controlstate"
-	reqMsg.Code = "220"
+	reqMsg.Act = "standardWriteAttribute"
+	reqMsg.Code = "286"
 	reqMsg.Bindid = msg.Bindid
 	
 	key := util.Md5("W" + msg.Devid + "only")

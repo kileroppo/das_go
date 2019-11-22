@@ -254,8 +254,6 @@ func (self InfraredTreasureHandle) pushMsgByType() {
 	switch flag {
 	case 10: //红外宝固件版本上报
 		log.Debug("红外宝 固件版本上报")
-		//data.OpType = "devVersion"
-		//data.OpValue = self.getFirmwareVer()
 
 	case 5: //码组上传上报
 		log.Debug("红外宝 码组上传上报")
