@@ -440,7 +440,7 @@ func (self WonlyGuardHandle) createOtherMsg2App() (res entity.Feibee2DBMsg, rout
 	res.Devid = self.data.Records[0].Uuid
 	res.Deviceuid = self.data.Records[0].Deviceuid
 
-	res.OpType = "WonlyGuard"
+	res.OpType = "WonlyLGuard"
 	res.OpValue = self.data.Records[0].Value
 
 	res.Bindid = self.data.Records[0].Bindid
