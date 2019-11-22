@@ -388,7 +388,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 	case 2:
 		msg2ums := self.createMsg2DB()
 		data2ums, err := json.Marshal(msg2ums)
-		routingKey := self.data.Msg[0].Bindid + ".hz.app"
+		routingKey := self.data.Records[0].Uuid
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
