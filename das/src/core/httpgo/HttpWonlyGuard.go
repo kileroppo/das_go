@@ -15,6 +15,12 @@ import (
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
 func Http2FeibeeWonlyGuard(appData string) {
+	defer func() {
+		if err:=recover();err != nil {
+			log.Error("Http2FeibeeWonlyGuard error = ", err)
+			return
+		}
+	}()
 
 	var msg entity.WonlyGuardMsgFromApp
 	if err := json.Unmarshal([]byte(appData), &msg); err != nil {
