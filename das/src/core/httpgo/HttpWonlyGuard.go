@@ -5,13 +5,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"encoding/hex"
+	"strings"
 
 	"github.com/json-iterator/go"
 
 	"../entity"
 	"../log"
 	"../util"
-	"strings"
 )
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -30,15 +30,27 @@ func Http2FeibeeWonlyGuard(appData string) {
 		return
 	}
 	log.Infof("Send WonlyGuard '%s' control to feibee", msg.Devid)
-
+	var err error
 	var reqMsg entity.Req2Feibee
+	var conf = log.Conf
 
 	reqMsg.Act = "standardWriteAttribute"
 	reqMsg.Code = "286"
 	reqMsg.Bindid = msg.Bindid
-	
+	reqMsg.AccessId,err = conf.GetString("feibee2http", "accessid")
+	if err != nil {
+		log.Warning("Http2FeibeeWonlyGuard get accessId error = ", err)
+		return
+	}
+
+	reqMsg.Key, err = conf.GetString("feibee2http", "key")
+	if err != nil {
+		log.Warning("Http2FeibeeWonlyGuard get key error = ", err)
+		return
+	}
+
 	key := "W" + msg.Devid + "only"
-	var err error
+
 	reqMsg.Bindstr, err = WonlyGuardAESDecrypt(msg.Bindstr, key)
 	if err != nil {
 		log.Warningf("Http2FeibeeWonlyGuard WonlyGuardAESDecrypt() error = ", err)

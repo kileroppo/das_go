@@ -1,15 +1,12 @@
 package main
 
 import (
-	"flag"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
-
-	"github.com/dlintw/goconf"
+		"github.com/dlintw/goconf"
 
 	"./core/log"
 	"./core/rabbitmq"
@@ -25,8 +22,8 @@ func main() {
 	go func() {
 		http.ListenAndServe(":14999", nil)
 	}()
-	//1. 加载配置文件
-	conf := loadConfig()
+
+	conf := log.Conf
 
 	//2. 初始化日志
 	initLogger(conf)
@@ -107,8 +104,6 @@ func main() {
 	// 21. 停止定时器
 	dindingtask.StopMyTimer()
 
-	time.Sleep(1 * time.Second)
-
 	log.Info("das_go server quit......")
 }
 
@@ -120,15 +115,4 @@ func initLogger(conf *goconf.ConfigFile) {
 		os.Exit(1)
 	}
 	log.NewLogger(logPath, logLevel)
-}
-
-func loadConfig() *goconf.ConfigFile {
-	conf_file := flag.String("config", "./das.ini", "设置配置文件.")
-	flag.Parse()
-	conf, err := goconf.ReadConfigFile(*conf_file)
-	if err != nil {
-		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
-		os.Exit(1)
-	}
-	return conf
 }
