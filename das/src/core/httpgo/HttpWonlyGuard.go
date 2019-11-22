@@ -48,6 +48,7 @@ func Http2FeibeeWonlyGuard(appData string) {
 		return
 	}
 
+	log.Debug("Send to Feibee: ", string(reqData))
 	respData, err := doHttpReq("POST", "https://dev.fbeecloud.com/devcontrol/", reqData)
 	var respMsg entity.RespFromFeibee
 	err = json.Unmarshal(respData, &respMsg)
