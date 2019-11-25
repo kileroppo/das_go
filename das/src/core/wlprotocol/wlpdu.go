@@ -810,10 +810,12 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 	if 0x0f == pdu.ParamNo {
 		pdu.ParamValue = string(buf.Next(32))
 	} else {
-		if err = binary.Read(buf, binary.BigEndian, &pdu.ParamValue); err != nil {
+		var paramValue uint8
+		if err = binary.Read(buf, binary.BigEndian, &paramValue); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
+		pdu.ParamValue = paramValue
 
 		if 0x0b == pdu.ParamNo {
 			if err = binary.Read(buf, binary.BigEndian, &pdu.ParamValue2); err != nil {
