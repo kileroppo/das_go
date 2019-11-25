@@ -36,7 +36,7 @@ func Publish2app(data []byte, routingKey string) {
 	if err := producer2appMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2app error = ", err)
 	} else {
-		log.Debug("Publish2app msg:", string(data))
+		log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
 	}
 }
 
@@ -44,7 +44,7 @@ func Publish2dev(data []byte, routingKey string) {
 	if err := producer2devMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2dev error = ", err)
 	} else {
-		log.Debug("Publish2dev msg:", string(data))
+		log.Debugf("RoutingKey = '%s', Publish2dev msg: %s", routingKey, string(data))
 	}
 }
 
@@ -68,7 +68,7 @@ func PublishGuard2app(data []byte, routingKey string) {
 	if err := producerGuard2appMQ.Publish(data, routingKey); err != nil {
 		log.Warning("PublishGuard2app error = ", err)
 	} else {
-		log.Debug("PublishGuard2app msg: ", string(data))
+		log.Debugf("RoutingKey = '%s', PublishGuard2app msg: %s", routingKey, string(data))
 	}
 }
 
