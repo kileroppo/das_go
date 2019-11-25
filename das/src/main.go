@@ -16,6 +16,7 @@ import (
 	"./onenet2srv"
 	"./rmq/consumer"
 	"./wifi2srv"
+	"./aliIoT2srv"
 )
 
 func main() {
@@ -50,6 +51,9 @@ func main() {
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
+	aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
+	aliIOTsrv.Run()
+
 	// 启动ali IOT推送接收服务
 	// TODO:JHHE 需要回滚 aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
 	// TODO:JHHE 需要回滚 aliIOTsrv.Run()
@@ -78,7 +82,7 @@ func main() {
 		log.Error("default: get signal: ", s)
 
 	}
-	//aliIOTsrv.Close()
+	aliIOTsrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()

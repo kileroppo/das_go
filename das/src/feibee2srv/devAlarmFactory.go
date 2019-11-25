@@ -284,7 +284,7 @@ func (self *InfraredSensorAlarm) PushMsg() {
 		self.alarmVal = "无人"
 		self.alarmType = "infrared"
 		self.alarmFlag = 0
-		//self.pushMsg2pmsForSave()
+		self.pushMsg2pmsForSave()
 	}
 
 }
@@ -326,6 +326,7 @@ func (self *GasSensorAlarm) PushMsg() {
 		self.alarmVal = "无气体"
 		self.alarmType = "gas"
 		self.alarmFlag = 0
+		self.pushMsg2pmsForSave()
 	}
 }
 
@@ -346,6 +347,7 @@ func (self *FloodSensorAlarm) PushMsg() {
 		self.alarmVal = "无水"
 		self.alarmType = "flood"
 		self.alarmFlag = 0
+		self.pushMsg2pmsForSave()
 	}
 }
 
@@ -366,6 +368,7 @@ func (self *SmokeSensorAlarm) PushMsg() {
 		self.alarmVal = "无烟"
 		self.alarmType = "smoke"
 		self.alarmFlag = 0
+		self.pushMsg2pmsForSave()
 	}
 }
 
