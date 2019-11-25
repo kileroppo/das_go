@@ -2,17 +2,19 @@ package log
 
 import (
 	"errors"
+	"flag"
 	"fmt"
-	"github.com/op/go-logging"
+	"io/ioutil"
 	"os"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
-	"io/ioutil"
-	"strconv"
-	"sort"
+
+	"github.com/dlintw/goconf"
+	"github.com/op/go-logging"
 
 	"../file"
-
 )
 
 const MaxFileCap = 1024 * 1024 * 35
@@ -22,6 +24,7 @@ var m_PathName string
 
 var (
 	LogSurvivalDays = 7 //单位：天
+	Conf            = loadConfig()
 )
 
 var (
@@ -85,7 +88,7 @@ func NewLogger(pathDir string, level string) {
 
 func ReNewLogger(pathDir string, level string) {
 	for {
-		time.Sleep(time.Hour*2) // 2小时检测一次
+		time.Sleep(time.Hour * 2) // 2小时检测一次
 
 		//1. 文件大小大于35M，另起文件
 		_, fileSize := file.GetFileByteSize(m_FileName)
@@ -162,4 +165,15 @@ func AutoClearLogFiles(logsDirPath string) {
 
 		time.Sleep(time.Hour * 24)
 	}
+}
+
+func loadConfig() *goconf.ConfigFile {
+	conf_file := flag.String("config", "./das.ini", "设置配置文件.")
+	flag.Parse()
+	conf, err := goconf.ReadConfigFile(*conf_file)
+	if err != nil {
+		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
+		os.Exit(1)
+	}
+	return conf
 }
