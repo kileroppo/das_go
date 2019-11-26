@@ -807,7 +807,9 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 
-	if 0x0f == pdu.ParamNo {
+	if 0x0d == pdu.ParamNo {		// 视频模组sn	0x0d	16字节(仅上报,不能修改)
+		pdu.ParamValue = string(buf.Next(16))
+	} else if 0x0f == pdu.ParamNo {	// WIFI_SSID	0x0f	32个字节
 		pdu.ParamValue = string(buf.Next(32))
 	} else {
 		var paramValue uint8
@@ -820,7 +822,7 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 		if 0x0b == pdu.ParamNo {
 			if err = binary.Read(buf, binary.BigEndian, &pdu.ParamValue2); err != nil {
 				log.Error("特殊处理，binary.Read failed:", err)
-				return nil // 特殊处理，当不含参数值2时则直接返回空
+				return err // 特殊处理，当不含参数值2时则直接返回空
 			}
 		}
 	}
