@@ -143,13 +143,13 @@ func parseData(hexData string) error {
 
 		devUserUpload := entity.DevUserUpload{}
 		devUserUpload.Cmd = int(wlMsg.Cmd)
-		devUserUpload.Ack = int(wlMsg.Cmd)
+		devUserUpload.Ack = int(wlMsg.Ack)
 		devUserUpload.DevType = DEVICETYPE[wlMsg.Type]
 		devUserUpload.DevId = wlMsg.DevId.Uuid
 		devUserUpload.Vendor = "general"
 		devUserUpload.SeqId = int(wlMsg.SeqId)
 
-		devUserUpload.OpType = int(pdu.DevUserVer)
+		devUserUpload.OpType = int(pdu.OperType)
 		devUserUpload.UserVer = pdu.DevUserVer
 		devUserUpload.UserId = pdu.UserNo
 		devUserUpload.UserNote = strconv.FormatInt(int64(pdu.Time), 16)
