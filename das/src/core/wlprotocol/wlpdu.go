@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"../util"
 	"../log"
+	"encoding/hex"
 )
 
 //2. 请求同步用户列表(0x31)(服务器-->前板)
@@ -53,6 +54,8 @@ func (pdu *SyncDevUserResp) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+
+	log.Debug("[ ", uuid, " ] SyncDevUserResp Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -239,6 +242,7 @@ func (pdu *AddDevUserStep) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] AddDevUserStep Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -289,6 +293,7 @@ func (pdu *UserUpdateLoad) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] UserUpdateLoad Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -385,6 +390,8 @@ func (pdu *RealVideo) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 
+	log.Debug("[ ", uuid, " ] RealVideo Decode [ ", hex.EncodeToString(DValue), " ]")
+
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
 	if err = binary.Read(buf, binary.BigEndian, &pdu.Act); err != nil {
@@ -436,6 +443,7 @@ func (pdu *WiFiSet) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] WiFiSet Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -465,6 +473,7 @@ func (pdu *DoorbellCall) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] DoorbellCall Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -490,6 +499,7 @@ func (pdu *Alarms) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] Alarms Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -515,6 +525,7 @@ func (pdu *LowBattAlarm) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] LowBattAlarm Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -545,6 +556,7 @@ func (pdu *PicUpload) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] PicUpload Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -588,6 +600,7 @@ func (pdu *OpenLockMsg) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] OpenLockMsg Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -661,6 +674,7 @@ func (pdu *OnOffLine) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] OnOffLine Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -725,6 +739,7 @@ func (pdu *RemoteOpenLockResp) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] RemoteOpenLockResp Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -799,6 +814,7 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] ParamUpdate Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -943,6 +959,7 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] UploadDevInfo Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体 FLen
 	buf := bytes.NewBuffer(DValue)
