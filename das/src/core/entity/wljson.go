@@ -283,6 +283,7 @@ type UploadOpenLockLog struct {
 	SeqId   int    `json:"seqId"`
 
 	UserVer uint32 	`json:"userVer"`   			// 设备用户版本号
+	UserNum uint8 	`json:"userNum"`   			// 设备用户总数
 	Battery int	    `json:"battery"`			// 电池电量
 	LogList []OpenLockLog	`json:"log_list"`	// 开锁日志
 }

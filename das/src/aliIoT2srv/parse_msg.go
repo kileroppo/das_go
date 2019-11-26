@@ -636,6 +636,7 @@ func parseData(hexData string) error {
 			SeqId: int(wlMsg.SeqId),
 
 			UserVer: pdu.DevUserVer,
+			UserNum: pdu.UserNum,
 			Battery: int(pdu.Battery),
 		}
 		var lockLog entity.OpenLockLog
