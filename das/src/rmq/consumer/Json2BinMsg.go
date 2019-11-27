@@ -322,7 +322,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		wifiPwd := []byte(setWifi.WifiPwd)
 		for i := 0; i < len(wifiPwd); i++ {
 			if i < 16 {
-				pdu.Ssid[i] = wifiSsid[i]
+				pdu.Passwd[i] = wifiPwd[i]
 			}
 		}
 
