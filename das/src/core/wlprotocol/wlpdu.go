@@ -661,7 +661,7 @@ func (pdu *OpenLockMsg) Decode(bBody []byte, uuid string) error {
 		}
 	}
 
-	return err
+	return nil
 }
 
 //19. 在线离线(0x46)(后板-->服务器)
