@@ -16,7 +16,6 @@ import (
 	"./onenet2srv"
 	"./rmq/consumer"
 	"./wifi2srv"
-	"./aliIoT2srv"
 )
 
 func main() {
@@ -52,8 +51,8 @@ func main() {
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	// 启动ali IOT推送接收服务
-	aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliIOTsrv.Run()
+	// aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
+	// aliIOTsrv.Run()
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -79,7 +78,7 @@ func main() {
 		log.Error("default: get signal: ", s)
 
 	}
-	aliIOTsrv.Close()
+	// aliIOTsrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
