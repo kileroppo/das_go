@@ -1,12 +1,12 @@
 package main
 
 import (
+	"github.com/dlintw/goconf"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
-		"github.com/dlintw/goconf"
 
 	"./core/log"
 	"./core/rabbitmq"
@@ -16,7 +16,6 @@ import (
 	"./onenet2srv"
 	"./rmq/consumer"
 	"./wifi2srv"
-	"./aliIoT2srv"
 )
 
 func main() {
@@ -51,12 +50,9 @@ func main() {
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
-	aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliIOTsrv.Run()
-
 	// 启动ali IOT推送接收服务
-	// TODO:JHHE 需要回滚 aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
-	// TODO:JHHE 需要回滚 aliIOTsrv.Run()
+	// aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
+	// aliIOTsrv.Run()
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -82,7 +78,7 @@ func main() {
 		log.Error("default: get signal: ", s)
 
 	}
-	aliIOTsrv.Close()
+	// aliIOTsrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
