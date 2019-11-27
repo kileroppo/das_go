@@ -143,13 +143,13 @@ func parseData(hexData string) error {
 
 		devUserUpload := entity.DevUserUpload{}
 		devUserUpload.Cmd = int(wlMsg.Cmd)
-		devUserUpload.Ack = int(wlMsg.Cmd)
+		devUserUpload.Ack = int(wlMsg.Ack)
 		devUserUpload.DevType = DEVICETYPE[wlMsg.Type]
 		devUserUpload.DevId = wlMsg.DevId.Uuid
 		devUserUpload.Vendor = "general"
 		devUserUpload.SeqId = int(wlMsg.SeqId)
 
-		devUserUpload.OpType = int(pdu.DevUserVer)
+		devUserUpload.OpType = int(pdu.OperType)
 		devUserUpload.UserVer = pdu.DevUserVer
 		devUserUpload.UserId = pdu.UserNo
 		devUserUpload.UserNote = strconv.FormatInt(int64(pdu.Time), 16)
@@ -636,6 +636,7 @@ func parseData(hexData string) error {
 			SeqId: int(wlMsg.SeqId),
 
 			UserVer: pdu.DevUserVer,
+			UserNum: pdu.UserNum,
 			Battery: int(pdu.Battery),
 		}
 		var lockLog entity.OpenLockLog
@@ -889,6 +890,38 @@ func parseData(hexData string) error {
 			// producer.SendMQMsg2Db(string(to_byte)) // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Door_Call to_byte json.Marshal, err=", err1)
+			return err1
+		}
+	case constant.Door_State: // 锁状态上报
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Door_State")
+
+		pdu := &wlprotocol.DoorStateUpload{}
+		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
+		if nil != err {
+			log.Error("parseData Door_State pdu.Decode, err=", err)
+			return err
+		}
+
+		// 发送到PMS模块
+		doorState := entity.DoorStateUpload{
+			Cmd: int(wlMsg.Cmd),
+			Ack: int(wlMsg.Ack),
+			DevType: DEVICETYPE[wlMsg.Type],
+			DevId: wlMsg.DevId.Uuid,
+			Vendor: "general",
+			SeqId: int(wlMsg.SeqId),
+
+			State: pdu.State,
+		}
+
+		if to_byte, err1 := json.Marshal(doorState); err == nil {
+			//2. 推到APP
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
+
+			//3. 需要存到mongodb
+			rabbitmq.Publish2pms(to_byte, "")
+		} else {
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.Door_State to_byte json.Marshal, err=", err1)
 			return err1
 		}
 	default:

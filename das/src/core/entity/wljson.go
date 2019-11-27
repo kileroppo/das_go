@@ -283,6 +283,7 @@ type UploadOpenLockLog struct {
 	SeqId   int    `json:"seqId"`
 
 	UserVer uint32 	`json:"userVer"`   			// 设备用户版本号
+	UserNum uint8 	`json:"userNum"`   			// 设备用户总数
 	Battery int	    `json:"battery"`			// 电池电量
 	LogList []OpenLockLog	`json:"log_list"`	// 开锁日志
 }
@@ -386,6 +387,17 @@ type PicUpload struct {
 	PicName string `json:"picName"`		// 抓拍图片名称，视频锁抓拍图片
 }
 
+//18. 锁状态上报(0x55)(后板->服务器)
+type DoorStateUpload struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	State uint8 	`json:"state"`
+}
 type UpgradeQuery struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -409,3 +421,4 @@ type UpgradeReq struct {
 	Offset   int64  `json:"offset"`
 	FileName string `json:"fileName"`
 }
+

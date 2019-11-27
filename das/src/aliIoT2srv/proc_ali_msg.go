@@ -30,7 +30,7 @@ type AliIoTStatus struct {
 	IotId      string  `json:"iotId"`
 	Action     string  `json:"action"`
 	ProductKey string  `json:"productKey"`
-	GmtCreate  string  `json:"gmtCreate"`
+	GmtCreate  int64   `json:"gmtCreate"`
 	DeviceName string  `json:"deviceName"`
 	Status     AliData `json:"status"`
 }

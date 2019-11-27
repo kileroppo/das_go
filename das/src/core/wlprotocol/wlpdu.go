@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"../util"
 	"../log"
+	"encoding/hex"
 )
 
 //2. 请求同步用户列表(0x31)(服务器-->前板)
@@ -53,6 +54,8 @@ func (pdu *SyncDevUserResp) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+
+	log.Debug("[ ", uuid, " ] SyncDevUserResp Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -239,6 +242,7 @@ func (pdu *AddDevUserStep) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] AddDevUserStep Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -289,6 +293,7 @@ func (pdu *UserUpdateLoad) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] UserUpdateLoad Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -385,6 +390,8 @@ func (pdu *RealVideo) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 
+	log.Debug("[ ", uuid, " ] RealVideo Decode [ ", hex.EncodeToString(DValue), " ]")
+
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
 	if err = binary.Read(buf, binary.BigEndian, &pdu.Act); err != nil {
@@ -436,6 +443,7 @@ func (pdu *WiFiSet) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] WiFiSet Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -465,6 +473,7 @@ func (pdu *DoorbellCall) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] DoorbellCall Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -490,6 +499,7 @@ func (pdu *Alarms) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] Alarms Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -515,6 +525,7 @@ func (pdu *LowBattAlarm) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] LowBattAlarm Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -545,6 +556,7 @@ func (pdu *PicUpload) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] PicUpload Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -588,10 +600,15 @@ func (pdu *OpenLockMsg) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] OpenLockMsg Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
 	if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserVer); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.UserNum); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
 	}
@@ -644,7 +661,7 @@ func (pdu *OpenLockMsg) Decode(bBody []byte, uuid string) error {
 		}
 	}
 
-	return err
+	return nil
 }
 
 //19. 在线离线(0x46)(后板-->服务器)
@@ -661,6 +678,7 @@ func (pdu *OnOffLine) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] OnOffLine Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -725,6 +743,7 @@ func (pdu *RemoteOpenLockResp) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] RemoteOpenLockResp Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -799,6 +818,7 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] ParamUpdate Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -807,18 +827,22 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 
-	if 0x0f == pdu.ParamNo {
+	if 0x0d == pdu.ParamNo {		// 视频模组sn	0x0d	16字节(仅上报,不能修改)
+		pdu.ParamValue = string(buf.Next(16))
+	} else if 0x0f == pdu.ParamNo {	// WIFI_SSID	0x0f	32个字节
 		pdu.ParamValue = string(buf.Next(32))
 	} else {
-		if err = binary.Read(buf, binary.BigEndian, &pdu.ParamValue); err != nil {
+		var paramValue uint8
+		if err = binary.Read(buf, binary.BigEndian, &paramValue); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
+		pdu.ParamValue = paramValue
 
 		if 0x0b == pdu.ParamNo {
 			if err = binary.Read(buf, binary.BigEndian, &pdu.ParamValue2); err != nil {
 				log.Error("特殊处理，binary.Read failed:", err)
-				return nil // 特殊处理，当不含参数值2时则直接返回空
+				return err // 特殊处理，当不含参数值2时则直接返回空
 			}
 		}
 	}
@@ -939,6 +963,7 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
+	log.Debug("[ ", uuid, " ] UploadDevInfo Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体 FLen
 	buf := bytes.NewBuffer(DValue)
@@ -1076,5 +1101,31 @@ func (pdu *UploadDevInfoResp) Encode(uuid string) ([]byte, error) {
 	return toDevData, nil
 }
 func (pdu *UploadDevInfoResp) Decode(bBody []byte, uuid string) error {
+	return nil
+}
+
+// 锁状态上报(0x55)(后板->服务器)
+func (pdu *DoorStateUpload) Decode(bBody []byte, uuid string) error {
+	var err error
+	var DValue []byte
+
+	//1. 生成密钥
+	myKey := util.MD52Bytes(uuid)
+
+	//2. 解密
+	DValue, err = util.ECBDecryptByte(bBody, myKey)
+	if nil != err {
+		log.Error("ECBDecryptByte failed, err=", err)
+		return err
+	}
+	log.Debug("[ ", uuid, " ] DoorStateUpload Decode [ ", hex.EncodeToString(DValue), " ]")
+
+	//3. 解包体 FLen
+	buf := bytes.NewBuffer(DValue)
+	if err = binary.Read(buf, binary.BigEndian, &pdu.State); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+
 	return nil
 }

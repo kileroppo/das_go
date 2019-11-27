@@ -166,6 +166,7 @@ type PicUpload struct {
 */
 type OpenLockMsg struct {
 	DevUserVer uint32 	// 用户列表版本号(4)，当前锁保存的用户列表版本号
+	UserNum uint8		// 用户数量(1)，当前锁保存的用户总数量
 	Time int32			// 时间戳
 	Battery uint8		// 电量百分比：0-100十进制数
 	SinMul uint8		// 单/双人模式:1-单人（只有用户1），2-双人
@@ -228,9 +229,9 @@ type SetLockParamReq struct {
 
 //23. 参数更新(0x73)(前板,后板-->服务器)
 type ParamUpdate struct {
-	ParamNo uint8		// 参数编号(1)
+	ParamNo uint8			// 参数编号(1)
 	ParamValue interface{}	// 参数值(1)
-	ParamValue2 uint8	// 参数值2(1)
+	ParamValue2 uint8		// 参数值2(1)
 }
 
 type ParamUpdateResp struct {
@@ -318,4 +319,9 @@ type UploadDevInfo struct {
 
 type UploadDevInfoResp struct {
 	Time int32
+}
+
+//28. 锁状态上报(0x55)(后板->服务器)
+type DoorStateUpload struct {
+	State uint8
 }
