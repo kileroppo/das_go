@@ -320,3 +320,8 @@ type UploadDevInfo struct {
 type UploadDevInfoResp struct {
 	Time int32
 }
+
+//28. 锁状态上报(0x55)(后板->服务器)
+type DoorStateUpload struct {
+	State uint8
+}

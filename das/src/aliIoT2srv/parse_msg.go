@@ -892,6 +892,38 @@ func parseData(hexData string) error {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Door_Call to_byte json.Marshal, err=", err1)
 			return err1
 		}
+	case constant.Door_State: // 锁状态上报
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Door_State")
+
+		pdu := &wlprotocol.DoorStateUpload{}
+		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
+		if nil != err {
+			log.Error("parseData Door_State pdu.Decode, err=", err)
+			return err
+		}
+
+		// 发送到PMS模块
+		doorState := entity.DoorStateUpload{
+			Cmd: int(wlMsg.Cmd),
+			Ack: int(wlMsg.Ack),
+			DevType: DEVICETYPE[wlMsg.Type],
+			DevId: wlMsg.DevId.Uuid,
+			Vendor: "general",
+			SeqId: int(wlMsg.SeqId),
+
+			State: pdu.State,
+		}
+
+		if to_byte, err1 := json.Marshal(doorState); err == nil {
+			//2. 推到APP
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
+
+			//3. 需要存到mongodb
+			rabbitmq.Publish2pms(to_byte, "")
+		} else {
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.Door_State to_byte json.Marshal, err=", err1)
+			return err1
+		}
 	default:
 		log.Info("[", wlMsg.DevId.Uuid, "] parseData Default, Cmd=", wlMsg.Cmd)
 	}
