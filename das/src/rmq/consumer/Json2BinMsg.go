@@ -201,7 +201,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 	case constant.Remote_open: // 远程开锁
 		log.Info("[", head.DevId, "] constant.Remote_open")
 
-		var remoteOpen entity.RemoteOpenLockReq
+		var remoteOpen entity.MRemoteOpenLockReq
 		if err := json.Unmarshal([]byte(jsonMsg), &remoteOpen); err != nil {
 			log.Error("WlJson2BinMsg json.Unmarshal Header error, err=", err)
 			return nil, err

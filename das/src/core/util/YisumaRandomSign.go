@@ -19,6 +19,37 @@ func AddYisumaRandomSign(head entity.Header, pri string, random string) (respBod
 		return "", err
 	}
 
+	stringKey := strings.ToUpper(Md5(head.DevId))
+
+	if len(randomUnSign.Password) > 6 {
+		psw1, err_0 := hex.DecodeString(randomUnSign.Password)
+		if err_0 != nil {
+			log.Error("AddYisumaRandomSign DecodeString 0 failed, err=", err_0)
+			return "", err_0
+		}
+
+		passwd1, err0 := ECBDecryptByte(psw1, []byte(stringKey))
+		if err0 != nil {
+			log.Error("AddYisumaRandomSign ECBDecryptByte 0 failed, err=", err0)
+			return "",  err0
+		}
+		randomUnSign.Password = string(passwd1)
+	}
+
+	if len(randomUnSign.Password2) > 6 {
+		psw2, err_1 := hex.DecodeString(randomUnSign.Password2)
+		if err_1 != nil {
+			log.Error("AddYisumaRandomSign DecodeString 1 failed, err=", err_1)
+			return "",  err_1
+		}
+		passwd2, err1 := ECBDecryptByte(psw2, []byte(stringKey))
+		if err1 != nil {
+			log.Error("AddYisumaRandomSign ECBDecryptByte 1 failed, err=", err1)
+			return "",  err1
+		}
+		randomUnSign.Password2 = string(passwd2)
+	}
+
 	//2. 将HEX私钥字符串转为byte
 	str := "607EC530749978DD8D32123B3F2FDF423D1632E6281EB83D083B6375109BB740"
 	data, err := hex.DecodeString(str)

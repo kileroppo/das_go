@@ -154,7 +154,20 @@ type SyncDevUserResp struct {
 }
 
 //7. 远程开锁
-type RemoteOpenLockReq struct {
+// 单人
+type SRemoteOpenLockReq struct {
+	Cmd     int    			`json:"cmd"`
+	Ack     int    			`json:"ack"`
+	DevType string 			`json:"devType"`
+	DevId   string 			`json:"devId"`
+	Vendor  string 			`json:"vendor"`
+	SeqId   int    			`json:"seqId"`
+
+	Passwd string    		`json:"passwd"`
+	Time int32    			`json:"time"`
+}
+// 双人
+type MRemoteOpenLockReq struct {
 	Cmd     int    			`json:"cmd"`
 	Ack     int    			`json:"ack"`
 	DevType string 			`json:"devType"`
@@ -165,9 +178,8 @@ type RemoteOpenLockReq struct {
 	Passwd string    		`json:"passwd"`
 	Passwd2 string    		`json:"passwd2"`
 	Time int32    			`json:"time"`
-	Random string    		`json:"random"`
-	Signature string    	`json:"signature"`
 }
+
 type RemoteOpenLockResp struct {
 	Cmd     int    			`json:"cmd"`
 	Ack     int    			`json:"ack"`

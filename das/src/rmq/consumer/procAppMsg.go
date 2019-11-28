@@ -48,6 +48,86 @@ func ProcAppMsg(appMsg string) error {
 					}
 					appMsg = signRandom
 				}
+			} else { // 非亿速码
+				// 单双人判断
+				if strings.Contains(appMsg, "passwd2") { // 双人
+					var mROpenLockReq entity.MRemoteOpenLockReq
+					if err := json.Unmarshal([]byte(appMsg), &mROpenLockReq); err != nil {
+						log.Error("ProcAppMsg json.Unmarshal MRemoteOpenLockReq error, err=", err)
+					}
+
+					decryptPwdFlag := false	// 密码解密
+					stringKey := strings.ToUpper(util.Md5(head.DevId))
+
+					if len(mROpenLockReq.Passwd) > 6 {
+						psw1, err_0 := hex.DecodeString(mROpenLockReq.Passwd)
+						if err_0 != nil {
+							log.Error("ProcAppMsg MRemoteOpenLockReq DecodeString 0 failed, err=", err_0)
+							return err_0
+						}
+
+						passwd1, err0 := util.ECBDecryptByte(psw1, []byte(stringKey))
+						if err0 != nil {
+							log.Error("ProcAppMsg MRemoteOpenLockReq ECBDecryptByte 0 failed, err=", err0)
+							return err0
+						}
+
+						mROpenLockReq.Passwd = string(passwd1)
+						decryptPwdFlag = true
+					}
+
+					if len(mROpenLockReq.Passwd2) > 6 {
+						psw2, err_1 := hex.DecodeString(mROpenLockReq.Passwd2)
+						if err_1 != nil {
+							log.Error("ProcAppMsg MRemoteOpenLockReq DecodeString 1 failed, err=", err_1)
+							return err_1
+						}
+
+						passwd2, err1 := util.ECBDecryptByte(psw2, []byte(stringKey))
+						if err1 != nil {
+							log.Error("ProcAppMsg MRemoteOpenLockReq ECBDecryptByte 1 failed, err=", err1)
+							return err1
+						}
+						mROpenLockReq.Passwd2 = string(passwd2)
+						decryptPwdFlag = true
+					}
+
+					if decryptPwdFlag {
+						jsonStr, err2 := json.Marshal(mROpenLockReq)
+						if err2 != nil {
+							log.Error("ProcAppMsg MRemoteOpenLockReq json.Marshal failed, err=", err2)
+							return err2
+						}
+						appMsg = string(jsonStr)
+					}
+				} else { // 单人
+					var sROpenLockReq entity.SRemoteOpenLockReq
+					if err := json.Unmarshal([]byte(appMsg), &sROpenLockReq); err != nil {
+						log.Error("ProcAppMsg json.Unmarshal SRemoteOpenLockReq error, err=", err)
+					}
+
+					if len(sROpenLockReq.Passwd) > 6 {
+						psw1, err0 := hex.DecodeString(sROpenLockReq.Passwd)
+						if err0 != nil {
+							log.Error("ProcAppMsg SRemoteOpenLockReq DecodeString failed, err=", err0)
+							return err0
+						}
+						stringKey := strings.ToUpper(util.Md5(head.DevId))
+						passwd1, err1 := util.ECBDecryptByte(psw1, []byte(stringKey))
+						if err1 != nil {
+							log.Error("ProcAppMsg SRemoteOpenLockReq ECBDecryptByte failed, err=", err1)
+							return err1
+						}
+
+						sROpenLockReq.Passwd = string(passwd1)
+						jsonStr, err2 := json.Marshal(sROpenLockReq)
+						if err2 != nil {
+							log.Error("ProcAppMsg SRemoteOpenLockReq json.Marshal failed, err=", err2)
+							return err2
+						}
+						appMsg = string(jsonStr)
+					}
+				}
 			}
 		}
 	case constant.Add_dev_user:
@@ -62,11 +142,30 @@ func ProcAppMsg(appMsg string) error {
 				log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
 				return uNoteErr
 			}
-
 			addDevUser.UserNote = userNoteTag // 值跟KEY交换，下发到锁端
+
+			if 1 == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
+				if len(addDevUser.Passwd) > 6 {
+					psw1, err0 := hex.DecodeString(addDevUser.Passwd)
+					if err0 != nil {
+						log.Error("ProcAppMsg AddDevUser DecodeString failed, err=", err0)
+						return err0
+					}
+					stringKey := strings.ToUpper(util.Md5(head.DevId))
+					passwd1, err1 := util.ECBDecryptByte(psw1, []byte(stringKey))
+					if err1 != nil {
+						log.Error("ProcAppMsg AddDevUser ECBDecryptByte failed, err=", err1)
+						return err1
+					}
+
+					addDevUser.Passwd = string(passwd1)
+				}
+			}
+
+			// json转字符串
 			addDevUserStr, err1 := json.Marshal(addDevUser)
 			if err1 != nil {
-				log.Error("Get addDevUser json.Marshal failed, err=", err1)
+				log.Error("ProcAppMsg addDevUser json.Marshal failed, err=", err1)
 				return err1
 			}
 			appMsg = string(addDevUserStr)
