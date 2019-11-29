@@ -451,6 +451,9 @@ func parseData(hexData string) error {
 		var byteData []byte
 		rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
 		for m:=0;m<len(pdu.Ssid);m++{
+			if m >= 32 {
+				break
+			}
 			byteData =  append(byteData, pdu.Ssid[m])
 		}
 		index := bytes.IndexByte(byteData, 0)
@@ -464,6 +467,9 @@ func parseData(hexData string) error {
 
 		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.ProductId);m++{
+			if m >= 32 {
+				break
+			}
 			byteData = append(byteData, pdu.ProductId[m])
 		}
 		index = bytes.IndexByte(byteData, 0)
@@ -476,6 +482,9 @@ func parseData(hexData string) error {
 		// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
 		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.ProductId);m++{
+			if m >= 32 {
+				break
+			}
 			byteData = append(byteData, pdu.IpcSn[m])
 		}
 		index = bytes.IndexByte(byteData, 0)
@@ -541,7 +550,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Update_dev_para:		// 参数更新(0x73)(前板,后板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Set_dev_para")
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Update_dev_para")
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -563,6 +572,25 @@ func parseData(hexData string) error {
 			PaValue2: pdu.ParamValue2,
 		}
 
+		if 0x0d == pdu.ParamNo || 0x0f == pdu.ParamNo {
+			var byteData []byte
+			rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
+			paramValue := pdu.ParamValue.(string)
+			for m:=0;m<len(paramValue);m++{
+				if m >= 32 {
+					break
+				}
+				byteData =  append(byteData, paramValue[m])
+			}
+			index := bytes.IndexByte(byteData, 0)
+			if -1 == index {
+				rbyf_pn = byteData[0:len(byteData)]
+			} else {
+				rbyf_pn = byteData[0:index]
+			}
+			lockParam.PaValue = string(rbyf_pn[:])
+		}
+
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(lockParam); err == nil {
 			// 回复到APP
@@ -571,7 +599,7 @@ func parseData(hexData string) error {
 			// PMS存储到DB
 			rabbitmq.Publish2pms(to_byte, "")
 		} else {
-			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_dev_para, err=", err1)
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.Update_dev_para, err=", err1)
 			return err1
 		}
 	case constant.Soft_reset:			// 软件重启命令(0x74)(服务器-->前、后板)
@@ -835,6 +863,9 @@ func parseData(hexData string) error {
 		var byteData []byte
 		rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
 		for m:=0;m<len(pdu.Ssid);m++{
+			if m >= 32 {
+				break
+			}
 			byteData =  append(byteData, pdu.Ssid[m])
 		}
 		index := bytes.IndexByte(byteData, 0)
@@ -847,6 +878,9 @@ func parseData(hexData string) error {
 
 		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.Passwd);m++{
+			if m >= 32 {
+				break
+			}
 			byteData = append(byteData, pdu.Passwd[m])
 		}
 		index = bytes.IndexByte(byteData, 0)

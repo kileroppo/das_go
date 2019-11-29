@@ -38,7 +38,7 @@ type AddDevUser struct {
 	Count   uint16		`json:"count"` 			// 开门次数，0xffff为无限次
 	MyDate	MyDTM		`json:"date"`			// 开始有效时间
 	MyTime	[3]MyDTM	`json:"time"`			// 时段
-	TimeLen  interface{}	`json:"time_length"`	// 兼容捷博生产商，临时用户时长（单位：秒）
+	TimeLen interface{}	`json:"time_length"`	// 兼容捷博生产商，临时用户时长（单位：秒）
 }
 
 //2. 设置临时用户
@@ -154,7 +154,20 @@ type SyncDevUserResp struct {
 }
 
 //7. 远程开锁
-type RemoteOpenLockReq struct {
+// 单人
+type SRemoteOpenLockReq struct {
+	Cmd     int    			`json:"cmd"`
+	Ack     int    			`json:"ack"`
+	DevType string 			`json:"devType"`
+	DevId   string 			`json:"devId"`
+	Vendor  string 			`json:"vendor"`
+	SeqId   int    			`json:"seqId"`
+
+	Passwd string    		`json:"passwd"`
+	Time int32    			`json:"time"`
+}
+// 双人
+type MRemoteOpenLockReq struct {
 	Cmd     int    			`json:"cmd"`
 	Ack     int    			`json:"ack"`
 	DevType string 			`json:"devType"`
@@ -165,9 +178,8 @@ type RemoteOpenLockReq struct {
 	Passwd string    		`json:"passwd"`
 	Passwd2 string    		`json:"passwd2"`
 	Time int32    			`json:"time"`
-	Random string    		`json:"random"`
-	Signature string    	`json:"signature"`
 }
+
 type RemoteOpenLockResp struct {
 	Cmd     int    			`json:"cmd"`
 	Ack     int    			`json:"ack"`
