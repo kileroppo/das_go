@@ -121,7 +121,6 @@ type AliIOTJob struct {
 }
 
 func (a AliIOTJob) Handle() {
-	log.Debug("aliIOT2srv.Handle() get: ")
 	ProcessAliMsg(a.rawData, a.topic)
 }
 
