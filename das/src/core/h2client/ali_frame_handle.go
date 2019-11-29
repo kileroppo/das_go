@@ -52,7 +52,7 @@ func (a AliDataHandle) HandleHeadersFrame(f *http2.HeadersFrame) {
 	streamId := f.StreamID
 	var xQos, msgId, topic string
 	for _, h := range headers {
-		//log.Debugf("Header -> %s : %s\n", h.Name, h.Value)
+		log.Debugf("Header -> %s : %s\n", h.Name, h.Value)
 		if strings.EqualFold("x-qos", h.Name) {
 			xQos = h.Value
 		} else if strings.EqualFold("x-message-id", h.Name) {
@@ -108,9 +108,9 @@ func (a AliDataHandle) writeAck(data aliFrameData) {
 	//urlData,_ := url.Parse(a.cli.rawurl)
 	request, _ := http.NewRequest("GET", a.cli.rawurl, nil)
 	request.Header.Set("x-message-id", data.msgId)
-	request.Header.Set("x-sdk-version", "1.1.4")
-	request.Header.Set("x-sdk-version-name", "v1.1.4")
-	request.Header.Set("x-sdk-platform", "java")
+	//request.Header.Set("x-sdk-version", "1.1.4")
+	//request.Header.Set("x-sdk-version-name", "v1.1.4")
+	//request.Header.Set("x-sdk-platform", "java")
 
 	var err error
 	log.Infof("Send Ack for streamId %d", data.streamId)
@@ -125,9 +125,9 @@ func (a AliDataHandle) writeAck(data aliFrameData) {
 	bf := make([]byte, len(blockFragment))
 	copy(bf, blockFragment)
 
-	//a.readHeader(bf)
+	a.readHeader(bf)
 
-	//a.cli.bw.Flush()
+	a.cli.bw.Flush()
 	err = a.cli.framer.WriteHeaders(http2.HeadersFrameParam{
 		StreamID:      data.streamId+1,
 		BlockFragment: blockFragment,
