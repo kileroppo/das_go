@@ -269,7 +269,7 @@ func (h2 *H2Client) heartBeat() {
 			continue
 		case <- time.After(time.Second*30):
 
-			if err := h2.framer.WritePing(true, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
+			if err := h2.framer.WritePing(false, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
 				log.Info("重连中...")
 				go h2.do()
