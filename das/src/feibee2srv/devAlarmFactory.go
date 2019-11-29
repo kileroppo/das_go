@@ -82,23 +82,14 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
 					feibeeMsg: feibeeData,
 				},
 			}
-		case 0x8001:
-			//一氧化碳传感器
+		default:
+			res = &BaseSensorAlarm{
+				feibeeMsg: feibeeData,
+			}
 		}
 	default:
-		if (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 33) || (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 53) {
-			//电量上报
-			res = &BaseSensorAlarm{
-				feibeeMsg: feibeeData,
-			}
-
-		}
-
-		if (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 32) || (feibeeData.Records[0].Cid == 1 && feibeeData.Records[0].Aid == 62) {
-			//电压上报
-			res = &BaseSensorAlarm{
-				feibeeMsg: feibeeData,
-			}
+		res = &BaseSensorAlarm{
+			feibeeMsg: feibeeData,
 		}
 	}
 	return
@@ -166,7 +157,9 @@ func (self *BaseSensorAlarm) pushMsg2db() {
 		return
 	}
 	//producer.SendMQMsg2Db(string(data))
-	rabbitmq.Publish2mns(data, "")
+	if len(self.alarmType) > 0 && len(self.alarmVal) > 0 {
+		rabbitmq.Publish2mns(data, "")
+	}
 
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"
@@ -212,7 +205,9 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 		return
 	}
 	//producer.SendMQMsg2PMS(string(data))
-	rabbitmq.Publish2pms(data, "")
+	if len(self.alarmVal) >0 && len(self.alarmType) > 0 {
+		rabbitmq.Publish2pms(data, "")
+	}
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
@@ -251,7 +246,9 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 		return
 	}
 	//producer.SendMQMsg2PMS(string(data))
-	rabbitmq.Publish2pms(data, "")
+	if len(self.alarmVal) >0 && len(self.alarmType) > 0 {
+		rabbitmq.Publish2pms(data, "")
+	}
 
 	if self.removalAlarmValue == "1" {
 		msg.AlarmType = "forcedBreak"

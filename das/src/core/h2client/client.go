@@ -67,7 +67,7 @@ func Newh2Client(ctx context.Context) *H2Client {
 		},
 		timeout: 0,
 		ctx:     ctx,
-		reCh:    make(chan struct{}),
+		reCh:    make(chan struct{}, 1000),
 	}
 	h2.request, _ = http.NewRequest("", "", nil)
 
@@ -272,8 +272,7 @@ func (h2 *H2Client) heartBeat() {
 			if err := h2.framer.WritePing(false, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
 				log.Info("重连中...")
-				go h2.do()
-
+				h2.Close()
 				return // 退出
 			} else {
 				log.Info("heartBeat ...")
