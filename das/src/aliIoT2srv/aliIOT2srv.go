@@ -19,6 +19,21 @@ var (
 )
 
 func Run() {
+	conf := log.Conf
+	appKey, err := conf.GetString("aliIoT2http", "appKey")
+	if err != nil {
+		log.Error("get-aliIoT2http-appKey error = ", err)
+		return
+	}
+
+	appSecret, err := conf.GetString("aliIoT2http", "appSecret")
+	if err != nil {
+		log.Error("get-aliIoT2http-appSecret error = ", err)
+		return
+	}
+
+	httpgo.InitAliIoTConfig(appKey, appSecret)
+
 	msgs, err := rabbitmq.Consumer2aliMQ.Consumer()
 	if err != nil {
 		log.Error("Consumer2aliMQ() error = ", err)
