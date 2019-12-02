@@ -28,7 +28,7 @@ func Run() {
 	}
 
 	for msg := range msgs {
-		log.Info("ReceiveMQMsgFromAli: ", string(msg.Body))
+		//log.Info("ReceiveMQMsgFromAli: ", string(msg.Body))
 		jobque.JobQueue <- NewAliJob(msg.Body)
 	}
 
