@@ -107,6 +107,8 @@ func (h2 *H2Client) init() error {
 	h2.request.URL = urlData
 
 	h2.framer = http2.NewFramer(h2.bw, h2.br)
+	//h2.framer.ReadMetaHeaders = hpack.NewDecoder(4096,nil)
+
 	return nil
 }
 
@@ -161,9 +163,10 @@ func (h2 *H2Client) do() error {
 	}
 
 	h2.sendPreface()
-
+	h2.sendWriteSettings()
 	h2.framer.WriteWindowUpdate(0, 1<<30)
 	h2.bw.Flush()
+
 	if err := h2.sendHeadersFrame(); err != nil {
 		log.Error("H2Client.sendHeadersFrame() error = ", err)
 		return err
@@ -207,8 +210,10 @@ func (h2 *H2Client) sendPreface() {
 	if err != nil {
 		log.Error("h2.bw.Write() error = ", err)
 	}
-	h2.bw.Flush()
+	//h2.bw.Flush()
+}
 
+func (h2 *H2Client) sendWriteSettings() {
 	settings := []http2.Setting{
 		http2.Setting{
 			ID:  http2.SettingEnablePush,
@@ -225,9 +230,8 @@ func (h2 *H2Client) sendPreface() {
 	}
 
 	if err := h2.framer.WriteSettings(settings...); err != nil {
-		log.Error("sendPreface() error = ", err)
+		log.Error("sendWriteSettings() error = ", err)
 	}
-	h2.bw.Flush()
 }
 
 func (h2 *H2Client) sendSettingAck() error {
@@ -300,10 +304,12 @@ func (h2 *H2Client) readLoop() error {
 		case *http2.HeadersFrame:
 			log.Info("Receive HeadersFrame: ", f.Header().String())
 			frameProc.HandleHeadersFrame(f)
+			h2.bw.Flush()
 
 		case *http2.DataFrame:
-			log.Info("Receive DataFrame: ", f.Header().String())
+			log.Info("Receive DataFrame: ", string(f.Data()))
 			frameProc.HandleDataFrame(f)
+		    h2.bw.Flush()
 
 		case *http2.SettingsFrame:
 			log.Info("Receive SettingsFrame:", f.String())
@@ -314,7 +320,6 @@ func (h2 *H2Client) readLoop() error {
 				log.Info("SettingsFrame is ack")
 			} else {
 				h2.sendSettingAck()
-				h2.bw.Flush()
 			}
 
 		case *http2.GoAwayFrame:
@@ -486,3 +491,4 @@ func (cc *H2Client) encoderSimpleHeaders(req *http.Request) []byte {
 
 	return tmpBuf.Bytes()
 }
+

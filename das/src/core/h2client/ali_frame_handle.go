@@ -92,13 +92,12 @@ func (a AliDataHandle) HandleDataFrame(f *http2.DataFrame) {
 					Topic:data.topic,
 				}
 			}
-
 		} else {
 			data.rawData = append(data.rawData, msg...)
 			a.dataMap[f.StreamID] = data
 		}
 	} else {
-		log.Warningf("DataFrame %d did not match any HeadersFrame", f.StreamID)
+		log.Warningf("DataFrame %d: %s did not match any HeadersFrame", f.StreamID, string(msg))
 	}
 
 	//log.Debug("dataMap len: ", len(a.dataMap))

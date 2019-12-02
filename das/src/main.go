@@ -42,7 +42,9 @@ func main() {
 	go wifi2srv.Run()
 
 	// 启动ali IOT推送接收服务
-	go aliIot2srv.Run()
+	//go aliIot2srv.Run()
+	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
+	aliSrv.Run()
 
 	//11. 启动定时器
 	dindingtask.InitTimer_IsStart(conf)
@@ -78,7 +80,8 @@ func main() {
 		log.Error("default: get signal: ", s)
 
 	}
-	aliIot2srv.Close()
+	//aliIot2srv.Close()
+	aliSrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
