@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"./aliIoT2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
@@ -16,7 +17,6 @@ import (
 	"./onenet2srv"
 	"./rmq/consumer"
 	"./wifi2srv"
-	"./aliIoT2srv"
 )
 
 func main() {
@@ -41,6 +41,9 @@ func main() {
 	//10. 初始化平板消费者交换器，消息队列的参数
 	go wifi2srv.Run()
 
+	// 启动ali IOT推送接收服务
+	go aliIot2srv.Run()
+
 	//11. 启动定时器
 	dindingtask.InitTimer_IsStart(conf)
 	dindingtask.StartMyTimer()
@@ -50,10 +53,6 @@ func main() {
 
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
-
-	// 启动ali IOT推送接收服务
-	aliIOTsrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliIOTsrv.Run()
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -79,7 +78,7 @@ func main() {
 		log.Error("default: get signal: ", s)
 
 	}
-	aliIOTsrv.Close()
+	aliIot2srv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()

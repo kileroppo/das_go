@@ -16,12 +16,14 @@ var (
 	producerGuard2appMQ *baseMq
 	Consumer2devMQ      *baseMq
 	Consumer2appMQ      *baseMq
+	Consumer2aliMQ      *baseMq
 
 	OnceInitMQ sync.Once
 )
 
 func Init(conf *goconf.ConfigFile) {
 	OnceInitMQ.Do(func() {
+		initConsumer2aliMQ(conf)
 		initConsumer2appMQ(conf)
 		initConsumer2devMQ(conf)
 		initProducer2appMQ(conf)
@@ -72,6 +74,51 @@ func PublishGuard2app(data []byte, routingKey string) {
 	}
 }
 
+func initConsumer2aliMQ(conf *goconf.ConfigFile) {
+	log.Info("Consumer2aliMQ init")
+	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
+	if err != nil {
+		panic("initConsumer2aliMQ load uri conf error")
+	}
+	exchange, err := conf.GetString("rabbitmq", "ali2srv_ex")
+	if err != nil {
+		panic("initConsumer2aliMQ load exchange conf error")
+	}
+	exchangeType, err := conf.GetString("rabbitmq", "ali2srv_ex_type")
+	if err != nil {
+		panic("initConsumer2aliMQ load exchangeType conf error")
+	}
+	queueName, err := conf.GetString("rabbitmq", "ali2srv_que")
+	if err != nil {
+		panic("initConsumer2aliMQ load routingKey conf error")
+	}
+
+	channelCtx := ChannelContext{
+		Exchange:     exchange,
+		ExchangeType: exchangeType,
+		RoutingKey:   "",
+		QueueName:    queueName,
+		Durable:      true,
+		AutoDelete:   false,
+	}
+	Consumer2aliMQ = &baseMq{
+		mqUri:      uri,
+		channelCtx: channelCtx,
+	}
+
+	if err := Consumer2aliMQ.init(); err != nil {
+		panic(err)
+	}
+
+	if err := Consumer2aliMQ.initExchange(); err != nil {
+		panic(err)
+	}
+
+	if err := Consumer2aliMQ.initConsumer(); err != nil {
+		panic(err)
+	}
+}
+
 func initConsumer2appMQ(conf *goconf.ConfigFile) {
 	log.Info("Consumer2appMQ init")
 	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
@@ -105,6 +152,10 @@ func initConsumer2appMQ(conf *goconf.ConfigFile) {
 	}
 
 	if err := Consumer2appMQ.init(); err != nil {
+		panic(err)
+	}
+
+	if err := Consumer2appMQ.initExchange(); err != nil {
 		panic(err)
 	}
 
@@ -253,6 +304,11 @@ func initConsumer2devMQ(conf *goconf.ConfigFile) {
 	if err := Consumer2devMQ.init(); err != nil {
 		panic(err)
 	}
+
+	if err := Consumer2devMQ.initExchange(); err != nil {
+		panic(err)
+	}
+
 	if err := Consumer2devMQ.initConsumer(); err != nil {
 		panic(err)
 	}
@@ -332,36 +388,49 @@ func initProducer2devMQ(conf *goconf.ConfigFile) {
 func Close() {
 	if err := producer2appMQ.Close(); err != nil {
 		log.Error("Producer2appMQ.Close() error = ", err)
+	} else {
+		log.Info("Producer2appMQ close")
 	}
-	log.Info("Producer2appMQ close")
 
 	if err := producer2pmsMQ.Close(); err != nil {
 		log.Error("Producer2pmsMQ.Close() error = ", err)
+	} else {
+		log.Info("Producer2pmsMQ close")
 	}
-	log.Info("Producer2pmsMQ close")
 
 	if err := producer2mnsMQ.Close(); err != nil {
 		log.Error("Producer2mnsMQ.Close() error = ", err)
+	} else {
+		log.Info("Producer2mnsMQ close")
 	}
-	log.Info("Producer2mnsMQ close")
 
 	if err := producerGuard2appMQ.Close(); err != nil {
 		log.Error("ProducerGuard2appMQ.Close() error = ", err)
+	} else {
+		log.Info("ProducerGuard2appMQ close")
 	}
-	log.Info("ProducerGuard2appMQ close")
 
 	if err := producer2devMQ.Close(); err != nil {
 		log.Error("producer2devMQ.Close() error = ", err)
+	} else {
+		log.Info("producer2devMQ close")
 	}
-	log.Info("producer2devMQ close")
 
 	if err := Consumer2devMQ.Close(); err != nil {
 		log.Error("Consumer2devMQ.Close() error = ", err)
+	} else {
+		log.Info("Consumer2devMQ close")
 	}
-	log.Info("Consumer2devMQ close")
 
 	if err := Consumer2appMQ.Close(); err != nil {
 		log.Error("Consumer2appMQ.Close() error = ", err)
+	} else {
+		log.Info("Consumer2appMQ close")
 	}
-	log.Info("Consumer2appMQ close")
+
+	if err := Consumer2aliMQ.Close(); err != nil {
+		log.Error("Consumer2aliMQ.Close() error = ", err)
+	} else {
+		log.Info("Consumer2aliMQ close")
+	}
 }

@@ -162,8 +162,8 @@ func (h2 *H2Client) do() error {
 
 	h2.sendPreface()
 
-	//h2.framer.WriteWindowUpdate(0, 1<<30)
-	//h2.bw.Flush()
+	h2.framer.WriteWindowUpdate(0, 1<<30)
+	h2.bw.Flush()
 	if err := h2.sendHeadersFrame(); err != nil {
 		log.Error("H2Client.sendHeadersFrame() error = ", err)
 		return err

@@ -7,10 +7,44 @@ import (
 
 	"../core/entity"
 	"../core/h2client"
+	"../core/httpgo"
 	"../core/jobque"
 	"../core/log"
-	"../core/httpgo"
+	"../core/rabbitmq"
+	"strings"
 )
+
+var (
+	ctx, cancel = context.WithCancel(context.Background())
+)
+
+func Run() {
+	msgs, err := rabbitmq.Consumer2aliMQ.Consumer()
+	if err != nil {
+		log.Error("Consumer2aliMQ() error = ", err)
+		rabbitmq.Consumer2aliMQ.ReConn()
+		go Run()
+		return
+	}
+
+	for msg := range msgs {
+		log.Info("ReceiveMQMsgFromAli: ", string(msg.Body))
+		jobque.JobQueue <- NewAliJob(msg.Body)
+	}
+
+	select {
+	case <-ctx.Done():
+		log.Info("ReceiveMQMsgFromAli Close")
+		return
+	default:
+		rabbitmq.Consumer2aliMQ.ReConn()
+		go Run()
+	}
+}
+
+func Close() {
+	cancel()
+}
 
 type AliIOTSrv struct {
 	rawUrl string
@@ -129,4 +163,16 @@ func NewAliIOTJob(aliRawData entity.AliRawData) AliIOTJob {
 		rawData: aliRawData.RawData,
 		topic:   aliRawData.Topic,
 	}
+}
+
+func NewAliJob(rawData []byte) (job AliIOTJob) {
+	dataSli := strings.Split(string(rawData), "#")
+	if len(dataSli) != 2 {
+		return
+	} else {
+		job.topic = dataSli[0]
+		job.rawData = []byte(dataSli[1])
+	}
+
+	return
 }
