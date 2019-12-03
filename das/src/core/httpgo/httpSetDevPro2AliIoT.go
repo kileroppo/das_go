@@ -177,13 +177,13 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 		}
 
 		log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", string(body))
-		return "", err1
+		return string(body), err1
 	}
 
 	return "", nil
 }
 
-func HttpSetAliPro(deviceName, data, cmd string) error {
+func HttpSetAliPro(deviceName, data, cmd string) (int, error) {
 	//1. 从缓存中获取token
 	token, err := redis.GetAliIoTtoken()
 	if nil != err || "" == token {
@@ -191,13 +191,13 @@ func HttpSetAliPro(deviceName, data, cmd string) error {
 		tokenStr, err1 := getAliIoTCloudToken()
 		if nil != err1 {
 			log.Error("[", deviceName, "] HttpSetAliPro() getAliIoTCloudToken error, ", err1)
-			return err1
+			return 0, err1
 		}
 
 		var tokenResp aliIoTResp
 		if err = json.Unmarshal([]byte(tokenStr), &tokenResp); err != nil {
 			log.Error("[", deviceName, "] HttpSetAliPro() json.Unmarshal 1, err=", err)
-			return err // break
+			return 0, err // break
 		}
 
 		token = tokenResp.AliData.CloudToken
@@ -215,19 +215,19 @@ func HttpSetAliPro(deviceName, data, cmd string) error {
 	var aliResp aliIoTResp2
 	if err = json.Unmarshal([]byte(resp), &aliResp); err != nil {
 		log.Error("[", deviceName, "] HttpSetAliPro() json.Unmarshal 2, err=", err)
-		return err // break
+		return 0, err // break
 	}
 	if 200 != aliResp.Code { // 接口请求失败，重新获取token，然后下行数据到设备
 		tokenStr, err1 := getAliIoTCloudToken()
 		if nil != err1 {
 			log.Error("[", deviceName, "] HttpSetAliPro() getAliIoTCloudToken error, ", err1)
-			return err1
+			return 0, err1
 		}
 
 		var tokenResp aliIoTResp
 		if err = json.Unmarshal([]byte(tokenStr), &tokenResp); err != nil {
 			log.Error("[", deviceName, "] HttpSetAliPro() json.Unmarshal 1, err=", err)
-			return err // break
+			return 0, err // break
 		}
 
 		token = tokenResp.AliData.CloudToken
@@ -235,13 +235,20 @@ func HttpSetAliPro(deviceName, data, cmd string) error {
 		// 存储token
 		go redis.SetAliIoTtoken(tokenResp.AliData.CloudToken, strconv.Itoa(int(tokenResp.AliData.ExpireIn/1000)))
 
-		resp, err3 := setAliThingPro(token, deviceName, data, cmd)
-		if nil != err3 {
-			log.Error("[", deviceName, "] HttpSetAliPro() setAliThingPro 2, err=", err3, ", resp=", resp)
-			return err3
+		resp2, err2 := setAliThingPro(token, deviceName, data, cmd)
+		if nil != err2 {
+			log.Error("[", deviceName, "] HttpSetAliPro() setAliThingPro 2, err=", err2, ", resp=", resp2)
+			return 0, err2
 		}
-		log.Debug("[", deviceName, "] HttpSetAliPro() setAliThingPro 2, resp=", resp)
+		log.Debug("[", deviceName, "] HttpSetAliPro() setAliThingPro 2, resp=", resp2)
+
+		var aliResp2 aliIoTResp2
+		if err = json.Unmarshal([]byte(resp2), &aliResp2); err != nil {
+			log.Error("[", deviceName, "] HttpSetAliPro() json.Unmarshal 2, err=", err)
+			return 0, err // break
+		}
+		return aliResp2.Code, nil
 	}
 
-	return nil
+	return aliResp.Code, nil
 }
