@@ -101,13 +101,14 @@ func (h2 *H2Client) init() error {
 
 	h2.bw = bufio.NewWriter(h2.conn)
 	h2.br = bufio.NewReader(h2.conn)
-	h2.henc = hpack.NewEncoder(h2.hbuf)
+
 
 	h2.request.Method = h2.method
 	h2.request.URL = urlData
 
 	h2.framer = http2.NewFramer(h2.bw, h2.br)
-	//h2.framer.ReadMetaHeaders = hpack.NewDecoder(4096,nil)
+	//h2.framer.ReadMetaHeaders = h2.hdec
+	h2.henc = hpack.NewEncoder(h2.hbuf)
 
 	return nil
 }
@@ -125,6 +126,7 @@ func (h2 *H2Client) SetAliHeader(appKey, appSecret string) {
 	hc.Write([]byte(signContent))
 	sign := hc.Sum([]byte{})
 
+	//request.Header.Set(":path", "/message/ack")
 	request.Header.Set("x-auth-name", "appkey")
 	request.Header.Set("x-auth-param-app-key", appKey)
 	request.Header.Set("x-auth-name", "appkey")
@@ -185,10 +187,10 @@ func (h2 *H2Client) do() error {
 
 func (h2 *H2Client) Close() error {
 	var err error
-	if err = h2.hdec.Close(); err != nil {
-		log.Error("h2.hdec.Close() error = ", err)
-		return err
-	}
+	//if err = h2.hdec.Close(); err != nil {
+	//	log.Error("h2.hdec.Close() error = ", err)
+	//	return err
+	//}
 	h2.hbuf.Reset()
 	if err = h2.bw.Flush(); err != nil {
 		log.Error("h2.bw.Flush() error = ", err)
@@ -307,9 +309,9 @@ func (h2 *H2Client) readLoop() error {
 			h2.bw.Flush()
 
 		case *http2.DataFrame:
-			log.Info("Receive DataFrame: ", string(f.Data()))
+			//log.Info("Receive DataFrame: ", string(f.Data()))
 			frameProc.HandleDataFrame(f)
-		    h2.bw.Flush()
+		    //h2.bw.Flush()
 
 		case *http2.SettingsFrame:
 			log.Info("Receive SettingsFrame:", f.String())

@@ -52,7 +52,7 @@ func (a AliDataHandle) HandleHeadersFrame(f *http2.HeadersFrame) {
 	streamId := f.StreamID
 	var xQos, msgId, topic string
 	for _, h := range headers {
-		log.Debugf("Header -> %s : %s\n", h.Name, h.Value)
+		//log.Debugf("Header -> %s : %s\n", h.Name, h.Value)
 		if strings.EqualFold("x-qos", h.Name) {
 			xQos = h.Value
 		} else if strings.EqualFold("x-message-id", h.Name) {
@@ -79,6 +79,12 @@ func (a AliDataHandle) HandleDataFrame(f *http2.DataFrame) {
 	copy(msg, f.Data())
 
 	//log.Debug("receive data: ", string(msg))
+
+	if f.Length > 0 {
+		log.Debugf("WriteWindowUpdate: %d", f.Length)
+		a.cli.framer.WriteWindowUpdate(0, uint32(f.Length))
+		a.cli.bw.Flush()
+	}
 
 	if ok {
 		if f.StreamEnded() {
@@ -124,7 +130,7 @@ func (a AliDataHandle) writeAck(data aliFrameData) {
 	bf := make([]byte, len(blockFragment))
 	copy(bf, blockFragment)
 
-	a.readHeader(bf)
+	//a.readHeader(bf)
 
 	a.cli.bw.Flush()
 	err = a.cli.framer.WriteHeaders(http2.HeadersFrameParam{
