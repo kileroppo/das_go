@@ -33,7 +33,7 @@ const (
 var (
 	ReadFrameErr = errors.New("read frame error")
 	TLSDialErr   = errors.New("tls dial error")
-	ConnClose    = errors.New("conn is closed")
+	ConnCloseErr = errors.New("conn is closed")
 )
 
 type H2Client struct {
@@ -93,7 +93,7 @@ func (h2 *H2Client) init() error {
 	h2.conn, err = tls.DialWithDialer(h2.dialer, "tcp", h2.addr, h2.tlsConfig)
 	if err != nil {
 		log.Error("tls.DialWithDialer() error = ", err.Error())
-		return err
+		return TLSDialErr
 	}
 
 	h2.hdec = hpack.NewDecoder(4096, nil)
@@ -101,7 +101,6 @@ func (h2 *H2Client) init() error {
 
 	h2.bw = bufio.NewWriter(h2.conn)
 	h2.br = bufio.NewReader(h2.conn)
-
 
 	h2.request.Method = h2.method
 	h2.request.URL = urlData
@@ -271,9 +270,12 @@ func (h2 *H2Client) sendHeadersFrame() error {
 func (h2 *H2Client) heartBeat() {
 	for {
 		select {
-		case <- h2.reCh:
+		case <-h2.ctx.Done():
+			log.Info("H2Client heartBeat exit")
+			return
+		case <-h2.reCh:
 			continue
-		case <- time.After(time.Second*30):
+		case <-time.After(time.Second * 30):
 
 			if err := h2.framer.WritePing(false, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
@@ -311,7 +313,7 @@ func (h2 *H2Client) readLoop() error {
 		case *http2.DataFrame:
 			//log.Info("Receive DataFrame: ", string(f.Data()))
 			frameProc.HandleDataFrame(f)
-		    //h2.bw.Flush()
+			//h2.bw.Flush()
 
 		case *http2.SettingsFrame:
 			log.Info("Receive SettingsFrame:", f.String())
@@ -327,7 +329,7 @@ func (h2 *H2Client) readLoop() error {
 		case *http2.GoAwayFrame:
 			log.Info("receive GoAwayFrame:", f.String())
 			h2.Close()
-			return ConnClose
+			return ConnCloseErr
 
 		case *http2.PushPromiseFrame:
 			log.Info("receive PushPromiseFrame:", f.String())
@@ -493,4 +495,3 @@ func (cc *H2Client) encoderSimpleHeaders(req *http.Request) []byte {
 
 	return tmpBuf.Bytes()
 }
-

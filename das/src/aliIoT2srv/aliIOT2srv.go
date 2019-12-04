@@ -2,6 +2,9 @@ package aliIot2srv
 
 import (
 	"context"
+	"strings"
+	"sync/atomic"
+	"time"
 
 	"github.com/dlintw/goconf"
 
@@ -11,7 +14,6 @@ import (
 	"../core/jobque"
 	"../core/log"
 	"../core/rabbitmq"
-	"strings"
 )
 
 var (
@@ -36,10 +38,13 @@ func Run() {
 
 	msgs, err := rabbitmq.Consumer2aliMQ.Consumer()
 	if err != nil {
-		log.Error("Consumer2aliMQ() error = ", err)
-		rabbitmq.Consumer2aliMQ.ReConn()
-		go Run()
-		return
+		log.Error("Consumer2aliMQ.Consumer() error = ", err)
+		if err = rabbitmq.Consumer2aliMQ.ReConn(); err != nil {
+			log.Warningf("Consumer2aliMQ Reconnection Failed")
+			return
+		}
+		log.Debug("Consumer2aliMQ Reconnection Successful")
+		msgs, err = rabbitmq.Consumer2aliMQ.Consumer()
 	}
 
 	for msg := range msgs {
@@ -52,8 +57,8 @@ func Run() {
 		log.Info("ReceiveMQMsgFromAli Close")
 		return
 	default:
-		rabbitmq.Consumer2aliMQ.ReConn()
 		go Run()
+		return
 	}
 }
 
@@ -68,8 +73,12 @@ type AliIOTSrv struct {
 	appKey    string
 	appSecret string
 
-	ctx    context.Context
-	cancel context.CancelFunc
+	ctx       context.Context
+	cancel    context.CancelFunc
+	cancelCli context.CancelFunc
+
+	reConnNum     int32
+	currReConnNum int32
 }
 
 func (a *AliIOTSrv) Run() {
@@ -77,15 +86,20 @@ func (a *AliIOTSrv) Run() {
 	go func() {
 		for {
 			select {
-			case <-a.ctx.Done():
-				close(h2client.AliDataCh)
-				return
 			default:
 				err := a.conn()
 				if err != nil {
-					log.Warning("AliIOTSrv重连中...")
-					//time.Sleep(time.Second * 3)
-					continue
+					if atomic.LoadInt32(&a.currReConnNum) < a.reConnNum {
+						log.Warningf("AliIOTSrv第%d重连中...", a.currReConnNum+1)
+						atomic.AddInt32(&a.currReConnNum, 1)
+						a.cancelCli()
+						time.Sleep(time.Second * 3)
+						continue
+					} else {
+						log.Warningf("AliIOTSrv重连失败")
+						a.Close()
+						return
+					}
 				}
 			}
 		}
@@ -100,13 +114,16 @@ func (a *AliIOTSrv) Run() {
 
 }
 
-func (a AliIOTSrv) conn() error {
-	h2 := h2client.Newh2Client(a.ctx)
+func (a *AliIOTSrv) conn() error {
+	ctxCli, cancelCli := context.WithCancel(a.ctx)
+	a.cancelCli = cancelCli
+	h2 := h2client.Newh2Client(ctxCli)
 	h2.SetAliHeader(a.appKey, a.appSecret)
 	return h2.Get(a.rawUrl + a.topic)
 }
 
 func (a *AliIOTSrv) Close() {
+	close(h2client.AliDataCh)
 	a.cancel()
 	log.Info("AliIOTSrv closed")
 }
@@ -161,6 +178,9 @@ func NewAliIOT2Srv(conf *goconf.ConfigFile) *AliIOTSrv {
 
 		appKey:    appKeyH2,
 		appSecret: appSecretH2,
+
+		reConnNum:     10,
+		currReConnNum: 0,
 	}
 }
 

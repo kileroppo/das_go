@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/streadway/amqp"
 
@@ -126,6 +127,7 @@ func (bmq *baseMq) Publish(data []byte, routingKey string) (err error) {
 	)
 	if err != nil {
 		log.Error("bmq.channel.Publish error = ", err)
+		go bmq.ReConn()
 		return
 	}
 
@@ -162,6 +164,7 @@ func (bmq *baseMq) ReConn() error {
 	for atomic.LoadInt32(&bmq.currReConnNum) < bmq.reConnNum {
 		if isNil(bmq.connection) || bmq.connection.IsClosed() {
 			log.Infof("bmq第%d次重连", bmq.currReConnNum+1)
+			time.Sleep(time.Second*3)
 			bmq.connection, err = amqp.Dial(bmq.mqUri)
 			if err != nil {
 				atomic.AddInt32(&bmq.currReConnNum, 1)

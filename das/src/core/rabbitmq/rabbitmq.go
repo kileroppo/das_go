@@ -104,6 +104,7 @@ func initConsumer2aliMQ(conf *goconf.ConfigFile) {
 	Consumer2aliMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum:  5,
 	}
 
 	if err := Consumer2aliMQ.init(); err != nil {
@@ -149,6 +150,7 @@ func initConsumer2appMQ(conf *goconf.ConfigFile) {
 	Consumer2appMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum: 5,
 	}
 
 	if err := Consumer2appMQ.init(); err != nil {
@@ -188,6 +190,7 @@ func initProducer2appMQ(conf *goconf.ConfigFile) {
 	producer2appMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum:  5,
 	}
 
 	if err := producer2appMQ.init(); err != nil {
@@ -223,6 +226,7 @@ func initProducer2mnsMQ(conf *goconf.ConfigFile) {
 	producer2mnsMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum:  5,
 	}
 
 	if err := producer2mnsMQ.init(); err != nil {
@@ -258,6 +262,7 @@ func initProducer2pmsMQ(conf *goconf.ConfigFile) {
 	producer2pmsMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum:  5,
 	}
 
 	if err := producer2pmsMQ.init(); err != nil {
@@ -299,6 +304,7 @@ func initConsumer2devMQ(conf *goconf.ConfigFile) {
 	Consumer2devMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum:  5,
 	}
 
 	if err := Consumer2devMQ.init(); err != nil {
@@ -338,6 +344,7 @@ func initProducerGuard2appMQ(conf *goconf.ConfigFile) {
 	producerGuard2appMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum:  5,
 	}
 
 	if err := producerGuard2appMQ.init(); err != nil {
@@ -374,6 +381,7 @@ func initProducer2devMQ(conf *goconf.ConfigFile) {
 	producer2devMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
+		reConnNum:  5,
 	}
 
 	if err := producer2devMQ.init(); err != nil {
