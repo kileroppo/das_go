@@ -131,18 +131,21 @@ func ProcAppMsg(appMsg string) error {
 			}
 		}
 	case constant.Add_dev_user:
-		{ // 添加锁用户，用户名
+		{
+			// 添加锁用户，用户名
 			var addDevUser entity.AddDevUser
 			if err := json.Unmarshal([]byte(appMsg), &addDevUser); err != nil {
 				log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 			}
 
-			userNoteTag := strconv.FormatInt(time.Now().Unix(), 16)
-			if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userNoteTag, addDevUser.UserNote); uNoteErr != nil {
-				log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
-				return uNoteErr
+			if 0xFFFF == addDevUser.UserId {	// 新增用户
+				userNoteTag := strconv.FormatInt(time.Now().Unix(), 16)
+				if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userNoteTag, addDevUser.UserNote); uNoteErr != nil {
+					log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
+					return uNoteErr
+				}
+				addDevUser.UserNote = userNoteTag // 值跟KEY交换，下发到锁端
 			}
-			addDevUser.UserNote = userNoteTag // 值跟KEY交换，下发到锁端
 
 			if 1 == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
 				if len(addDevUser.Passwd) > 6 {
