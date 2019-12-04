@@ -138,7 +138,7 @@ func ProcAppMsg(appMsg string) error {
 				log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 			}
 
-			if 0xFFFF == addDevUser.UserId {	// 新增用户
+			if 0xFFFF == addDevUser.UserId {
 				userNoteTag := strconv.FormatInt(time.Now().Unix(), 16)
 				if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userNoteTag, addDevUser.UserNote); uNoteErr != nil {
 					log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
