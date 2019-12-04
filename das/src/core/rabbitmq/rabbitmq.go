@@ -105,6 +105,7 @@ func initConsumer2aliMQ(conf *goconf.ConfigFile) {
 		mqUri:      uri,
 		channelCtx: channelCtx,
 		reConnNum:  5,
+		isConsumer: true,
 	}
 
 	if err := Consumer2aliMQ.init(); err != nil {
@@ -151,6 +152,7 @@ func initConsumer2appMQ(conf *goconf.ConfigFile) {
 		mqUri:      uri,
 		channelCtx: channelCtx,
 		reConnNum: 5,
+		isConsumer: true,
 	}
 
 	if err := Consumer2appMQ.init(); err != nil {
@@ -305,6 +307,7 @@ func initConsumer2devMQ(conf *goconf.ConfigFile) {
 		mqUri:      uri,
 		channelCtx: channelCtx,
 		reConnNum:  5,
+		isConsumer: true,
 	}
 
 	if err := Consumer2devMQ.init(); err != nil {

@@ -40,6 +40,7 @@ type baseMq struct {
 	reConnNum     int32
 	currReConnNum int32
 	mu            sync.Mutex
+	isConsumer    bool
 }
 
 func (bmq *baseMq) init() (err error) {
@@ -174,6 +175,12 @@ func (bmq *baseMq) ReConn() error {
 			if err != nil {
 				atomic.AddInt32(&bmq.currReConnNum, 1)
 				continue
+			}
+			if bmq.isConsumer {
+				if err = bmq.initConsumer(); err != nil {
+					atomic.AddInt32(&bmq.currReConnNum, 1)
+					continue
+				}
 			}
 			atomic.StoreInt32(&bmq.currReConnNum, 0)
 		}
