@@ -450,13 +450,30 @@ func parseData(hexData string) error {
 		uploadDevInfo.AlarmSwitch =	pdu.AlarmSwitch // 报警类型开关，0：关闭，1：拍照+录像，2：拍照
 		var byteData []byte
 		rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
+
+		// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
+		for m:=0;m<len(pdu.IpcSn);m++{
+			if m >= 16 {
+				break
+			}
+			byteData = append(byteData, pdu.IpcSn[m])
+		}
+		index := bytes.IndexByte(byteData, 0)
+		if -1 == index {
+			rbyf_pn = byteData[0:len(byteData)]
+		} else {
+			rbyf_pn = byteData[0:index]
+		}
+		uploadDevInfo.IpcSn = string(rbyf_pn[:])			// 视频设备（IPC）序列号
+
+		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.Ssid);m++{
 			if m >= 32 {
 				break
 			}
 			byteData =  append(byteData, pdu.Ssid[m])
 		}
-		index := bytes.IndexByte(byteData, 0)
+		index = bytes.IndexByte(byteData, 0)
 		if -1 == index {
 			rbyf_pn = byteData[0:len(byteData)]
 		} else {
@@ -467,7 +484,7 @@ func parseData(hexData string) error {
 
 		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.ProductId);m++{
-			if m >= 32 {
+			if m >= 12 {
 				break
 			}
 			byteData = append(byteData, pdu.ProductId[m])
@@ -479,21 +496,6 @@ func parseData(hexData string) error {
 			rbyf_pn = byteData[0:index]
 		}
 		uploadDevInfo.ProductID = string(rbyf_pn[:])		// 产品序列号
-		// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
-		byteData = byteData[0:0]
-		for m:=0;m<len(pdu.ProductId);m++{
-			if m >= 32 {
-				break
-			}
-			byteData = append(byteData, pdu.IpcSn[m])
-		}
-		index = bytes.IndexByte(byteData, 0)
-		if -1 == index {
-			rbyf_pn = byteData[0:len(byteData)]
-		} else {
-			rbyf_pn = byteData[0:index]
-		}
-		uploadDevInfo.IpcSn = string(rbyf_pn[:])			// 视频设备（IPC）序列号
 
 		// 亿速码安全芯片相关参数
 		uploadDevInfo.UId =	"" 			// 安全芯片id
@@ -645,8 +647,8 @@ func parseData(hexData string) error {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Factory_reset, err=", err1)
 			return err1
 		}
-	case constant.Upload_open_log, constant.Uplocal_open_log:		// 用户开锁消息上报(0x40)(前板--->服务器) // 用户进入菜单上报(0x42)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_open_log, Uplocal_open_log")
+	case constant.Upload_open_log:	// 用户开锁消息上报(0x40)(前板--->服务器)
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData UpEnter_menu_log")
 		pdu := &wlprotocol.OpenLockMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -689,6 +691,49 @@ func parseData(hexData string) error {
 			rabbitmq.Publish2pms(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Upload_open_log, Uplocal_open_log, err=", err1)
+			return err1
+		}
+	case constant.UpEnter_menu_log:	// 用户进入菜单上报(0x42)(前板--->服务器)
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.UpEnter_menu_log")
+		pdu := &wlprotocol.OpenLockMsg{}
+		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
+		if nil != err {
+			log.Error("parseData UpEnter_menu_log pdu.Decode, err=", err)
+			return err
+		}
+
+		//2. 发送到PMS模块
+		enterMenuUpload := entity.UploadEnterMenuLog{
+			Cmd: int(wlMsg.Cmd),
+			Ack: int(wlMsg.Ack),
+			DevType: DEVICETYPE[wlMsg.Type],
+			DevId: wlMsg.DevId.Uuid,
+			Vendor: "general",
+			SeqId: int(wlMsg.SeqId),
+
+			UserVer: pdu.DevUserVer,
+			Battery: int(pdu.Battery),
+		}
+		var enterMenu entity.EnterMenu
+		enterMenu.UserId = pdu.UserNo 		// 设备用户ID
+		enterMenu.MainOpen = pdu.MainOpen 	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+		enterMenu.SubOpen = pdu.SubOpen   	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+		enterMenu.SinMul = pdu.SinMul			// 开门模式（1：表示单人模式, 2：表示双人模式）
+		enterMenu.Time = pdu.Time
+		enterMenuUpload.LogList = append(enterMenuUpload.LogList, enterMenu)
+		if 2 == pdu.SinMul { // 双人模式
+			enterMenu.UserId = pdu.UserNo2       	// 设备用户ID
+			enterMenu.MainOpen = pdu.MainOpen2   	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+			enterMenu.SubOpen = pdu.SubOpen2     	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+			enterMenu.SinMul = pdu.SinMul     	// 开门模式（1：表示单人模式, 2：表示双人模式）
+			enterMenu.Time = pdu.Time
+			enterMenuUpload.LogList = append(enterMenuUpload.LogList, enterMenu)
+		}
+
+		if to_byte, err1 := json.Marshal(enterMenuUpload); err == nil {
+			rabbitmq.Publish2pms(to_byte, "")
+		} else {
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.Uplocal_open_log, err=", err1)
 			return err1
 		}
 	case constant.Infrared_alarm, constant.Noatmpt_alarm, constant.Forced_break_alarm, constant.Fakelock_alarm, constant.Nolock_alarm:
