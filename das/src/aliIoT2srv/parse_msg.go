@@ -648,7 +648,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Upload_open_log:	// 用户开锁消息上报(0x40)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData UpEnter_menu_log")
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData Upload_open_log")
 		pdu := &wlprotocol.OpenLockMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -695,7 +695,7 @@ func parseData(hexData string) error {
 		}
 	case constant.UpEnter_menu_log:	// 用户进入菜单上报(0x42)(前板--->服务器)
 		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.UpEnter_menu_log")
-		pdu := &wlprotocol.OpenLockMsg{}
+		pdu := &wlprotocol.EnterMenuMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
 			log.Error("parseData UpEnter_menu_log pdu.Decode, err=", err)
