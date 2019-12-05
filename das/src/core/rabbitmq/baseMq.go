@@ -6,6 +6,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"context"
 
 	"github.com/streadway/amqp"
 
@@ -15,6 +16,7 @@ import (
 var (
 	ErrExchangeType = errors.New("exchange type was not supported")
 	ErrReConn       = errors.New("baseMQ reconnection failed")
+	ErrInvalidMQ       = errors.New("baseMQ was invalid")
 )
 
 type ChannelContext struct {
@@ -41,6 +43,9 @@ type baseMq struct {
 	currReConnNum int32
 	mu            sync.Mutex
 	isConsumer    bool
+
+	ctx context.Context
+	cancel context.CancelFunc
 }
 
 func (bmq *baseMq) init() (err error) {
@@ -53,15 +58,15 @@ func (bmq *baseMq) init() (err error) {
 	bmq.channel, err = bmq.connection.Channel()
 	if err != nil {
 		log.Error("connection.Channel() error = ", err)
-		return err
+		panic(err)
 	}
+
+	bmq.ctx, bmq.cancel = context.WithCancel(context.Background())
 
 	return nil
 }
 
 func (bmq *baseMq) initConsumer() (err error) {
-	log.Info("baseMQ init exchange: ", bmq.channelCtx.Exchange)
-
 	queue, err := bmq.channel.QueueDeclare(
 		bmq.channelCtx.QueueName, // name, leave empty to generate a unique name
 		bmq.channelCtx.Durable,    // durable
@@ -111,27 +116,31 @@ func (bmq *baseMq) initExchange() error {
 }
 
 func (bmq *baseMq) Publish(data []byte, routingKey string) (err error) {
-	err = bmq.channel.Publish(
-		bmq.channelCtx.Exchange, // publish to an exchange
-		routingKey,              // routing to 0 or more queues
-		false,                   // mandatory
-		false,                   // immediate
-		amqp.Publishing{
-			Headers:         amqp.Table{},
-			ContentType:     "text/plain",
-			ContentEncoding: "",
-			Body:            data,
-			DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
-			Priority:        0,              // 0-9
-			// a bunch of application/implementation-specific fields
-		},
-	)
-	if err != nil {
-		log.Error("bmq.channel.Publish error = ", err)
-		go bmq.ReConn()
-		return
+	select{
+	case <- bmq.ctx.Done():
+		return ErrInvalidMQ
+	default:
+		err = bmq.channel.Publish(
+			bmq.channelCtx.Exchange, // publish to an exchange
+			routingKey,              // routing to 0 or more queues
+			false,                   // mandatory
+			false,                   // immediate
+			amqp.Publishing{
+				Headers:         amqp.Table{},
+				ContentType:     "text/plain",
+				ContentEncoding: "",
+				Body:            data,
+				DeliveryMode:    amqp.Transient, // 1=non-persistent, 2=persistent
+				Priority:        0,              // 0-9
+				// a bunch of application/implementation-specific fields
+			},
+		)
+		if err != nil {
+			log.Error("bmq.channel.Publish error = ", err)
+			go bmq.ReConn()
+			return
+		}
 	}
-
 	return nil
 }
 
@@ -160,8 +169,7 @@ func (bmq *baseMq) Consumer() (ch <-chan amqp.Delivery, err error) {
 func (bmq *baseMq) ReConn() error {
 	log.Info("MQ Reconnnecting...")
 	var err error
-	bmq.mu.Lock()
-	defer bmq.mu.Unlock()
+	bmq.cancel()
 	for atomic.LoadInt32(&bmq.currReConnNum) < bmq.reConnNum {
 		if isNil(bmq.connection) || bmq.connection.IsClosed() {
 			log.Infof("bmq第%d次重连", bmq.currReConnNum+1)
@@ -183,6 +191,7 @@ func (bmq *baseMq) ReConn() error {
 				}
 			}
 			atomic.StoreInt32(&bmq.currReConnNum, 0)
+			bmq.ctx, bmq.cancel = context.WithCancel(context.Background())
 		}
 		log.Info("BaseMQ reConnected successfully")
 		return nil

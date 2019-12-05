@@ -72,7 +72,7 @@ func (a AliDataHandle) HandleHeadersFrame(f *http2.HeadersFrame) {
 }
 
 func (a AliDataHandle) HandleDataFrame(f *http2.DataFrame) {
-	log.Debug("HandleDataFrame() start...")
+	//log.Debug("HandleDataFrame() start...")
 	data, ok := a.dataMap[f.StreamID]
 
 	msg := make([]byte, len(f.Data()))
@@ -81,7 +81,7 @@ func (a AliDataHandle) HandleDataFrame(f *http2.DataFrame) {
 	//log.Debug("receive data: ", string(msg))
 
 	if f.Length > 0 {
-		log.Debugf("WriteWindowUpdate: %d", f.Length)
+		//log.Debugf("WriteWindowUpdate: %d", f.Length)
 		a.cli.framer.WriteWindowUpdate(0, uint32(f.Length))
 		a.cli.bw.Flush()
 	}

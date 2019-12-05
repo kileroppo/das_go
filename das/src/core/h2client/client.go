@@ -263,7 +263,6 @@ func (h2 *H2Client) sendHeadersFrame() error {
 		return err
 	}
 	h2.bw.Flush()
-	log.Info("sendHeadersFrame() end...")
 	return nil
 }
 
@@ -279,11 +278,11 @@ func (h2 *H2Client) heartBeat() {
 
 			if err := h2.framer.WritePing(false, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
-				log.Info("重连中...")
+				//log.Info("H2Client reConn...")
 				h2.Close()
 				return // 退出
 			} else {
-				log.Info("heartBeat ...")
+				//log.Info("heartBeat ...")
 				h2.bw.Flush()
 			}
 		}
@@ -291,7 +290,7 @@ func (h2 *H2Client) heartBeat() {
 }
 
 func (h2 *H2Client) readLoop() error {
-	log.Info("H2Client readLoop() start...")
+	//log.Info("H2Client readLoop() start...")
 
 	frameProc := NewFrameHandler(h2)
 	for {
@@ -306,7 +305,7 @@ func (h2 *H2Client) readLoop() error {
 		//帧处理
 		switch f := fra.(type) {
 		case *http2.HeadersFrame:
-			log.Info("Receive HeadersFrame: ", f.Header().String())
+			//log.Info("Receive HeadersFrame: ", f.Header().String())
 			frameProc.HandleHeadersFrame(f)
 			h2.bw.Flush()
 
@@ -316,14 +315,13 @@ func (h2 *H2Client) readLoop() error {
 			//h2.bw.Flush()
 
 		case *http2.SettingsFrame:
-			log.Info("Receive SettingsFrame:", f.String())
-			for i := 0; i < f.NumSettings(); i++ {
-				log.Debugf("setting: %s\n", f.Setting(i).String())
-			}
-			if f.Header().Flags.Has(http2.FlagSettingsAck) {
-				log.Info("SettingsFrame is ack")
-			} else {
+			//log.Info("Receive SettingsFrame:", f.String())
+			//for i := 0; i < f.NumSettings(); i++ {
+			//	log.Debugf("setting: %s\n", f.Setting(i).String())
+			//}
+			if !f.Header().Flags.Has(http2.FlagSettingsAck) {
 				h2.sendSettingAck()
+				//log.Info("SettingsFrame is ack")
 			}
 
 		case *http2.GoAwayFrame:
@@ -332,19 +330,19 @@ func (h2 *H2Client) readLoop() error {
 			return ConnCloseErr
 
 		case *http2.PushPromiseFrame:
-			log.Info("receive PushPromiseFrame:", f.String())
+			//log.Info("receive PushPromiseFrame:", f.String())
 
 		case *http2.WindowUpdateFrame:
-			log.Info("receive WindowUpdateFrame:", f.String())
+			//log.Info("receive WindowUpdateFrame:", f.String())
 
 		case *http2.ContinuationFrame:
-			log.Info("receive ContinuationFrame:", f.String())
+			//log.Info("receive ContinuationFrame:", f.String())
 
 		case *http2.RSTStreamFrame:
-			log.Info("receive RSTStreamFrame:", f.String())
+			//log.Info("receive RSTStreamFrame:", f.String())
 
 		case *http2.PingFrame:
-			log.Info("receive PingFrame:", f.String())
+			//log.Info("receive PingFrame:", f.String())
 
 		default:
 			log.Info("unknown frame")

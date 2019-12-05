@@ -97,7 +97,7 @@ func (a *AliIOTSrv) Run() {
 						continue
 					} else {
 						log.Warningf("AliIOTSrv重连失败")
-						a.Close()
+						//a.Close()
 						return
 					}
 				}
