@@ -691,6 +691,8 @@ func parseData(hexData string) error {
 
 		if to_byte, err1 := json.Marshal(openLogUpload); err == nil {
 			rabbitmq.Publish2pms(to_byte, "")
+
+			rabbitmq.Publish2mns(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Upload_open_log, Uplocal_open_log, err=", err1)
 			return err1
@@ -762,7 +764,7 @@ func parseData(hexData string) error {
 		if to_byte, err1 := json.Marshal(alarmMsg); err == nil {
 			rabbitmq.Publish2pms(to_byte, "")
 
-			// producer.SendMQMsg2Db(string(to_byte)) // MNS
+			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm to_byte json.Marshal, err=", err1)
 			return err1
@@ -790,6 +792,8 @@ func parseData(hexData string) error {
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
 			rabbitmq.Publish2pms(to_byte, "")
+
+			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Low_battery_alarm, err=", err1)
 			return err1
@@ -880,7 +884,6 @@ func parseData(hexData string) error {
 			Act: pdu.Act,
 		}
 		if to_byte, err1 := json.Marshal(realVideo); err == nil {
-			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Real_Video to_byte json.Marshal, err=", err1)
@@ -966,9 +969,10 @@ func parseData(hexData string) error {
 			Time: pdu.Time,
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
-			//producer.SendMQMsg2PMS(string(to_byte))
+
 			rabbitmq.Publish2pms(to_byte, "")
-			// producer.SendMQMsg2Db(string(to_byte)) // MNS
+
+			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Door_Call to_byte json.Marshal, err=", err1)
 			return err1
