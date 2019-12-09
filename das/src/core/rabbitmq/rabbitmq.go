@@ -100,11 +100,11 @@ func initConsumer2aliMQ(conf *goconf.ConfigFile) {
 		QueueName:    queueName,
 		Durable:      true,
 		AutoDelete:   false,
+		Name:         "Consumer2aliMQ",
 	}
 	Consumer2aliMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum:  5,
 		isConsumer: true,
 	}
 
@@ -146,11 +146,11 @@ func initConsumer2appMQ(conf *goconf.ConfigFile) {
 		QueueName:    queueName,
 		Durable:      true,
 		AutoDelete:   false,
+		Name:         "Consumer2appMQ",
 	}
 	Consumer2appMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum: 5,
 		isConsumer: true,
 	}
 
@@ -186,11 +186,11 @@ func initProducer2appMQ(conf *goconf.ConfigFile) {
 		ExchangeType: exchangeType,
 		Durable:      false,
 		AutoDelete:   false,
+		Name:         "Producer2appMQ",
 	}
 	producer2appMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum:  5,
 	}
 
 	if err := producer2appMQ.init(); err != nil {
@@ -221,11 +221,11 @@ func initProducer2mnsMQ(conf *goconf.ConfigFile) {
 		ExchangeType: exchangeType,
 		Durable:      false,
 		AutoDelete:   false,
+		Name:         "Producer2mnsMQ",
 	}
 	producer2mnsMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum:  5,
 	}
 
 	if err := producer2mnsMQ.init(); err != nil {
@@ -256,11 +256,11 @@ func initProducer2pmsMQ(conf *goconf.ConfigFile) {
 		ExchangeType: exchangeType,
 		Durable:      false,
 		AutoDelete:   false,
+		Name:         "Producer2pmsMQ",
 	}
 	producer2pmsMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum:  5,
 	}
 
 	if err := producer2pmsMQ.init(); err != nil {
@@ -297,11 +297,11 @@ func initConsumer2devMQ(conf *goconf.ConfigFile) {
 		QueueName:    queueName,
 		Durable:      true,
 		AutoDelete:   false,
+		Name:         "Consumer2devMQ",
 	}
 	Consumer2devMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum:  5,
 		isConsumer: true,
 	}
 
@@ -337,11 +337,11 @@ func initProducerGuard2appMQ(conf *goconf.ConfigFile) {
 		ExchangeType: exchangeType,
 		Durable:      false,
 		AutoDelete:   false,
+		Name:         "ProducerGuard2appMQ",
 	}
 	producerGuard2appMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum:  5,
 	}
 
 	if err := producerGuard2appMQ.init(); err != nil {
@@ -373,11 +373,11 @@ func initProducer2devMQ(conf *goconf.ConfigFile) {
 		ExchangeType: exchangeType,
 		Durable:      false,
 		AutoDelete:   false,
+		Name:         "Producer2devMQ",
 	}
 	producer2devMQ = &baseMq{
 		mqUri:      uri,
 		channelCtx: channelCtx,
-		reConnNum:  5,
 	}
 
 	if err := producer2devMQ.init(); err != nil {
