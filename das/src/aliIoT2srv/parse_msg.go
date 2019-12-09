@@ -497,6 +497,8 @@ func parseData(hexData string) error {
 		}
 		uploadDevInfo.ProductID = string(rbyf_pn[:])		// 产品序列号
 
+		uploadDevInfo.Capability = pdu.Capability			// 能力集
+
 		// 亿速码安全芯片相关参数
 		uploadDevInfo.UId =	"" 			// 安全芯片id
 		uploadDevInfo.ProjectNo = ""		// 项目编号

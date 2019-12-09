@@ -329,6 +329,7 @@ type UploadDevInfo struct {
 	ActiveMode uint8		// 0门锁唤醒后立即激活，1输入激活码激活
 	IpcSn [16]byte			// 视频模组sn码：16字节
 	Ssid [32]byte			// Ssid:模组连接的路由器的ssid 32字节
+	Capability uint32		// 能力集：无符号4字节
 
 	BLen uint8				// 后板信息长度
 	BMainVer uint8			// 后板主版本号：0x01

@@ -224,6 +224,8 @@ type UploadDevInfo struct {
 	WifiSsid string    		`json:"wifi_ssid"`		// wifi的ssid
 	BellSwitch uint8    	`json:"bell_switch"`	// 门铃开关 0：关闭，1：开启
 	ProductID string    	`json:"productID"`		// 产品序列号
+	Capability uint32		`json:"capability"`		// 能力集
+
 	// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
 	IpcSn string    		`json:"ipc_sn"`			// 视频设备（IPC）序列号
 
