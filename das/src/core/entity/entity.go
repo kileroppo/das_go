@@ -227,3 +227,11 @@ type RespFromFeibee struct {
 	Status string `json:"status"`
 	Ver    string `json:"ver"`
 }
+
+type InfraredTreasureControlResult struct {
+	Uuid           string `json:"uuid"`
+	DevType        string `json:"deviceType"`
+	FirmVer        string `json:"firmwareVer"`
+	ControlDevType int    `json:"controlDevType"`
+	FunctionKey    int    `json:"functionKey"`
+}

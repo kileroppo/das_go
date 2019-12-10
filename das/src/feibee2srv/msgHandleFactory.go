@@ -290,7 +290,7 @@ func (self InfraredTreasureHandle) pushMsgByType() {
 			}
 			return
 		case 0x8200: //控制上报
-			log.Debug("红外宝 控制上报")
+			log.Debug("红外宝 控制上报: ", self.getControlResult())
 		case 0x8300: //学习上报
 			log.Debug("红外宝 学习上报")
 			data.OpType = "devTrain"
@@ -343,6 +343,28 @@ func (self InfraredTreasureHandle) getTrainResult() (res string) {
 		return
 	}
 	return self.parseValue(30, 32)
+}
+
+func (self InfraredTreasureHandle) getControlResult() string {
+	var msg  entity.InfraredTreasureControlResult
+	if len(self.data.Records[0].Value) < 32 {
+		return ""
+	}
+
+	msg.Uuid = self.data.Records[0].Uuid
+	msg.DevType = "红外宝"
+	msg.FirmVer = self.data.Records[0].Value[8:20]
+	msg.ControlDevType,_ = strconv.Atoi(self.data.Records[0].Value[24:26])
+	msg.FunctionKey = parseFuncKey(self.data.Records[0].Value[26:30])
+
+	data,_ := json.Marshal(msg)
+	return string(data)
+}
+
+func parseFuncKey(src string) int {
+	keyStr := src[2:4] + src[0:2]
+	res,_ :=  strconv.Atoi(keyStr)
+	return res
 }
 
 func (self InfraredTreasureHandle) parseValue(start, end int) (res string) {
