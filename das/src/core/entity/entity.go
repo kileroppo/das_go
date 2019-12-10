@@ -232,6 +232,6 @@ type InfraredTreasureControlResult struct {
 	Uuid           string `json:"uuid"`
 	DevType        string `json:"deviceType"`
 	FirmVer        string `json:"firmwareVer"`
-	ControlDevType int    `json:"controlDevType"`
-	FunctionKey    int    `json:"functionKey"`
+	ControlDevType int64    `json:"controlDevType"`
+	FunctionKey    int64    `json:"functionKey"`
 }

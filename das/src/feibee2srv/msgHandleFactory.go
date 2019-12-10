@@ -354,16 +354,16 @@ func (self InfraredTreasureHandle) getControlResult() string {
 	msg.Uuid = self.data.Records[0].Uuid
 	msg.DevType = "红外宝"
 	msg.FirmVer = self.data.Records[0].Value[8:20]
-	msg.ControlDevType,_ = strconv.Atoi(self.data.Records[0].Value[24:26])
+	msg.ControlDevType,_ = strconv.ParseInt(self.data.Records[0].Value[24:26], 16, 64)
 	msg.FunctionKey = parseFuncKey(self.data.Records[0].Value[26:30])
 
 	data,_ := json.Marshal(msg)
 	return string(data)
 }
 
-func parseFuncKey(src string) int {
+func parseFuncKey(src string) int64 {
 	keyStr := src[2:4] + src[0:2]
-	res,_ :=  strconv.Atoi(keyStr)
+	res,_ :=  strconv.ParseInt(keyStr, 16, 64)
 	return res
 }
 
