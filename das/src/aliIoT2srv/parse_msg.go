@@ -176,7 +176,7 @@ func parseData(hexData string) error {
 
 		// 结束日期
 		// 转10进制
-		mEDate := (int32(pdu.StartDate[0]) * 10000) + (int32(pdu.StartDate[1]) * 100) + int32(pdu.StartDate[2])
+		mEDate := (int32(pdu.EndDate[0]) * 10000) + (int32(pdu.EndDate[1]) * 100) + int32(pdu.EndDate[2])
 		strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
 		nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 		if nil != err3 {
@@ -288,7 +288,7 @@ func parseData(hexData string) error {
 
 			// 结束日期
 			// 转10进制
-			mEDate := (int32(pdu.DevUserInfos[i].StartDate[0]) * 10000) + (int32(pdu.DevUserInfos[i].StartDate[1]) * 100) + int32(pdu.DevUserInfos[i].StartDate[2])
+			mEDate := (int32(pdu.DevUserInfos[i].EndDate[0]) * 10000) + (int32(pdu.DevUserInfos[i].EndDate[1]) * 100) + int32(pdu.DevUserInfos[i].EndDate[2])
 			strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
 			nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 			if nil != err3 {
