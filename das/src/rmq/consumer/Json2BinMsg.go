@@ -351,7 +351,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 }
 
 func convertHexDateTime(data int32) int32 {
-	dDateTime, err := strconv.ParseUint(strconv.FormatInt(int64(data), 10), 16, 32)
+	dDateTime, err := strconv.ParseUint(strconv.FormatInt(int64(data), 16), 10, 32)
 	if err != nil {
 		log.Error("convertHexDateTime, err: ", err)
 	}
