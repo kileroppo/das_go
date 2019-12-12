@@ -218,7 +218,7 @@ func parseData(hexData string) error {
 		if nil != err4 {
 			log.Error("parseData strconv.ParseInt, err4: ", err4)
 		}
-		devUserUpload.MyTime[1].Start = int32(nTimeSlot2_e)
+		devUserUpload.MyTime[1].End = int32(nTimeSlot2_e)
 
 		// 时段3 - 开始
 		mTimeSlot3_s := (int32(pdu.TimeSlot3[0]) * 100) + int32(pdu.TimeSlot3[1])
@@ -236,7 +236,7 @@ func parseData(hexData string) error {
 		if nil != err4 {
 			log.Error("parseData strconv.ParseInt, err4: ", err4)
 		}
-		devUserUpload.MyTime[2].Start = int32(nTimeSlot3_e)
+		devUserUpload.MyTime[2].End = int32(nTimeSlot3_e)
 
 		if toPms_byte, err1 := json.Marshal(devUserUpload); err == nil {
 			// 需存入数据库
@@ -330,7 +330,7 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			devUser.MyTime[1].Start = int32(nTimeSlot2_e)
+			devUser.MyTime[1].End = int32(nTimeSlot2_e)
 
 			// 时段3 - 开始
 			mTimeSlot3_s := (int32(pdu.DevUserInfos[i].TimeSlot3[0]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot3[1])
@@ -348,7 +348,7 @@ func parseData(hexData string) error {
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			devUser.MyTime[2].Start = int32(nTimeSlot3_e)
+			devUser.MyTime[2].End = int32(nTimeSlot3_e)
 
 			syncDevUser.UserList = append(syncDevUser.UserList, devUser)
 		}
