@@ -155,20 +155,15 @@ func (self NormalMsgHandle) PushMsg() {
 		rabbitmq.Publish2app(data2app, bindid)
 	}
 
-	//发送给ums(设备入网不发?)
-	if self.msgType == NewDev {
-
+	data2ums, err := json.Marshal(entity.Feibee2DBMsg{
+		res,
+		bindid,
+	})
+	if err != nil {
+		log.Error("One Msg push2db() error = ", err)
 	} else {
-		data2ums, err := json.Marshal(entity.Feibee2DBMsg{
-			res,
-			bindid,
-		})
-		if err != nil {
-			log.Error("One Msg push2db() error = ", err)
-		} else {
-			//producer.SendMQMsg2Db(string(data2db))
-			rabbitmq.Publish2mns(data2ums, "")
-		}
+		//producer.SendMQMsg2Db(string(data2db))
+		rabbitmq.Publish2mns(data2ums, "")
 	}
 
 	//发送给PMS
@@ -346,7 +341,7 @@ func (self InfraredTreasureHandle) getTrainResult() (res string) {
 }
 
 func (self InfraredTreasureHandle) getControlResult() string {
-	var msg  entity.InfraredTreasureControlResult
+	var msg entity.InfraredTreasureControlResult
 	if len(self.data.Records[0].Value) < 32 {
 		return ""
 	}
@@ -354,16 +349,16 @@ func (self InfraredTreasureHandle) getControlResult() string {
 	msg.Uuid = self.data.Records[0].Uuid
 	msg.DevType = "红外宝"
 	msg.FirmVer = self.data.Records[0].Value[8:20]
-	msg.ControlDevType,_ = strconv.ParseInt(self.data.Records[0].Value[24:26], 16, 64)
+	msg.ControlDevType, _ = strconv.ParseInt(self.data.Records[0].Value[24:26], 16, 64)
 	msg.FunctionKey = parseFuncKey(self.data.Records[0].Value[26:30])
 
-	data,_ := json.Marshal(msg)
+	data, _ := json.Marshal(msg)
 	return string(data)
 }
 
 func parseFuncKey(src string) int64 {
 	keyStr := src[2:4] + src[0:2]
-	res,_ :=  strconv.ParseInt(keyStr, 16, 64)
+	res, _ := strconv.ParseInt(keyStr, 16, 64)
 	return res
 }
 
@@ -407,7 +402,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 			rabbitmq.Publish2pms(data2pms, "")
 		}
 
-		msg2app,routingKey,err := self.createNewDevMsg2App()
+		msg2app, routingKey, err := self.createNewDevMsg2App()
 		if err != nil {
 			log.Warning(err)
 			return
@@ -422,20 +417,28 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		}
 
 	case 2:
-		msg2ums,routingKey,err := self.createOtherMsg2App()
+		msg2mns, routingKey, err := self.createOtherMsg2App()
 		if err != nil {
 			log.Warning(err)
 			return
 		}
-		data2ums, err := json.Marshal(msg2ums)
+		data2mns, err := json.Marshal(msg2mns)
 		if err != nil {
 			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
 			//producer.SendMQMsg2Db(string(data2db))
-			//rabbitmq.Publish2mns(data2ums, "")
-			rabbitmq.Publish2app(data2ums, routingKey)
+			rabbitmq.Publish2mns(data2mns, "")
+			rabbitmq.Publish2app(data2mns, routingKey)
 		}
 
+		msg2pms := self.createMsg2PMS()
+		data2pms, err := json.Marshal(msg2pms)
+		if err != nil {
+			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
+		} else {
+			//producer.SendMQMsg2PMS(string(data2pms))
+			rabbitmq.Publish2pms(data2pms, "")
+		}
 	}
 }
 
@@ -472,7 +475,7 @@ func (self WonlyGuardHandle) createOtherMsg2App() (res entity.Feibee2DBMsg, rout
 	return
 }
 
-func (self WonlyGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg,routingKey string, err error) {
+func (self WonlyGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, routingKey string, err error) {
 	if len(self.data.Msg) <= 0 {
 		err = ErrMsgStruct
 		return
