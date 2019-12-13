@@ -2,7 +2,6 @@ package aliIot2srv
 
 import (
 	"strings"
-
 	"../core/constant"
 	"../core/log"
 	"../core/redis"

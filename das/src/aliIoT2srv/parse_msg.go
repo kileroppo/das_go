@@ -212,7 +212,7 @@ func parseData(hexData string) error {
 		devUserUpload.MyTime[1].Start = int32(nTimeSlot2_s)
 
 		// 时段2 - 结束
-		mTimeSlot2_e := (int32(pdu.TimeSlot2[2]) * 100) + int32(pdu.TimeSlot1[3])
+		mTimeSlot2_e := (int32(pdu.TimeSlot2[2]) * 100) + int32(pdu.TimeSlot2[3])
 		strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
 		nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 		if nil != err4 {
@@ -230,7 +230,7 @@ func parseData(hexData string) error {
 		devUserUpload.MyTime[2].Start = int32(nTimeSlot3_s)
 
 		// 时段3 - 结束
-		mTimeSlot3_e := (int32(pdu.TimeSlot3[2]) * 100) + int32(pdu.TimeSlot1[3])
+		mTimeSlot3_e := (int32(pdu.TimeSlot3[2]) * 100) + int32(pdu.TimeSlot3[3])
 		strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
 		nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 		if nil != err4 {
@@ -324,7 +324,7 @@ func parseData(hexData string) error {
 			devUser.MyTime[1].Start = int32(nTimeSlot2_s)
 
 			// 时段2 - 结束
-			mTimeSlot2_e := (int32(pdu.DevUserInfos[i].TimeSlot2[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[3])
+			mTimeSlot2_e := (int32(pdu.DevUserInfos[i].TimeSlot2[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot2[3])
 			strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
 			nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 			if nil != err4 {
@@ -342,7 +342,7 @@ func parseData(hexData string) error {
 			devUser.MyTime[2].Start = int32(nTimeSlot3_s)
 
 			// 时段3 - 结束
-			mTimeSlot3_e := (int32(pdu.DevUserInfos[i].TimeSlot3[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[3])
+			mTimeSlot3_e := (int32(pdu.DevUserInfos[i].TimeSlot3[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot3[3])
 			strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
 			nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 			if nil != err4 {
