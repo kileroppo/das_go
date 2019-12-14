@@ -353,7 +353,7 @@ func parseData(hexData string) error {
 			syncDevUser.UserList = append(syncDevUser.UserList, devUser)
 		}
 
-		if toPms_byte, err1 := json.Marshal(syncDevUser); err == nil {
+		if toPms_byte, err1 := json.Marshal(syncDevUser); err1 == nil {
 			rabbitmq.Publish2pms(toPms_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] toPms_byte json.Marshal, err=", err1)

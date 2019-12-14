@@ -127,7 +127,7 @@ type SyncDevUserReq struct {
 	Num uint16 				`json:"num"`	// 每次请求10个
 }
 type DevUser struct {
-	UserId uint16 			`json:"userId"`    	// 设备用户ID
+	UserId uint16 		`json:"userId"`    	// 设备用户ID
 	UserType int 		`json:"userType"`   // 用户类型（0-管理员，1-普通用户，2-临时用户）
 	Finger int 			`json:"finger"`   	// 指纹数量
 	Ffinger int 		`json:"ffinger"`   	// 胁迫指纹数量
@@ -151,6 +151,18 @@ type SyncDevUserResp struct {
 	UserVer uint32 			`json:"userVer"`  	// 设备用户版本号
 	Num int 				`json:"num"`		// 返回锁体内的10个设备用户
 	UserList []DevUser		`json:"user_list"`	// 设备用户数组
+}
+type SyncDevUserRespEx struct {
+	Cmd     int    			`json:"cmd"`
+	Ack     int    			`json:"ack"`
+	DevType string 			`json:"devType"`
+	DevId   string 			`json:"devId"`
+	Vendor  string 			`json:"vendor"`
+	SeqId   int    			`json:"seqId"`
+
+	UserVer uint32 			`json:"userVer"`  	// 设备用户版本号
+	Num int 				`json:"num"`		// 返回锁体内的10个设备用户
+	UserList []string		`json:"user_list"`	// 设备用户数组
 }
 
 //7. 远程开锁

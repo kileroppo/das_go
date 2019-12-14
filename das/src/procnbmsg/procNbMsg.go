@@ -170,8 +170,30 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 设备用户同步
 			log.Info("[", head.DevId, "] constant.Sync_dev_user")
 			if 1 == head.Ack {
-				//producer.SendMQMsg2Db(DValue)
-				rabbitmq.Publish2pms([]byte(DValue), "")
+				//1. 解析Json串
+				var syncDevUserRespEx entity.SyncDevUserRespEx
+				if err := json.Unmarshal([]byte(DValue), &syncDevUserRespEx); err != nil {
+					log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
+					return err // break
+				}
+
+				//2.解析User_List中的值
+				var syncDevUserResp entity.SyncDevUserResp
+				for i := 0; i < len(syncDevUserRespEx.UserList); i++ {
+					if 10 <= i { // 同步锁用户，一般不超过10个
+						break
+					}
+					var devUser entity.DevUser
+					devUser.ParseUser(syncDevUserRespEx.UserList[i])
+					syncDevUserResp.UserList = append(syncDevUserResp.UserList, devUser)
+				}
+
+				if toPms_byte, err1 := json.Marshal(syncDevUserResp); err1 == nil {
+					rabbitmq.Publish2pms(toPms_byte, "")
+				} else {
+					log.Error("[", head.DevId, "] toPms_byte json.Marshal, err=", err1)
+					return err1
+				}
 			}
 		}
 	case constant.Remote_open: // 远程开锁
