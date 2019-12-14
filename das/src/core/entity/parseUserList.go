@@ -1,10 +1,11 @@
 package entity
 
 import (
+	"../log"
 	"bytes"
 	"encoding/binary"
-	"../log"
 	"encoding/hex"
+	"fmt"
 	"strconv"
 )
 
@@ -103,8 +104,8 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		log.Error("binary.Read failed:", err)
 		return err
 	}
-	mSDate := (int32(date_start[0]) * 10000) + (int32(date_start[1]) * 100) + int32(date_start[2])
-	strSDate := strconv.FormatInt(int64(mSDate), 10) 			// 转10进制字符串
+
+	strSDate := fmt.Sprintf("%02X%02X%02X", date_start[0], date_start[1], date_start[2])
 	nSDate, err2 := strconv.ParseInt(strSDate, 16, 32) // 转16进制值
 	if nil != err2 {
 		log.Error("ParseUser strconv.ParseInt, err2: ", err2)
@@ -116,9 +117,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		return err
 	}
 	// 结束日期
-	// 转10进制
-	mEDate := (int32(date_end[0]) * 10000) + (int32(date_end[1]) * 100) + int32(date_end[2])
-	strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
+	strEDate := fmt.Sprintf("%02X%02X%02X", date_end[0], date_end[1], date_end[2])
 	nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 	if nil != err3 {
 		log.Error("ParseUser strconv.ParseInt, err3: ", err3)
@@ -130,8 +129,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		return err
 	}
 	// 时段1 - 开始
-	mTimeSlot1_s := (int32(time1_start[0]) * 100) + int32(time1_start[1])
-	strTimeSlot1_s := strconv.FormatInt(int64(mTimeSlot1_s), 10) // 转10进制字符串
+	strTimeSlot1_s := fmt.Sprintf("%02X%02X", time1_start[0], time1_start[1])
 	nTimeSlot1_s, err4 := strconv.ParseInt(strTimeSlot1_s, 16, 32) // 转16进制值
 	if nil != err4 {
 		log.Error("ParseUser strconv.ParseInt, err4: ", err4)
@@ -143,8 +141,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		return err
 	}
 	// 时段1 - 结束
-	mTimeSlot1_e := (int32(time1_end[0]) * 100) + int32(time1_end[1])
-	strTimeSlot1_e := strconv.FormatInt(int64(mTimeSlot1_e), 10) // 转10进制字符串
+	strTimeSlot1_e := fmt.Sprintf("%02X%02X", time1_end[0], time1_end[1])
 	nTimeSlot1_e, err4 := strconv.ParseInt(strTimeSlot1_e, 16, 32) // 转16进制值
 	if nil != err4 {
 		log.Error("ParseUser strconv.ParseInt, err4: ", err4)
@@ -156,8 +153,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		return err
 	}
 	// 时段2 - 开始
-	mTimeSlot2_s := (int32(time2_start[0]) * 100) + int32(time2_start[1])
-	strTimeSlot2_s := strconv.FormatInt(int64(mTimeSlot2_s), 10) // 转10进制字符串
+	strTimeSlot2_s := fmt.Sprintf("%02X%02X", time2_start[0], time2_start[1])
 	nTimeSlot2_s, err4 := strconv.ParseInt(strTimeSlot2_s, 16, 32) // 转16进制值
 	if nil != err4 {
 		log.Error("ParseUser strconv.ParseInt, err4: ", err4)
@@ -169,8 +165,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		return err
 	}
 	// 时段2 - 结束
-	mTimeSlot2_e := (int32(time2_end[0]) * 100) + int32(time2_end[1])
-	strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
+	strTimeSlot2_e := fmt.Sprintf("%02X%02X", time2_end[0], time2_end[1])
 	nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 	if nil != err4 {
 		log.Error("ParseUser strconv.ParseInt, err4: ", err4)
@@ -182,8 +177,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		return err
 	}
 	// 时段3 - 开始
-	mTimeSlot3_s := (int32(time3_start[0]) * 100) + int32(time3_start[1])
-	strTimeSlot3_s := strconv.FormatInt(int64(mTimeSlot3_s), 10) // 转10进制字符串
+	strTimeSlot3_s := fmt.Sprintf("%02X%02X", time3_start[0], time3_start[1])
 	nTimeSlot3_s, err4 := strconv.ParseInt(strTimeSlot3_s, 16, 32) // 转16进制值
 	if nil != err4 {
 		log.Error("ParseUser strconv.ParseInt, err4: ", err4)
@@ -195,8 +189,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		return err
 	}
 	// 时段3 - 结束
-	mTimeSlot3_e := (int32(time3_end[0]) * 100) + int32(time3_end[1])
-	strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
+	strTimeSlot3_e := fmt.Sprintf("%02X%02X", time3_end[0], time3_end[1])
 	nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 	if nil != err4 {
 		log.Error("ParseUser strconv.ParseInt, err4: ", err4)
