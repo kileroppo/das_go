@@ -40,103 +40,6 @@ type MsgHandler interface {
 	PushMsg()
 }
 
-func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
-	typ := getMsgType(data)
-	switch typ {
-
-	case NewDev, DevOnline, DevRename, DevDelete, ManualOpDev, DevDegree:
-		msgHandle = NormalMsgHandle{
-			data:    data,
-			msgType: typ,
-		}
-
-	case GtwOnline, RemoteOpDev:
-		msgHandle = GtwMsgHandle{
-			data:    data,
-			msgType: typ,
-		}
-
-	case SensorAlarm:
-		msgHandle = SensorMsgHandle{
-			data: data,
-		}
-
-	case InfraredTreasure:
-		msgHandle = InfraredTreasureHandle{
-			data:    data,
-			msgType: typ,
-		}
-
-	case WonlyLGuard:
-		msgHandle = WonlyGuardHandle{
-			data:    data,
-			msgType: typ,
-		}
-
-	case SceneSwitch:
-		msgHandle = SceneSwitchHandle{
-			data: data,
-		}
-	case ZigbeeLock:
-
-	default:
-		msgHandle = nil
-	}
-
-	return
-}
-
-func getMsgType(data entity.FeibeeData) (typ MsgType) {
-	defer func() {
-		if err := recover(); err != nil {
-			log.Warning(ErrMsgStruct)
-		}
-	}()
-
-	typ = -1
-	switch data.Code {
-	case 3:
-		if data.Msg[0].Deviceid == 779 {
-			typ = WonlyLGuard
-		} else {
-			typ = NewDev
-		}
-	case 4:
-		typ = DevOnline
-	case 5:
-		typ = DevDelete
-	case 7:
-		typ = RemoteOpDev
-	case 10:
-		if data.Msg[0].Deviceid == 0x0202 {
-			typ = DevDegree
-		}
-	case 12:
-		typ = DevRename
-	case 32:
-		typ = GtwOnline
-	case 2:
-		if data.Records[0].Deviceid == 779 {
-			//小卫士
-			typ = WonlyLGuard
-		} else if data.Records[0].Deviceid == 0xa {
-			//飞比zigbee锁
-			typ = ZigbeeLock
-		} else if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
-			typ = ManualOpDev
-		} else if isDevAlarm(data) {
-			typ = SensorAlarm
-		} else if data.Records[0].Cid == 0 && data.Records[0].Aid == 16394 {
-			//红外宝
-			typ = InfraredTreasure
-		} else if data.Records[0].Cid == 61680 && data.Records[0].Aid == 61680 {
-			//情景开关触发
-			typ = SceneSwitch
-		}
-	}
-	return
-}
-
 //设备入网 设备离上线 设备删除 设备重命名
 type NormalMsgHandle struct {
 	data    entity.FeibeeData
@@ -383,12 +286,12 @@ func (self InfraredTreasureHandle) parseValue(start, end int) (res string) {
 	return
 }
 
-type WonlyGuardHandle struct {
+type WonlyLGuardHandle struct {
 	data    entity.FeibeeData
 	msgType MsgType
 }
 
-func (self WonlyGuardHandle) pushMsgByType() {
+func (self WonlyLGuardHandle) pushMsgByType() {
 
 	switch self.data.Code {
 	//设备入网
@@ -396,7 +299,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		msg2pms := self.createMsg2PMS()
 		data2pms, err := json.Marshal(msg2pms)
 		if err != nil {
-			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
+			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
 			//producer.SendMQMsg2PMS(string(data2pms))
 			rabbitmq.Publish2pms(data2pms, "")
@@ -410,7 +313,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 
 		data2app, err := json.Marshal(msg2app)
 		if err != nil {
-			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
+			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
 			//producer.SendGuardMsg2APP(routingKey, data2app)
 			rabbitmq.PublishGuard2app(data2app, routingKey)
@@ -424,7 +327,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		}
 		data2mns, err := json.Marshal(msg2mns)
 		if err != nil {
-			log.Warning("WonlyGuardHandle msg2db json.Marshal() error = ", err)
+			log.Warning("WonlyLGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
 			//producer.SendMQMsg2Db(string(data2db))
 			rabbitmq.Publish2mns(data2mns, "")
@@ -434,7 +337,7 @@ func (self WonlyGuardHandle) pushMsgByType() {
 		msg2pms := self.createMsg2PMS()
 		data2pms, err := json.Marshal(msg2pms)
 		if err != nil {
-			log.Warning("WonlyGuardHandle msg2pms json.Marshal() error = ", err)
+			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
 			//producer.SendMQMsg2PMS(string(data2pms))
 			rabbitmq.Publish2pms(data2pms, "")
@@ -442,15 +345,15 @@ func (self WonlyGuardHandle) pushMsgByType() {
 	}
 }
 
-func (self WonlyGuardHandle) PushMsg() {
+func (self WonlyLGuardHandle) PushMsg() {
 	self.pushMsgByType()
 }
 
-func (self WonlyGuardHandle) createMsg2PMS() (res entity.Feibee2PMS) {
+func (self WonlyLGuardHandle) createMsg2PMS() (res entity.Feibee2PMS) {
 	return createMsg2pms(self.data, self.msgType)
 }
 
-func (self WonlyGuardHandle) createOtherMsg2App() (res entity.Feibee2DBMsg, routingKey string, err error) {
+func (self WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2DBMsg, routingKey string, err error) {
 	if len(self.data.Records) <= 0 {
 		err = ErrMsgStruct
 		return
@@ -475,7 +378,7 @@ func (self WonlyGuardHandle) createOtherMsg2App() (res entity.Feibee2DBMsg, rout
 	return
 }
 
-func (self WonlyGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, routingKey string, err error) {
+func (self WonlyLGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, routingKey string, err error) {
 	if len(self.data.Msg) <= 0 {
 		err = ErrMsgStruct
 		return
