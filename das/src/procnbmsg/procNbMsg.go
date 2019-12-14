@@ -178,7 +178,18 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				}
 
 				//2.解析User_List中的值
-				var syncDevUserResp entity.SyncDevUserResp
+				syncDevUserResp := entity.SyncDevUserResp {
+					Cmd: syncDevUserRespEx.Cmd,
+					Ack: syncDevUserRespEx.Ack,
+					DevType: syncDevUserRespEx.DevType,
+					DevId: syncDevUserRespEx.DevId,
+					Vendor: syncDevUserRespEx.Vendor,
+					SeqId: syncDevUserRespEx.SeqId,
+
+					UserVer: syncDevUserRespEx.UserVer,
+					Num: syncDevUserRespEx.Num,
+				}
+
 				for i := 0; i < len(syncDevUserRespEx.UserList); i++ {
 					if 10 <= i { // 同步锁用户，一般不超过10个
 						break
