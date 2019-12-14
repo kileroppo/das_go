@@ -207,11 +207,11 @@ func initProducer2mnsMQ(conf *goconf.ConfigFile) {
 	if err != nil {
 		panic("initProducer2mnsMQ load uri conf error")
 	}
-	exchange, err := conf.GetString("rabbitmq", "device2db_ex")
+	exchange, err := conf.GetString("rabbitmq", "device2mns_ex")
 	if err != nil {
 		panic("initProducer2mnsMQ load exchange conf error")
 	}
-	exchangeType, err := conf.GetString("rabbitmq", "device2db_ex_type")
+	exchangeType, err := conf.GetString("rabbitmq", "device2mns_ex_type")
 	if err != nil {
 		panic("initProducer2mnsMQ load exchangeType conf error")
 	}
