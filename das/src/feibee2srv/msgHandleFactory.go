@@ -628,7 +628,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 
 	switch msgType {
 
-	case NewDev, DevOnline, DevDelete, DevRename, RemoteOpDev, WonlyLGuard:
+	case NewDev, DevOnline, DevDelete, DevRename, RemoteOpDev:
 		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
 		res.DevId = data.Msg[0].Uuid
 		res.Msg = []entity.FeibeeDevMsg{data.Msg[0]}
@@ -644,6 +644,23 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 
 	case GtwOnline:
 		res.Gateway = []entity.FeibeeGatewayMsg{data.Gateway[0]}
+
+	case WonlyLGuard:
+		switch{
+		case data.Code == 3:
+			res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
+			res.DevId = data.Msg[0].Uuid
+			res.Msg = []entity.FeibeeDevMsg{data.Msg[0]}
+			res.Msg[0].Devicetype = res.DevType
+
+		case data.Code == 2:
+			res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
+			res.DevId = data.Records[0].Uuid
+			res.Records = []entity.FeibeeRecordsMsg{
+				data.Records[0],
+			}
+			res.Records[0].Devicetype = res.DevType
+		}
 	}
 
 	return
