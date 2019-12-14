@@ -1,7 +1,6 @@
 package feibee2srv
 
 import (
-	//"encoding/json"
 	"errors"
 	"strconv"
 	"time"
@@ -15,85 +14,7 @@ import (
 
 var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
-	SensorMsgTypeErr = errors.New("sensorAlarmMsg type error")
 )
-
-type DevAlarmer interface {
-	PushMsg()
-}
-
-func DevAlarmFactory(feibeeData entity.FeibeeData) (res DevAlarmer) {
-	res = nil
-
-	if len(feibeeData.Records) <= 0 {
-		return
-	}
-
-	switch feibeeData.Records[0].Deviceid {
-	case 0x0106:
-		//光照度传感器
-		res = &IlluminanceSensorAlarm{
-			BaseSensorAlarm{
-				feibeeMsg: feibeeData,
-			},
-		}
-	case 0x0302:
-		//温湿度传感器
-		res = &TemperAndHumiditySensorAlarm{
-			BaseSensorAlarm{
-				feibeeMsg: feibeeData,
-			},
-		}
-	case 0x0402:
-		//飞比传感器
-		switch feibeeData.Records[0].Zonetype {
-		case 0x000d:
-			//人体红外传感器
-			res = &InfraredSensorAlarm{
-				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
-				},
-			}
-		case 0x0015:
-			//门磁传感器
-			res = &DoorMagneticSensorAlarm{
-				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
-				},
-			}
-		case 0x0028:
-			//烟雾传感器
-			res = &SmokeSensorAlarm{
-				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
-				},
-			}
-		case 0x002A:
-			//水浸传感器
-			res = &FloodSensorAlarm{
-				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
-				},
-			}
-		case 0x002B:
-			//可燃气体传感器
-			res = &GasSensorAlarm{
-				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
-				},
-			}
-		default:
-			res = &BaseSensorAlarm{
-				feibeeMsg: feibeeData,
-			}
-		}
-	default:
-		res = &BaseSensorAlarm{
-			feibeeMsg: feibeeData,
-		}
-	}
-	return
-}
 
 type BaseSensorAlarm struct {
 	feibeeMsg         entity.FeibeeData
