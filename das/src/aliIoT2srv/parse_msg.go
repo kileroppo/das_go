@@ -942,10 +942,25 @@ func parseData(hexData string) error {
 		setLockWiFi.WifiPwd = string(rbyf_pn[:])
 
 		if to_byte, err1 := json.Marshal(setLockWiFi); err1 == nil {
-			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_Wifi to_byte json.Marshal, err=", err1)
+			return err1
+		}
+	case constant.Notify_Set_Wifi:
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Notify_Set_Wifi")
+		notifyHead := entity.Header {
+			Cmd: int(wlMsg.Cmd),
+			Ack: int(wlMsg.Ack),
+			DevType: DEVICETYPE[wlMsg.Type],
+			DevId: wlMsg.DevId.Uuid,
+			Vendor: "general",
+			SeqId: int(wlMsg.SeqId),
+		}
+		if to_byte, err1 := json.Marshal(notifyHead); err1 == nil {
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
+		} else {
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.Notify_Set_Wifi to_byte json.Marshal, err=", err1)
 			return err1
 		}
 	case constant.Door_Call:			// 门铃呼叫(0x38)(前板-->服务器)

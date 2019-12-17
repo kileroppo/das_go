@@ -64,6 +64,7 @@ const (
 	// 视频设备
 	Real_Video = 0x36 // 实时视频
 	Set_Wifi   = 0x37 // Wifi设置
+	Notify_Set_Wifi   = 0x3A // 锁端Wifi设置成功通知
 	Door_Call  = 0x38 // 门铃呼叫
 
 	// 锁状态
