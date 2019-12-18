@@ -848,7 +848,7 @@ func (pdu *SetLockParamReq) Encode(uuid string) ([]byte, error) {
 		return nil, err
 	}
 
-	if 0xff == pdu.ParamValue2 { // 如果为负值则不填充
+	if 0xFF != pdu.ParamValue2 { // 如果为0xFF则不填充
 		if err = binary.Write(buf, binary.BigEndian, pdu.ParamValue2); err != nil {
 			log.Error("binary.Write failed:", err)
 			return nil, err
