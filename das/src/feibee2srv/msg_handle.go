@@ -301,7 +301,6 @@ func (self WonlyLGuardHandle) pushMsgByType() {
 		if err != nil {
 			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
-			//producer.SendMQMsg2PMS(string(data2pms))
 			rabbitmq.Publish2pms(data2pms, "")
 		}
 
@@ -315,11 +314,10 @@ func (self WonlyLGuardHandle) pushMsgByType() {
 		if err != nil {
 			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
 		} else {
-			//producer.SendGuardMsg2APP(routingKey, data2app)
 			rabbitmq.PublishGuard2app(data2app, routingKey)
 		}
 
-	case 2:
+	case 2: //小卫士消息暂由mns处理
 		msg2mns, routingKey, err := self.createOtherMsg2App()
 		if err != nil {
 			log.Warning(err)
@@ -329,19 +327,17 @@ func (self WonlyLGuardHandle) pushMsgByType() {
 		if err != nil {
 			log.Warning("WonlyLGuardHandle msg2db json.Marshal() error = ", err)
 		} else {
-			//producer.SendMQMsg2Db(string(data2db))
 			rabbitmq.Publish2mns(data2mns, "")
 			rabbitmq.Publish2app(data2mns, routingKey)
 		}
 
-		msg2pms := self.createMsg2PMS()
-		data2pms, err := json.Marshal(msg2pms)
-		if err != nil {
-			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
-		} else {
-			//producer.SendMQMsg2PMS(string(data2pms))
-			rabbitmq.Publish2pms(data2pms, "")
-		}
+		//msg2pms := self.createMsg2PMS()
+		//data2pms, err := json.Marshal(msg2pms)
+		//if err != nil {
+		//	log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
+		//} else {
+		//	rabbitmq.Publish2pms(data2pms, "")
+		//}
 	}
 }
 
