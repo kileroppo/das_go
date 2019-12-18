@@ -466,8 +466,10 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Upload_open_log")
 
 			//1. 需要存到mongodb
-			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2pms([]byte(DValue), "")
+
+			//mns推送到app
+			rabbitmq.Publish2mns([]byte(DValue), "")
 
 			//2. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
