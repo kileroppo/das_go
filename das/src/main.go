@@ -41,14 +41,9 @@ func main() {
 	//10. 初始化平板消费者交换器，消息队列的参数
 	go wifi2srv.Run()
 
-	// 启动ali IOT推送接收服务
-	//go aliIot2srv.Run()
+	//11. 启动ali IOT推送接收服务
 	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
 	aliSrv.Run()
-
-	//11. 启动定时器
-	dindingtask.InitTimer_IsStart(conf)
-	dindingtask.StartMyTimer()
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
@@ -80,7 +75,8 @@ func main() {
 		log.Error("default: get signal: ", s)
 
 	}
-	//aliIot2srv.Close()
+
+	// 关闭阿里云IOT推送接收服务
 	aliSrv.Close()
 
 	//停止接收平板消息
