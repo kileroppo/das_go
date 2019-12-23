@@ -131,18 +131,21 @@ func ProcAppMsg(appMsg string) error {
 			}
 		}
 	case constant.Add_dev_user:
-		{ // 添加锁用户，用户名
+		{
+			// 添加锁用户，用户名
 			var addDevUser entity.AddDevUser
 			if err := json.Unmarshal([]byte(appMsg), &addDevUser); err != nil {
 				log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 			}
 
+			// if 0xFFFF == addDevUser.UserId { // TODO:jhhe remove
 			userNoteTag := strconv.FormatInt(time.Now().Unix(), 16)
 			if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userNoteTag, addDevUser.UserNote); uNoteErr != nil {
 				log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
 				return uNoteErr
 			}
 			addDevUser.UserNote = userNoteTag // 值跟KEY交换，下发到锁端
+			// }
 
 			if 1 == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
 				if len(addDevUser.Passwd) > 6 {
@@ -272,7 +275,30 @@ func ProcAppMsg(appMsg string) error {
 				return err_
 			}
 
-			httpgo.HttpSetAliPro(head.DevId, hex.EncodeToString(bData), strconv.Itoa(head.Cmd))
+			respStatus, _ := httpgo.HttpSetAliPro(head.DevId, hex.EncodeToString(bData), strconv.Itoa(head.Cmd))
+			if 200 != respStatus {
+				var devAct entity.DeviceActive
+				devAct.Cmd = constant.Upload_lock_active
+				devAct.Ack = 0
+				devAct.DevType = head.DevType
+				devAct.DevId = head.DevId
+				devAct.Vendor = head.Vendor
+				devAct.SeqId = 0
+				devAct.Signal = 0
+				devAct.Time = 0
+
+				//1. 回复APP，设备离线状态
+				if toApp_str, err := json.Marshal(devAct); err == nil {
+					log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
+					//producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
+					rabbitmq.Publish2app(toApp_str, devAct.DevId)
+				} else {
+					log.Error("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, json.Marshal, err=", err)
+				}
+
+				//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
+				redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
+			}
 		}
 	default:
 		{

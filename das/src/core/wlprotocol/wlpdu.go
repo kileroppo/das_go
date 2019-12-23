@@ -581,9 +581,8 @@ func (pdu *PicUpload) Decode(bBody []byte, uuid string) error {
 }
 
 //17. 用户开锁消息上报(0x40)(前板--->服务器)
-//18. 用户进入菜单上报(0x42)(前板--->服务器)
 /*
-用户列表版本号(4)+ 时间(4)+ 电量百分比（1）+ 单/双人模式（1）
+用户列表版本号(4)+ 用户数量（1）+时间(4)+ 电量百分比（1）+ 单/双人模式（1）
 +用户编号(2)+验证方式(1)+是否胁迫(1)+剩余次数（2）
 +用户编号(2)+验证方式(1)+是否胁迫(1)+剩余次数（2）
 */
@@ -656,6 +655,77 @@ func (pdu *OpenLockMsg) Decode(bBody []byte, uuid string) error {
 			return err
 		}
 		if err = binary.Read(buf, binary.BigEndian, &pdu.Remainder2); err != nil {
+			log.Error("binary.Read failed:", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+//18. 用户进入菜单上报(0x42)(前板--->服务器)
+/*
+用户列表版本号(4)+ 时间(4)+ 电量百分比（1）+ 单/双人模式（1）
++用户编号(2)+验证方式(1)+是否胁迫(1)
++用户编号(2)+验证方式(1)+是否胁迫(1)
+*/
+func (pdu *EnterMenuMsg) Decode(bBody []byte, uuid string) error {
+	var err error
+	var DValue []byte
+
+	//1. 生成密钥
+	myKey := util.MD52Bytes(uuid)
+
+	//2. 解密
+	DValue, err = util.ECBDecryptByte(bBody, myKey)
+	if nil != err {
+		log.Error("ECBDecryptByte failed, err=", err)
+		return err
+	}
+	log.Debug("[ ", uuid, " ] EnterMenuMsg Decode [ ", hex.EncodeToString(DValue), " ]")
+
+	//3. 解包体
+	buf := bytes.NewBuffer(DValue)
+	if err = binary.Read(buf, binary.BigEndian, &pdu.DevUserVer); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.Time); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.Battery); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.SinMul); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+
+	if err = binary.Read(buf, binary.BigEndian, &pdu.UserNo); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.MainOpen); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.SubOpen); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+
+	if 2 == pdu.SinMul { // 双人开门模式
+		if err = binary.Read(buf, binary.BigEndian, &pdu.UserNo2); err != nil {
+			log.Error("binary.Read failed:", err)
+			return err
+		}
+		if err = binary.Read(buf, binary.BigEndian, &pdu.MainOpen2); err != nil {
+			log.Error("binary.Read failed:", err)
+			return err
+		}
+		if err = binary.Read(buf, binary.BigEndian, &pdu.SubOpen2); err != nil {
 			log.Error("binary.Read failed:", err)
 			return err
 		}
@@ -778,7 +848,7 @@ func (pdu *SetLockParamReq) Encode(uuid string) ([]byte, error) {
 		return nil, err
 	}
 
-	if 0xff == pdu.ParamValue2 { // 如果为负值则不填充
+	if 0xFF != pdu.ParamValue2 { // 如果为0xFF则不填充
 		if err = binary.Write(buf, binary.BigEndian, pdu.ParamValue2); err != nil {
 			log.Error("binary.Write failed:", err)
 			return nil, err
@@ -1044,6 +1114,10 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 	if err = binary.Read(buf, binary.BigEndian, &pdu.Ssid); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.Capability); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
 	}

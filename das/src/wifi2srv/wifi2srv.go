@@ -57,12 +57,13 @@ func Run() {
 func consume() {
 	msgs, err := rabbitmq.Consumer2devMQ.Consumer()
 	if err != nil {
-		log.Error("Consumer2devMQ() error = ", err)
-		if err := rabbitmq.Consumer2devMQ.ReConn(); err != nil {
+		log.Error("Consumer2devMQ.Consumer() error = ", err)
+		if err = rabbitmq.Consumer2devMQ.ReConn(); err != nil {
+			log.Warningf("Consumer2devMQ Reconnection Failed")
 			return
 		}
-		go consume()
-		return
+		log.Debug("Consumer2devMQ Reconnection Successful")
+		msgs, err = rabbitmq.Consumer2devMQ.Consumer()
 	}
 
 	for d := range msgs {
@@ -91,14 +92,12 @@ func consume() {
 	}
 
 	select {
-	case <- ctx.Done():
+	case <-ctx.Done():
 		log.Info("ReceiveMQMsgFromDevice Close")
 		return
 	default:
-		if err := rabbitmq.Consumer2devMQ.ReConn(); err != nil {
-			return
-		}
 		go consume()
+		return
 	}
 }
 

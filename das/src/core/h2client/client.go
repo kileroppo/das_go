@@ -33,7 +33,7 @@ const (
 var (
 	ReadFrameErr = errors.New("read frame error")
 	TLSDialErr   = errors.New("tls dial error")
-	ConnClose    = errors.New("conn is closed")
+	ConnCloseErr = errors.New("conn is closed")
 )
 
 type H2Client struct {
@@ -93,7 +93,7 @@ func (h2 *H2Client) init() error {
 	h2.conn, err = tls.DialWithDialer(h2.dialer, "tcp", h2.addr, h2.tlsConfig)
 	if err != nil {
 		log.Error("tls.DialWithDialer() error = ", err.Error())
-		return err
+		return TLSDialErr
 	}
 
 	h2.hdec = hpack.NewDecoder(4096, nil)
@@ -101,12 +101,14 @@ func (h2 *H2Client) init() error {
 
 	h2.bw = bufio.NewWriter(h2.conn)
 	h2.br = bufio.NewReader(h2.conn)
-	h2.henc = hpack.NewEncoder(h2.hbuf)
 
 	h2.request.Method = h2.method
 	h2.request.URL = urlData
 
 	h2.framer = http2.NewFramer(h2.bw, h2.br)
+	//h2.framer.ReadMetaHeaders = h2.hdec
+	h2.henc = hpack.NewEncoder(h2.hbuf)
+
 	return nil
 }
 
@@ -123,6 +125,7 @@ func (h2 *H2Client) SetAliHeader(appKey, appSecret string) {
 	hc.Write([]byte(signContent))
 	sign := hc.Sum([]byte{})
 
+	//request.Header.Set(":path", "/message/ack")
 	request.Header.Set("x-auth-name", "appkey")
 	request.Header.Set("x-auth-param-app-key", appKey)
 	request.Header.Set("x-auth-name", "appkey")
@@ -161,9 +164,10 @@ func (h2 *H2Client) do() error {
 	}
 
 	h2.sendPreface()
+	h2.sendWriteSettings()
+	h2.framer.WriteWindowUpdate(0, 1<<30)
+	h2.bw.Flush()
 
-	//h2.framer.WriteWindowUpdate(0, 1<<30)
-	//h2.bw.Flush()
 	if err := h2.sendHeadersFrame(); err != nil {
 		log.Error("H2Client.sendHeadersFrame() error = ", err)
 		return err
@@ -182,10 +186,10 @@ func (h2 *H2Client) do() error {
 
 func (h2 *H2Client) Close() error {
 	var err error
-	if err = h2.hdec.Close(); err != nil {
-		log.Error("h2.hdec.Close() error = ", err)
-		return err
-	}
+	//if err = h2.hdec.Close(); err != nil {
+	//	log.Error("h2.hdec.Close() error = ", err)
+	//	return err
+	//}
 	h2.hbuf.Reset()
 	if err = h2.bw.Flush(); err != nil {
 		log.Error("h2.bw.Flush() error = ", err)
@@ -207,8 +211,10 @@ func (h2 *H2Client) sendPreface() {
 	if err != nil {
 		log.Error("h2.bw.Write() error = ", err)
 	}
-	h2.bw.Flush()
+	//h2.bw.Flush()
+}
 
+func (h2 *H2Client) sendWriteSettings() {
 	settings := []http2.Setting{
 		http2.Setting{
 			ID:  http2.SettingEnablePush,
@@ -225,9 +231,8 @@ func (h2 *H2Client) sendPreface() {
 	}
 
 	if err := h2.framer.WriteSettings(settings...); err != nil {
-		log.Error("sendPreface() error = ", err)
+		log.Error("sendWriteSettings() error = ", err)
 	}
-	h2.bw.Flush()
 }
 
 func (h2 *H2Client) sendSettingAck() error {
@@ -258,24 +263,26 @@ func (h2 *H2Client) sendHeadersFrame() error {
 		return err
 	}
 	h2.bw.Flush()
-	log.Info("sendHeadersFrame() end...")
 	return nil
 }
 
 func (h2 *H2Client) heartBeat() {
 	for {
 		select {
-		case <- h2.reCh:
+		case <-h2.ctx.Done():
+			log.Info("H2Client heartBeat exit")
+			return
+		case <-h2.reCh:
 			continue
-		case <- time.After(time.Second*30):
+		case <-time.After(time.Second * 30):
 
 			if err := h2.framer.WritePing(false, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
-				log.Info("重连中...")
+				//log.Info("H2Client reConn...")
 				h2.Close()
 				return // 退出
 			} else {
-				log.Info("heartBeat ...")
+				//log.Info("heartBeat ...")
 				h2.bw.Flush()
 			}
 		}
@@ -283,7 +290,7 @@ func (h2 *H2Client) heartBeat() {
 }
 
 func (h2 *H2Client) readLoop() error {
-	log.Info("H2Client readLoop() start...")
+	//log.Info("H2Client readLoop() start...")
 
 	frameProc := NewFrameHandler(h2)
 	for {
@@ -298,44 +305,44 @@ func (h2 *H2Client) readLoop() error {
 		//帧处理
 		switch f := fra.(type) {
 		case *http2.HeadersFrame:
-			log.Info("Receive HeadersFrame: ", f.Header().String())
+			//log.Info("Receive HeadersFrame: ", f.Header().String())
 			frameProc.HandleHeadersFrame(f)
+			h2.bw.Flush()
 
 		case *http2.DataFrame:
-			log.Info("Receive DataFrame: ", f.Header().String())
+			//log.Info("Receive DataFrame: ", string(f.Data()))
 			frameProc.HandleDataFrame(f)
+			//h2.bw.Flush()
 
 		case *http2.SettingsFrame:
-			log.Info("Receive SettingsFrame:", f.String())
-			for i := 0; i < f.NumSettings(); i++ {
-				log.Debugf("setting: %s\n", f.Setting(i).String())
-			}
-			if f.Header().Flags.Has(http2.FlagSettingsAck) {
-				log.Info("SettingsFrame is ack")
-			} else {
+			//log.Info("Receive SettingsFrame:", f.String())
+			//for i := 0; i < f.NumSettings(); i++ {
+			//	log.Debugf("setting: %s\n", f.Setting(i).String())
+			//}
+			if !f.Header().Flags.Has(http2.FlagSettingsAck) {
 				h2.sendSettingAck()
-				h2.bw.Flush()
+				//log.Info("SettingsFrame is ack")
 			}
 
 		case *http2.GoAwayFrame:
 			log.Info("receive GoAwayFrame:", f.String())
 			h2.Close()
-			return ConnClose
+			return ConnCloseErr
 
 		case *http2.PushPromiseFrame:
-			log.Info("receive PushPromiseFrame:", f.String())
+			//log.Info("receive PushPromiseFrame:", f.String())
 
 		case *http2.WindowUpdateFrame:
-			log.Info("receive WindowUpdateFrame:", f.String())
+			//log.Info("receive WindowUpdateFrame:", f.String())
 
 		case *http2.ContinuationFrame:
-			log.Info("receive ContinuationFrame:", f.String())
+			//log.Info("receive ContinuationFrame:", f.String())
 
 		case *http2.RSTStreamFrame:
-			log.Info("receive RSTStreamFrame:", f.String())
+			//log.Info("receive RSTStreamFrame:", f.String())
 
 		case *http2.PingFrame:
-			log.Info("receive PingFrame:", f.String())
+			//log.Info("receive PingFrame:", f.String())
 
 		default:
 			log.Info("unknown frame")

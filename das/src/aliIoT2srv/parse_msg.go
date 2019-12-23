@@ -39,7 +39,7 @@ func parseData(hexData string) error {
 	var wlMsg wlprotocol.WlMessage
 	bBody, err0 := wlMsg.PkDecode(data)
 	if err0 != nil {
-		log.Error("parseData wlMsg.PkDecode, err1=", err0)
+		log.Error("parseData wlMsg.PkDecode, err0=", err0)
 		return err0
 	}
 	switch wlMsg.Cmd {
@@ -54,7 +54,7 @@ func parseData(hexData string) error {
 				Vendor: "general",
 				SeqId: int(wlMsg.SeqId),
 			}
-			if to_byte, err1 := json.Marshal(addDevUser); err == nil {
+			if to_byte, err1 := json.Marshal(addDevUser); err1 == nil {
 				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 			} else {
 				log.Error("[", wlMsg.DevId.Uuid, "] constant.Add_dev_user to_byte json.Marshal, err=", err1)
@@ -75,7 +75,7 @@ func parseData(hexData string) error {
 		}
 
 		//2. 发送到PMS模块
-		if to_byte, err1 := json.Marshal(factoryReset); err == nil {
+		if to_byte, err1 := json.Marshal(factoryReset); err1 == nil {
 			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
@@ -107,7 +107,7 @@ func parseData(hexData string) error {
 			StepState: int(pdu.StepState),
 			Time: pdu.Time,
 		}
-		if to_byte, err1 := json.Marshal(addDevUserStep); err == nil {
+		if to_byte, err1 := json.Marshal(addDevUserStep); err1 == nil {
 			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
@@ -125,7 +125,7 @@ func parseData(hexData string) error {
 				Vendor: "general",
 				SeqId: int(wlMsg.SeqId),
 			}
-			if to_byte, err1 := json.Marshal(delDevUser); err == nil {
+			if to_byte, err1 := json.Marshal(delDevUser); err1 == nil {
 				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 			} else {
 				log.Error("[", wlMsg.DevId.Uuid, "] constant.Del_dev_user to_byte json.Marshal, err=", err1)
@@ -176,7 +176,7 @@ func parseData(hexData string) error {
 
 		// 结束日期
 		// 转10进制
-		mEDate := (int32(pdu.StartDate[0]) * 10000) + (int32(pdu.StartDate[1]) * 100) + int32(pdu.StartDate[2])
+		mEDate := (int32(pdu.EndDate[0]) * 10000) + (int32(pdu.EndDate[1]) * 100) + int32(pdu.EndDate[2])
 		strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
 		nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 		if nil != err3 {
@@ -212,13 +212,13 @@ func parseData(hexData string) error {
 		devUserUpload.MyTime[1].Start = int32(nTimeSlot2_s)
 
 		// 时段2 - 结束
-		mTimeSlot2_e := (int32(pdu.TimeSlot2[2]) * 100) + int32(pdu.TimeSlot1[3])
+		mTimeSlot2_e := (int32(pdu.TimeSlot2[2]) * 100) + int32(pdu.TimeSlot2[3])
 		strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
 		nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 		if nil != err4 {
 			log.Error("parseData strconv.ParseInt, err4: ", err4)
 		}
-		devUserUpload.MyTime[0].Start = int32(nTimeSlot2_e)
+		devUserUpload.MyTime[1].End = int32(nTimeSlot2_e)
 
 		// 时段3 - 开始
 		mTimeSlot3_s := (int32(pdu.TimeSlot3[0]) * 100) + int32(pdu.TimeSlot3[1])
@@ -227,18 +227,18 @@ func parseData(hexData string) error {
 		if nil != err4 {
 			log.Error("parseData strconv.ParseInt, err4: ", err4)
 		}
-		devUserUpload.MyTime[0].Start = int32(nTimeSlot3_s)
+		devUserUpload.MyTime[2].Start = int32(nTimeSlot3_s)
 
 		// 时段3 - 结束
-		mTimeSlot3_e := (int32(pdu.TimeSlot3[2]) * 100) + int32(pdu.TimeSlot1[3])
+		mTimeSlot3_e := (int32(pdu.TimeSlot3[2]) * 100) + int32(pdu.TimeSlot3[3])
 		strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
 		nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 		if nil != err4 {
 			log.Error("parseData strconv.ParseInt, err4: ", err4)
 		}
-		devUserUpload.MyTime[0].Start = int32(nTimeSlot3_e)
+		devUserUpload.MyTime[2].End = int32(nTimeSlot3_e)
 
-		if toPms_byte, err1 := json.Marshal(devUserUpload); err == nil {
+		if toPms_byte, err1 := json.Marshal(devUserUpload); err1 == nil {
 			// 需存入数据库
 			rabbitmq.Publish2pms(toPms_byte, "")
 		} else {
@@ -288,7 +288,7 @@ func parseData(hexData string) error {
 
 			// 结束日期
 			// 转10进制
-			mEDate := (int32(pdu.DevUserInfos[i].StartDate[0]) * 10000) + (int32(pdu.DevUserInfos[i].StartDate[1]) * 100) + int32(pdu.DevUserInfos[i].StartDate[2])
+			mEDate := (int32(pdu.DevUserInfos[i].EndDate[0]) * 10000) + (int32(pdu.DevUserInfos[i].EndDate[1]) * 100) + int32(pdu.DevUserInfos[i].EndDate[2])
 			strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
 			nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 			if nil != err3 {
@@ -324,13 +324,13 @@ func parseData(hexData string) error {
 			devUser.MyTime[1].Start = int32(nTimeSlot2_s)
 
 			// 时段2 - 结束
-			mTimeSlot2_e := (int32(pdu.DevUserInfos[i].TimeSlot2[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[3])
+			mTimeSlot2_e := (int32(pdu.DevUserInfos[i].TimeSlot2[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot2[3])
 			strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
 			nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			devUser.MyTime[1].Start = int32(nTimeSlot2_e)
+			devUser.MyTime[1].End = int32(nTimeSlot2_e)
 
 			// 时段3 - 开始
 			mTimeSlot3_s := (int32(pdu.DevUserInfos[i].TimeSlot3[0]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot3[1])
@@ -342,18 +342,18 @@ func parseData(hexData string) error {
 			devUser.MyTime[2].Start = int32(nTimeSlot3_s)
 
 			// 时段3 - 结束
-			mTimeSlot3_e := (int32(pdu.DevUserInfos[i].TimeSlot3[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot1[3])
+			mTimeSlot3_e := (int32(pdu.DevUserInfos[i].TimeSlot3[2]) * 100) + int32(pdu.DevUserInfos[i].TimeSlot3[3])
 			strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
 			nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 			if nil != err4 {
 				log.Error("parseData strconv.ParseInt, err4: ", err4)
 			}
-			devUser.MyTime[2].Start = int32(nTimeSlot3_e)
+			devUser.MyTime[2].End = int32(nTimeSlot3_e)
 
 			syncDevUser.UserList = append(syncDevUser.UserList, devUser)
 		}
 
-		if toPms_byte, err1 := json.Marshal(syncDevUser); err == nil {
+		if toPms_byte, err1 := json.Marshal(syncDevUser); err1 == nil {
 			rabbitmq.Publish2pms(toPms_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] toPms_byte json.Marshal, err=", err1)
@@ -383,7 +383,7 @@ func parseData(hexData string) error {
 		}
 
 		//2. 发送到PMS模块
-		if to_byte, err1 := json.Marshal(remoteOpenLockResp); err == nil {
+		if to_byte, err1 := json.Marshal(remoteOpenLockResp); err1 == nil {
 			if 0 != wlMsg.Ack {
 				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 			}
@@ -450,13 +450,30 @@ func parseData(hexData string) error {
 		uploadDevInfo.AlarmSwitch =	pdu.AlarmSwitch // 报警类型开关，0：关闭，1：拍照+录像，2：拍照
 		var byteData []byte
 		rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
+
+		// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
+		for m:=0;m<len(pdu.IpcSn);m++{
+			if m >= 16 {
+				break
+			}
+			byteData = append(byteData, pdu.IpcSn[m])
+		}
+		index := bytes.IndexByte(byteData, 0)
+		if -1 == index {
+			rbyf_pn = byteData[0:len(byteData)]
+		} else {
+			rbyf_pn = byteData[0:index]
+		}
+		uploadDevInfo.IpcSn = string(rbyf_pn[:])			// 视频设备（IPC）序列号
+
+		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.Ssid);m++{
 			if m >= 32 {
 				break
 			}
 			byteData =  append(byteData, pdu.Ssid[m])
 		}
-		index := bytes.IndexByte(byteData, 0)
+		index = bytes.IndexByte(byteData, 0)
 		if -1 == index {
 			rbyf_pn = byteData[0:len(byteData)]
 		} else {
@@ -467,7 +484,7 @@ func parseData(hexData string) error {
 
 		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.ProductId);m++{
-			if m >= 32 {
+			if m >= 12 {
 				break
 			}
 			byteData = append(byteData, pdu.ProductId[m])
@@ -479,21 +496,8 @@ func parseData(hexData string) error {
 			rbyf_pn = byteData[0:index]
 		}
 		uploadDevInfo.ProductID = string(rbyf_pn[:])		// 产品序列号
-		// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
-		byteData = byteData[0:0]
-		for m:=0;m<len(pdu.ProductId);m++{
-			if m >= 32 {
-				break
-			}
-			byteData = append(byteData, pdu.IpcSn[m])
-		}
-		index = bytes.IndexByte(byteData, 0)
-		if -1 == index {
-			rbyf_pn = byteData[0:len(byteData)]
-		} else {
-			rbyf_pn = byteData[0:index]
-		}
-		uploadDevInfo.IpcSn = string(rbyf_pn[:])			// 视频设备（IPC）序列号
+
+		uploadDevInfo.Capability = pdu.Capability			// 能力集
 
 		// 亿速码安全芯片相关参数
 		uploadDevInfo.UId =	"" 			// 安全芯片id
@@ -505,7 +509,7 @@ func parseData(hexData string) error {
 		uploadDevInfo.Unsupport = 0 		// 0-所有功能支持，1-临时用户时段不支持
 
 		//4. 发送到PMS模块
-		if to_byte, err1 := json.Marshal(uploadDevInfo); err == nil {
+		if to_byte, err1 := json.Marshal(uploadDevInfo); err1 == nil {
 			//producer.SendMQMsg2PMS(string(to_byte))
 			rabbitmq.Publish2pms(to_byte, "")
 		} else {
@@ -536,7 +540,7 @@ func parseData(hexData string) error {
 		}
 
 		//2. 发送到PMS模块
-		if to_byte, err1 := json.Marshal(lockParam); err == nil {
+		if to_byte, err1 := json.Marshal(lockParam); err1 == nil {
 			// 回复到APP
 			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
@@ -592,7 +596,7 @@ func parseData(hexData string) error {
 		}
 
 		//2. 发送到PMS模块
-		if to_byte, err1 := json.Marshal(lockParam); err == nil {
+		if to_byte, err1 := json.Marshal(lockParam); err1 == nil {
 			// 回复到APP
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 
@@ -616,7 +620,7 @@ func parseData(hexData string) error {
 		}
 
 		//2. 发送到PMS模块
-		if to_byte, err1 := json.Marshal(softReset); err == nil {
+		if to_byte, err1 := json.Marshal(softReset); err1 == nil {
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Soft_reset, err=", err1)
@@ -636,7 +640,7 @@ func parseData(hexData string) error {
 		}
 
 		//2. 发送到PMS模块
-		if to_byte, err1 := json.Marshal(factoryReset); err == nil {
+		if to_byte, err1 := json.Marshal(factoryReset); err1 == nil {
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 
 			// PMS初始化设备信息的参数
@@ -645,8 +649,8 @@ func parseData(hexData string) error {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Factory_reset, err=", err1)
 			return err1
 		}
-	case constant.Upload_open_log, constant.Uplocal_open_log:		// 用户开锁消息上报(0x40)(前板--->服务器) // 用户进入菜单上报(0x42)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_open_log, Uplocal_open_log")
+	case constant.Upload_open_log:	// 用户开锁消息上报(0x40)(前板--->服务器)
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData Upload_open_log")
 		pdu := &wlprotocol.OpenLockMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -685,10 +689,55 @@ func parseData(hexData string) error {
 			openLogUpload.LogList = append(openLogUpload.LogList, lockLog)
 		}
 
-		if to_byte, err1 := json.Marshal(openLogUpload); err == nil {
+		if to_byte, err1 := json.Marshal(openLogUpload); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
+
+			rabbitmq.Publish2mns(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Upload_open_log, Uplocal_open_log, err=", err1)
+			return err1
+		}
+	case constant.UpEnter_menu_log:	// 用户进入菜单上报(0x42)(前板--->服务器)
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.UpEnter_menu_log")
+		pdu := &wlprotocol.EnterMenuMsg{}
+		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
+		if nil != err {
+			log.Error("parseData UpEnter_menu_log pdu.Decode, err=", err)
+			return err
+		}
+
+		//2. 发送到PMS模块
+		enterMenuUpload := entity.UploadEnterMenuLog{
+			Cmd: int(wlMsg.Cmd),
+			Ack: int(wlMsg.Ack),
+			DevType: DEVICETYPE[wlMsg.Type],
+			DevId: wlMsg.DevId.Uuid,
+			Vendor: "general",
+			SeqId: int(wlMsg.SeqId),
+
+			UserVer: pdu.DevUserVer,
+			Battery: int(pdu.Battery),
+		}
+		var enterMenu entity.EnterMenu
+		enterMenu.UserId = pdu.UserNo 		// 设备用户ID
+		enterMenu.MainOpen = pdu.MainOpen 	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+		enterMenu.SubOpen = pdu.SubOpen   	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+		enterMenu.SinMul = pdu.SinMul			// 开门模式（1：表示单人模式, 2：表示双人模式）
+		enterMenu.Time = pdu.Time
+		enterMenuUpload.LogList = append(enterMenuUpload.LogList, enterMenu)
+		if 2 == pdu.SinMul { // 双人模式
+			enterMenu.UserId = pdu.UserNo2       	// 设备用户ID
+			enterMenu.MainOpen = pdu.MainOpen2   	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+			enterMenu.SubOpen = pdu.SubOpen2     	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+			enterMenu.SinMul = pdu.SinMul     	// 开门模式（1：表示单人模式, 2：表示双人模式）
+			enterMenu.Time = pdu.Time
+			enterMenuUpload.LogList = append(enterMenuUpload.LogList, enterMenu)
+		}
+
+		if to_byte, err1 := json.Marshal(enterMenuUpload); err1 == nil {
+			rabbitmq.Publish2pms(to_byte, "")
+		} else {
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.Uplocal_open_log, err=", err1)
 			return err1
 		}
 	case constant.Infrared_alarm, constant.Noatmpt_alarm, constant.Forced_break_alarm, constant.Fakelock_alarm, constant.Nolock_alarm:
@@ -712,10 +761,10 @@ func parseData(hexData string) error {
 
 			Time: pdu.Time,
 		}
-		if to_byte, err1 := json.Marshal(alarmMsg); err == nil {
+		if to_byte, err1 := json.Marshal(alarmMsg); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
 
-			// producer.SendMQMsg2Db(string(to_byte)) // MNS
+			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm to_byte json.Marshal, err=", err1)
 			return err1
@@ -741,8 +790,10 @@ func parseData(hexData string) error {
 			Value: int(pdu.Battery),
 			Time: pdu.Time,
 		}
-		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
+		if to_byte, err1 := json.Marshal(doorBellCall); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
+
+			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Low_battery_alarm, err=", err1)
 			return err1
@@ -769,7 +820,7 @@ func parseData(hexData string) error {
 			TimeId: int(pdu.MsgId),
 			PicName: pdu.PicPath,
 		}
-		if to_byte, err1 := json.Marshal(picUpload); err == nil {
+		if to_byte, err1 := json.Marshal(picUpload); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Lock_PIC_Upload, err=", err1)
@@ -803,7 +854,7 @@ func parseData(hexData string) error {
 		redis.SetActTimePool(wlMsg.DevId.Uuid, int64(deviceActive.Time))
 
 		//3. 发送
-		if to_byte, err1 := json.Marshal(deviceActive); err == nil {
+		if to_byte, err1 := json.Marshal(deviceActive); err1 == nil {
 			// 回复到APP
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 
@@ -832,8 +883,7 @@ func parseData(hexData string) error {
 
 			Act: pdu.Act,
 		}
-		if to_byte, err1 := json.Marshal(realVideo); err == nil {
-			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+		if to_byte, err1 := json.Marshal(realVideo); err1 == nil {
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Real_Video to_byte json.Marshal, err=", err1)
@@ -891,11 +941,26 @@ func parseData(hexData string) error {
 		}
 		setLockWiFi.WifiPwd = string(rbyf_pn[:])
 
-		if to_byte, err1 := json.Marshal(setLockWiFi); err == nil {
-			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
+		if to_byte, err1 := json.Marshal(setLockWiFi); err1 == nil {
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_Wifi to_byte json.Marshal, err=", err1)
+			return err1
+		}
+	case constant.Notify_Set_Wifi:
+		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Notify_Set_Wifi")
+		notifyHead := entity.Header {
+			Cmd: int(wlMsg.Cmd),
+			Ack: int(wlMsg.Ack),
+			DevType: DEVICETYPE[wlMsg.Type],
+			DevId: wlMsg.DevId.Uuid,
+			Vendor: "general",
+			SeqId: int(wlMsg.SeqId),
+		}
+		if to_byte, err1 := json.Marshal(notifyHead); err1 == nil {
+			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
+		} else {
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.Notify_Set_Wifi to_byte json.Marshal, err=", err1)
 			return err1
 		}
 	case constant.Door_Call:			// 门铃呼叫(0x38)(前板-->服务器)
@@ -918,10 +983,11 @@ func parseData(hexData string) error {
 
 			Time: pdu.Time,
 		}
-		if to_byte, err1 := json.Marshal(doorBellCall); err == nil {
-			//producer.SendMQMsg2PMS(string(to_byte))
+		if to_byte, err1 := json.Marshal(doorBellCall); err1 == nil {
+
 			rabbitmq.Publish2pms(to_byte, "")
-			// producer.SendMQMsg2Db(string(to_byte)) // MNS
+
+			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Door_Call to_byte json.Marshal, err=", err1)
 			return err1
@@ -948,7 +1014,7 @@ func parseData(hexData string) error {
 			State: pdu.State,
 		}
 
-		if to_byte, err1 := json.Marshal(doorState); err == nil {
+		if to_byte, err1 := json.Marshal(doorState); err1 == nil {
 			//2. 推到APP
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 

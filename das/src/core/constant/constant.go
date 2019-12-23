@@ -47,7 +47,7 @@ const (
 	// Factory_reset = 0x75		// 恢复出厂设置
 	Factory_reset   = 0xEA // 恢复出厂设置
 	Upload_open_log = 0x40 // 门锁开门日志上报
-	Uplocal_open_log = 0x42 // 用户进入菜单-门锁开门日志上报
+	UpEnter_menu_log = 0x42 // 用户进入菜单上报
 
 	// 报警
 	Noatmpt_alarm      = 0x20 // 非法操作报警
@@ -64,6 +64,7 @@ const (
 	// 视频设备
 	Real_Video = 0x36 // 实时视频
 	Set_Wifi   = 0x37 // Wifi设置
+	Notify_Set_Wifi   = 0x3A // 锁端Wifi设置成功通知
 	Door_Call  = 0x38 // 门铃呼叫
 
 	// 锁状态

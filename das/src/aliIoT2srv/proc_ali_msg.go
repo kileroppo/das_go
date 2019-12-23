@@ -2,7 +2,6 @@ package aliIot2srv
 
 import (
 	"strings"
-
 	"../core/constant"
 	"../core/log"
 	"../core/redis"
@@ -38,7 +37,7 @@ type AliIoTStatus struct {
 var DEVICETYPE = []string{"", "WlWiFiLock"}
 
 func ProcessAliMsg(data []byte, topic string) error {
-	log.Debugf("ali-topic: %s -> \n %s", topic, string(data))
+	log.Debugf("Receive ali-topic: %s -> \n %s", topic, string(data))
 	var err error
 	if strings.Contains(topic, "thing/event/property/post") { // 数据
 		var aliData AliIoTData

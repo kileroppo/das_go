@@ -92,7 +92,7 @@ func (o OnenetJob) Handle() {
 			var nTime int64
 			nTime = 0
 			if 1 == data.Msg.Status { // 设备上线
-				nTime = data.Msg.At / 1000
+				nTime = 1
 			} else if 0 == data.Msg.Status { // 设备离线
 				nTime = 0
 			}

@@ -142,7 +142,8 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 更新设备用户操作需要存到mongodb
 			if 0 == head.Ack {
 				//producer.SendMQMsg2Db(DValue)
-				rabbitmq.Publish2mns([]byte(DValue), "")
+				//rabbitmq.Publish2mns([]byte(DValue), "")
+				rabbitmq.Publish2pms([]byte(DValue), "")
 			}
 
 			//2. 回复设备
@@ -169,8 +170,41 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 设备用户同步
 			log.Info("[", head.DevId, "] constant.Sync_dev_user")
 			if 1 == head.Ack {
-				//producer.SendMQMsg2Db(DValue)
-				rabbitmq.Publish2mns([]byte(DValue), "")
+				//1. 解析Json串
+				var syncDevUserRespEx entity.SyncDevUserRespEx
+				if err := json.Unmarshal([]byte(DValue), &syncDevUserRespEx); err != nil {
+					log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
+					return err // break
+				}
+
+				//2.解析User_List中的值
+				syncDevUserResp := entity.SyncDevUserResp {
+					Cmd: syncDevUserRespEx.Cmd,
+					Ack: syncDevUserRespEx.Ack,
+					DevType: syncDevUserRespEx.DevType,
+					DevId: syncDevUserRespEx.DevId,
+					Vendor: syncDevUserRespEx.Vendor,
+					SeqId: syncDevUserRespEx.SeqId,
+
+					UserVer: syncDevUserRespEx.UserVer,
+					Num: syncDevUserRespEx.Num,
+				}
+
+				for i := 0; i < len(syncDevUserRespEx.UserList); i++ {
+					if 10 <= i { // 同步锁用户，一般不超过10个
+						break
+					}
+					var devUser entity.DevUser
+					devUser.ParseUser(syncDevUserRespEx.UserList[i])
+					syncDevUserResp.UserList = append(syncDevUserResp.UserList, devUser)
+				}
+
+				if toPms_byte, err1 := json.Marshal(syncDevUserResp); err1 == nil {
+					rabbitmq.Publish2pms(toPms_byte, "")
+				} else {
+					log.Error("[", head.DevId, "] toPms_byte json.Marshal, err=", err1)
+					return err1
+				}
 			}
 		}
 	case constant.Remote_open: // 远程开锁
@@ -186,6 +220,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			if 1 == head.Ack {
 				//producer.SendMQMsg2Db(DValue)
 				rabbitmq.Publish2mns([]byte(DValue), "")
+				rabbitmq.Publish2pms([]byte(DValue), "")
 			}
 		}
 	case constant.Upload_dev_info: // 上传设备信息
@@ -241,7 +276,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//3. 上传设备信息，需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
-			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 		}
 	case constant.Set_dev_para: // 设置设备参数
 		{
@@ -253,7 +288,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//2. 需要存到mongodb
 			if 1 == head.Ack {
 				//producer.SendMQMsg2Db(DValue)
-				rabbitmq.Publish2mns([]byte(DValue), "")
+				rabbitmq.Publish2pms([]byte(DValue), "")
 			}
 		}
 	case constant.Update_dev_para: // 设备参数更新上报
@@ -285,7 +320,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//3. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
-			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 		}
 	case constant.Active_Yisuma_SE: // 亿速码安全芯片激活(锁-后台-亿速码-后台->锁)
 		{
@@ -420,7 +455,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//2. 重置设备用户列表mongodb
 			//producer.SendMQMsg2Db(DValue)
-			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 
 			//3. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
@@ -431,7 +466,9 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Upload_open_log")
 
 			//1. 需要存到mongodb
-			//producer.SendMQMsg2Db(DValue)
+			rabbitmq.Publish2pms([]byte(DValue), "")
+
+			//mns推送到app
 			rabbitmq.Publish2mns([]byte(DValue), "")
 
 			//2. 回复到APP
@@ -444,6 +481,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Forced_break_alarm: // 强拆报警
@@ -452,6 +490,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Fakelock_alarm: // 假锁报警
@@ -460,6 +499,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Nolock_alarm: // 门未关报警
@@ -468,6 +508,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Low_battery_alarm: // 锁体的电池，低电量报警
@@ -476,6 +517,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Infrared_alarm: // 人体感应报警（infra红外感应)
@@ -485,6 +527,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//1. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 			sendMsg2pmsForSceneTrigger(head)
 		}
 	case constant.Lock_PIC_Upload: // 视频锁图片上报
@@ -493,7 +536,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//1. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
-			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 		}
 	case constant.Upload_lock_active: // 锁激活状态上报
 		{
@@ -587,6 +630,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//3. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 		}
 	case constant.Door_State: // 锁状态上报
 		{
@@ -616,7 +660,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//3. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
-			rabbitmq.Publish2mns([]byte(DValue), "")
+			rabbitmq.Publish2pms([]byte(DValue), "")
 		}
 	case constant.Notify_F_Upgrade: // 通知前板升级（APP—后台—>锁）
 		{

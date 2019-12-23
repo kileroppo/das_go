@@ -127,7 +127,7 @@ type SyncDevUserReq struct {
 	Num uint16 				`json:"num"`	// 每次请求10个
 }
 type DevUser struct {
-	UserId uint16 			`json:"userId"`    	// 设备用户ID
+	UserId uint16 		`json:"userId"`    	// 设备用户ID
 	UserType int 		`json:"userType"`   // 用户类型（0-管理员，1-普通用户，2-临时用户）
 	Finger int 			`json:"finger"`   	// 指纹数量
 	Ffinger int 		`json:"ffinger"`   	// 胁迫指纹数量
@@ -151,6 +151,18 @@ type SyncDevUserResp struct {
 	UserVer uint32 			`json:"userVer"`  	// 设备用户版本号
 	Num int 				`json:"num"`		// 返回锁体内的10个设备用户
 	UserList []DevUser		`json:"user_list"`	// 设备用户数组
+}
+type SyncDevUserRespEx struct {
+	Cmd     int    			`json:"cmd"`
+	Ack     int    			`json:"ack"`
+	DevType string 			`json:"devType"`
+	DevId   string 			`json:"devId"`
+	Vendor  string 			`json:"vendor"`
+	SeqId   int    			`json:"seqId"`
+
+	UserVer uint32 			`json:"userVer"`  	// 设备用户版本号
+	Num int 				`json:"num"`		// 返回锁体内的10个设备用户
+	UserList []string		`json:"user_list"`	// 设备用户数组
 }
 
 //7. 远程开锁
@@ -224,6 +236,8 @@ type UploadDevInfo struct {
 	WifiSsid string    		`json:"wifi_ssid"`		// wifi的ssid
 	BellSwitch uint8    	`json:"bell_switch"`	// 门铃开关 0：关闭，1：开启
 	ProductID string    	`json:"productID"`		// 产品序列号
+	Capability uint32		`json:"capability"`		// 能力集
+
 	// 说明：NB锁包含两个版本：1、基础NB版本，2、视频（IPC）的版本，含以下字段
 	IpcSn string    		`json:"ipc_sn"`			// 视频设备（IPC）序列号
 
@@ -280,10 +294,10 @@ type LockParam struct {
 //11. 主动上报门锁开门消息
 type OpenLockLog struct {
 	UserId    uint16 `json:"userId"`    // 设备用户ID
-	MainOpen  uint8 `json:"mainOpen"`  // 主开锁方式（1-密码，2-刷卡，3-指纹）
-	SubOpen   uint8 `json:"subOpen"`   // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
-	SinMul 	  uint8 `json:"sin_mul"`	 // 开门模式（1：表示单人模式, 2：表示双人模式）
-	Remainder uint16 `json:"remainder"` // 0表示成功，1表示失败
+	MainOpen  uint8 `json:"mainOpen"`  	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+	SubOpen   uint8 `json:"subOpen"`   	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+	SinMul 	  uint8 `json:"sin_mul"`	// 开门模式（1：表示单人模式, 2：表示双人模式）
+	Remainder uint16 `json:"remainder"` // 临时用户剩下能开门的次数,其他用户为0xffff
 	Time      int32 `json:"time"`
 }
 type UploadOpenLockLog struct {
@@ -300,7 +314,28 @@ type UploadOpenLockLog struct {
 	LogList []OpenLockLog	`json:"log_list"`	// 开锁日志
 }
 
-//12. 报警消息
+//12. 进入菜单消息
+type EnterMenu struct {
+	UserId    uint16 `json:"userId"`    // 设备用户ID
+	MainOpen  uint8 `json:"mainOpen"`  	// 主开锁方式（1-密码，2-刷卡，3-指纹）
+	SubOpen   uint8 `json:"subOpen"`   	// 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+	SinMul 	  uint8 `json:"sin_mul"`	// 开门模式（1：表示单人模式, 2：表示双人模式）
+	Time      int32 `json:"time"`
+}
+type UploadEnterMenuLog struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	UserVer uint32 	`json:"userVer"`   			// 设备用户版本号
+	Battery int	    `json:"battery"`			// 电池电量
+	LogList []EnterMenu	`json:"log_list"`		// 日志
+}
+
+//13. 报警消息
 type AlarmMsg struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -325,7 +360,7 @@ type AlarmMsgBatt struct {
 	Time    int32    `json:"time"`
 }
 
-//13. 锁激活状态上报
+//14. 锁激活状态上报
 type DeviceActive struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -348,7 +383,7 @@ type DeviceActiveResp struct {
 	Time int64 `json:"time"`
 }
 
-//14. 实时视频（APP->锁）
+//15. 实时视频（APP->锁）
 type RealVideoLock struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -360,7 +395,7 @@ type RealVideoLock struct {
 	Act uint8 		`json:"act"`	// 视频打开/关闭：1打开视频，0关闭视频
 }
 
-//15. Wifi设置（APP->锁，DB更新设备信息表）
+//16. Wifi设置（APP->锁，DB更新设备信息表）
 type SetLockWiFi struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -373,7 +408,7 @@ type SetLockWiFi struct {
 	WifiPwd string 		`json:"wifi_pwd"`	// WIFI密码
 }
 
-//16. 门铃呼叫（锁—后台—>APP）
+//17. 门铃呼叫（锁—后台—>APP）
 type DoorBellCall struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -385,7 +420,7 @@ type DoorBellCall struct {
 	Time int32 `json:"time"`
 }
 
-//17. 视频锁图片上报（锁—后台—>APP）
+//18. 视频锁图片上报（锁—后台—>APP）
 type PicUpload struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`
@@ -399,7 +434,7 @@ type PicUpload struct {
 	PicName string `json:"picName"`		// 抓拍图片名称，视频锁抓拍图片
 }
 
-//18. 锁状态上报(0x55)(后板->服务器)
+//19. 锁状态上报(0x55)(后板->服务器)
 type DoorStateUpload struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`

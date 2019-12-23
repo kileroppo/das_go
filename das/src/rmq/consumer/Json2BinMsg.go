@@ -282,7 +282,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Real_Video: // 实时视频
-		log.Info("[", head.DevId, "] constant.Upload_lock_active")
+		log.Info("[", head.DevId, "] constant.Real_Video")
 
 		var realVideo entity.RealVideoLock
 		if err := json.Unmarshal([]byte(jsonMsg), &realVideo); err != nil {
@@ -351,7 +351,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 }
 
 func convertHexDateTime(data int32) int32 {
-	dDateTime, err := strconv.ParseUint(strconv.FormatInt(int64(data), 10), 16, 32)
+	dDateTime, err := strconv.ParseUint(strconv.FormatInt(int64(data), 16), 10, 32)
 	if err != nil {
 		log.Error("convertHexDateTime, err: ", err)
 	}

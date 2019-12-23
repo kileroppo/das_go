@@ -72,13 +72,19 @@ func (a AliDataHandle) HandleHeadersFrame(f *http2.HeadersFrame) {
 }
 
 func (a AliDataHandle) HandleDataFrame(f *http2.DataFrame) {
-	log.Debug("HandleDataFrame() start...")
+	//log.Debug("HandleDataFrame() start...")
 	data, ok := a.dataMap[f.StreamID]
 
 	msg := make([]byte, len(f.Data()))
 	copy(msg, f.Data())
 
 	//log.Debug("receive data: ", string(msg))
+
+	if f.Length > 0 {
+		//log.Debugf("WriteWindowUpdate: %d", f.Length)
+		a.cli.framer.WriteWindowUpdate(0, uint32(f.Length))
+		a.cli.bw.Flush()
+	}
 
 	if ok {
 		if f.StreamEnded() {
@@ -92,13 +98,12 @@ func (a AliDataHandle) HandleDataFrame(f *http2.DataFrame) {
 					Topic:data.topic,
 				}
 			}
-
 		} else {
 			data.rawData = append(data.rawData, msg...)
 			a.dataMap[f.StreamID] = data
 		}
 	} else {
-		log.Warningf("DataFrame %d did not match any HeadersFrame", f.StreamID)
+		log.Warningf("DataFrame %d: %s did not match any HeadersFrame", f.StreamID, string(msg))
 	}
 
 	//log.Debug("dataMap len: ", len(a.dataMap))
@@ -108,9 +113,9 @@ func (a AliDataHandle) writeAck(data aliFrameData) {
 	//urlData,_ := url.Parse(a.cli.rawurl)
 	request, _ := http.NewRequest("GET", a.cli.rawurl, nil)
 	request.Header.Set("x-message-id", data.msgId)
-	request.Header.Set("x-sdk-version", "1.1.4")
-	request.Header.Set("x-sdk-version-name", "v1.1.4")
-	request.Header.Set("x-sdk-platform", "java")
+	//request.Header.Set("x-sdk-version", "1.1.4")
+	//request.Header.Set("x-sdk-version-name", "v1.1.4")
+	//request.Header.Set("x-sdk-platform", "java")
 
 	var err error
 	log.Infof("Send Ack for streamId %d", data.streamId)
@@ -127,7 +132,7 @@ func (a AliDataHandle) writeAck(data aliFrameData) {
 
 	//a.readHeader(bf)
 
-	//a.cli.bw.Flush()
+	a.cli.bw.Flush()
 	err = a.cli.framer.WriteHeaders(http2.HeadersFrameParam{
 		StreamID:      data.streamId+1,
 		BlockFragment: blockFragment,

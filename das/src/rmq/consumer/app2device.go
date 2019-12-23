@@ -51,10 +51,13 @@ func Run() {
 func consume() {
 	msgs, err := rabbitmq.Consumer2appMQ.Consumer()
 	if err != nil {
-		log.Error("Consumer2appMQ() error = ", err)
-		rabbitmq.Consumer2appMQ.ReConn()
-		go consume()
-		return
+		log.Error("Consumer2appMQ.Consumer() error = ", err)
+		if err = rabbitmq.Consumer2appMQ.ReConn(); err != nil {
+			log.Warningf("Consumer2appMQ Reconnection Failed")
+			return
+		}
+		log.Debug("Consumer2appMQ Reconnection Successful")
+		msgs, err = rabbitmq.Consumer2appMQ.Consumer()
 	}
 
 	for msg := range msgs {
@@ -67,8 +70,8 @@ func consume() {
 		log.Info("ReceiveMQMsgFromAPP Close")
 		return
 	default:
-		rabbitmq.Consumer2appMQ.ReConn()
 		go consume()
+		return
 	}
 }
 
