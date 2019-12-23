@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"./aliIoT2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
@@ -42,15 +41,15 @@ func main() {
 	go wifi2srv.Run()
 
 	//11. 启动ali IOT推送接收服务
-	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliSrv.Run()
+	//TODO:JHHE aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
+	//TODO:JHHE aliSrv.Run()
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
-	
+
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -76,7 +75,7 @@ func main() {
 
 	}
 	// 关闭阿里云IOT推送接收服务
-	aliSrv.Close()
+	//TODO:JHHE aliSrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
