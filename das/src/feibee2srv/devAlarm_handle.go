@@ -214,11 +214,11 @@ type DoorMagneticSensorAlarm struct {
 func (self *DoorMagneticSensorAlarm) PushMsg() {
 	self.parseAlarmMsg()
 	if self.alarmType == "1" {
-		self.alarmVal = "开门"
+		self.alarmVal = "开启"
 		self.alarmType = "doorContact"
 		self.alarmFlag = 1
 	} else if self.alarmType == "0" {
-		self.alarmVal = "关门"
+		self.alarmVal = "关闭"
 		self.alarmType = "doorContact"
 		self.alarmFlag = 0
 	}
