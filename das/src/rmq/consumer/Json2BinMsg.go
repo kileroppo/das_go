@@ -225,7 +225,7 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 			pwd2 := []byte(remoteOpen.Passwd2)
 			for i := 0; i < len(pwd2); i++ {
 				if i < 6 {
-					pdu.Passwd2[i] = pwd[i]
+					pdu.Passwd2[i] = pwd2[i]
 				}
 			}
 		}
