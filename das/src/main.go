@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"./aliIot2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
@@ -41,8 +42,8 @@ func main() {
 	go wifi2srv.Run()
 
 	//11. 启动ali IOT推送接收服务
-	//TODO:JHHE aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
-	//TODO:JHHE aliSrv.Run()
+	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
+	aliSrv.Run()
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
@@ -75,7 +76,7 @@ func main() {
 
 	}
 	// 关闭阿里云IOT推送接收服务
-	//TODO:JHHE aliSrv.Close()
+	aliSrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
