@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"./aliIot2srv"
+	"./aliIoT2srv"
 	"./core/log"
 	"./core/rabbitmq"
 	"./core/redis"
