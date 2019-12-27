@@ -1,8 +1,8 @@
 package feibee2srv
 
 import (
-	"../core/entity"
-	"../core/log"
+	"das/core/entity"
+	"das/core/log"
 )
 
 func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {

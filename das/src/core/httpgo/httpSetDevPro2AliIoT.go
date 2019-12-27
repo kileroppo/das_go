@@ -1,8 +1,6 @@
 package httpgo
 
 import (
-	"../go-aliyun-sign"
-	"../log"
 	"bytes"
 	"errors"
 	"io/ioutil"
@@ -10,7 +8,10 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"../redis"
+
+	"das/core/redis"
+	"das/core/go-aliyun-sign"
+	"das/core/log"
 )
 //{"code":200,"data":{"isolationId":"a103HWXIkjOlEuzM","expireIn":7200000,"cloudToken":"2b796e0a78a444f084c5512b29dbc37e"},"id":"1509086454181"}
 type aliData struct {

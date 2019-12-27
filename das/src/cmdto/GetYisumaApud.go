@@ -1,8 +1,8 @@
 package cmdto
 
 import (
-	"../core/entity"
-	"../core/httpgo"
+	"das/core/entity"
+	"das/core/httpgo"
 )
 
 func GetYisumaApud(reqBody entity.YisumaHttpsReq) (respBody string, err error) {

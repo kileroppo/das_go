@@ -8,14 +8,14 @@ import (
 	"strings"
 	"time"
 
-	"../../core/constant"
-	"../../core/entity"
-	"../../core/httpgo"
-	"../../core/log"
-	"../../core/rabbitmq"
-	"../../core/redis"
-	"../../core/util"
-	"../producer"
+	"das/core/constant"
+	"das/core/entity"
+	"das/core/httpgo"
+	"das/core/log"
+	"das/core/rabbitmq"
+	"das/core/redis"
+	"das/core/util"
+	"das/rmq/producer"
 )
 
 /*

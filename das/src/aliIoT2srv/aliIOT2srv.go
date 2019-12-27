@@ -8,12 +8,12 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"../core/entity"
-	"../core/h2client"
-	"../core/httpgo"
-	"../core/jobque"
-	"../core/log"
-	"../core/rabbitmq"
+	"das/core/entity"
+	"das/core/h2client"
+	"das/core/httpgo"
+	"das/core/jobque"
+	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 var (

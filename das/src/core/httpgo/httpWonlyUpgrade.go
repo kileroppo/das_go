@@ -1,12 +1,13 @@
 package httpgo
 
 import (
-	"../log"
 	"bytes"
 	"io/ioutil"
 	"net"
 	"net/http"
 	"time"
+
+	"das/core/log"
 )
 
 func Http2WonlyUpgrade(devType string) (b []byte, err error) {

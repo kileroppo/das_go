@@ -4,12 +4,12 @@ import (
 	"context"
 	"strings"
 
-	"../core/constant"
-	"../core/jobque"
-	"../core/log"
-	"../core/rabbitmq"
-	"../core/redis"
-	"../procnbmsg"
+	"das/core/constant"
+	"das/core/jobque"
+	"das/core/log"
+	"das/core/rabbitmq"
+	"das/core/redis"
+	"das/procnbmsg"
 )
 
 var rmq_uri string

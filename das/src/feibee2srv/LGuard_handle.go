@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"errors"
 
-	"../core/entity"
+	"das/core/entity"
 	)
 
 var ErrParseRawData = errors.New("WonlyLGuard parse rawData error")

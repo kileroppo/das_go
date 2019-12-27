@@ -2,10 +2,12 @@ package redis
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/dlintw/goconf"
 	"github.com/garyburd/redigo/redis"
 	goredis "github.com/go-redis/redis"
-	"time"
+
 )
 
 var (

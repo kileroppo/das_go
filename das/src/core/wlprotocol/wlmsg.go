@@ -3,9 +3,10 @@ package wlprotocol
 import (
 	"bytes"
 	"encoding/binary"
-	"../log"
-	"../util"
 	"errors"
+
+	"das/core/log"
+	"das/core/util"
 )
 
 /*

@@ -1,22 +1,22 @@
 package main
 
 import (
-	"github.com/dlintw/goconf"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"./aliIoT2srv"
-	"./core/log"
-	"./core/rabbitmq"
-	"./core/redis"
-	"./dindingtask"
-	"./feibee2srv"
-	"./onenet2srv"
-	"./rmq/consumer"
-	"./wifi2srv"
+	"github.com/dlintw/goconf"
+
+	"das/aliIoT2srv"
+	"das/core/log"
+	"das/core/rabbitmq"
+	"das/core/redis"
+	"das/feibee2srv"
+	"das/onenet2srv"
+	"das/rmq/consumer"
+	"das/wifi2srv"
 )
 
 func main() {
@@ -98,9 +98,6 @@ func main() {
 		log.Error("feibee2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
-
-	// 21. 停止定时器
-	dindingtask.StopMyTimer()
 
 	log.Info("das_go server quit......")
 }

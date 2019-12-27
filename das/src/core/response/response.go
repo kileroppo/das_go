@@ -1,8 +1,9 @@
 package response
 
 import (
-	"../util"
 	"net/http"
+
+	"das/core/util"
 )
 
 type Response struct {

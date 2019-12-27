@@ -2,9 +2,10 @@ package aliIot2srv
 
 import (
 	"strings"
-	"../core/constant"
-	"../core/log"
-	"../core/redis"
+
+	"das/core/constant"
+	"das/core/log"
+	"das/core/redis"
 )
 
 type AliData struct {

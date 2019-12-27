@@ -5,7 +5,7 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"../log"
+	"das/core/log"
 )
 
 var (

@@ -10,9 +10,9 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"../core/entity"
-	"../core/jobque"
-	"../core/log"
+	"das/core/entity"
+	"das/core/jobque"
+	"das/core/log"
 )
 
 type FeibeeJob struct {

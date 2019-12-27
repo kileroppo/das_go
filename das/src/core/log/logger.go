@@ -14,7 +14,7 @@ import (
 	"github.com/dlintw/goconf"
 	"github.com/op/go-logging"
 
-	"../file"
+	"das/core/file"
 )
 
 const MaxFileCap = 1024 * 1024 * 35

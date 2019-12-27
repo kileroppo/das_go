@@ -1,8 +1,9 @@
 package jobque
 
 import (
-	"../log"
 	"runtime"
+
+	"das/core/log"
 )
 
 var (

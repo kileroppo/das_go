@@ -2,6 +2,7 @@ package mongodb
 
 import (
 	"fmt"
+
 	"github.com/dlintw/goconf"
 	"gopkg.in/mgo.v2"
 )
