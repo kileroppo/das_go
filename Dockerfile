@@ -9,7 +9,7 @@ RUN go env -w GOPROXY=https://goproxy.cn,direct \
 
 FROM alpine:3.7
 WORKDIR /www/wonly/DAS_go/
-COPY --from=builder /tmp/das/bin/das.bin /tmp/das/src/*.ini /www/wonly/DAS_go/
+COPY --from=builder /tmp/das/bin/das.bin /tmp/das/src/*.ini tmp/das/src/cert/ /www/wonly/DAS_go/
 COPY supervisord.conf /etc/supervisord.conf
 
 RUN echo "http://mirrors.aliyun.com/alpine/v3.7/main/" > /etc/apk/repositories \
