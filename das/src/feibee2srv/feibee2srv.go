@@ -120,7 +120,7 @@ func NewFeibeeData(data []byte) (FeibeeData, error) {
 	return feibeeData, nil
 }
 
-func (f FeibeeData) isDataValid() bool {
+func (f *FeibeeData) isDataValid() bool {
 	if f.data.Status != "" && f.data.Ver != "" {
 		switch f.data.Code {
 		case 3, 4, 5, 7, 10, 12:
@@ -142,7 +142,7 @@ func (f FeibeeData) isDataValid() bool {
 	return false
 }
 
-func (f FeibeeData) push2MQ() {
+func (f *FeibeeData) push2MQ() {
 	//飞比推送数据条数 分条处理
 	datas := splitFeibeeMsg(f.data)
 

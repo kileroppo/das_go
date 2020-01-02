@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -23,7 +24,6 @@ var m_FileName string
 var m_PathName string
 
 var (
-	LogSurvivalDays = 7 //单位：天
 	Conf            = loadConfig()
 )
 
@@ -148,16 +148,14 @@ func AutoClearLogFiles(logsDirPath string) {
 			}
 		}
 
-		survivalDays := 0
-		if LogSurvivalDays <= 5 {
-			survivalDays = 5
-		} else {
-			survivalDays = LogSurvivalDays
+		logSaveDay,err := Conf.GetInt("server", "log_save_day")
+		if err != nil || logSaveDay <= 0 {
+			logSaveDay = 7
 		}
 
-		if len(logDir) >= survivalDays {
+		if len(logDir) >= logSaveDay {
 			sort.Ints(logDir)
-			for i := 0; i < len(logDir)-survivalDays; i++ {
+			for i := 0; i < len(logDir)-logSaveDay; i++ {
 				fileDirName := fmt.Sprintf("%s/%d", logsDirPath, logDir[i])
 				os.RemoveAll(fileDirName)
 			}
@@ -175,5 +173,12 @@ func loadConfig() *goconf.ConfigFile {
 		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
 		os.Exit(1)
 	}
+
+	confPath, err := filepath.Abs(*conf_file)
+	if err != nil {
+		panic(fmt.Sprint("goconfig.LoadConfigFile() error = ", err))
+	}
+
+	fmt.Println("读取配置文件：", confPath)
 	return conf
 }
