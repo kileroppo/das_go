@@ -51,9 +51,9 @@ func ProcessAliMsg(data []byte, topic string) error {
 		redis.SetDevicePlatformPool(aliData.DeviceName, constant.ALIIOT_PLATFORM)
 
 		// 数据解析
-		err = parseData(aliData.Items.UserData.Value)
+		err = ParseData(aliData.Items.UserData.Value)
 		if nil != err {
-			log.Error("ProcessAliMsg parseData, err=", err)
+			log.Error("ProcessAliMsg ParseData, err=", err)
 			return err
 		}
 	} else if strings.Contains(topic, "mqtt/status") { // 在线|离线状态

@@ -8,6 +8,7 @@ import (
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
+	aliIot2srv "das/aliIoT2srv"
 )
 
 type MsgType int32
@@ -29,7 +30,7 @@ const (
 	InfraredTreasure //红外宝
 	WonlyLGuard      //小卫士
 	SceneSwitch      //情景开关
-	ZigbeeLock       //飞比zigbee锁
+	ZigbeeLock       //zigbee锁
 )
 
 var (
@@ -444,7 +445,10 @@ func (self ZigbeeLockHandle) pushByMsgType() {
 }
 
 func (self ZigbeeLockHandle) PushMsg() {
-
+    //todo: parse data and handle
+    if err := aliIot2srv.ParseData(self.data.Records[0].Value); err != nil {
+    	log.Warning("ZigbeeLockHandle PushMsg() error = ", err)
+	}
 }
 
 func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, bindid string) {

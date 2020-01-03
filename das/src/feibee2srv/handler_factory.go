@@ -43,6 +43,7 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 			data: data,
 		}
 	case ZigbeeLock:
+		msgHandle = ZigbeeLockHandle{data:data,}
 
 	default:
 		msgHandle = nil
@@ -84,8 +85,8 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 		if data.Records[0].Deviceid == 779 {
 			//小卫士
 			typ = WonlyLGuard
-		} else if data.Records[0].Deviceid == 0xa {
-			//飞比zigbee锁
+		} else if data.Records[0].Deviceid == 0xa && data.Records[0].Zonetype == 0x1 {
+			//zigbee锁
 			typ = ZigbeeLock
 		} else if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
 			typ = ManualOpDev
