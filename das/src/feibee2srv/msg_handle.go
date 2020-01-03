@@ -473,6 +473,10 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 		switch msgType {
 		case NewDev:
 			res.OpType = "newDevice"
+			//新入网设备online字段默认为1
+			if res.Online <= 0 {
+				res.Online = 1
+			}
 		case DevOnline:
 			res.OpType = "newOnline"
 		case DevDelete:
