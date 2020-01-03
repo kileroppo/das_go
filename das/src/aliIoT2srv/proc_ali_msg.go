@@ -35,7 +35,7 @@ type AliIoTStatus struct {
 	Status     AliData `json:"status"`
 }
 
-var DEVICETYPE = []string{"", "WlWiFiLock"}
+var DEVICETYPE = []string{"", "WlWiFiLock", "WlZigbeeLock"}
 
 func ProcessAliMsg(data []byte, topic string) error {
 	log.Debugf("Receive ali-topic: %s -> \n %s", topic, string(data))
