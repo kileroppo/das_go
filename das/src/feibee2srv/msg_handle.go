@@ -396,6 +396,11 @@ func (self *WonlyLGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, 
 	res.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
 
 	res.OpType = "newDevice"
+
+	if res.Online <= 0 {
+		res.Online = 1
+	}
+
 	routingKey = self.data.Msg[0].Bindid
 
 	return
