@@ -10,40 +10,40 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 	switch typ {
 
 	case NewDev, DevOnline, DevRename, DevDelete, ManualOpDev, DevDegree:
-		msgHandle = NormalMsgHandle{
+		msgHandle = &NormalMsgHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case GtwOnline, RemoteOpDev:
-		msgHandle = GtwMsgHandle{
+		msgHandle = &GtwMsgHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case SensorAlarm:
-		msgHandle = SensorMsgHandle{
+		msgHandle = &SensorMsgHandle{
 			data: data,
 		}
 
 	case InfraredTreasure:
-		msgHandle = InfraredTreasureHandle{
+		msgHandle = &InfraredTreasureHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case WonlyLGuard:
-		msgHandle = WonlyLGuardHandle{
+		msgHandle = &WonlyLGuardHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case SceneSwitch:
-		msgHandle = SceneSwitchHandle{
+		msgHandle = &SceneSwitchHandle{
 			data: data,
 		}
 	case ZigbeeLock:
-		msgHandle = ZigbeeLockHandle{data:data,}
+		msgHandle = &ZigbeeLockHandle{data:data,}
 
 	default:
 		msgHandle = nil
