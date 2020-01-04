@@ -298,8 +298,8 @@ type WonlyLGuardHandle struct {
 func (self *WonlyLGuardHandle) pushMsgByType() {
 
 	switch self.data.Code {
-	//设备入网
-	case 3:
+	//设备入网 设备删除
+	case 3, 5:
 		msg2pms := self.createMsg2PMS()
 		data2pms, err := json.Marshal(msg2pms)
 		if err != nil {
@@ -308,15 +308,14 @@ func (self *WonlyLGuardHandle) pushMsgByType() {
 			rabbitmq.Publish2pms(data2pms, "")
 		}
 
-		msg2app, routingKey, err := self.createNewDevMsg2App()
-		if err != nil {
-			log.Warning(err)
-			return
-		}
-
+		msg2app, routingKey, bindid := self.createNewDevMsg2App()
 		data2app, err := json.Marshal(msg2app)
 		if err != nil {
 			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
+			return
+		}
+		if self.data.Code == 3 {
+			rabbitmq.PublishGuard2app(data2app, bindid)
 		} else {
 			rabbitmq.PublishGuard2app(data2app, routingKey)
 		}
@@ -334,14 +333,6 @@ func (self *WonlyLGuardHandle) pushMsgByType() {
 			rabbitmq.Publish2mns(data2mns, "")
 			rabbitmq.Publish2app(data2mns, routingKey)
 		}
-
-		//msg2pms := self.createMsg2PMS()
-		//data2pms, err := json.Marshal(msg2pms)
-		//if err != nil {
-		//	log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
-		//} else {
-		//	rabbitmq.Publish2pms(data2pms, "")
-		//}
 	}
 }
 
@@ -378,30 +369,12 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, r
 	return
 }
 
-func (self *WonlyLGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, routingKey string, err error) {
-	if len(self.data.Msg) <= 0 {
-		err = ErrMsgStruct
-		return
+func (self *WonlyLGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, routingKey,bindid string) {
+	if self.data.Code == 3 {
+		res, routingKey, bindid = createMsg2App(self.data, NewDev)
+	} else {
+		res, routingKey, bindid = createMsg2App(self.data, DevDelete)
 	}
-	res.Cmd = 0xfb
-	res.Ack = 0
-	res.Vendor = "feibee"
-	res.SeqId = 1
-	res.Time = int(time.Now().Unix())
-
-	res.Battery = self.data.Msg[0].Battery
-	res.Devid = self.data.Msg[0].Uuid
-	res.Deviceuid = self.data.Msg[0].Deviceuid
-	res.Online = self.data.Msg[0].Online
-	res.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
-
-	res.OpType = "newDevice"
-
-	if res.Online <= 0 {
-		res.Online = 1
-	}
-
-	routingKey = self.data.Msg[0].Bindid
 
 	return
 }
