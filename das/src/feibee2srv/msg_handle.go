@@ -298,8 +298,8 @@ type WonlyLGuardHandle struct {
 func (self *WonlyLGuardHandle) pushMsgByType() {
 
 	switch self.data.Code {
-	//设备入网 设备删除
-	case 3, 5:
+	//设备入网 设备在网状态 设备删除
+	case 3, 4, 5:
 		msg2pms := self.createMsg2PMS()
 		data2pms, err := json.Marshal(msg2pms)
 		if err != nil {
