@@ -24,7 +24,7 @@ var m_FileName string
 var m_PathName string
 
 var (
-	Conf            = loadConfig()
+	Conf = loadConfig()
 )
 
 var (
@@ -148,7 +148,7 @@ func AutoClearLogFiles(logsDirPath string) {
 			}
 		}
 
-		logSaveDay,err := Conf.GetInt("server", "log_save_day")
+		logSaveDay, err := Conf.GetInt("server", "log_save_day")
 		if err != nil || logSaveDay <= 0 {
 			logSaveDay = 7
 		}
@@ -168,6 +168,11 @@ func AutoClearLogFiles(logsDirPath string) {
 func loadConfig() *goconf.ConfigFile {
 	conf_file := flag.String("config", "./das.ini", "设置配置文件.")
 	flag.Parse()
+
+	//var conf_file *string
+	//var tmp = "./das.ini"
+	//conf_file = &tmp
+
 	conf, err := goconf.ReadConfigFile(*conf_file)
 	if err != nil {
 		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)

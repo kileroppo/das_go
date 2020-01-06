@@ -43,7 +43,7 @@ type MsgHandler interface {
 
 //设备入网 设备离上线 设备删除 设备重命名
 type NormalMsgHandle struct {
-	data    entity.FeibeeData
+	data    *entity.FeibeeData
 	msgType MsgType
 }
 
@@ -84,7 +84,7 @@ func (self *NormalMsgHandle) PushMsg() {
 }
 
 type GtwMsgHandle struct {
-	data    entity.FeibeeData
+	data    *entity.FeibeeData
 	msgType MsgType
 }
 
@@ -123,7 +123,7 @@ func (self *GtwMsgHandle) PushMsg() {
 }
 
 type SensorMsgHandle struct {
-	data entity.FeibeeData
+	data *entity.FeibeeData
 }
 
 func (self *SensorMsgHandle) PushMsg() {
@@ -142,7 +142,7 @@ type RemoteOpMsgHandle struct {
 }
 
 type InfraredTreasureHandle struct {
-	data    entity.FeibeeData
+	data    *entity.FeibeeData
 	msgType MsgType
 }
 
@@ -291,7 +291,7 @@ func (self *InfraredTreasureHandle) parseValue(start, end int) (res string) {
 }
 
 type WonlyLGuardHandle struct {
-	data    entity.FeibeeData
+	data    *entity.FeibeeData
 	msgType MsgType
 }
 
@@ -380,7 +380,7 @@ func (self *WonlyLGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, 
 }
 
 type SceneSwitchHandle struct {
-	data entity.FeibeeData
+	data *entity.FeibeeData
 }
 
 func (self *SceneSwitchHandle) PushMsg() {
@@ -402,7 +402,7 @@ func (self *SceneSwitchHandle) createSceneMsg2pms() (res entity.FeibeeAutoScene2
 }
 
 type ZigbeeLockHandle struct {
-	data entity.FeibeeData
+	data *entity.FeibeeData
 }
 
 func (self *ZigbeeLockHandle) pushByMsgType() {
@@ -432,7 +432,7 @@ func (self *ZigbeeLockHandle) PushMsg() {
 	}
 }
 
-func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, routingKey,bindid string) {
+func createMsg2App(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, routingKey,bindid string) {
 	res.Cmd = 0xfb
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -513,12 +513,12 @@ func createMsg2App(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2A
 	return
 }
 
-func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2PMS) {
+func createMsg2pms(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2PMS) {
 	res.Cmd = 0xfa
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
-	res.FeibeeData = data
+	res.FeibeeData = *data
 
 	switch msgType {
 
@@ -560,7 +560,7 @@ func createMsg2pms(data entity.FeibeeData, msgType MsgType) (res entity.Feibee2P
 	return
 }
 
-func createSceneMsg2pms(data entity.FeibeeData, alarmValue, alarmType string) (res entity.FeibeeAutoScene2pmsMsg) {
+func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (res entity.FeibeeAutoScene2pmsMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -595,7 +595,7 @@ func devTypeConv(devId, zoneType int) string {
 	return "0x" + pre + tail
 }
 
-func isDevAlarm(data entity.FeibeeData) bool {
+func isDevAlarm(data *entity.FeibeeData) bool {
 
 	if data.Records[0].Cid == 1280 && data.Records[0].Aid == 128 {
 		return true

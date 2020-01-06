@@ -27,17 +27,12 @@ func init() {
 func DoHTTPReq(req *http.Request) (respData []byte, err error) {
 	resp, err := feibeeHTTPClient.Do(req)
 	if err != nil {
-		log.Warning("DoHTTPReq() error = ", err)
+		log.Error("DoHTTPReq() error = ", err)
 		return
 	}
 
-	if resp.StatusCode != 200 {
-	    err = ErrBadResp
-	    return
-	}
-
 	respData,err = ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
+	resp.Body.Close()
 
 	return
 }

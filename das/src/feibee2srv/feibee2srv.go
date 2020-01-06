@@ -144,10 +144,10 @@ func (f *FeibeeData) isDataValid() bool {
 
 func (f *FeibeeData) push2MQ() {
 	//飞比推送数据条数 分条处理
-	datas := splitFeibeeMsg(f.data)
+	datas := splitFeibeeMsg(&f.data)
 
 	for _, data := range datas {
-		msgHandle := MsgHandleFactory(data)
+		msgHandle := MsgHandleFactory(&data)
 		if msgHandle == nil {
 			return
 		}
@@ -156,7 +156,7 @@ func (f *FeibeeData) push2MQ() {
 
 }
 
-func splitFeibeeMsg(data entity.FeibeeData) (datas []entity.FeibeeData) {
+func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 
 	switch data.Code {
 	case 3, 4, 5, 7, 12, 10:

@@ -5,7 +5,7 @@ import (
 	"das/core/log"
 )
 
-func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
+func MsgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 	typ := getMsgType(data)
 	switch typ {
 
@@ -43,7 +43,9 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 			data: data,
 		}
 	case ZigbeeLock:
-		msgHandle = &ZigbeeLockHandle{data:data,}
+		msgHandle = &ZigbeeLockHandle{
+			data:data,
+		}
 
 	default:
 		msgHandle = nil
@@ -52,7 +54,7 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 	return
 }
 
-func getMsgType(data entity.FeibeeData) (typ MsgType) {
+func getMsgType(data *entity.FeibeeData) (typ MsgType) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Warning(ErrMsgStruct)
@@ -103,7 +105,7 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 	return
 }
 
-func DevAlarmFactory(feibeeData entity.FeibeeData) (res MsgHandler) {
+func DevAlarmFactory(feibeeData *entity.FeibeeData) (res MsgHandler) {
 	res = nil
 
 	if len(feibeeData.Records) <= 0 {
@@ -115,14 +117,14 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res MsgHandler) {
 		//光照度传感器
 		res = &IlluminanceSensorAlarm{
 			BaseSensorAlarm{
-				feibeeMsg: feibeeData,
+				feibeeMsg: *feibeeData,
 			},
 		}
 	case 0x0302:
 		//温湿度传感器
 		res = &TemperAndHumiditySensorAlarm{
 			BaseSensorAlarm{
-				feibeeMsg: feibeeData,
+				feibeeMsg: *feibeeData,
 			},
 		}
 	case 0x0402:
@@ -132,45 +134,45 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res MsgHandler) {
 			//人体红外传感器
 			res = &InfraredSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x0015:
 			//门磁传感器
 			res = &DoorMagneticSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x0028:
 			//烟雾传感器
 			res = &SmokeSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x002A:
 			//水浸传感器
 			res = &FloodSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x002B:
 			//可燃气体传感器
 			res = &GasSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		default:
 			res = &BaseSensorAlarm{
-				feibeeMsg: feibeeData,
+				feibeeMsg: *feibeeData,
 			}
 		}
 	default:
 		res = &BaseSensorAlarm{
-			feibeeMsg: feibeeData,
+			feibeeMsg: *feibeeData,
 		}
 	}
 	return
