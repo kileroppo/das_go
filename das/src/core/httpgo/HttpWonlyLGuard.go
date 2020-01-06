@@ -1,9 +1,6 @@
 package httpgo
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
 	"encoding/hex"
 	"strings"
 
@@ -16,17 +13,17 @@ import (
 
 var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-func Http2FeibeeWonlyGuard(appData string) {
+func Http2FeibeeWonlyLGuard(appData string) {
 	defer func() {
 		if err:=recover();err != nil {
-			log.Error("Http2FeibeeWonlyGuard error = ", err)
+			log.Error("Http2FeibeeWonlyLGuard() error = ", err)
 			return
 		}
 	}()
 
 	var msg entity.WonlyGuardMsgFromApp
 	if err := json.Unmarshal([]byte(appData), &msg); err != nil {
-		log.Warning("Http2FeibeeWonlyGuard json.Unmarshal() error = ", err)
+		log.Warning("Http2FeibeeWonlyLGuard json.Unmarshal() error = ", err)
 		return
 	}
 	log.Infof("Send WonlyGuard '%s' control to feibee", msg.Devid)
@@ -39,13 +36,13 @@ func Http2FeibeeWonlyGuard(appData string) {
 	reqMsg.Bindid = msg.Bindid
 	reqMsg.AccessId,err = conf.GetString("feibee2http", "accessid")
 	if err != nil {
-		log.Warning("Http2FeibeeWonlyGuard get accessId error = ", err)
+		log.Warning("Http2FeibeeWonlyLGuard get accessId error = ", err)
 		return
 	}
 
 	reqMsg.Key, err = conf.GetString("feibee2http", "key")
 	if err != nil {
-		log.Warning("Http2FeibeeWonlyGuard get key error = ", err)
+		log.Warning("Http2FeibeeWonlyLGuard get key error = ", err)
 		return
 	}
 
@@ -53,7 +50,7 @@ func Http2FeibeeWonlyGuard(appData string) {
 
 	reqMsg.Bindstr, err = WonlyGuardAESDecrypt(msg.Bindstr, key)
 	if err != nil {
-		log.Warningf("Http2FeibeeWonlyGuard WonlyGuardAESDecrypt() error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard WonlyGuardAESDecrypt() error = ", err)
 		return
 	}
 	reqMsg.Ver = "2.0"
@@ -64,43 +61,29 @@ func Http2FeibeeWonlyGuard(appData string) {
 
 	reqData, err := json.Marshal(reqMsg)
 	if err != nil {
-		log.Warning("Http2FeibeeWonlyGuard json.Marshal() error = ", err)
+		log.Warning("Http2FeibeeWonlyLGuard json.Marshal() error = ", err)
 		return
 	}
 
 	log.Debug("Send to Feibee: ", string(reqData))
-	respData, err := doHttpReq("POST", "https://dev.fbeecloud.com/devcontrol/", reqData)
+	respData, err := DoHTTP("POST", "https://dev.fbeecloud.com/devcontrol/", reqData)
+	if err != nil {
+		log.Warning("Http2FeibeeWonlyLGuard DoHTTP() error = ", err)
+		return
+	}
+
 	var respMsg entity.RespFromFeibee
 	err = json.Unmarshal(respData, &respMsg)
 	if err != nil {
-		log.Warning("Control WonlyGuard failed")
+		log.Warning("Control WonlyLGuard failed")
 		return
 	}
 
 	if respMsg.Code != 1 {
-		log.Warning("Control WonlyGuard failed")
+		log.Warning("Control WonlyLGuard failed")
 	} else {
-		log.Info("Control WonlyGuard successfully")
+		log.Info("Control WonlyLGuard successfully")
 	}
-}
-
-func doHttpReq(method, url string, data []byte) (respData []byte, err error) {
-	body := bytes.NewReader(data)
-	httpClient := http.Client{}
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return respData, err
-	}
-
-	req.Header.Add("Content-Type", "application/json")
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return
-	}
-
-	respData, err = ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-	return
 }
 
 func WonlyGuardAESDecrypt(cipher, key string) (res string ,err error) {

@@ -177,7 +177,7 @@ func ProcAppMsg(appMsg string) error {
 
 	case constant.Wonly_Guard_Msg:
 		//小卫士消息
-		httpgo.Http2FeibeeWonlyGuard(appMsg)
+		httpgo.Http2FeibeeWonlyLGuard(appMsg)
 
 	}
 
