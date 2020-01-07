@@ -316,6 +316,14 @@ func (self *WonlyLGuardHandle) pushMsgByType() {
 		}
 		if self.data.Code == 3 {
 			rabbitmq.PublishGuard2app(data2app, bindid)
+
+			data2mns,err := json.Marshal(entity.Feibee2MnsMsg{Bindid:bindid,Feibee2AppMsg:msg2app})
+			if err != nil {
+				log.Warning("WonlyLGuardHandle msg2mns json.Marshal() error = ", err)
+			} else {
+				rabbitmq.Publish2mns(data2mns, "")
+			}
+
 		} else {
 			rabbitmq.PublishGuard2app(data2app, routingKey)
 		}
