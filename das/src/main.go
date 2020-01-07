@@ -9,7 +9,6 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"das/aliIoT2srv"
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
@@ -42,8 +41,8 @@ func main() {
 	go wifi2srv.Run()
 
 	//11. 启动ali IOT推送接收服务
-	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliSrv.Run()
+	//aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
+	//aliSrv.Run()
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
@@ -76,7 +75,7 @@ func main() {
 
 	}
 	// 关闭阿里云IOT推送接收服务
-	aliSrv.Close()
+	//aliSrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
