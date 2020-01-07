@@ -300,6 +300,23 @@ func ProcAppMsg(appMsg string) error {
 				redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
 			}
 		}
+	case constant.FEIBEE_PLATFORM: //飞比zigbee锁
+	{
+		var msgHead entity.ZigbeeLockHead
+		if err := json.Unmarshal([]byte(appMsg), &msgHead); err != nil {
+			log.Error("ProcAppMsg json.Unmarshal() error = ", err)
+			return err
+		}
+
+		appData, err_ := WlJson2BinMsg(appMsg)
+		if nil != err_ {
+			log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
+			return err_
+		}
+
+		httpgo.Http2FeibeeZigbeeLock(appData, msgHead.Bindid, msgHead.Bindstr)
+	}
+
 	default:
 		{
 			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", platform)
