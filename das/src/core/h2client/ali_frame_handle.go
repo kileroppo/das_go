@@ -7,8 +7,8 @@ import (
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/hpack"
 
-	"../log"
-	"../entity"
+	"das/core/log"
+	"das/core/entity"
 )
 
 var (

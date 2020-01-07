@@ -10,9 +10,9 @@ import (
 
 	"github.com/dlintw/goconf"
 
-	"../core/entity"
-	"../core/jobque"
-	"../core/log"
+	"das/core/entity"
+	"das/core/jobque"
+	"das/core/log"
 )
 
 type FeibeeJob struct {
@@ -120,7 +120,7 @@ func NewFeibeeData(data []byte) (FeibeeData, error) {
 	return feibeeData, nil
 }
 
-func (f FeibeeData) isDataValid() bool {
+func (f *FeibeeData) isDataValid() bool {
 	if f.data.Status != "" && f.data.Ver != "" {
 		switch f.data.Code {
 		case 3, 4, 5, 7, 10, 12:
@@ -142,12 +142,12 @@ func (f FeibeeData) isDataValid() bool {
 	return false
 }
 
-func (f FeibeeData) push2MQ() {
+func (f *FeibeeData) push2MQ() {
 	//飞比推送数据条数 分条处理
-	datas := splitFeibeeMsg(f.data)
+	datas := splitFeibeeMsg(&f.data)
 
 	for _, data := range datas {
-		msgHandle := MsgHandleFactory(data)
+		msgHandle := MsgHandleFactory(&data)
 		if msgHandle == nil {
 			return
 		}
@@ -156,7 +156,7 @@ func (f FeibeeData) push2MQ() {
 
 }
 
-func splitFeibeeMsg(data entity.FeibeeData) (datas []entity.FeibeeData) {
+func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 
 	switch data.Code {
 	case 3, 4, 5, 7, 12, 10:

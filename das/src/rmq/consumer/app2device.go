@@ -3,9 +3,9 @@ package consumer
 import (
 	"context"
 
-	"../../core/jobque"
-	"../../core/log"
-	"../../core/rabbitmq"
+	"das/core/jobque"
+	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 var rmq_uri string

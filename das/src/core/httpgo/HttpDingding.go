@@ -1,7 +1,7 @@
 package httpgo
 
 import (
-	"../log"
+	"das/core/log"
 	"bytes"
 	"io/ioutil"
 	"net"

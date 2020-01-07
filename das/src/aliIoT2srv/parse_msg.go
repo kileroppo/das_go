@@ -9,13 +9,13 @@ import (
 
 	"github.com/json-iterator/go"
 
-	"../core/constant"
-	"../core/entity"
-	"../core/log"
-	"../core/redis"
-	"../core/wlprotocol"
-	"../core/rabbitmq"
-	"../cmdto"
+	"das/core/constant"
+	"das/core/entity"
+	"das/core/log"
+	"das/core/redis"
+	"das/core/wlprotocol"
+	"das/core/rabbitmq"
+	"das/cmdto"
 )
 
 var (
@@ -29,22 +29,22 @@ var (
 *	2、根据包头来确定包体
 *	3、组JSON包后转发APP，PMS模块
 */
-func parseData(hexData string) error {
+func ParseData(hexData string) error {
 	data, err := hex.DecodeString(hexData)
 	if nil != err {
-		log.Error("parseData hex.DecodeString, err=", err)
+		log.Error("ParseData hex.DecodeString, err=", err)
 		return err
 	}
 
 	var wlMsg wlprotocol.WlMessage
 	bBody, err0 := wlMsg.PkDecode(data)
 	if err0 != nil {
-		log.Error("parseData wlMsg.PkDecode, err0=", err0)
+		log.Error("ParseData wlMsg.PkDecode, err0=", err0)
 		return err0
 	}
 	switch wlMsg.Cmd {
 	case constant.Add_dev_user:			// 新增用户(0x33)(服务器-->前板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Add_dev_user")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Add_dev_user")
 		if wlMsg.Ack > 1 {
 			addDevUser := entity.Header{
 				Cmd: int(wlMsg.Cmd),
@@ -62,7 +62,7 @@ func parseData(hexData string) error {
 			}
 		}
 	case constant.Set_dev_user_temp:	// 设置临时用户时段(0x76)(服务器-->前板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Set_dev_user_temp")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_user_temp")
 
 		// 组包
 		factoryReset := entity.Header{
@@ -83,11 +83,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Add_dev_user_step:	// 新增用户报告步骤(0x34)(前板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Add_dev_user_step")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Add_dev_user_step")
 		pdu := &wlprotocol.AddDevUserStep{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Add_dev_user_step pdu.Decode, err=", err)
+			log.Error("ParseData Add_dev_user_step pdu.Decode, err=", err)
 			return err
 		}
 
@@ -115,7 +115,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Del_dev_user:			// 删除用户(0x32)(服务器-->前板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Del_dev_user")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Del_dev_user")
 		if wlMsg.Ack > 1 {
 			delDevUser := entity.Header{
 				Cmd: int(wlMsg.Cmd),
@@ -133,11 +133,11 @@ func parseData(hexData string) error {
 			}
 		}
 	case constant.Update_dev_user:		// 用户更新上报(0x35)(前板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Update_dev_user")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Update_dev_user")
 		pdu := &wlprotocol.UserUpdateLoad{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Update_dev_user pdu.Decode, err=", err)
+			log.Error("ParseData Update_dev_user pdu.Decode, err=", err)
 			return err
 		}
 
@@ -170,7 +170,7 @@ func parseData(hexData string) error {
 		strSDate := strconv.FormatInt(int64(mSDate), 10) // 转10进制字符串
 		nSDate, err2 := strconv.ParseInt(strSDate, 16, 32) // 转16进制值
 		if nil != err2 {
-			log.Error("parseData strconv.ParseInt, err2: ", err2)
+			log.Error("ParseData strconv.ParseInt, err2: ", err2)
 		}
 		devUserUpload.MyDate.Start = int32(nSDate)
 
@@ -180,7 +180,7 @@ func parseData(hexData string) error {
 		strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
 		nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 		if nil != err3 {
-			log.Error("parseData strconv.ParseInt, err3: ", err3)
+			log.Error("ParseData strconv.ParseInt, err3: ", err3)
 		}
 		devUserUpload.MyDate.End = int32(nEDate)
 
@@ -189,7 +189,7 @@ func parseData(hexData string) error {
 		strTimeSlot1_s := strconv.FormatInt(int64(mTimeSlot1_s), 10) // 转10进制字符串
 		nTimeSlot1_s, err4 := strconv.ParseInt(strTimeSlot1_s, 16, 32) // 转16进制值
 		if nil != err4 {
-			log.Error("parseData strconv.ParseInt, err4: ", err4)
+			log.Error("ParseData strconv.ParseInt, err4: ", err4)
 		}
 		devUserUpload.MyTime[0].Start = int32(nTimeSlot1_s)
 
@@ -198,7 +198,7 @@ func parseData(hexData string) error {
 		strTimeSlot1_e := strconv.FormatInt(int64(mTimeSlot1_e), 10) // 转10进制字符串
 		nTimeSlot1_e, err4 := strconv.ParseInt(strTimeSlot1_e, 16, 32) // 转16进制值
 		if nil != err4 {
-			log.Error("parseData strconv.ParseInt, err4: ", err4)
+			log.Error("ParseData strconv.ParseInt, err4: ", err4)
 		}
 		devUserUpload.MyTime[0].End = int32(nTimeSlot1_e)
 
@@ -207,7 +207,7 @@ func parseData(hexData string) error {
 		strTimeSlot2_s := strconv.FormatInt(int64(mTimeSlot2_s), 10) // 转10进制字符串
 		nTimeSlot2_s, err4 := strconv.ParseInt(strTimeSlot2_s, 16, 32) // 转16进制值
 		if nil != err4 {
-			log.Error("parseData strconv.ParseInt, err4: ", err4)
+			log.Error("ParseData strconv.ParseInt, err4: ", err4)
 		}
 		devUserUpload.MyTime[1].Start = int32(nTimeSlot2_s)
 
@@ -216,7 +216,7 @@ func parseData(hexData string) error {
 		strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
 		nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 		if nil != err4 {
-			log.Error("parseData strconv.ParseInt, err4: ", err4)
+			log.Error("ParseData strconv.ParseInt, err4: ", err4)
 		}
 		devUserUpload.MyTime[1].End = int32(nTimeSlot2_e)
 
@@ -225,7 +225,7 @@ func parseData(hexData string) error {
 		strTimeSlot3_s := strconv.FormatInt(int64(mTimeSlot3_s), 10) // 转10进制字符串
 		nTimeSlot3_s, err4 := strconv.ParseInt(strTimeSlot3_s, 16, 32) // 转16进制值
 		if nil != err4 {
-			log.Error("parseData strconv.ParseInt, err4: ", err4)
+			log.Error("ParseData strconv.ParseInt, err4: ", err4)
 		}
 		devUserUpload.MyTime[2].Start = int32(nTimeSlot3_s)
 
@@ -234,7 +234,7 @@ func parseData(hexData string) error {
 		strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
 		nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 		if nil != err4 {
-			log.Error("parseData strconv.ParseInt, err4: ", err4)
+			log.Error("ParseData strconv.ParseInt, err4: ", err4)
 		}
 		devUserUpload.MyTime[2].End = int32(nTimeSlot3_e)
 
@@ -242,15 +242,15 @@ func parseData(hexData string) error {
 			// 需存入数据库
 			rabbitmq.Publish2pms(toPms_byte, "")
 		} else {
-			log.Error("[", wlMsg.DevId.Uuid, "] parseData constant.Update_dev_user toPms_byte json.Marshal, err=", err1)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData constant.Update_dev_user toPms_byte json.Marshal, err=", err1)
 			return err1
 		}
 	case constant.Sync_dev_user:		// 请求同步用户列表(0x31)(服务器-->前板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Sync_dev_user")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Sync_dev_user")
 		pdu := &wlprotocol.SyncDevUserResp{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Sync_dev_user pdu.Decode, err=", err)
+			log.Error("ParseData Sync_dev_user pdu.Decode, err=", err)
 			return err
 		}
 
@@ -282,7 +282,7 @@ func parseData(hexData string) error {
 			strSDate := strconv.FormatInt(int64(mSDate), 10) // 转10进制字符串
 			nSDate, err2 := strconv.ParseInt(strSDate, 16, 32) // 转16进制值
 			if nil != err2 {
-				log.Error("parseData strconv.ParseInt, err2: ", err2)
+				log.Error("ParseData strconv.ParseInt, err2: ", err2)
 			}
 			devUser.MyDate.Start = int32(nSDate)
 
@@ -292,7 +292,7 @@ func parseData(hexData string) error {
 			strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
 			nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 			if nil != err3 {
-				log.Error("parseData strconv.ParseInt, err3: ", err3)
+				log.Error("ParseData strconv.ParseInt, err3: ", err3)
 			}
 			devUser.MyDate.End = int32(nEDate)
 
@@ -301,7 +301,7 @@ func parseData(hexData string) error {
 			strTimeSlot1_s := strconv.FormatInt(int64(mTimeSlot1_s), 10) // 转10进制字符串
 			nTimeSlot1_s, err4 := strconv.ParseInt(strTimeSlot1_s, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("parseData strconv.ParseInt, err4: ", err4)
+				log.Error("ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[0].Start = int32(nTimeSlot1_s)
 
@@ -310,7 +310,7 @@ func parseData(hexData string) error {
 			strTimeSlot1_e := strconv.FormatInt(int64(mTimeSlot1_e), 10) // 转10进制字符串
 			nTimeSlot1_e, err4 := strconv.ParseInt(strTimeSlot1_e, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("parseData strconv.ParseInt, err4: ", err4)
+				log.Error("ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[0].End = int32(nTimeSlot1_e)
 
@@ -319,7 +319,7 @@ func parseData(hexData string) error {
 			strTimeSlot2_s := strconv.FormatInt(int64(mTimeSlot2_s), 10) // 转10进制字符串
 			nTimeSlot2_s, err4 := strconv.ParseInt(strTimeSlot2_s, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("parseData strconv.ParseInt, err4: ", err4)
+				log.Error("ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[1].Start = int32(nTimeSlot2_s)
 
@@ -328,7 +328,7 @@ func parseData(hexData string) error {
 			strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
 			nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("parseData strconv.ParseInt, err4: ", err4)
+				log.Error("ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[1].End = int32(nTimeSlot2_e)
 
@@ -337,7 +337,7 @@ func parseData(hexData string) error {
 			strTimeSlot3_s := strconv.FormatInt(int64(mTimeSlot3_s), 10) // 转10进制字符串
 			nTimeSlot3_s, err4 := strconv.ParseInt(strTimeSlot3_s, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("parseData strconv.ParseInt, err4: ", err4)
+				log.Error("ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[2].Start = int32(nTimeSlot3_s)
 
@@ -346,7 +346,7 @@ func parseData(hexData string) error {
 			strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
 			nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("parseData strconv.ParseInt, err4: ", err4)
+				log.Error("ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[2].End = int32(nTimeSlot3_e)
 
@@ -360,11 +360,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Remote_open:			// 远程开锁命令(0x52)(服务器->前板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Remote_open")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Remote_open")
 		pdu := &wlprotocol.RemoteOpenLockResp{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Remote_open pdu.Decode, err=", err)
+			log.Error("ParseData Remote_open pdu.Decode, err=", err)
 			return err
 		}
 
@@ -396,7 +396,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Upload_dev_info:		// 发送设备信息(0x70)(前板，后板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_dev_info")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Upload_dev_info")
 		//1. 回复锁
 		tPdu := &wlprotocol.UploadDevInfoResp{
 			Time: int32(time.Now().Unix()),
@@ -404,7 +404,7 @@ func parseData(hexData string) error {
 		wlMsg.Ack = 1
 		bData, err_ := wlMsg.PkEncode(tPdu)
 		if nil != err_ {
-			log.Error("parseData() Upload_dev_info wlMsg.PkEncode, error: ", err_)
+			log.Error("ParseData() Upload_dev_info wlMsg.PkEncode, error: ", err_)
 			return err_
 		}
 		go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
@@ -413,7 +413,7 @@ func parseData(hexData string) error {
 		pdu := &wlprotocol.UploadDevInfo{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Upload_dev_info pdu.Decode, err=", err)
+			log.Error("ParseData Upload_dev_info pdu.Decode, err=", err)
 			return err
 		}
 
@@ -517,11 +517,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Set_dev_para:			// 设置参数(0x72)(服务器-->前板，后板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Set_dev_para")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_para")
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Set_dev_para pdu.Decode, err=", err)
+			log.Error("ParseData Set_dev_para pdu.Decode, err=", err)
 			return err
 		}
 
@@ -554,11 +554,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Update_dev_para:		// 参数更新(0x73)(前板,后板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Update_dev_para")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Update_dev_para")
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Update_dev_para pdu.Decode, err=", err)
+			log.Error("ParseData Update_dev_para pdu.Decode, err=", err)
 			return err
 		}
 
@@ -607,7 +607,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Soft_reset:			// 软件重启命令(0x74)(服务器-->前、后板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Soft_reset")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Soft_reset")
 
 		// 组包
 		softReset := entity.Header{
@@ -627,7 +627,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Factory_reset:		// 恢复出厂化(0xEA)( 服务器-->前、后板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Factory_reset")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Factory_reset")
 
 		// 组包
 		factoryReset := entity.Header{
@@ -650,11 +650,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Upload_open_log:	// 用户开锁消息上报(0x40)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData Upload_open_log")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData Upload_open_log")
 		pdu := &wlprotocol.OpenLockMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Upload_open_log pdu.Decode, err=", err)
+			log.Error("ParseData Upload_open_log pdu.Decode, err=", err)
 			return err
 		}
 
@@ -698,11 +698,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.UpEnter_menu_log:	// 用户进入菜单上报(0x42)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.UpEnter_menu_log")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.UpEnter_menu_log")
 		pdu := &wlprotocol.EnterMenuMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData UpEnter_menu_log pdu.Decode, err=", err)
+			log.Error("ParseData UpEnter_menu_log pdu.Decode, err=", err)
 			return err
 		}
 
@@ -742,11 +742,11 @@ func parseData(hexData string) error {
 		}
 	case constant.Infrared_alarm, constant.Noatmpt_alarm, constant.Forced_break_alarm, constant.Fakelock_alarm, constant.Nolock_alarm:
 		// 人体感应报警(0x39)(前板-->服务器) // 非法操作报警(0x20)(前板--->服务器) // 强拆报警(0x22)(前板--->服务器) // 假锁报警(0x24)(前板--->服务器) // 门未关报警(0x26)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm")
 		pdu := &wlprotocol.Alarms{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Infrared_alarm pdu.Decode, err=", err)
+			log.Error("ParseData Infrared_alarm pdu.Decode, err=", err)
 			return err
 		}
 
@@ -770,11 +770,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Low_battery_alarm:	// 低压报警(0x2A)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Low_battery_alarm")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Low_battery_alarm")
 		pdu := &wlprotocol.LowBattAlarm{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Low_battery_alarm pdu.Decode, err=", err)
+			log.Error("ParseData Low_battery_alarm pdu.Decode, err=", err)
 			return err
 		}
 
@@ -799,11 +799,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Lock_PIC_Upload:		// 图片上传(0x2F)(前板--->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Lock_PIC_Upload")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Lock_PIC_Upload")
 		pdu := &wlprotocol.PicUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Lock_PIC_Upload pdu.Decode, err=", err)
+			log.Error("ParseData Lock_PIC_Upload pdu.Decode, err=", err)
 			return err
 		}
 
@@ -827,11 +827,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Upload_lock_active:	// 在线离线(0x46)(后板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Upload_lock_active")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Upload_lock_active")
 		pdu := &wlprotocol.OnOffLine{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Upload_lock_active pdu.Decode, err=", err)
+			log.Error("ParseData Upload_lock_active pdu.Decode, err=", err)
 			return err
 		}
 
@@ -865,11 +865,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Real_Video:			// 实时视频(0x36)(服务器-->前板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Real_Video")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Real_Video")
 		pdu := &wlprotocol.RealVideo{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Real_Video pdu.Decode, err=", err)
+			log.Error("ParseData Real_Video pdu.Decode, err=", err)
 			return err
 		}
 
@@ -890,11 +890,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Set_Wifi:				// Wifi设置(0x37)(服务器-->前板)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Set_Wifi")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_Wifi")
 		pdu := &wlprotocol.WiFiSet{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Set_Wifi pdu.Decode, err=", err)
+			log.Error("ParseData Set_Wifi pdu.Decode, err=", err)
 			return err
 		}
 
@@ -948,7 +948,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Notify_Set_Wifi:
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Notify_Set_Wifi")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Notify_Set_Wifi")
 		notifyHead := entity.Header {
 			Cmd: int(wlMsg.Cmd),
 			Ack: int(wlMsg.Ack),
@@ -964,11 +964,11 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Door_Call:			// 门铃呼叫(0x38)(前板-->服务器)
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Door_Call")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Door_Call")
 		pdu := &wlprotocol.DoorbellCall{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Door_Call pdu.Decode, err=", err)
+			log.Error("ParseData Door_Call pdu.Decode, err=", err)
 			return err
 		}
 
@@ -993,12 +993,12 @@ func parseData(hexData string) error {
 			return err1
 		}
 	case constant.Door_State: // 锁状态上报
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData constant.Door_State")
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Door_State")
 
 		pdu := &wlprotocol.DoorStateUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("parseData Door_State pdu.Decode, err=", err)
+			log.Error("ParseData Door_State pdu.Decode, err=", err)
 			return err
 		}
 
@@ -1025,7 +1025,7 @@ func parseData(hexData string) error {
 			return err1
 		}
 	default:
-		log.Info("[", wlMsg.DevId.Uuid, "] parseData Default, Cmd=", wlMsg.Cmd)
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData Default, Cmd=", wlMsg.Cmd)
 	}
 
 	return nil

@@ -1,48 +1,51 @@
 package feibee2srv
 
 import (
-	"../core/entity"
-	"../core/log"
+	"das/core/entity"
+	"das/core/log"
 )
 
-func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
+func MsgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 	typ := getMsgType(data)
 	switch typ {
 
 	case NewDev, DevOnline, DevRename, DevDelete, ManualOpDev, DevDegree:
-		msgHandle = NormalMsgHandle{
+		msgHandle = &NormalMsgHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case GtwOnline, RemoteOpDev:
-		msgHandle = GtwMsgHandle{
+		msgHandle = &GtwMsgHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case SensorAlarm:
-		msgHandle = SensorMsgHandle{
+		msgHandle = &SensorMsgHandle{
 			data: data,
 		}
 
 	case InfraredTreasure:
-		msgHandle = InfraredTreasureHandle{
+		msgHandle = &InfraredTreasureHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case WonlyLGuard:
-		msgHandle = WonlyLGuardHandle{
+		msgHandle = &WonlyLGuardHandle{
 			data:    data,
 			msgType: typ,
 		}
 
 	case SceneSwitch:
-		msgHandle = SceneSwitchHandle{
+		msgHandle = &SceneSwitchHandle{
 			data: data,
 		}
 	case ZigbeeLock:
+		msgHandle = &ZigbeeLockHandle{
+			data:data,
+		}
 
 	default:
 		msgHandle = nil
@@ -51,7 +54,7 @@ func MsgHandleFactory(data entity.FeibeeData) (msgHandle MsgHandler) {
 	return
 }
 
-func getMsgType(data entity.FeibeeData) (typ MsgType) {
+func getMsgType(data *entity.FeibeeData) (typ MsgType) {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Warning(ErrMsgStruct)
@@ -84,8 +87,8 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 		if data.Records[0].Deviceid == 779 {
 			//小卫士
 			typ = WonlyLGuard
-		} else if data.Records[0].Deviceid == 0xa {
-			//飞比zigbee锁
+		} else if data.Records[0].Deviceid == 0xa && data.Records[0].Zonetype == 0x1 {
+			//zigbee锁
 			typ = ZigbeeLock
 		} else if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
 			typ = ManualOpDev
@@ -102,7 +105,7 @@ func getMsgType(data entity.FeibeeData) (typ MsgType) {
 	return
 }
 
-func DevAlarmFactory(feibeeData entity.FeibeeData) (res MsgHandler) {
+func DevAlarmFactory(feibeeData *entity.FeibeeData) (res MsgHandler) {
 	res = nil
 
 	if len(feibeeData.Records) <= 0 {
@@ -114,14 +117,14 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res MsgHandler) {
 		//光照度传感器
 		res = &IlluminanceSensorAlarm{
 			BaseSensorAlarm{
-				feibeeMsg: feibeeData,
+				feibeeMsg: *feibeeData,
 			},
 		}
 	case 0x0302:
 		//温湿度传感器
 		res = &TemperAndHumiditySensorAlarm{
 			BaseSensorAlarm{
-				feibeeMsg: feibeeData,
+				feibeeMsg: *feibeeData,
 			},
 		}
 	case 0x0402:
@@ -131,45 +134,45 @@ func DevAlarmFactory(feibeeData entity.FeibeeData) (res MsgHandler) {
 			//人体红外传感器
 			res = &InfraredSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x0015:
 			//门磁传感器
 			res = &DoorMagneticSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x0028:
 			//烟雾传感器
 			res = &SmokeSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x002A:
 			//水浸传感器
 			res = &FloodSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		case 0x002B:
 			//可燃气体传感器
 			res = &GasSensorAlarm{
 				BaseSensorAlarm{
-					feibeeMsg: feibeeData,
+					feibeeMsg: *feibeeData,
 				},
 			}
 		default:
 			res = &BaseSensorAlarm{
-				feibeeMsg: feibeeData,
+				feibeeMsg: *feibeeData,
 			}
 		}
 	default:
 		res = &BaseSensorAlarm{
-			feibeeMsg: feibeeData,
+			feibeeMsg: *feibeeData,
 		}
 	}
 	return

@@ -1,21 +1,22 @@
 package main
 
 import (
-	"github.com/dlintw/goconf"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"./core/log"
-	"./core/rabbitmq"
-	"./core/redis"
-	"./dindingtask"
-	"./feibee2srv"
-	"./onenet2srv"
-	"./rmq/consumer"
-	"./wifi2srv"
+	"github.com/dlintw/goconf"
+
+	"das/aliIoT2srv"
+	"das/core/log"
+	"das/core/rabbitmq"
+	"das/core/redis"
+	"das/feibee2srv"
+	"das/onenet2srv"
+	"das/rmq/consumer"
+	"das/wifi2srv"
 )
 
 func main() {
@@ -41,8 +42,8 @@ func main() {
 	go wifi2srv.Run()
 
 	//11. 启动ali IOT推送接收服务
-	//TODO:JHHE aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
-	//TODO:JHHE aliSrv.Run()
+	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
+	aliSrv.Run()
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
@@ -75,7 +76,7 @@ func main() {
 
 	}
 	// 关闭阿里云IOT推送接收服务
-	//TODO:JHHE aliSrv.Close()
+	aliSrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
@@ -97,9 +98,6 @@ func main() {
 		log.Error("feibee2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
-
-	// 21. 停止定时器
-	dindingtask.StopMyTimer()
 
 	log.Info("das_go server quit......")
 }

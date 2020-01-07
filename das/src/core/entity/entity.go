@@ -143,7 +143,7 @@ type Feibee2AppMsg struct {
 }
 
 //feibee设备消息通知(推送给db)
-type Feibee2DBMsg struct {
+type Feibee2MnsMsg struct {
 	Feibee2AppMsg
 	Bindid string `json:"bindid"`
 }

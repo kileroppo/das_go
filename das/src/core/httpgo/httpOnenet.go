@@ -1,7 +1,6 @@
 package httpgo
 
 import (
-	"../log"
 	"bytes"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +8,8 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"das/core/log"
 )
 
 func checkError(err error) {

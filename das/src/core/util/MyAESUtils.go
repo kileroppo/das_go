@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"io"
 
-	"../aes/ecb"
+	"das/core/aes/ecb"
 )
 
 /*	CBC加密 按照golang标准库的例子代码

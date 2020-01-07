@@ -7,9 +7,9 @@ import (
 
 	"github.com/json-iterator/go"
 
-	"../core/entity"
-	"../core/log"
-	"../core/rabbitmq"
+	"das/core/entity"
+	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 var (
@@ -51,7 +51,7 @@ func (b *BaseSensorAlarm) parseAlarmMsg() (err error) {
 
 func (self *BaseSensorAlarm) PushMsg() {
 	self.parseAlarmMsg()
-	self.pushMsg2db()
+	self.pushMsg2mns()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
 }
@@ -66,15 +66,15 @@ func (self *BaseSensorAlarm) pushMsg2app() {
 	}
 
 	//producer.SendMQMsg2APP(self.bindid, string(data))
-	rabbitmq.Publish2app(data, self.bindid)
+	rabbitmq.Publish2app(data, self.devid)
 }
 
-func (self *BaseSensorAlarm) pushMsg2db() {
+func (self *BaseSensorAlarm) pushMsg2mns() {
 	msg := self.createMsg2app()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
+		log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
 		return
 	}
 	//producer.SendMQMsg2Db(string(data))
@@ -89,11 +89,10 @@ func (self *BaseSensorAlarm) pushMsg2db() {
 
 		data, err = json.Marshal(msg)
 		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
+			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
 			return
 		}
 		rabbitmq.Publish2mns(data, "")
-		//producer.SendMQMsg2Db(string(data))
 	}
 
 }
@@ -135,7 +134,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 
 		data, err = json.Marshal(msg)
 		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
+			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
 			return
 		}
 		//producer.SendMQMsg2PMS(string(data))
@@ -177,7 +176,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 
 		data, err = json.Marshal(msg)
 		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2db() error = ", err)
+			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
 			return
 		}
 		//producer.SendMQMsg2PMS(string(data))
@@ -195,7 +194,7 @@ func (self *InfraredSensorAlarm) PushMsg() {
 		self.alarmVal = "有人"
 		self.alarmType = "infrared"
 		self.alarmFlag = 1
-		self.pushMsg2db()
+		self.pushMsg2mns()
 		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
@@ -222,7 +221,7 @@ func (self *DoorMagneticSensorAlarm) PushMsg() {
 		self.alarmType = "doorContact"
 		self.alarmFlag = 0
 	}
-	self.pushMsg2db()
+	self.pushMsg2mns()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
 }
@@ -237,7 +236,7 @@ func (self *GasSensorAlarm) PushMsg() {
 		self.alarmVal = "有气体"
 		self.alarmType = "gas"
 		self.alarmFlag = 1
-		self.pushMsg2db()
+		self.pushMsg2mns()
 		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
@@ -258,7 +257,7 @@ func (self *FloodSensorAlarm) PushMsg() {
 		self.alarmVal = "有水"
 		self.alarmType = "flood"
 		self.alarmFlag = 1
-		self.pushMsg2db()
+		self.pushMsg2mns()
 		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
@@ -279,7 +278,7 @@ func (self *SmokeSensorAlarm) PushMsg() {
 		self.alarmVal = "有烟"
 		self.alarmType = "smoke"
 		self.alarmFlag = 1
-		self.pushMsg2db()
+		self.pushMsg2mns()
 		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
@@ -302,7 +301,7 @@ func (self *IlluminanceSensorAlarm) PushMsg() {
 		return
 	}
 	self.alarmType = "illuminance"
-	self.pushMsg2db()
+	self.pushMsg2mns()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
 }
@@ -347,7 +346,7 @@ func (self *TemperAndHumiditySensorAlarm) PushMsg() {
 		return
 	}
 
-	self.pushMsg2db()
+	self.pushMsg2mns()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
 }

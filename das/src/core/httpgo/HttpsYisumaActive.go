@@ -1,12 +1,13 @@
 package httpgo
 
 import (
-	"../entity"
-	"../log"
 	"bytes"
 	"crypto/tls"
 	"io/ioutil"
 	"net/http"
+
+	"das/core/entity"
+	"das/core/log"
 )
 
 func Http2YisumaActive(reqBody entity.YisumaHttpsReq) (respBody string, err error) {

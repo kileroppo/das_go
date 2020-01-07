@@ -3,9 +3,10 @@ package wlprotocol
 import (
 	"bytes"
 	"encoding/binary"
-	"../util"
-	"../log"
 	"encoding/hex"
+
+	"das/core/util"
+	"das/core/log"
 )
 
 //2. 请求同步用户列表(0x31)(服务器-->前板)
