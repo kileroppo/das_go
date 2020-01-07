@@ -2,7 +2,6 @@ package httpgo
 
 import (
 	"bytes"
-	"errors"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -10,14 +9,11 @@ import (
 	"das/core/log"
 )
 
-var ErrBadResp = errors.New("HTTP Response error")
-
 var feibeeHTTPClient *http.Client
 
 func init() {
 	transport := &http.Transport{
-		DisableKeepAlives:   true,
-		TLSHandshakeTimeout: time.Second * 2,
+		TLSHandshakeTimeout: time.Second * 3,
 	}
 	feibeeHTTPClient = &http.Client{
 		Transport: transport,
