@@ -7,8 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/dlintw/goconf"
-
 	"das/aliIoT2srv"
 	"das/core/log"
 	"das/core/rabbitmq"
@@ -25,9 +23,6 @@ func main() {
 	}()
 
 	conf := log.Conf
-
-	//2. 初始化日志
-	initLogger(conf)
 
 	//3. 初始化Redis连接池
 	redis.InitRedisPool(conf)
@@ -100,14 +95,4 @@ func main() {
 	}
 
 	log.Info("das_go server quit......")
-}
-
-func initLogger(conf *goconf.ConfigFile) {
-	logPath, err := conf.GetString("server", "log_path")
-	logLevel, err := conf.GetString("server", "log_level")
-	if err != nil {
-		log.Errorf("日志文件配置有误, %s\n", err)
-		os.Exit(1)
-	}
-	log.NewLogger(logPath, logLevel)
 }
