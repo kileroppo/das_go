@@ -3,9 +3,7 @@ package httpgo
 import (
 	"bytes"
 	"io/ioutil"
-	"net"
 	"net/http"
-	"time"
 
 	"das/core/log"
 )
@@ -16,20 +14,20 @@ func Http2WonlyUpgrade(devType string) (b []byte, err error) {
 	req_body := bytes.NewBuffer([]byte(mydata))
 	log.Debug(req_body)
 
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(netw, addr string) (net.Conn, error) {
-				deadline := time.Now().Add(30 * time.Second)
-				c, err := net.DialTimeout(netw, addr, time.Second*30)
-				if err != nil {
-					log.Error("Http2WonlyUpgrade net.DialTimeout，err=", err)
-					return nil, err
-				}
-				c.SetDeadline(deadline)
-				return c, nil
-			},
-		},
-	}
+	//client := &http.Client{
+	//	Transport: &http.Transport{
+	//		Dial: func(netw, addr string) (net.Conn, error) {
+	//			deadline := time.Now().Add(30 * time.Second)
+	//			c, err := net.DialTimeout(netw, addr, time.Second*30)
+	//			if err != nil {
+	//				log.Error("Http2WonlyUpgrade net.DialTimeout，err=", err)
+	//				return nil, err
+	//			}
+	//			c.SetDeadline(deadline)
+	//			return c, nil
+	//		},
+	//	},
+	//}
 
 	sUrl := "https://pus.wonlycloud.com:10400"
 	log.Debug("Http2WonlyUpgrade() ", sUrl, ", req_body=", mydata)
@@ -42,7 +40,7 @@ func Http2WonlyUpgrade(devType string) (b []byte, err error) {
 
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err1 := client.Do(req)
+	resp, err1 := DoHTTPReqWithResp(req)
 	if nil != err1 {
 		// handle error
 		log.Error("Http2WonlyUpgrade client.Do, error=", err1)

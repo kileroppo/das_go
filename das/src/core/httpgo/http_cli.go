@@ -9,19 +9,19 @@ import (
 	"das/core/log"
 )
 
-var feibeeHTTPClient *http.Client
+var hClient *http.Client
 
 func init() {
 	transport := &http.Transport{
 		TLSHandshakeTimeout: time.Second * 3,
 	}
-	feibeeHTTPClient = &http.Client{
+	hClient = &http.Client{
 		Transport: transport,
 	}
 }
 
 func DoHTTPReq(req *http.Request) (respData []byte, err error) {
-	resp, err := feibeeHTTPClient.Do(req)
+	resp, err := hClient.Do(req)
 	if err != nil {
 		log.Error("DoHTTPReq() error = ", err)
 		return
@@ -31,6 +31,10 @@ func DoHTTPReq(req *http.Request) (respData []byte, err error) {
 	resp.Body.Close()
 
 	return
+}
+
+func DoHTTPReqWithResp(req *http.Request) (resp *http.Response, err error) {
+	return hClient.Do(req)
 }
 
 func DoHTTP(method, url string, data []byte) (respData []byte, err error) {

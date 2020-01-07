@@ -26,9 +26,9 @@ func Cmd2Device(uuid string, data string, cmd string) error {
 	case constant.ONENET_PLATFORM: {
 			httpgo.Http2OneNET_write(uuid, data, cmd)
 		}
-	case constant.TELECOM_PLATFORM: {
-			httpgo.HttpCmd2DeviceTelecom(uuid, data)
-		}
+	//case constant.TELECOM_PLATFORM: {
+	//		httpgo.HttpCmd2DeviceTelecom(uuid, data)
+	//	}
 	case constant.ANDLINK_PLATFORM: {}
 	case constant.WIFI_PLATFORM: {
 			producer.SendMQMsg2Device(uuid, data, cmd)

@@ -2,14 +2,11 @@ package httpgo
 
 import (
 	"bytes"
+	"das/core/log"
 	"fmt"
 	"io/ioutil"
 	glog "log"
-	"net"
 	"net/http"
-	"time"
-
-	"das/core/log"
 )
 
 func checkError(err error) {
@@ -23,7 +20,7 @@ func Http2OneNET_exe(imei string, sBody string) {
 	req_body := bytes.NewBuffer([]byte(mydata))
 	log.Error(req_body)
 
-	client := &http.Client{}
+	//client := &http.Client{}
 	sUrl := "http://api.heclouds.com/nbiot/execute?imei=" + imei + "&obj_id=3201&obj_inst_id=0&res_id=5750&timeout=30" // api.zj.cmcconenet.com,
 	req, err0 := http.NewRequest("POST", sUrl, req_body)
 	if err0 != nil {
@@ -34,7 +31,7 @@ func Http2OneNET_exe(imei string, sBody string) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=")
 
-	resp, err1 := client.Do(req)
+	resp, err1 := DoHTTPReqWithResp(req)
 	// 关闭 resp.Body 的正确姿势
 	if resp != nil {
 		defer resp.Body.Close()
@@ -71,20 +68,20 @@ func Http2OneNET_write(imei string, sBody string, cmd string) (respBody string, 
 	req_body := bytes.NewBuffer([]byte(mydata))
 	log.Debug(req_body)
 
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(netw, addr string) (net.Conn, error) {
-				deadline := time.Now().Add(30 * time.Second)
-				c, err := net.DialTimeout(netw, addr, time.Second*30)
-				if err != nil {
-					log.Error("Http2OneNET_write net.DialTimeout，err=", err)
-					return nil, err
-				}
-				c.SetDeadline(deadline)
-				return c, nil
-			},
-		},
-	}
+	//client := &http.Client{
+	//	Transport: &http.Transport{
+	//		Dial: func(netw, addr string) (net.Conn, error) {
+	//			deadline := time.Now().Add(30 * time.Second)
+	//			c, err := net.DialTimeout(netw, addr, time.Second*30)
+	//			if err != nil {
+	//				log.Error("Http2OneNET_write net.DialTimeout，err=", err)
+	//				return nil, err
+	//			}
+	//			c.SetDeadline(deadline)
+	//			return c, nil
+	//		},
+	//	},
+	//}
 
 
 	// sUrl := "http://api.zj.cmcconenet.com/nbiot?imei=" + imei + "&obj_id=3200&obj_inst_id=0&mode=1" // api.zj.cmcconenet.com, api.heclouds.com
@@ -103,7 +100,7 @@ func Http2OneNET_write(imei string, sBody string, cmd string) (respBody string, 
 	req.Header.Set("api-key", oneNET_Apikey) // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
 	// req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=") // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
 
-	resp, err1 := client.Do(req)
+	resp, err1 := DoHTTPReqWithResp(req)
 	if nil != err1 {
 		// handle error
 		log.Error("[", imei, "] "+cmd+" Http2OneNET_write client.Do, error=", err1)
