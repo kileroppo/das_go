@@ -1,8 +1,8 @@
 package producer
 
 import (
-	"../../core/log"
-	"../../core/rabbitmq"
+	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 var rmq_uri_device string

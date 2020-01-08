@@ -95,6 +95,7 @@ const (
 	ANDLINK_PLATFORM = "andlink"
 	WIFI_PLATFORM    = "wifi"
 	ALIIOT_PLATFORM = "aliIoT"
+	FEIBEE_PLATFORM = "feibee"
 )
 
 // 电信平台订阅消息类型

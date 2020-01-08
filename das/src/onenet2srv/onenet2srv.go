@@ -10,14 +10,14 @@ import (
 	"github.com/dlintw/goconf"
 	"github.com/json-iterator/go"
 
-	"../core/constant"
-	"../core/entity"
-	"../core/httpgo"
-	"../core/jobque"
-	"../core/log"
-	"../core/rabbitmq"
-	"../core/redis"
-	"../procnbmsg"
+	"das/core/constant"
+	"das/core/entity"
+	"das/core/httpgo"
+	"das/core/jobque"
+	"das/core/log"
+	"das/core/rabbitmq"
+	"das/core/redis"
+	"das/procnbmsg"
 )
 
 var (

@@ -10,7 +10,7 @@ import (
 
 	"github.com/streadway/amqp"
 
-	"../log"
+	"das/core/log"
 )
 
 var (

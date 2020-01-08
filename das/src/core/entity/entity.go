@@ -143,7 +143,7 @@ type Feibee2AppMsg struct {
 }
 
 //feibee设备消息通知(推送给db)
-type Feibee2DBMsg struct {
+type Feibee2MnsMsg struct {
 	Feibee2AppMsg
 	Bindid string `json:"bindid"`
 }
@@ -205,7 +205,7 @@ type WonlyGuardMsgFromApp struct {
 	Value   string `json:"value"`
 }
 
-type Req2Feibee struct {
+type ReqFeibeeHead struct {
 	Act      string `json:"act"`
 	Code     string `json:"code"`
 	AccessId string `json:"AccessID"`
@@ -213,8 +213,19 @@ type Req2Feibee struct {
 	Bindid   string `json:"bindid"`
 	Bindstr  string `json:"bindstr"`
 	Ver      string `json:"ver"`
+}
+
+type Req2Feibee struct {
+	ReqFeibeeHead
 
 	Devs []ReqDevInfo2Feibee `json:"devs"`
+}
+
+type ZigbeeLockMsg2Feibee struct {
+	ReqFeibeeHead
+
+	Uuid    string `json:"uuid"`
+	Command string `json:"command"`
 }
 
 type ReqDevInfo2Feibee struct {
@@ -232,6 +243,6 @@ type InfraredTreasureControlResult struct {
 	Uuid           string `json:"uuid"`
 	DevType        string `json:"deviceType"`
 	FirmVer        string `json:"firmwareVer"`
-	ControlDevType int64    `json:"controlDevType"`
-	FunctionKey    int64    `json:"functionKey"`
+	ControlDevType int64  `json:"controlDevType"`
+	FunctionKey    int64  `json:"functionKey"`
 }

@@ -1,16 +1,15 @@
 package httpgo
 
 import (
-	"../go-aliyun-sign"
-	"../log"
 	"bytes"
 	"errors"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"strconv"
-	"time"
-	"../redis"
+
+	"das/core/go-aliyun-sign"
+	"das/core/log"
+	"das/core/redis"
 )
 //{"code":200,"data":{"isolationId":"a103HWXIkjOlEuzM","expireIn":7200000,"cloudToken":"2b796e0a78a444f084c5512b29dbc37e"},"id":"1509086454181"}
 type aliData struct {
@@ -36,20 +35,20 @@ func getAliIoTCloudToken() (token string, err error) {
 
 	mydata := "{\"id\":\"1509086454180\",\"version\":\"1.0\",\"request\":{\"apiVer\":\"1.0.0\"},\"params\":{\"grantType\":\"project\",\"res\":\"a124mCmKp3GjHD9y\"}}"
 	req_body := bytes.NewBuffer([]byte(mydata))
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(netw, addr string) (net.Conn, error) {
-				deadline := time.Now().Add(30 * time.Second)
-				c, err := net.DialTimeout(netw, addr, time.Second*30)
-				if err != nil {
-					log.Error("getAliIoTCloudToken net.DialTimeout，err=", err)
-					return nil, err
-				}
-				c.SetDeadline(deadline)
-				return c, nil
-			},
-		},
-	}
+	//client := &http.Client{
+	//	Transport: &http.Transport{
+	//		Dial: func(netw, addr string) (net.Conn, error) {
+	//			deadline := time.Now().Add(30 * time.Second)
+	//			c, err := net.DialTimeout(netw, addr, time.Second*30)
+	//			if err != nil {
+	//				log.Error("getAliIoTCloudToken net.DialTimeout，err=", err)
+	//				return nil, err
+	//			}
+	//			c.SetDeadline(deadline)
+	//			return c, nil
+	//		},
+	//	},
+	//}
 
 	sUrl := "https://api.link.aliyun.com/cloud/token"
 	log.Debug("getAliIoTCloudToken() ", sUrl, ", sBody=", mydata)
@@ -71,7 +70,7 @@ func getAliIoTCloudToken() (token string, err error) {
 		return "", err_
 	}
 
-	resp, err1 := client.Do(req)
+	resp, err1 := DoHTTPReqWithResp(req)
 	if nil != err1 {
 		// handle error
 		log.Error(" getAliIoTCloudToken client.Do, error=", err1)
@@ -113,20 +112,20 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 
 	mydata := "{\"id\":\"1509086454180\",\"version\":\"1.0\",\"request\":{\"apiVer\":\"1.0.2\",\"cloudToken\":\"" + token + "\"},\"params\":{\"productKey\":\"a1xhJ6eIxsn\",\"deviceName\":\"" + deviceName + "\",\"items\":{\"UserData\":\"" + data +"\"}}}"
 	req_body := bytes.NewBuffer([]byte(mydata))
-	client := &http.Client{
-		Transport: &http.Transport{
-			Dial: func(netw, addr string) (net.Conn, error) {
-				deadline := time.Now().Add(30 * time.Second)
-				c, err := net.DialTimeout(netw, addr, time.Second*30)
-				if err != nil {
-					log.Error("Http2OneNET_write net.DialTimeout，err=", err)
-					return nil, err
-				}
-				c.SetDeadline(deadline)
-				return c, nil
-			},
-		},
-	}
+	//client := &http.Client{
+	//	Transport: &http.Transport{
+	//		Dial: func(netw, addr string) (net.Conn, error) {
+	//			deadline := time.Now().Add(30 * time.Second)
+	//			c, err := net.DialTimeout(netw, addr, time.Second*30)
+	//			if err != nil {
+	//				log.Error("Http2OneNET_write net.DialTimeout，err=", err)
+	//				return nil, err
+	//			}
+	//			c.SetDeadline(deadline)
+	//			return c, nil
+	//		},
+	//	},
+	//}
 
 	sUrl := "https://api.link.aliyun.com/cloud/thing/properties/set"
 	log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", sUrl, ", sBody=", mydata)
@@ -148,7 +147,7 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 		return "", err_
 	}
 
-	resp, err1 := client.Do(req)
+	resp, err1 := DoHTTPReqWithResp(req)
 	if nil != err1 {
 		// handle error
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro client.Do, error=", err1)

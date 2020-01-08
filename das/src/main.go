@@ -1,21 +1,20 @@
 package main
 
 import (
-	"github.com/dlintw/goconf"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"./core/log"
-	"./core/rabbitmq"
-	"./core/redis"
-	"./dindingtask"
-	"./feibee2srv"
-	"./onenet2srv"
-	"./rmq/consumer"
-	"./wifi2srv"
+	"das/aliIoT2srv"
+	"das/core/log"
+	"das/core/rabbitmq"
+	"das/core/redis"
+	"das/feibee2srv"
+	"das/onenet2srv"
+	"das/rmq/consumer"
+	"das/wifi2srv"
 )
 
 func main() {
@@ -24,9 +23,6 @@ func main() {
 	}()
 
 	conf := log.Conf
-
-	//2. 初始化日志
-	initLogger(conf)
 
 	//3. 初始化Redis连接池
 	redis.InitRedisPool(conf)
@@ -41,8 +37,8 @@ func main() {
 	go wifi2srv.Run()
 
 	//11. 启动ali IOT推送接收服务
-	//TODO:JHHE aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
-	//TODO:JHHE aliSrv.Run()
+	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
+	aliSrv.Run()
 
 	//12. 启动http/https服务
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
@@ -75,7 +71,7 @@ func main() {
 
 	}
 	// 关闭阿里云IOT推送接收服务
-	//TODO:JHHE aliSrv.Close()
+	aliSrv.Close()
 
 	//停止接收平板消息
 	wifi2srv.Close()
@@ -98,18 +94,5 @@ func main() {
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	// 21. 停止定时器
-	dindingtask.StopMyTimer()
-
 	log.Info("das_go server quit......")
-}
-
-func initLogger(conf *goconf.ConfigFile) {
-	logPath, err := conf.GetString("server", "log_path")
-	logLevel, err := conf.GetString("server", "log_level")
-	if err != nil {
-		log.Errorf("日志文件配置有误, %s\n", err)
-		os.Exit(1)
-	}
-	log.NewLogger(logPath, logLevel)
 }

@@ -11,11 +11,11 @@ import (
 	"github.com/dlintw/goconf"
 	"github.com/json-iterator/go"
 
-	"../core/constant"
-	"../core/entity"
-	"../core/jobque"
-	"../core/log"
-	"../core/redis"
+	"das/core/constant"
+	"das/core/entity"
+	"das/core/jobque"
+	"das/core/log"
+	"das/core/redis"
 )
 
 var (

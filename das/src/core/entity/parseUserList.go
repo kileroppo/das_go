@@ -1,12 +1,13 @@
 package entity
 
 import (
-	"../log"
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"strconv"
+
+	"das/core/log"
 )
 
 func (devUser *DevUser) ParseUser(DValue string) error {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -14,7 +15,7 @@ import (
 	"github.com/dlintw/goconf"
 	"github.com/op/go-logging"
 
-	"../file"
+	"das/core/file"
 )
 
 const MaxFileCap = 1024 * 1024 * 35
@@ -23,23 +24,33 @@ var m_FileName string
 var m_PathName string
 
 var (
-	LogSurvivalDays = 7 //单位：天
-	Conf            = loadConfig()
+	Conf = loadConfig()
 )
 
 var (
-	ArgsInvaild      = errors.New("args can be vaild")
-	ObtainFileFail   = errors.New("obtain file failed")
-	OpenFileFail     = errors.New("open file failed")
-	GetLineNumFail   = errors.New("get line num faild")
-	WriteLogInfoFail = errors.New("write log msg failed")
-	LogFileError     = errors.New("log file path invaild")
+	ErrArgsInvaild  = errors.New("args can be vaild")
+	ErrOpenFileFail = errors.New("open file failed")
 )
 var log = logging.MustGetLogger("das_go")
 
 var format = logging.MustStringFormatter(
 	`%{color}%{time} %{pid} %{shortfile} %{longfunc} > %{level:.4s} %{color:reset} %{message}.`,
 )
+
+func init()  {
+	initLogger(Conf)
+}
+
+func initLogger(conf *goconf.ConfigFile) {
+	logPath, err := conf.GetString("server", "log_path")
+	logLevel, err := conf.GetString("server", "log_level")
+	if err != nil {
+		log.Errorf("日志文件配置有误, %s\n", err)
+		os.Exit(1)
+	}
+	go AutoClearLogFiles(logPath)
+	NewLogger(logPath, logLevel)
+}
 
 func NewLogger(pathDir string, level string) {
 	log.Debug("NewLogger, pathDir=", pathDir, ", level=", level)
@@ -48,7 +59,7 @@ func NewLogger(pathDir string, level string) {
 	destFilePath := fmt.Sprintf("%s/%d%02d%02d", pathDir, time.Now().Year(), time.Now().Month(), time.Now().Day())
 	flag, err := file.IsExist(destFilePath)
 	if err != nil {
-		fmt.Println(ArgsInvaild)
+		fmt.Println(ErrArgsInvaild)
 	}
 	if !flag {
 		os.MkdirAll(destFilePath, os.ModePerm)
@@ -59,7 +70,7 @@ func NewLogger(pathDir string, level string) {
 	logFilePath := fmt.Sprintf("%s/%s_%02d%02d%02d%s", destFilePath, "das_go", time.Now().Hour(), time.Now().Minute(), time.Now().Second(), ".log")
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
 	if err != nil {
-		fmt.Println(OpenFileFail, err.Error())
+		fmt.Println(ErrOpenFileFail, err.Error())
 		return
 	}
 	m_FileName = logFilePath
@@ -82,24 +93,24 @@ func NewLogger(pathDir string, level string) {
 
 	// 负责检测文件大小，超过35M则分文件
 	go ReNewLogger(pathDir, level)
-	//自动清理日志文件，每天清理一次
-	go AutoClearLogFiles(pathDir)
 }
 
 func ReNewLogger(pathDir string, level string) {
 	for {
 		time.Sleep(time.Hour * 2) // 2小时检测一次
 
-		//1. 文件大小大于35M，另起文件
-		_, fileSize := file.GetFileByteSize(m_FileName)
-		if int64(fileSize) > int64(MaxFileCap) {
-			NewLogger(pathDir, level)
-		}
-
-		//2. 每天一个文件夹
+		//每天一个文件夹
 		destFilePath := fmt.Sprintf("%s/%d%02d%02d", pathDir, time.Now().Year(), time.Now().Month(), time.Now().Day())
 		if 0 != strings.Compare(destFilePath, m_PathName) {
 			NewLogger(pathDir, level)
+			return
+		}
+
+		//文件大小大于35M，另起文件
+		_, fileSize := file.GetFileByteSize(m_FileName)
+		if int64(fileSize) > int64(MaxFileCap) {
+			NewLogger(pathDir, level)
+			return
 		}
 	}
 }
@@ -148,16 +159,14 @@ func AutoClearLogFiles(logsDirPath string) {
 			}
 		}
 
-		survivalDays := 0
-		if LogSurvivalDays <= 5 {
-			survivalDays = 5
-		} else {
-			survivalDays = LogSurvivalDays
+		logSaveDay, err := Conf.GetInt("server", "log_save_day")
+		if err != nil || logSaveDay <= 0 {
+			logSaveDay = 7
 		}
 
-		if len(logDir) >= survivalDays {
+		if len(logDir) >= logSaveDay {
 			sort.Ints(logDir)
-			for i := 0; i < len(logDir)-survivalDays; i++ {
+			for i := 0; i < len(logDir)-logSaveDay; i++ {
 				fileDirName := fmt.Sprintf("%s/%d", logsDirPath, logDir[i])
 				os.RemoveAll(fileDirName)
 			}
@@ -170,10 +179,22 @@ func AutoClearLogFiles(logsDirPath string) {
 func loadConfig() *goconf.ConfigFile {
 	conf_file := flag.String("config", "./das.ini", "设置配置文件.")
 	flag.Parse()
+
+	//var conf_file *string
+	//var tmp = "./das.ini"
+	//conf_file = &tmp
+
 	conf, err := goconf.ReadConfigFile(*conf_file)
 	if err != nil {
 		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
 		os.Exit(1)
 	}
+
+	confPath, err := filepath.Abs(*conf_file)
+	if err != nil {
+		panic(fmt.Sprint("goconfig.LoadConfigFile() error = ", err))
+	}
+
+	fmt.Println("读取配置文件：", confPath)
 	return conf
 }

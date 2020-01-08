@@ -1,8 +1,6 @@
 package httpgo
 
 import (
-	"../constant"
-	"../log"
 	"bytes"
 	"crypto/tls"
 	"crypto/x509"
@@ -11,6 +9,9 @@ import (
 	"net"
 	"net/http"
 	"time"
+
+	"das/core/constant"
+	"das/core/log"
 )
 
 func HttpLoginTelecom() (respBody string, err error) {
