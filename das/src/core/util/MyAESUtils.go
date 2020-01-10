@@ -13,12 +13,17 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"das/core/log"
 	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
 
 	"das/core/aes/ecb"
+)
+
+var (
+	ErrCipherText = errors.New("ciphertext error")
 )
 
 /*	CBC加密 按照golang标准库的例子代码
@@ -47,7 +52,7 @@ func pKCS7UnPadding(origData []byte) []byte {
 func aesCBCEncrypt(rawData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		return []byte{}, err
 	}
 
 	//填充原文
@@ -58,7 +63,7 @@ func aesCBCEncrypt(rawData, key []byte) ([]byte, error) {
 	//block大小 16
 	iv := cipherText[:blockSize]
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err)
+		return []byte{}, err
 	}
 
 	//block大小和初始向量大小一定要一致
@@ -72,7 +77,7 @@ func aesCBCEncrypt(rawData, key []byte) ([]byte, error) {
 func aesECBEncrypt(rawData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		return []byte{}, err
 	}
 
 	//填充原文
@@ -99,20 +104,20 @@ func aesECBEncrypt(rawData, key []byte) ([]byte, error) {
 func aesCBCDecrypt(encryptData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		return []byte{}, err
 	}
 
 	blockSize := block.BlockSize()
 
 	if len(encryptData) < blockSize {
-		panic("ciphertext too short")
+		return []byte{}, ErrCipherText
 	}
 	iv := encryptData[:blockSize]
 	encryptData = encryptData[blockSize:]
 
 	// CBC mode always works in whole blocks.
 	if len(encryptData)%blockSize != 0 {
-		panic("ciphertext is not a multiple of the block size")
+		return []byte{}, ErrCipherText
 	}
 
 	mode := cipher.NewCBCDecrypter(block, iv)
@@ -127,20 +132,20 @@ func aesCBCDecrypt(encryptData, key []byte) ([]byte, error) {
 func aesECBDecrypt(encryptData, key []byte) ([]byte, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err)
+		return []byte{}, err
 	}
 
 	blockSize := block.BlockSize()
 
 	if len(encryptData) < blockSize {
-		panic("ciphertext too short")
+		return []byte{}, ErrCipherText
 	}
 	// iv := encryptData[:blockSize]
 	// encryptData = encryptData[blockSize:]
 
 	// CBC mode always works in whole blocks.
 	if len(encryptData)%blockSize != 0 {
-		panic("ciphertext is not a multiple of the block size")
+		return []byte{}, ErrCipherText
 	}
 
 	mode := ecb.NewECBDecrypter(block)
@@ -169,6 +174,13 @@ func CBCEncrypt(rawData, key []byte) (string, error) {
 }
 
 func ECBEncrypt(rawData, key []byte) (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("ECBEncrypt error = ", err)
+		}
+	}()
+
+
 	data, err := aesECBEncrypt(rawData, key)
 	// fmt.Printf("%02x\n", data)
 	if err != nil {
@@ -179,6 +191,12 @@ func ECBEncrypt(rawData, key []byte) (string, error) {
 }
 
 func ECBEncryptByte(rawData, key []byte) ([]byte, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("ECBEncryptByte error = ", err)
+		}
+	}()
+
 	data, err := aesECBEncrypt(rawData, key)
 	// fmt.Printf("%02x\n", data)
 	if err != nil {
@@ -189,6 +207,12 @@ func ECBEncryptByte(rawData, key []byte) ([]byte, error) {
 }
 
 func CBCDecrypt(rawData string, key []byte) (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("CBCDecrypt error = ", err)
+		}
+	}()
+
 	data, err := base64.StdEncoding.DecodeString(rawData)
 	// data, err := hex.DecodeString(rawData)
 	if err != nil {
@@ -202,6 +226,12 @@ func CBCDecrypt(rawData string, key []byte) (string, error) {
 }
 
 func ECBDecrypt(rawData string, key []byte) (string, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("ECBDecrypt error = ", err)
+		}
+	}()
+
 	data, err := base64.StdEncoding.DecodeString(rawData)
 	// data, err := hex.DecodeString(rawData)
 	if err != nil {
@@ -216,6 +246,12 @@ func ECBDecrypt(rawData string, key []byte) (string, error) {
 }
 
 func ECBDecryptByte(rawData []byte, key []byte) ([]byte, error) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error("ECBDecryptByte error = ", err)
+		}
+	}()
+
 	// data, err := base64.StdEncoding.DecodeString(rawData)
 	/*data, err := hex.DecodeString(rawData)
 	if err != nil {
