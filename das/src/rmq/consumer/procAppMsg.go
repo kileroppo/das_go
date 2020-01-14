@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +25,11 @@ import (
  */
 func ProcAppMsg(appMsg string) error {
 	log.Debug("ProcAppMsg process msg from app.")
+	if !strings.ContainsAny(appMsg, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
+		log.Error("ProcAppMsg() error msg : ", appMsg)
+		return errors.New("error msg.")
+	}
+
 	// 1、解析消息
 	var head entity.Header
 	if err := json.Unmarshal([]byte(appMsg), &head); err != nil {
