@@ -178,8 +178,10 @@ func ProcAppMsg(appMsg string) error {
 	case constant.Wonly_Guard_Msg:
 		//小卫士消息
 		httpgo.Http2FeibeeWonlyLGuard(appMsg)
-
+		return nil // TODO:JHHE after HTTP request, no other processes, otherwise return
 	}
+
+	log.Debug("ProcAppMsg after, ", appMsg)
 
 	platform, errPlat := redis.GetDevicePlatformPool(head.DevId)
 	if errPlat != nil {
