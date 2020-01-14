@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"das/core/log"
 	"fmt"
+	"io"
 	"io/ioutil"
 	glog "log"
 	"net/http"
@@ -35,10 +36,12 @@ func Http2OneNET_exe(imei string, sBody string) {
 	// 关闭 resp.Body 的正确姿势
 	if resp != nil {
 		defer resp.Body.Close()
+
+		// If reusing the http connection is important for your application you might need to add something like this at the end of your response processing logic.
+		defer io.Copy(ioutil.Discard, resp.Body) // 手动丢弃读取完毕的数据
 	}
 
 	checkError(err1)
-	defer resp.Body.Close()
 
 	if 200 == resp.StatusCode {
 		body, err := ioutil.ReadAll(resp.Body)
@@ -101,34 +104,43 @@ func Http2OneNET_write(imei string, sBody string, cmd string) (respBody string, 
 	// req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=") // 重庆：6kjzYeG=oSVVPCi2n9FdnKBMehs=, 浙江：HH=A=y1D9vuArz1JTcpvReUf5Uc=
 
 	resp, err1 := DoHTTPReqWithResp(req)
+	if nil != resp {
+		defer resp.Body.Close()
+
+		// If reusing the http connection is important for your application you might need to add something like this at the end of your response processing logic.
+		defer io.Copy(ioutil.Discard, resp.Body) // 手动丢弃读取完毕的数据
+	}
+
 	if nil != err1 {
 		// handle error
 		log.Error("[", imei, "] "+cmd+" Http2OneNET_write client.Do, error=", err1)
 		return "", err1
 	}
 
-	defer resp.Body.Close()
-
 	if 200 == resp.StatusCode {
-		body, err := ioutil.ReadAll(resp.Body)
+		// body, err := ioutil.ReadAll(resp.Body)
+		bodyBuf := new(bytes.Buffer)
+		nLen, err := bodyBuf.ReadFrom(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("[", imei, "] "+cmd+" Http2OneNET_write ioutil.ReadAll() 1，error=", err)
+			log.Error("[", imei, "] "+cmd+" Http2OneNET_write bodyBuf.ReadFrom() 1，error=", err)
 			return "", err
 		}
 
-		log.Debug("[", imei, "] "+cmd+" Http2OneNET_write() ", string(body))
-		return string(body), nil
+		log.Debug("[", imei, "] "+cmd+" Http2OneNET_write() ", bodyBuf.String(), nLen)
+		return bodyBuf.String(), nil
 	} else {
 		log.Error("[", imei, "] "+cmd+" Http2OneNET_write Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
-		body, err := ioutil.ReadAll(resp.Body)
+		// body, err := ioutil.ReadAll(resp.Body)
+		bodyBuf := new(bytes.Buffer)
+		nLen, err := bodyBuf.ReadFrom(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("[", imei, "] "+cmd+" Http2OneNET_write ioutil.ReadAll() 2, error=", err)
+			log.Error("[", imei, "] "+cmd+" Http2OneNET_write bodyBuf.ReadFrom() 2, error=", err)
 			return "", err
 		}
 
-		log.Debug("[", imei, "] "+cmd+" Http2OneNET_write() ", string(body))
+		log.Debug("[", imei, "] "+cmd+" Http2OneNET_write() ", bodyBuf.String(), nLen)
 		return "", err1
 	}
 }

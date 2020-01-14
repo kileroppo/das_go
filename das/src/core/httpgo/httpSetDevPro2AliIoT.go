@@ -3,6 +3,7 @@ package httpgo
 import (
 	"bytes"
 	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -71,34 +72,40 @@ func getAliIoTCloudToken() (token string, err error) {
 	}
 
 	resp, err1 := DoHTTPReqWithResp(req)
+	if nil != resp {
+		defer resp.Body.Close()
+		defer io.Copy(ioutil.Discard, resp.Body)
+	}
 	if nil != err1 {
 		// handle error
 		log.Error(" getAliIoTCloudToken client.Do, error=", err1)
 		return "", err1
 	}
 
-	defer resp.Body.Close()
-
 	if 200 == resp.StatusCode {
-		body, err := ioutil.ReadAll(resp.Body)
+		// body, err := ioutil.ReadAll(resp.Body)
+		bodyBuf := new(bytes.Buffer)
+		nLen, err := bodyBuf.ReadFrom(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("getAliIoTCloudToken ioutil.ReadAll() 1，error=", err)
+			log.Error("getAliIoTCloudToken bodyBuf.ReadFrom 1，error=", err)
 			return "", err
 		}
 
-		log.Debug("getAliIoTCloudToken() ", string(body))
-		return string(body), nil
+		log.Debug("getAliIoTCloudToken() ", bodyBuf.String(), nLen)
+		return bodyBuf.String(), nil
 	} else {
 		log.Error("getAliIoTCloudToken Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
-		body, err := ioutil.ReadAll(resp.Body)
+		// body, err := ioutil.ReadAll(resp.Body)
+		bodyBuf := new(bytes.Buffer)
+		nLen, err := bodyBuf.ReadFrom(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("getAliIoTCloudToken ioutil.ReadAll() 2, error=", err)
+			log.Error("getAliIoTCloudToken bodyBuf.ReadFrom 2, error=", err)
 			return "", err
 		}
 
-		log.Debug("getAliIoTCloudToken() ", string(body))
+		log.Debug("getAliIoTCloudToken() ", bodyBuf.String(), nLen)
 		err2 := errors.New("get aliIoT Token failed.")
 		return "", err2
 	}
@@ -148,35 +155,41 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 	}
 
 	resp, err1 := DoHTTPReqWithResp(req)
+	if nil != resp {
+		defer resp.Body.Close()
+		defer io.Copy(ioutil.Discard, resp.Body)
+	}
 	if nil != err1 {
 		// handle error
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro client.Do, error=", err1)
 		return "", err1
 	}
 
-	defer resp.Body.Close()
-
 	if 200 == resp.StatusCode {
-		body, err := ioutil.ReadAll(resp.Body)
+		// body, err := ioutil.ReadAll(resp.Body)
+		bodyBuf := new(bytes.Buffer)
+		nLen, err := bodyBuf.ReadFrom(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro ioutil.ReadAll() 1，error=", err)
+			log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro bodyBuf.ReadFrom() 1，error=", err)
 			return "", err
 		}
 
-		log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", string(body))
-		return string(body), nil
+		log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", bodyBuf.String(), nLen)
+		return bodyBuf.String(), nil
 	} else {
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
-		body, err := ioutil.ReadAll(resp.Body)
+		// body, err := ioutil.ReadAll(resp.Body)
+		bodyBuf := new(bytes.Buffer)
+		nLen, err := bodyBuf.ReadFrom(resp.Body)
 		if err != nil {
 			// handle error
-			log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro ioutil.ReadAll() 2, error=", err)
+			log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro bodyBuf.ReadFrom() 2, error=", err)
 			return "", err
 		}
 
-		log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", string(body))
-		return string(body), err1
+		log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", bodyBuf.String(), nLen)
+		return bodyBuf.String(), err1
 	}
 
 	return "", nil
