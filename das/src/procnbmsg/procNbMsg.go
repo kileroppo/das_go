@@ -76,6 +76,11 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 	DValue = strings.Replace(DValue, "#", ",", -1)
 	log.Debug("[", Imei, "] ProcessNbMsg() DValue after: ", DValue)
+	nDataLen := len([]rune(DValue))
+	if 4 > nDataLen { // 字符长度小于4的判断为不合格json消息，{""}
+		log.Error("[", Imei, "] ProcessNbMsg() error msg : ", DValue, ", len: ", nDataLen)
+		return errors.New("error msg.")
+	}
 
 	// 2、解析王力的消息
 	//json str 转struct(部份字段)
