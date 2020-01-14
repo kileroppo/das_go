@@ -76,9 +76,8 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 	DValue = strings.Replace(DValue, "#", ",", -1)
 	log.Debug("[", Imei, "] ProcessNbMsg() DValue after: ", DValue)
-	nDataLen := len([]rune(DValue))
-	if 4 > nDataLen { // 字符长度小于4的判断为不合格json消息，{""}
-		log.Error("[", Imei, "] ProcessNbMsg() error msg : ", DValue, ", len: ", nDataLen)
+	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
+		log.Error("[", Imei, "] ProcessNbMsg() error msg : ", DValue)
 		return errors.New("error msg.")
 	}
 
