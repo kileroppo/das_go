@@ -413,26 +413,6 @@ type ZigbeeLockHandle struct {
 	data *entity.FeibeeData
 }
 
-func (self *ZigbeeLockHandle) pushByMsgType() {
-	cid, aid := self.data.Records[0].Cid, self.data.Records[0].Aid
-
-	if cid == 257 && aid == 61685 {
-		//远程开锁
-	} else if cid == 257 && aid == 0 {
-		//门锁状态
-	} else if cid == 9 && aid == 61685 {
-		//报警上报
-	} else if cid == 10 && aid == 0 {
-		//门锁时间
-	} else if cid == 1 && aid == 33 {
-		//电量
-	} else if cid == 1 && aid == 62 {
-		//电压
-	} else if cid == 1280 && aid == 130 {
-		//门铃上报
-	}
-}
-
 func (self *ZigbeeLockHandle) PushMsg() {
     //todo: parse data and handle
     if err := aliIot2srv.ParseData(self.data.Records[0].Value); err != nil {
@@ -627,6 +607,10 @@ func isDevAlarm(data *entity.FeibeeData) bool {
 	}
 	if (data.Records[0].Cid == 1 && data.Records[0].Aid == 32) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 62) {
 		//电压上报
+		return true
+	}
+	if (data.Records[0].Cid == 9 && data.Records[0].Aid == 61685) {
+		//zigbee锁报警
 		return true
 	}
 

@@ -122,6 +122,7 @@ type FeibeeRecordsMsg struct {
 	Orgdata    string `json:"orgdata,omitempty"`
 	Uptime     int    `json:"uptime,omitempty"`
 	Pushstring string `json:"pushstring,omitempty"`
+	Snid       string `json:"snid"`
 }
 
 //feibee设备消息通知(推送给app)

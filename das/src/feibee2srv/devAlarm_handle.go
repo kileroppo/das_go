@@ -306,7 +306,7 @@ func (self *IlluminanceSensorAlarm) PushMsg() {
 	self.pushMsg2pmsForSceneTrigger()
 }
 
-func (self IlluminanceSensorAlarm) getIlluminance() string {
+func (self *IlluminanceSensorAlarm) getIlluminance() string {
 	if len(self.feibeeMsg.Records[0].Value) != 4 {
 		return ""
 	}
@@ -351,7 +351,7 @@ func (self *TemperAndHumiditySensorAlarm) PushMsg() {
 	self.pushMsg2pmsForSceneTrigger()
 }
 
-func (self TemperAndHumiditySensorAlarm) getTemper() string {
+func (self *TemperAndHumiditySensorAlarm) getTemper() string {
 	if len(self.feibeeMsg.Records[0].Value) != 4 {
 		return ""
 	}
@@ -364,7 +364,7 @@ func (self TemperAndHumiditySensorAlarm) getTemper() string {
 	return strconv.FormatFloat(float64(temper)/100, 'f', 2, 64)
 }
 
-func (self TemperAndHumiditySensorAlarm) getHumidity() string {
+func (self *TemperAndHumiditySensorAlarm) getHumidity() string {
 	if len(self.feibeeMsg.Records[0].Value) != 4 {
 		return ""
 	}
@@ -375,6 +375,14 @@ func (self TemperAndHumiditySensorAlarm) getHumidity() string {
 		return ""
 	}
 	return strconv.FormatFloat(float64(humidity)/100, 'f', 2, 64)
+}
+
+type ZigbeeAlarm struct {
+	BaseSensorAlarm
+}
+
+func (self *ZigbeeAlarm) PushMsg() {
+
 }
 
 func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, alarmValue string) {
