@@ -87,7 +87,7 @@ func getMsgType(data *entity.FeibeeData) (typ MsgType) {
 		if data.Records[0].Deviceid == 779 {
 			//小卫士
 			typ = WonlyLGuard
-		} else if data.Records[0].Deviceid == 0xa && data.Records[0].Zonetype == 0x1 {
+		} else if data.Records[0].Snid == "FTB56-AVA05JD1.4" {
 			//zigbee锁
 			typ = ZigbeeLock
 		} else if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
@@ -113,6 +113,9 @@ func DevAlarmFactory(feibeeData *entity.FeibeeData) (res MsgHandler) {
 	}
 
 	switch feibeeData.Records[0].Deviceid {
+	case 0xa:
+		//zigbee锁
+
 	case 0x0106:
 		//光照度传感器
 		res = &IlluminanceSensorAlarm{
