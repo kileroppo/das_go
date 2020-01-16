@@ -32,12 +32,10 @@ func Http2OneNET_exe(imei string, sBody string) {
 	req.Header.Set("api-key", "6kjzYeG=oSVVPCi2n9FdnKBMehs=")
 
 	resp, err1 := DoHTTPReqWithResp(req)
-	// 关闭 resp.Body 的正确姿势
-	if resp != nil {
-		defer resp.Body.Close()
+	if err1 != nil {
+		log.Error("Http2OneNET_exe error = ", err1)
 	}
-
-	checkError(err1)
+	defer resp.Body.Close()
 
 	if 200 == resp.StatusCode {
 		body, err := ioutil.ReadAll(resp.Body)
