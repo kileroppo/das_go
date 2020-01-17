@@ -55,14 +55,12 @@ func getAliIoTCloudToken() (token string, err error) {
 	}
 
 	resp, err1 := DoHTTPReqWithResp(req)
-	if nil != resp {
-		defer resp.Body.Close()
-	}
 	if nil != err1 {
 		// handle error
 		log.Error(" getAliIoTCloudToken client.Do, error=", err1)
 		return "", err1
 	}
+	defer resp.Body.Close()
 
 	if 200 == resp.StatusCode {
 		body, err := ioutil.ReadAll(resp.Body)
@@ -119,14 +117,12 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 	}
 
 	resp, err1 := DoHTTPReqWithResp(req)
-	if nil != resp {
-		defer resp.Body.Close()
-	}
 	if nil != err1 {
 		// handle error
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro client.Do, error=", err1)
 		return "", err1
 	}
+	defer resp.Body.Close()
 
 	if 200 == resp.StatusCode {
 		body, err := ioutil.ReadAll(resp.Body)

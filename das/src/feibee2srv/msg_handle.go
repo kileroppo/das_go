@@ -315,7 +315,8 @@ func (self *WonlyLGuardHandle) pushMsgByType() {
 			return
 		}
 		if self.data.Code == 3 {
-			rabbitmq.PublishGuard2app(data2app, bindid)
+			rabbitmq.Publish2app(data2app, bindid)
+			//rabbitmq.PublishGuard2app(data2app, bindid)
 
 			data2mns,err := json.Marshal(entity.Feibee2MnsMsg{Bindid:bindid,Feibee2AppMsg:msg2app})
 			if err != nil {
@@ -323,9 +324,9 @@ func (self *WonlyLGuardHandle) pushMsgByType() {
 			} else {
 				rabbitmq.Publish2mns(data2mns, "")
 			}
-
 		} else {
-			rabbitmq.PublishGuard2app(data2app, routingKey)
+			rabbitmq.Publish2app(data2app, routingKey)
+			//rabbitmq.PublishGuard2app(data2app, routingKey)
 		}
 
 	case 2: //小卫士消息暂由mns处理
@@ -380,7 +381,9 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, r
 func (self *WonlyLGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, routingKey,bindid string) {
 	if self.data.Code == 3 {
 		res, routingKey, bindid = createMsg2App(self.data, NewDev)
-	} else {
+	} else if self.data.Code == 4 {
+		res, routingKey, bindid = createMsg2App(self.data, DevOnline)
+	} else if self.data.Code == 5 {
 		res, routingKey, bindid = createMsg2App(self.data, DevDelete)
 	}
 
