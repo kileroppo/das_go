@@ -22,7 +22,7 @@ func Cmd2Device(uuid string, data string, cmd string) error {
 		return errPlat
 	}
 
-	switch platform {
+	switch platform["from"] {
 	case constant.ONENET_PLATFORM: {
 			httpgo.Http2OneNET_write(uuid, data, cmd)
 		}

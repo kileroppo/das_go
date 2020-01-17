@@ -28,6 +28,21 @@ type WlMessage struct {
 	Ended uint8			// 结束标志
 }
 
+// 王力zigbee锁消息体
+type WlZigbeeMsg struct {
+	Started uint8		// 开始标志
+	Version uint8		// 协议版本号
+	Length uint8		// 包体长度
+	Check uint16		// 校验和
+	SeqId uint16		// 包序列号
+	Cmd uint8			// 命令
+	Ack uint8			// 回应标志
+	Type uint8			// 设备类型
+	Uuid string			// 设备编号 - 加解密使用
+	PkBody interface{}	// 包体
+	Ended uint8			// 结束标志
+}
+
 //1. 获取用户列表版本号(0x30)(服务器-->前板)
 type GetDevUserVerReq struct {
 	Time int32	// 时间戳
@@ -338,6 +353,33 @@ type UploadDevInfo struct {
 	OpenMode uint8			// 常开模式：0常开关闭，1常开启用
 	RemoteSwitch uint8		// 远程开关（0：无法使用远程开锁，1：可以使用远程开锁）
 	ProductId [12]byte		// 12字节字符串，例：Z12345670001
+}
+
+type UploadZigbeeDevInfo struct {
+	FMainVer uint8			// 版本号：0x01
+	FSubVer uint8			// 次版本号：0x01
+	FModVer uint16			// 修订版本号：0x78
+	FType uint16			// 门锁设备型号2字节信息
+	DevUserVer uint32 		// 用户列表版本号(4)，当前锁保存的用户列表版本号
+	Volume uint8			// 1字节；0静音，1小，2中，3大。
+	SinMul uint8			// 验证模式：1单人，2双人
+	IsHasScr uint8			// 是否带屏：0无屏，1带屏
+	PwdSwitch uint8			// 密码开关：0表示密码禁用，1表示密码使能
+	Battery uint8			// 电量:电池电量1~100
+	NolockSwitch uint8		// 门未关报警开关：0关闭，1开启
+	FakelockSwitch uint8	// 假锁报警开关：0关闭，1开启
+	InfraSwitch uint8		// 人体感应报警开关: 0关闭，1开启
+	InfraTime uint8			// 人体感应拍照时间: 1字节（单位秒）
+	AlarmSwitch uint8		// 报警类型： 1拍照+录像，2拍照
+	BellSwitch uint8		// 门铃开关 0：关闭，1：开启
+	ActiveMode uint8		// 0门锁唤醒后立即激活，1输入激活码激活
+	Capability uint32		// 能力集：无符号4字节
+
+	BMainVer uint8			// 后板主版本号：0x01
+	BSubVer uint8			// 后板次版本号：0x01
+	BModVer uint16			// 后板修订号：0x78
+	OpenMode uint8			// 常开模式：0常开关闭，1常开启用
+	RemoteSwitch uint8		// 远程开关（0：无法使用远程开锁，1：可以使用远程开锁）
 }
 
 type UploadDevInfoResp struct {

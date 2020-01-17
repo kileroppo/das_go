@@ -195,7 +195,7 @@ func ProcAppMsg(appMsg string) error {
 		return errPlat
 	}
 
-	switch platform {
+	switch platform["from"] {
 	case constant.ONENET_PLATFORM: // 移动OneNET平台
 		{
 			// 加密数据

@@ -2,14 +2,12 @@ package httpgo
 
 import (
 	"bytes"
-	"errors"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-
 	"das/core/go-aliyun-sign"
 	"das/core/log"
 	"das/core/redis"
+	"errors"
+	"io/ioutil"
+	"net/http"
 )
 //{"code":200,"data":{"isolationId":"a103HWXIkjOlEuzM","expireIn":7200000,"cloudToken":"2b796e0a78a444f084c5512b29dbc37e"},"id":"1509086454181"}
 type aliData struct {
@@ -176,7 +174,7 @@ func HttpSetAliPro(deviceName, data, cmd string) (int, error) {
 		token = tokenResp.AliData.CloudToken
 
 		// 存储token
-		go redis.SetAliIoTtoken(tokenResp.AliData.CloudToken, strconv.Itoa(int(tokenResp.AliData.ExpireIn/1000)))
+		go redis.SetAliIoTtoken(tokenResp.AliData.CloudToken, int64(tokenResp.AliData.ExpireIn/1000))
 	}
 
 	//2. 下发数据给设备
@@ -206,7 +204,7 @@ func HttpSetAliPro(deviceName, data, cmd string) (int, error) {
 		token = tokenResp.AliData.CloudToken
 
 		// 存储token
-		go redis.SetAliIoTtoken(tokenResp.AliData.CloudToken, strconv.Itoa(int(tokenResp.AliData.ExpireIn/1000)))
+		go redis.SetAliIoTtoken(tokenResp.AliData.CloudToken, int64(tokenResp.AliData.ExpireIn/1000))
 
 		resp2, err2 := setAliThingPro(token, deviceName, data, cmd)
 		if nil != err2 {

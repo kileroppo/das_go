@@ -94,5 +94,8 @@ func main() {
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
+	// 21. 关闭redis
+	redis.CloseRedisCli()
+
 	log.Info("das_go server quit......")
 }
