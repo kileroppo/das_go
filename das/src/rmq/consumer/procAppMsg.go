@@ -189,13 +189,13 @@ func ProcAppMsg(appMsg string) error {
 
 	log.Debug("ProcAppMsg after, ", appMsg)
 
-	platform, errPlat := redis.GetDevicePlatformPool(head.DevId)
+	ret, errPlat := redis.GetDevicePlatformPool(head.DevId)
 	if errPlat != nil {
 		log.Error("Get Platform from redis failed, err=", errPlat)
 		return errPlat
 	}
 
-	switch platform["from"] {
+	switch ret["from"] {
 	case constant.ONENET_PLATFORM: // 移动OneNET平台
 		{
 			// 加密数据
@@ -277,7 +277,7 @@ func ProcAppMsg(appMsg string) error {
 		}
 	case constant.ALIIOT_PLATFORM: // 阿里云飞燕平台
 		{
-			bData, err_ := WlJson2BinMsg(appMsg)
+			bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
 			if nil != err_ {
 				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
 				return err_
@@ -316,18 +316,21 @@ func ProcAppMsg(appMsg string) error {
 			return err
 		}
 
-		appData, err_ := WlJson2BinMsg(appMsg)
+		appData, err_ := WlJson2BinMsg(appMsg, constant.ZIGBEE_PROTOCOL)
 		if nil != err_ {
 			log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
 			return err_
 		}
+		if "" == ret["uuid"] || "" == ret["uid"] {
+			return errors.New("下发给飞比zigbee锁的uuid, uid为空")
+		}
 
-		httpgo.Http2FeibeeZigbeeLock(appData, msgHead.Bindid, msgHead.Bindstr)
+		httpgo.Http2FeibeeZigbeeLock(hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 	}
 
 	default:
 		{
-			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", platform)
+			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", ret)
 		}
 	}
 

@@ -127,3 +127,9 @@ const (
 	FW_UPGRADE_STATE_CHANGED = "fwUpgradeStateChangeNotify"
 	FW_UPGRADE_RESULT        = "fwUpgradeResultNotify"
 )
+
+// 协议选择
+const (
+	GENERAL_PROTOCOL = 1
+	ZIGBEE_PROTOCOL = 2
+)

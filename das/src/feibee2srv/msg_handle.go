@@ -1,14 +1,17 @@
 package feibee2srv
 
 import (
+	"das/core/constant"
+	"das/core/util"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
-	aliIot2srv "das/aliIoT2srv"
+	"das/core/redis"
 )
 
 type MsgType int32
@@ -417,8 +420,21 @@ type ZigbeeLockHandle struct {
 }
 
 func (self *ZigbeeLockHandle) PushMsg() {
-    //todo: parse data and handle
-    if err := aliIot2srv.ParseData(self.data.Records[0].Value); err != nil {
+	// 标识设备接入平台，为下行做准备
+	mymap := make(map[string]interface{})
+	mymap["uuid"] = self.data.Records[0].Uuid
+	mymap["uid"] = self.data.Records[0].Deviceuid
+	mymap["from"] = constant.FEIBEE_PLATFORM
+	retUuid := make([]string, 4)
+	if "" != self.data.Records[0].Uuid { // uuid不能为空
+		retUuid = strings.FieldsFunc(self.data.Records[0].Uuid, util.Split) // 去掉下划线后边，如：_01
+		redis.SetDevicePlatformPool(retUuid[0], mymap)
+	} else {
+		return
+	}
+
+	//todo: parse data and handle
+    if err := ParseZlockData(self.data.Records[0].Value, "WlZigbeeLock", retUuid[0]); err != nil {
     	log.Warning("ZigbeeLockHandle PushMsg() error = ", err)
 	}
 }

@@ -30,7 +30,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 	}
 
 	var wlMsg wlprotocol.WlZigbeeMsg
-	bBody, err0 := wlMsg.ZigbeePkDecode(data)
+	bBody, err0 := wlMsg.PkDecode(data)
 	if err0 != nil {
 		log.Error("ParseZlockData wlMsg.PkDecode, err0=", err0)
 		return err0
@@ -395,7 +395,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Time: int32(time.Now().Unix()),
 		}
 		wlMsg.Ack = 1
-		bData, err_ := wlMsg.ZigbeePkEncode(tPdu)
+		bData, err_ := wlMsg.PkEncode(tPdu)
 		if nil != err_ {
 			log.Error("ParseZlockData() Upload_dev_info wlMsg.PkEncode, error: ", err_)
 			return err_

@@ -226,6 +226,7 @@ type ZigbeeLockMsg2Feibee struct {
 	ReqFeibeeHead
 
 	Uuid    string `json:"uuid"`
+	Uid		string `json:"deviceuid"`
 	Command string `json:"command"`
 }
 
