@@ -3,6 +3,7 @@ package httpgo
 import (
 	"das/core/entity"
 	"das/core/log"
+	"strconv"
 )
 
 func Http2FeibeeZigbeeLock(appData, bindid, bindstr, uuid, uid string) {
@@ -27,7 +28,7 @@ func Http2FeibeeZigbeeLock(appData, bindid, bindstr, uuid, uid string) {
 	}
 
 	reqMsg.Uuid = uuid
-	reqMsg.Uid = uid
+	reqMsg.Uid, _ = strconv.Atoi(uid)
 	reqMsg.Command = appData //转为16进制字符串
 
 	reqData, err := json.Marshal(reqMsg)
