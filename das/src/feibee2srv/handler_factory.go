@@ -88,7 +88,7 @@ func getMsgType(data *entity.FeibeeData) (typ MsgType) {
 		if data.Records[0].Deviceid == 779 {
 			//小卫士
 			typ = WonlyLGuard
-		} else if data.Records[0].Snid == "FTB56-AVA05JD1.4" {
+		} else if data.Records[0].Snid == "FZD56-DOR07WL2.4" {
 			//zigbee锁
 			typ = ZigbeeLock
 		} else if data.Records[0].Aid == 0 && data.Records[0].Cid == 6 {
