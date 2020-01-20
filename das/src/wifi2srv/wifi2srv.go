@@ -84,7 +84,9 @@ func consume() {
 		devData = prData[1]
 
 		//3. 锁对接的平台，存入redis
-		redis.SetDevicePlatformPool(devID, constant.WIFI_PLATFORM)
+		mymap := make(map[string]interface{})
+		mymap["from"] = constant.WIFI_PLATFORM
+		redis.SetDevicePlatformPool(devID, mymap)
 
 		//4. fetch job
 		// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}

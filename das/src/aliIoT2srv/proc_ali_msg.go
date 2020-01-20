@@ -48,7 +48,9 @@ func ProcessAliMsg(data []byte, topic string) error {
 		}
 
 		// 锁对接的平台，存入redis
-		redis.SetDevicePlatformPool(aliData.DeviceName, constant.ALIIOT_PLATFORM)
+		mymap := make(map[string]interface{})
+		mymap["from"] = constant.ALIIOT_PLATFORM
+		redis.SetDevicePlatformPool(aliData.DeviceName, mymap)
 
 		// 数据解析
 		err = ParseData(aliData.Items.UserData.Value)
@@ -64,7 +66,9 @@ func ProcessAliMsg(data []byte, topic string) error {
 		}
 
 		// 锁对接的平台，存入redis
-		redis.SetDevicePlatformPool(aliStatus.DeviceName, constant.ALIIOT_PLATFORM)
+		mymap := make(map[string]interface{})
+		mymap["from"] = constant.ALIIOT_PLATFORM
+		redis.SetDevicePlatformPool(aliStatus.DeviceName, mymap)
 	}
 
 	return nil

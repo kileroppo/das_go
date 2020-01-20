@@ -1,6 +1,7 @@
 package consumer
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -16,7 +17,7 @@ var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
-func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
+func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 	// 1、解析消息
 	var head entity.Header
 	if err := json.Unmarshal([]byte(jsonMsg), &head); err != nil {
@@ -24,18 +25,34 @@ func WlJson2BinMsg(jsonMsg string) ([]byte, error) {
 		return nil, err
 	}
 
-	wlMsg := wlprotocol.WlMessage{
-		Started: wlprotocol.Started, // 开始标志
-		Version: wlprotocol.Version, // 协议版本号
-		SeqId:   uint16(head.SeqId), // 包序列号
-		Cmd:     uint8(head.Cmd),    // 命令
-		Ack:     uint8(head.Ack),    // 回应标志
-		Type:    1,                  // 设备类型
-		DevId: wlprotocol.DeviceId{ // 设备编号
-			Len:  uint8(len(head.DevId)),
-			Uuid: head.DevId,
-		},
-		Ended: wlprotocol.Ended, // 结束标志
+	var wlMsg wlprotocol.IPKG
+	switch wlProtocol {
+	case constant.GENERAL_PROTOCOL:
+		wlMsg = &wlprotocol.WlMessage{
+			Started: wlprotocol.Started, // 开始标志
+			Version: wlprotocol.Version, // 协议版本号
+			SeqId:   uint16(head.SeqId), // 包序列号
+			Cmd:     uint8(head.Cmd),    // 命令
+			Ack:     uint8(head.Ack),    // 回应标志
+			Type:    1,                  // 设备类型
+			DevId: wlprotocol.DeviceId{ // 设备编号
+				Len:  uint8(len(head.DevId)),
+				Uuid: head.DevId,
+			},
+			Ended: wlprotocol.Ended, // 结束标志
+		}
+	case constant.ZIGBEE_PROTOCOL:
+		wlMsg = &wlprotocol.WlZigbeeMsg{
+			Started: wlprotocol.Started, // 开始标志
+			Version: wlprotocol.Version, // 协议版本号
+			SeqId:   uint16(head.SeqId), // 包序列号
+			Cmd:     uint8(head.Cmd),    // 命令
+			Ack:     uint8(head.Ack),    // 回应标志
+			Type:    1,                  // 设备类型
+			Ended: wlprotocol.Ended, // 结束标志
+		}
+	default:
+		return nil, errors.New("协议选择错误")
 	}
 	fmt.Println(wlMsg)
 

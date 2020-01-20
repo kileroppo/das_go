@@ -82,7 +82,9 @@ func (o OnenetJob) Handle() {
 		return
 	}
 	//1. 锁对接的平台，存入redis
-	redis.SetDevicePlatformPool(data.Msg.Imei, constant.ONENET_PLATFORM)
+	mymap := make(map[string]interface{})
+	mymap["from"] = constant.ONENET_PLATFORM
+	redis.SetDevicePlatformPool(data.Msg.Imei, mymap)
 
 	switch data.Msg.Msgtype {
 	case 2: // 设备上下线消息(type=2)

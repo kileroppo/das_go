@@ -3,15 +3,16 @@ package httpgo
 import (
 	"das/core/entity"
 	"das/core/log"
+	"strconv"
 )
 
-func Http2FeibeeZigbeeLock(appData []byte, bindid, bindstr string) {
+func Http2FeibeeZigbeeLock(appData, bindid, bindstr, uuid, uid string) {
     var err error
 	var reqMsg entity.ZigbeeLockMsg2Feibee
 	var conf = log.Conf
 
-	reqMsg.Act = "standardWriteAttribute"
-	reqMsg.Code = "286"
+	reqMsg.Act = "setcommand"// "standardWriteAttribute"
+	reqMsg.Code = "295" // "286"
 	reqMsg.Bindid = bindid
 	reqMsg.Bindstr = bindstr
 	reqMsg.AccessId,err = conf.GetString("feibee2http", "accessid")
@@ -26,7 +27,9 @@ func Http2FeibeeZigbeeLock(appData []byte, bindid, bindstr string) {
 		return
 	}
 
-	reqMsg.Command = string(appData)
+	reqMsg.Uuid = uuid
+	reqMsg.Uid, _ = strconv.Atoi(uid)
+	reqMsg.Command = appData //转为16进制字符串
 
 	reqData, err := json.Marshal(reqMsg)
 	if err != nil {
