@@ -64,11 +64,12 @@ func getMsgType(data *entity.FeibeeData) (typ MsgType) {
 	typ = -1
 	switch data.Code {
 	case 3:
-		if data.Msg[0].Deviceid == 779 {
-			typ = WonlyLGuard
-		} else {
-			typ = NewDev
-		}
+		typ = NewDev
+		//if data.Msg[0].Deviceid == 779 {
+		//	typ = WonlyLGuard
+		//} else {
+		//	typ = NewDev
+		//}
 	case 4:
 		typ = DevOnline
 	case 5:

@@ -298,62 +298,27 @@ type WonlyLGuardHandle struct {
 	msgType MsgType
 }
 
-func (self *WonlyLGuardHandle) pushMsgByType() {
-
-	switch self.data.Code {
-	//设备入网 设备在网状态 设备删除
-	case 3, 4, 5:
-		msg2pms := self.createMsg2PMS()
-		data2pms, err := json.Marshal(msg2pms)
-		if err != nil {
-			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
-		} else {
-			rabbitmq.Publish2pms(data2pms, "")
-		}
-
-		msg2app, routingKey, bindid := self.createNewDevMsg2App()
-		data2app, err := json.Marshal(msg2app)
-		if err != nil {
-			log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
-			return
-		}
-		if self.data.Code == 3 {
-			rabbitmq.Publish2app(data2app, bindid)
-			//rabbitmq.PublishGuard2app(data2app, bindid)
-
-			data2mns,err := json.Marshal(entity.Feibee2MnsMsg{Bindid:bindid,Feibee2AppMsg:msg2app})
-			if err != nil {
-				log.Warning("WonlyLGuardHandle msg2mns json.Marshal() error = ", err)
-			} else {
-				rabbitmq.Publish2mns(data2mns, "")
-			}
-		} else {
-			rabbitmq.Publish2app(data2app, routingKey)
-			//rabbitmq.PublishGuard2app(data2app, routingKey)
-		}
-
-	case 2: //小卫士消息暂由mns处理
-		msg2mns, routingKey, err := self.createOtherMsg2App()
-		if err != nil {
-			log.Warning(err)
-			return
-		}
-		data2mns, err := json.Marshal(msg2mns)
-		if err != nil {
-			log.Warning("WonlyLGuardHandle msg2db json.Marshal() error = ", err)
-		} else {
-			rabbitmq.Publish2mns(data2mns, "")
-			rabbitmq.Publish2app(data2mns, routingKey)
-		}
-	}
-}
-
 func (self *WonlyLGuardHandle) PushMsg() {
-	self.pushMsgByType()
-}
+	msg2pms := createMsg2pms(self.data, ManualOpDev)
+	data2pms, err := json.Marshal(msg2pms)
+	if err != nil {
+		log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
+	} else {
+		rabbitmq.Publish2pms(data2pms, "")
+	}
 
-func (self *WonlyLGuardHandle) createMsg2PMS() (res entity.Feibee2PMS) {
-	return createMsg2pms(self.data, self.msgType)
+	msg2mns, routingKey, err := self.createOtherMsg2App()
+	if err != nil {
+		log.Warning(err)
+		return
+	}
+	data2mns, err := json.Marshal(msg2mns)
+	if err != nil {
+		log.Warning("WonlyLGuardHandle msg2db json.Marshal() error = ", err)
+	} else {
+		rabbitmq.Publish2mns(data2mns, "")
+		rabbitmq.Publish2app(data2mns, routingKey)
+	}
 }
 
 func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, routingKey string, err error) {
@@ -545,23 +510,6 @@ func createMsg2pms(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2
 
 	case GtwOnline:
 		res.Gateway = []entity.FeibeeGatewayMsg{data.Gateway[0]}
-
-	case WonlyLGuard:
-		switch{
-		case data.Code == 3:
-			res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
-			res.DevId = data.Msg[0].Uuid
-			res.Msg = []entity.FeibeeDevMsg{data.Msg[0]}
-			res.Msg[0].Devicetype = res.DevType
-
-		case data.Code == 2:
-			res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
-			res.DevId = data.Records[0].Uuid
-			res.Records = []entity.FeibeeRecordsMsg{
-				data.Records[0],
-			}
-			res.Records[0].Devicetype = res.DevType
-		}
 	}
 
 	return
