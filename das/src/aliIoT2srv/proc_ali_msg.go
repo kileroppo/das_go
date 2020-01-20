@@ -67,7 +67,7 @@ func ProcessAliMsg(data []byte, topic string) error {
 
 		// 锁对接的平台，存入redis
 		mymap := make(map[string]interface{})
-		mymap["from"] = constant.ONENET_PLATFORM
+		mymap["from"] = constant.ALIIOT_PLATFORM
 		redis.SetDevicePlatformPool(aliStatus.DeviceName, mymap)
 	}
 
