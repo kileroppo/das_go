@@ -8,7 +8,7 @@ import (
 func SetActTimePool(devId string, data int64) error {
 	ret := redisCli.Set(devId, data, time.Second * 120) // 写入值120S后过期
 	if nil != ret.Err() {
-		log.Error("redis SetActTimePool failed:", ret.Err())
+		log.Error("redis SetActTimePool failed, key=", devId, ", err=", ret.Err())
 		return ret.Err()
 	}
 
@@ -18,7 +18,7 @@ func SetActTimePool(devId string, data int64) error {
 func SetDevicePlatformPool(devId string, fields map[string]interface{}) error {
 	ret := redisCli.HMSet(devId+"_platform", fields)
 	if nil != ret.Err() {
-		log.Error("redis SetDevicePlatformHashPool failed:", ret.Err())
+		log.Error("redis SetDevicePlatformHashPool failed, key=", devId, ", err=", ret.Err())
 		return ret.Err()
 	}
 
@@ -31,6 +31,7 @@ func SetDevicePlatformPool(devId string, fields map[string]interface{}) error {
 func GetDevicePlatformPool(devId string) (map[string]string, error) {
 	mapOut := redisCli.HGetAll(devId+"_platform")
 	if nil != mapOut.Err() {
+		log.Error("redis GetDevicePlatformPool failed, key=", devId, ", err=", mapOut.Err())
 		return nil, mapOut.Err()
 	}
 
@@ -42,7 +43,7 @@ func GetDevicePlatformPool(devId string) (map[string]string, error) {
 func SetDeviceYisumaRandomfromPool(devId string, random string) error {
 	ret := redisCli.Set(devId+"_yisumaRandom", random, time.Second * 1800) // 写入值30分钟后过期
 	if nil != ret.Err() {
-		log.Error("redis SetDeviceYisumaRandomfromPool failed:", ret.Err())
+		log.Error("redis SetDeviceYisumaRandomfromPool failed, key=", devId, ", err=", ret.Err())
 		return ret.Err()
 	}
 
@@ -52,7 +53,7 @@ func SetDeviceYisumaRandomfromPool(devId string, random string) error {
 func GetDeviceYisumaRandomfromPool(devId string) (string, error) {
 	ret := redisCli.Get(devId+"_yisumaRandom")
 	if nil != ret.Err() {
-		log.Error("redis GetDeviceYisumaRandomfromPool failed:", ret.Err())
+		log.Error("redis GetDeviceYisumaRandomfromPool failed, key=", devId, ", err=", ret.Err())
 		return "", ret.Err()
 	}
 
@@ -62,7 +63,7 @@ func GetDeviceYisumaRandomfromPool(devId string) (string, error) {
 func SetDevUserNotePool(devId string, strTime string, userNote string) error {
 	ret := redisCli.HSet(devId + "_usernote", strTime, userNote)
 	if nil != ret.Err() {
-		log.Error("redis SetDevUserNotePool failed:", ret.Err())
+		log.Error("redis SetDevUserNotePool failed, key=", devId, ", err=", ret.Err())
 		return ret.Err()
 	}
 
