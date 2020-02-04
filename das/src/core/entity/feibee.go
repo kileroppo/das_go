@@ -174,32 +174,26 @@ type InfraredTreasureControlResult struct {
 	FunctionKey    int64  `json:"functionKey"`
 }
 
-type FeibeeRawScene struct {
-	Code          int
-	Status        string
-	SceneMessages []FeibeeSceneMsg
-}
-
 type FeibeeSceneMsg struct {
-	Bindid string
-	Scenes []FeibeeSceneInfo
+	Bindid string            `json:"bindid"`
+	Scenes []FeibeeSceneInfo `json:"scenes"`
 }
 
 type FeibeeSceneInfo struct {
-	SceneName    string
-	SceneID      int
-	SceneMembers []FeibeeSceneMember
+	SceneName    string              `json:"sceneName"`
+	SceneID      int                 `json:"sceneID"`
+	SceneMembers []FeibeeSceneMember `json:"sceneMembers,omitempty"`
 }
 
 type FeibeeSceneMember struct {
-	Deviceuid       int
-	DeviceID        int
-	Data1           int
-	Data2           int
-	Data3           int
-	Data4           int
-	IRID            int `json:"IRID"`
-	Delaytime       int
-	SceneFunctionID int
-	Uuid            string
+	Deviceuid       int    `json:"deviceuid"`
+	DeviceID        int    `json:"deviceID"`
+	Data1           int    `json:"data1"`
+	Data2           int    `json:"data2"`
+	Data3           int    `json:"data3"`
+	Data4           int    `json:"data4"`
+	IRID            int    `json:"IRID"`
+	Delaytime       int    `json:"delaytime"`
+	SceneFunctionID int    `json:"sceneFunctionID"`
+	Uuid            string `json:"uuid"`
 }
