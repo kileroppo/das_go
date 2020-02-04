@@ -34,6 +34,10 @@ const (
 	WonlyLGuard      //小卫士
 	SceneSwitch      //情景开关
 	ZigbeeLock       //zigbee锁
+
+	//小卫士场景
+	FeibeeScene      //小卫士场景消息
+
 )
 
 var (
@@ -333,7 +337,7 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, r
 	res.SeqId = 1
 	res.Time = int(time.Now().Unix())
 
-	res.Devid = self.data.Records[0].Uuid
+	res.DevId = self.data.Records[0].Uuid
 	res.Deviceuid = self.data.Records[0].Deviceuid
 
 	res.OpType = "WonlyLGuard"
@@ -404,6 +408,38 @@ func (self *ZigbeeLockHandle) PushMsg() {
 	}
 }
 
+type FeibeeSceneHandle struct {
+    data *entity.FeibeeData
+}
+
+func (self *FeibeeSceneHandle) PushMsg() {
+    msg2mns := self.createMsg2Mns()
+    data2mns,err := json.Marshal(msg2mns)
+    if err != nil {
+		log.Warning("FeibeeSceneHandle PushMsg json.Marshal() error = ", err)
+	} else {
+		rabbitmq.Publish2mns(data2mns, "")
+	}
+}
+
+func (self *FeibeeSceneHandle) createMsg2Mns() (res entity.Feibee2MnsMsg){
+	res.Header.Cmd = 0xfb
+	res.Header.Vendor = "feibee"
+	res.Header.SeqId = 1
+	res.SceneMessages = self.data.SceneMessages
+
+    switch self.data.Code {
+	case 21:
+		res.OpType = "addScene"
+	case 22:
+		res.OpType = "removeScene"
+	case 23:
+		res.OpType = "sceneName"
+	}
+
+	return
+}
+
 func createMsg2App(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, routingKey,bindid string) {
 	res.Cmd = 0xfb
 	res.Ack = 0
@@ -415,7 +451,7 @@ func createMsg2App(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2
 	switch msgType {
 	case NewDev, DevOnline, DevDelete, DevRename, DevDegree:
 		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
-		res.Devid = data.Msg[0].Uuid
+		res.DevId = data.Msg[0].Uuid
 		res.Note = data.Msg[0].Name
 		res.Deviceuid = data.Msg[0].Deviceuid
 		res.Online = data.Msg[0].Online
@@ -443,7 +479,7 @@ func createMsg2App(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2
 
 	case ManualOpDev, InfraredTreasure:
 		res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
-		res.Devid = data.Records[0].Uuid
+		res.DevId = data.Records[0].Uuid
 		res.Deviceuid = data.Records[0].Deviceuid
 		bindid = data.Records[0].Bindid
 
@@ -476,12 +512,12 @@ func createMsg2App(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2
 		}
 
 		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
-		res.Devid = data.Msg[0].Uuid
+		res.DevId = data.Msg[0].Uuid
 		res.Deviceuid = data.Msg[0].Deviceuid
 		bindid = data.Msg[0].Bindid
 	}
 
-	routingKey = res.Devid
+	routingKey = res.DevId
 	return
 }
 
@@ -521,7 +557,7 @@ func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (
 	res.Vendor = "feibee"
 	res.SeqId = 1
 	res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
-	res.Devid = data.Records[0].Uuid
+	res.DevId = data.Records[0].Uuid
 	res.TriggerType = 0
 
 	res.AlarmValue = alarmValue

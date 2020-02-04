@@ -46,6 +46,10 @@ func MsgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &ZigbeeLockHandle{
 			data:data,
 		}
+	case FeibeeScene:
+		msgHandle = &FeibeeSceneHandle{
+			data:data,
+		}
 
 	default:
 		msgHandle = nil
@@ -65,11 +69,6 @@ func getMsgType(data *entity.FeibeeData) (typ MsgType) {
 	switch data.Code {
 	case 3:
 		typ = NewDev
-		//if data.Msg[0].Deviceid == 779 {
-		//	typ = WonlyLGuard
-		//} else {
-		//	typ = NewDev
-		//}
 	case 4:
 		typ = DevOnline
 	case 5:
@@ -102,6 +101,9 @@ func getMsgType(data *entity.FeibeeData) (typ MsgType) {
 			//情景开关触发
 			typ = SceneSwitch
 		}
+	case 21,22,23:
+		typ = FeibeeScene
+
 	}
 	return
 }

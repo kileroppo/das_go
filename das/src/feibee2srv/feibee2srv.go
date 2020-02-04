@@ -135,6 +135,10 @@ func (f *FeibeeData) isDataValid() bool {
 			if len(f.data.Gateway) > 0 {
 				return true
 			}
+		case 21,22,23:
+			if len(f.data.SceneMessages) > 0 {
+				return true
+			}
 		default:
 			return false
 		}
@@ -184,6 +188,16 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 		for i := 0; i < len(data.Gateway); i++ {
 			datas[i].Gateway = []entity.FeibeeGatewayMsg{
 				data.Gateway[i],
+			}
+			datas[i].Code = data.Code
+			datas[i].Ver = data.Ver
+			datas[i].Status = data.Status
+		}
+	case 21,22,23:
+		datas = make([]entity.FeibeeData, len(data.SceneMessages))
+		for i:=0; i<len(data.SceneMessages); i++ {
+			datas[i].SceneMessages = []entity.FeibeeSceneMsg{
+				data.SceneMessages[i],
 			}
 			datas[i].Code = data.Code
 			datas[i].Ver = data.Ver

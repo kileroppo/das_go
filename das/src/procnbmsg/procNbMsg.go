@@ -737,7 +737,7 @@ func sendMsg2pmsForSceneTrigger(head entity.Header) {
 	msg.Cmd = 0xf1
 	msg.Ack = 0
 	msg.DevType = head.DevType
-	msg.Devid = head.DevId
+	msg.DevId = head.DevId
 
 	msg.TriggerType = 0
 	msg.Time = int(time.Now().Unix())

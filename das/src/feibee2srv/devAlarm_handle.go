@@ -103,7 +103,7 @@ func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
 	msg.Cmd = 0xfc
 	msg.Ack = 0
 	msg.DevType = self.devType
-	msg.Devid = self.devid
+	msg.DevId = self.devid
 	msg.Vendor = "feibee"
 	msg.SeqId = 1
 
@@ -152,7 +152,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 	msg.SeqId = 1
 
 	msg.DevType = self.devType
-	msg.Devid = self.devid
+	msg.DevId = self.devid
 
 	msg.TriggerType = 0
 	msg.Time = self.time
