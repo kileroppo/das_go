@@ -2,6 +2,7 @@ package main
 
 import (
 	aliIot2srv "das/aliIoT2srv"
+	xm2srv2 "das/xm2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -45,6 +46,8 @@ func main() {
 
 	// 15. 启动http/https服务
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
+
+	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
 
 	//16. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -91,6 +94,11 @@ func main() {
 	// 20. 停止HTTP服务器
 	if err := feibee2srv.Shutdown(nil); err != nil {
 		log.Error("feibee2srv.Shutdown failed, err=", err)
+		// panic(err) // failure/timeout shutting down the server gracefully
+	}
+
+	if err := xm2srv.Shutdown(nil); err != nil {
+		log.Error("xm2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
