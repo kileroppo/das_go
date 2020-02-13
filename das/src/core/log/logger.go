@@ -24,31 +24,32 @@ var m_FileName string
 var m_PathName string
 
 var (
-	Conf = loadConfig()
+
 )
 
 var (
 	ErrArgsInvaild  = errors.New("args can be vaild")
 	ErrOpenFileFail = errors.New("open file failed")
-)
-var log = logging.MustGetLogger("das_go")
 
-var format = logging.MustStringFormatter(
-	`%{color}%{time} %{pid} %{shortfile} %{longfunc} > %{level:.4s} %{color:reset} %{message}.`,
+	logPath = "./logs"
+	logLevel = "DEBUG"
+	logSaveDay = 10
+
+	Conf *goconf.ConfigFile
+	log = logging.MustGetLogger("das_go")
+
+	format = logging.MustStringFormatter(
+		`%{color}%{time} %{pid} %{shortfile} %{longfunc} > %{level:.4s} %{color:reset} %{message}`,
+	)
 )
 
 func init()  {
-	initLogger(Conf)
+	initLogger()
+	Conf = loadConfig()
 }
 
-func initLogger(conf *goconf.ConfigFile) {
-	logPath, err := conf.GetString("server", "log_path")
-	logLevel, err := conf.GetString("server", "log_level")
-	if err != nil {
-		log.Errorf("日志文件配置有误, %s\n", err)
-		os.Exit(1)
-	}
-	go AutoClearLogFiles(logPath)
+func initLogger() {
+	go autoClearLogFiles(logPath)
 	NewLogger(logPath, logLevel)
 }
 
@@ -92,10 +93,10 @@ func NewLogger(pathDir string, level string) {
 	logging.SetBackend(fileLeveled, stdFormatter)
 
 	// 负责检测文件大小，超过35M则分文件
-	go ReNewLogger(pathDir, level)
+	go reNewLogger(pathDir, level)
 }
 
-func ReNewLogger(pathDir string, level string) {
+func reNewLogger(pathDir string, level string) {
 	for {
 		time.Sleep(time.Hour * 2) // 2小时检测一次
 
@@ -136,9 +137,9 @@ func CheckError(err error) {
 	}
 }
 
-//AutoClearLogFiles: Automatic clean-up of logs
+//autoClearLogFiles: Automatic clean-up of logs
 //Everytime the system start, delete the most previous 5 days' logfiles
-func AutoClearLogFiles(logsDirPath string) {
+func autoClearLogFiles(logsDirPath string) {
 	for {
 		if flag, err := file.IsExist(logsDirPath); err != nil || !flag {
 			time.Sleep(time.Hour * 24)
@@ -157,11 +158,6 @@ func AutoClearLogFiles(logsDirPath string) {
 			if err == nil {
 				logDir = append(logDir, v)
 			}
-		}
-
-		logSaveDay, err := Conf.GetInt("server", "log_save_day")
-		if err != nil || logSaveDay <= 0 {
-			logSaveDay = 7
 		}
 
 		if len(logDir) >= logSaveDay {
@@ -186,15 +182,16 @@ func loadConfig() *goconf.ConfigFile {
 
 	conf, err := goconf.ReadConfigFile(*conf_file)
 	if err != nil {
-		log.Errorf("加载配置文件失败，无法打开%s，error = %s", *conf_file, err)
+		Errorf("Load config file:%s failed，error = %s", *conf_file, err)
 		os.Exit(1)
 	}
 
 	confPath, err := filepath.Abs(*conf_file)
 	if err != nil {
-		panic(fmt.Sprint("goconfig.LoadConfigFile() error = ", err))
+		Error("loadConfig() error = ", err)
+		os.Exit(1)
 	}
 
-	fmt.Println("读取配置文件：", confPath)
+	Info("Load config file:", confPath)
 	return conf
 }
