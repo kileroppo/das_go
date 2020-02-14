@@ -225,6 +225,8 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				//producer.SendMQMsg2Db(DValue)
 				rabbitmq.Publish2mns([]byte(DValue), "")
 				rabbitmq.Publish2pms([]byte(DValue), "")
+				//远程开锁作为场景触发条件
+				sendMsg2pmsForSceneTrigger(head)
 			}
 		}
 	case constant.Upload_dev_info: // 上传设备信息

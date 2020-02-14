@@ -42,6 +42,7 @@ const (
 
 var (
 	ErrMsgStruct = errors.New("Feibee Msg structure was inValid")
+	ErrLGuardValLens = errors.New("LGuard value lens error")
 )
 
 type MsgHandler interface {
@@ -303,13 +304,13 @@ type WonlyLGuardHandle struct {
 }
 
 func (self *WonlyLGuardHandle) PushMsg() {
-	msg2pms := createMsg2pms(self.data, ManualOpDev)
-	data2pms, err := json.Marshal(msg2pms)
-	if err != nil {
-		log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
-	} else {
-		rabbitmq.Publish2pms(data2pms, "")
-	}
+	//msg2pms := createMsg2pms(self.data, ManualOpDev)
+	//data2pms, err := json.Marshal(msg2pms)
+	//if err != nil {
+	//	log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
+	//} else {
+	//	rabbitmq.Publish2pms(data2pms, "")
+	//}
 
 	msg2mns, routingKey, err := self.createOtherMsg2App()
 	if err != nil {
@@ -323,6 +324,59 @@ func (self *WonlyLGuardHandle) PushMsg() {
 		rabbitmq.Publish2mns(data2mns, "")
 		rabbitmq.Publish2app(data2mns, routingKey)
 	}
+
+	self.sendMsg2pmsForSceneTrigger()
+}
+
+func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
+	//todo: parse lguard value
+	_, val, err := self.parseValue(self.data.Records[0].Value)
+	if err != nil {
+		log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
+		return
+	}
+
+	msg := createSceneMsg2pms(self.data, val, "WonlyLGuard")
+
+	data2pms,err := json.Marshal(msg)
+	if err != nil {
+		log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
+	} else {
+		rabbitmq.Publish2pms(data2pms, "")
+	}
+}
+
+func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string, err error){
+    if len(rawVal) < 10 {
+    	return typ, "", ErrLGuardValLens
+	}
+
+    rawValLens,err := strconv.ParseInt(rawVal[0:2], 16, 32)
+    if err != nil || rawValLens != int64(len(rawVal[2:]))/2 {
+		return  typ,"", ErrLGuardValLens
+	}
+
+	lens, err := strconv.ParseInt(rawVal[4:6], 16, 64)
+	if err != nil || int64(len(rawVal[6:])/2) < lens+3 {
+		return typ,"", ErrLGuardValLens
+	}
+
+	typ, err = strconv.ParseInt(rawVal[6:8], 16, 64)
+	if err != nil {
+		return typ,"", ErrLGuardValLens
+	}
+
+	funcData := rawVal[8:8+2*lens]
+
+	switch typ {
+	case 0x23:
+		if funcData == "00" {
+			val = "撤防"
+		} else if funcData == "01" {
+			val = "布防"
+		}
+	}
+	return
 }
 
 func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, routingKey string, err error) {
@@ -559,6 +613,7 @@ func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (
 	res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
 	res.DevId = data.Records[0].Uuid
 	res.TriggerType = 0
+	res.Time = int(time.Now().Unix())
 
 	res.AlarmValue = alarmValue
 	res.AlarmType = alarmType
