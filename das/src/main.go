@@ -23,7 +23,7 @@ func main() {
 		http.ListenAndServe(":14999", nil)
 	}()
 
-	conf := log.Conf
+	conf := log.Init()
 
 	//3. 初始化Redis连接池
 	redis.InitRedisPool(conf)

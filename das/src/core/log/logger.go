@@ -43,9 +43,9 @@ var (
 	)
 )
 
-func init()  {
+func Init() *goconf.ConfigFile{
 	initLogger()
-	Conf = loadConfig()
+	return loadConfig()
 }
 
 func initLogger() {
