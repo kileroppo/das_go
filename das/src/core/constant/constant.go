@@ -133,3 +133,12 @@ const (
 	GENERAL_PROTOCOL = 1
 	ZIGBEE_PROTOCOL = 2
 )
+
+//	设备参数设置编号，需要特殊处理的字符串
+const (
+	IPC_SN_PNO 		= 0x0d	// 视频模组sn
+	WIFI_SSID_PNO 	= 0x0f	// WIFI_SSID
+	PROJECT_No_PNO 	= 0x10	// 产品序列号
+
+
+)
