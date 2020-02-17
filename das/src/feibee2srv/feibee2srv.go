@@ -151,7 +151,7 @@ func (f *FeibeeData) push2MQ() {
 	datas := splitFeibeeMsg(&f.data)
 
 	for _, data := range datas {
-		msgHandle := MsgHandleFactory(&data)
+		msgHandle := msgHandleFactory(&data)
 		if msgHandle == nil {
 			return
 		}

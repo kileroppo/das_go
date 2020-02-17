@@ -1,7 +1,6 @@
 package feibee2srv
 
 import (
-	"errors"
 	"strconv"
 	"time"
 
@@ -17,7 +16,7 @@ var (
 )
 
 type BaseSensorAlarm struct {
-	feibeeMsg         entity.FeibeeData
+	feibeeMsg         *entity.FeibeeData
 	alarmType         string
 	alarmVal          string
 	removalAlarmValue string
@@ -30,17 +29,13 @@ type BaseSensorAlarm struct {
 	bindid    string
 }
 
-func (b *BaseSensorAlarm) parseAlarmMsg() (err error) {
+func (b *BaseSensorAlarm) parseAlarmMsg() {
 	b.devType = devTypeConv(b.feibeeMsg.Records[0].Deviceid, b.feibeeMsg.Records[0].Zonetype)
 	b.devid = b.feibeeMsg.Records[0].Uuid
 	b.time = int(time.Now().Unix())
 	b.bindid = b.feibeeMsg.Records[0].Bindid
 
 	removalAlarmFlag, alarmType, alarmVal := alarmMsgParse(b.feibeeMsg.Records[0])
-	if alarmType == "" && alarmVal == "" && removalAlarmFlag == "" {
-		err = errors.New("alarmMsgParse() error")
-		return
-	}
 
 	b.alarmVal = alarmVal
 	b.alarmType = alarmType
@@ -82,19 +77,26 @@ func (self *BaseSensorAlarm) pushMsg2mns() {
 		rabbitmq.Publish2mns(data, "")
 	}
 
-	if self.removalAlarmValue == "1" {
-		msg.AlarmType = "forcedBreak"
-		msg.AlarmValue = "传感器被强拆"
-		msg.AlarmFlag = 1
+}
 
-		data, err = json.Marshal(msg)
-		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
-			return
-		}
-		rabbitmq.Publish2mns(data, "")
-	}
+func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.FeibeeAutoScene2pmsMsg {
+	var msg entity.FeibeeAutoScene2pmsMsg
 
+	msg.Cmd = 0xf1
+	msg.Ack = 0
+	msg.Vendor = "feibee"
+	msg.SeqId = 1
+
+	msg.DevType = self.devType
+	msg.DevId = self.devid
+
+	msg.TriggerType = 0
+	msg.Time = self.time
+
+	msg.AlarmValue = self.alarmVal
+	msg.AlarmType = self.alarmType
+
+	return msg
 }
 
 func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
@@ -128,37 +130,10 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 	if len(self.alarmVal) >0 && len(self.alarmType) > 0 {
 		rabbitmq.Publish2pms(data, "")
 	}
-	if self.removalAlarmValue == "1" {
-		msg.AlarmType = "forcedBreak"
-		msg.AlarmValue = "传感器被强拆"
-
-		data, err = json.Marshal(msg)
-		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
-			return
-		}
-		//producer.SendMQMsg2PMS(string(data))
-		rabbitmq.Publish2pms(data, "")
-	}
-
 }
 
 func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
-	var msg entity.FeibeeAutoScene2pmsMsg
-
-	msg.Cmd = 0xf1
-	msg.Ack = 0
-	msg.Vendor = "feibee"
-	msg.SeqId = 1
-
-	msg.DevType = self.devType
-	msg.DevId = self.devid
-
-	msg.TriggerType = 0
-	msg.Time = self.time
-
-	msg.AlarmValue = self.alarmVal
-	msg.AlarmType = self.alarmType
+	msg := self.createMsg2pmsForSence()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -169,17 +144,32 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 	if len(self.alarmVal) >0 && len(self.alarmType) > 0 {
 		rabbitmq.Publish2pms(data, "")
 	}
+}
 
+func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 	if self.removalAlarmValue == "1" {
+		msg := self.createMsg2app()
+
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
 
-		data, err = json.Marshal(msg)
+		data, err := json.Marshal(msg)
 		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
+			log.Error("BaseSensorAlarm pushForcedBreakMsg() error = ", err)
 			return
 		}
-		//producer.SendMQMsg2PMS(string(data))
+		rabbitmq.Publish2mns(data, "")
+		rabbitmq.Publish2pms(data, "")
+
+		msgForScene := self.createMsg2pmsForSence()
+		msgForScene.AlarmType = "forcedBreak"
+		msgForScene.AlarmValue = "传感器被强拆"
+
+		data, err = json.Marshal(msgForScene)
+		if err != nil {
+			log.Error("BaseSensorAlarm pushForcedBreakMsg() error = ", err)
+			return
+		}
 		rabbitmq.Publish2pms(data, "")
 	}
 }
@@ -195,15 +185,17 @@ func (self *InfraredSensorAlarm) PushMsg() {
 		self.alarmType = "infrared"
 		self.alarmFlag = 1
 		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无人"
 		self.alarmType = "infrared"
 		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
+	} else {
+		self.pushMsg2mns()
 	}
 
+	self.pushMsg2pmsForSave()
+    self.pushForcedBreakMsg()
 }
 
 type DoorMagneticSensorAlarm struct {
@@ -224,6 +216,7 @@ func (self *DoorMagneticSensorAlarm) PushMsg() {
 	self.pushMsg2mns()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
+	self.pushForcedBreakMsg()
 }
 
 type GasSensorAlarm struct {
@@ -237,14 +230,16 @@ func (self *GasSensorAlarm) PushMsg() {
 		self.alarmType = "gas"
 		self.alarmFlag = 1
 		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无气体"
 		self.alarmType = "gas"
 		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
+	} else {
+		self.pushMsg2mns()
 	}
+	self.pushMsg2pmsForSave()
+	self.pushForcedBreakMsg()
 }
 
 type FloodSensorAlarm struct {
@@ -258,14 +253,17 @@ func (self *FloodSensorAlarm) PushMsg() {
 		self.alarmType = "flood"
 		self.alarmFlag = 1
 		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无水"
 		self.alarmType = "flood"
 		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
+	} else {
+		self.pushMsg2mns()
 	}
+
+	self.pushMsg2pmsForSave()
+	self.pushForcedBreakMsg()
 }
 
 type SmokeSensorAlarm struct {
@@ -279,14 +277,17 @@ func (self *SmokeSensorAlarm) PushMsg() {
 		self.alarmType = "smoke"
 		self.alarmFlag = 1
 		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
 		self.pushMsg2pmsForSceneTrigger()
 	} else if self.alarmType == "0" {
 		self.alarmVal = "无烟"
 		self.alarmType = "smoke"
 		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
+	} else {
+		self.pushMsg2mns()
 	}
+
+	self.pushMsg2pmsForSave()
+	self.pushForcedBreakMsg()
 }
 
 type IlluminanceSensorAlarm struct {
@@ -304,6 +305,7 @@ func (self *IlluminanceSensorAlarm) PushMsg() {
 	self.pushMsg2mns()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
+	self.pushForcedBreakMsg()
 }
 
 func (self *IlluminanceSensorAlarm) getIlluminance() string {
@@ -349,6 +351,7 @@ func (self *TemperAndHumiditySensorAlarm) PushMsg() {
 	self.pushMsg2mns()
 	self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
+	self.pushForcedBreakMsg()
 }
 
 func (self *TemperAndHumiditySensorAlarm) getTemper() string {
