@@ -101,7 +101,7 @@ type FeibeeAlarm2AppMsg struct {
 	AlarmValue string `json:"alarmValue,omitempty"`
 
 	AlarmFlag int    `json:"alarmFlag,omitempty"`
-	Bindid    string `json:"bindid"`
+	Bindid    string `json:"bindid,omitempty"`
 }
 
 //feibee传感器报警消息 作为自动场景触发消息(推送给pms)

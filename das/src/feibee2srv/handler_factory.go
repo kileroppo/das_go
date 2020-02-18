@@ -29,11 +29,11 @@ const (
 	SceneSwitch      //情景开关
 	ZigbeeLock       //zigbee锁
 	Airer            //晾衣架
-	//传感器消息
-	Sensor
+
 	SensorVol
 	SensorBatt
 
+	BaseSensor
 	IlluminanceSensor
 	TemperAndHumiditySensor
 	InfraredSensor
@@ -90,7 +90,7 @@ var (
 	otherMsgTyp = map[int]MsgType{
 		//get key by feibee: cid,aid
 		0x00060000: ManualOpDev,
-		0x05000080: Sensor,     //传感器
+		0x05000080: BaseSensor, //传感器
 		0x00010020: SensorVol,  //传感器低压
 		0x00010021: SensorBatt, //传感器低电量
 		0x00010035: SensorBatt,
@@ -139,26 +139,12 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &ZigbeeLockHandle{data: data}
 	case FeibeeScene:
 		msgHandle = &FeibeeSceneHandle{data: data}
-	case IlluminanceSensor:
-		msgHandle = &IlluminanceSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
 	case TemperAndHumiditySensor:
 		msgHandle = &TemperAndHumiditySensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case InfraredSensor:
-		msgHandle = &InfraredSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case DoorMagneticSensor:
-		msgHandle = &DoorMagneticSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case SmokeSensor:
-		msgHandle = &SmokeSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case FloodSensor:
-		msgHandle = &FloodSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case GasSensor:
-		msgHandle = &GasSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case SosBtnSensor:
-		msgHandle = &BtnAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case SensorVol, SensorBatt, Sensor:
-		msgHandle = &BaseSensorAlarm{feibeeMsg: data}
+	case SensorVol, SensorBatt, BaseSensor, IlluminanceSensor, InfraredSensor, DoorMagneticSensor, GasSensor, FloodSensor, SosBtnSensor, SmokeSensor:
+		msgHandle = &BaseSensorAlarm{feibeeMsg: data, msgType: typ}
 	case Airer:
-		msgHandle = &FeibeeAirerHandle{data:data}
+		msgHandle = &FeibeeAirerHandle{data: data}
 	default:
 		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
