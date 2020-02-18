@@ -380,12 +380,28 @@ func (self *TemperAndHumiditySensorAlarm) getHumidity() string {
 	return strconv.FormatFloat(float64(humidity)/100, 'f', 2, 64)
 }
 
-type ZigbeeAlarm struct {
+type BtnAlarm struct {
 	BaseSensorAlarm
 }
 
-func (self *ZigbeeAlarm) PushMsg() {
+func (self *BtnAlarm) PushMsg() {
+	self.parseAlarmMsg()
+	if self.alarmType == "1" {
+		self.alarmVal = "报警"
+		self.alarmType = "sosButton"
+		self.alarmFlag = 1
+		self.pushMsg2mns()
+		self.pushMsg2pmsForSceneTrigger()
+		self.pushMsg2pmsForSave()
+	} else if self.alarmType == "0" {
+		self.alarmVal = ""
+		self.alarmType = ""
+		self.alarmFlag = 0
+	} else {
+		self.pushMsg2mns()
+	}
 
+	self.pushForcedBreakMsg()
 }
 
 func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, alarmValue string) {
@@ -397,7 +413,7 @@ func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, al
 			return
 		}
 
-		if int(bitFlagInt)&1 > 0 {
+		if int(bitFlagInt)&3 > 0 {
 			alarmFlag = "1"
 		} else {
 			alarmFlag = "0"

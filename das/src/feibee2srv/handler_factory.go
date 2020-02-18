@@ -41,6 +41,7 @@ const (
 	SmokeSensor
 	FloodSensor
 	GasSensor
+	SosBtnSensor
 )
 
 const (
@@ -83,6 +84,7 @@ var (
 		0x04020028: SmokeSensor,             //烟雾传感器
 		0x0402002a: FloodSensor,             //水浸传感器
 		0x0402002b: GasSensor,               //可燃气体传感器
+		0x0402002c: SosBtnSensor,            //紧急按钮
 	}
 
 	otherMsgTyp = map[int]MsgType{
@@ -151,6 +153,8 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &FloodSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
 	case GasSensor:
 		msgHandle = &GasSensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
+	case SosBtnSensor:
+		msgHandle = &BtnAlarm{BaseSensorAlarm{feibeeMsg: data}}
 	case SensorVol, SensorBatt, Sensor:
 		msgHandle = &BaseSensorAlarm{feibeeMsg: data}
 	case Airer:
