@@ -601,6 +601,77 @@ func (self *FeibeeSceneHandle) createMsg2mns() (res entity.Feibee2MnsMsg){
 	return
 }
 
+type FeibeeAirerHandle struct {
+	data *entity.FeibeeData
+}
+
+func (self *FeibeeAirerHandle) PushMsg() {
+	self.pushMsgByTyp()
+}
+
+func (self *FeibeeAirerHandle) pushMsgByTyp() {
+	opValue,err := self.parseValue(self.data.Records[0].Value)
+	if err != nil {
+		log.Warning("FeibeeAirerHandle msg value error")
+		return
+	}
+
+	typ,ok := airerMsgTyp[getSpMsgKey(self.data.Records[0].Cid, self.data.Records[0].Aid)]
+	if !ok {
+		log.Warning("FeibeeAirerHandle msg type was not supported")
+		return
+	}
+
+	opType := airerMsgName[typ]
+	self.pushMsg2App(opType, opValue)
+}
+
+func (self *FeibeeAirerHandle) parseValue(val string) (res string, err error) {
+	v,err := strconv.ParseInt(val, 16, 64)
+	if err != nil {
+		return "",err
+	}
+
+	return strconv.FormatInt(v, 10), err
+}
+
+func (self *FeibeeAirerHandle) pushMsg2App(opType,opValue string) {
+	var res entity.Feibee2MnsMsg
+
+	res.Cmd = 0xfb
+	res.Ack = 1
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Time = int(time.Now().Unix())
+
+	res.DevId = self.data.Records[0].Uuid
+	res.Deviceuid = self.data.Records[0].Deviceuid
+	res.Online = 1
+
+	res.OpType = opType
+	res.OpValue = opValue
+	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+
+	routingKey := self.data.Records[0].Uuid
+
+	data2app,err := json.Marshal(res)
+	if err != nil {
+		log.Warning("FeibeeAirerHandle pushMsg2App error = ", err)
+		return
+	}
+	rabbitmq.Publish2app(data2app, routingKey)
+
+	res.Bindid = self.data.Records[0].Bindid
+	data2mns,err := json.Marshal(res)
+	if err != nil {
+		log.Warning("FeibeeAirerHandle pushMsg2mns error = ", err)
+		return
+	}
+	rabbitmq.Publish2mns(data2mns, "")
+}
+
+
+
 func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (res entity.FeibeeAutoScene2pmsMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0

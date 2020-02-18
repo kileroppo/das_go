@@ -95,15 +95,26 @@ var (
 		0x0001003e: SensorVol,
 	}
 
-	clotherMsgTyp = map[int]MsgType{
-		0x05130010: airerLightStatus,
-		0x05130011: airerSterilizeStatus,
-		0x05130012: airerSterilizeTime,
-		0x05130013: airerWorkStatus,
-		0x05140002: airerDryStatus,
-		0x05140003: airerAirdryStatus,
-		0x05140004: airerDryTime,
-		0x05140005: airerAirdryTime,
+	airerMsgTyp = map[int]MsgType{
+		0x0201000a: airerLightStatus,
+		0x0201000b: airerSterilizeStatus,
+		0x0201000c: airerSterilizeTime,
+		0x0201000d: airerWorkStatus,
+		0x02020002: airerDryStatus,
+		0x02020003: airerAirdryStatus,
+		0x02020004: airerDryTime,
+		0x02020005: airerAirdryTime,
+	}
+
+	airerMsgName = map[MsgType]string{
+		airerLightStatus:     "airerLightStatus",
+		airerSterilizeStatus: "airerSterilizeStatus",
+		airerSterilizeTime:   "airerSterilizeTime",
+		airerWorkStatus:      "airerWorkStatus",
+		airerDryStatus:       "airerDryStatus",
+		airerAirdryStatus:    "airerAirdryStatus",
+		airerDryTime:         "airerDryTime",
+		airerAirdryTime:      "airerAirdryTime",
 	}
 )
 
@@ -143,7 +154,7 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 	case SensorVol, SensorBatt, Sensor:
 		msgHandle = &BaseSensorAlarm{feibeeMsg: data}
 	case Airer:
-
+		msgHandle = &FeibeeAirerHandle{data:data}
 	default:
 		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
