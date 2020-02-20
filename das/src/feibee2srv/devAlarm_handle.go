@@ -3,7 +3,6 @@ package feibee2srv
 import (
 	"encoding/binary"
 	"encoding/hex"
-	"errors"
 	"strconv"
 	"time"
 
@@ -16,45 +15,17 @@ import (
 
 var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
-
-	ErrAlarmMsgValue = errors.New("feibeeAlarm value was not supported")
-
-	alarmMsgTyp = map[int]func(string) (int, int, string){
-		0x00010020: parseVoltageVal,
-		0x00010021: parseBatteryVal,
-		0x05000080: parseSensorVal,
-		0x04020000: parseTempAndHuminityVal,
-		0x04050000: parseTempAndHuminityVal,
-		0x04000000: parseIlluminanceVal,
-	}
-
-	alarmName = map[MsgType]string{
-		InfraredSensor:     "infrared",
-		DoorMagneticSensor: "doorContact",
-		SmokeSensor:        "smoke",
-		FloodSensor:        "flood",
-		GasSensor:          "gas",
-		IlluminanceSensor:  "illuminance",
-		SosBtnSensor:       "sosButton",
-	}
-
-	alarmValue = map[MsgType]([]string){
-		InfraredSensor:     []string{"无人", "有人"},
-		DoorMagneticSensor: []string{"关闭", "开启"},
-		SmokeSensor:        []string{"无烟", "有烟"},
-		FloodSensor:        []string{"无水", "有水"},
-		GasSensor:          []string{"无气体", "有气体"},
-		SosBtnSensor:       []string{"正常", "报警"},
-	}
 )
 
-type BaseSensorAlarm struct {
-	feibeeMsg *entity.FeibeeData
-	msgType   MsgType
+type parseFunc func(string, MsgType, int) (int, int, string, string)
 
-	alarmType         string
-	alarmVal          string
-	removalAlarmValue string
+type BaseSensorAlarm struct {
+	feibeeMsg    *entity.FeibeeData
+	msgType      MsgType
+	alarmMsgType int
+
+	alarmType string
+	alarmVal  string
 
 	devType string
 	devid   string
@@ -70,28 +41,31 @@ func (self *BaseSensorAlarm) parseAlarmMsg() error {
 	self.devid = self.feibeeMsg.Records[0].Uuid
 	self.time = int(time.Now().Unix())
 	self.bindid = self.feibeeMsg.Records[0].Bindid
+	self.alarmMsgType = getSpMsgKey(self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid)
 
-	parse, ok := alarmMsgTyp[getSpMsgKey(self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid)]
+	parse := parseFunc(nil)
+	ok := false
+
+	parse, ok = alarmMsgTyp[self.alarmMsgType]
 	if !ok {
-		return ErrAlarmMsgValue
+		parse = parseContinuousVal
 	}
 
-	self.removalFlag, self.alarmFlag, self.alarmVal = parse(self.feibeeMsg.Records[0].Value)
+	self.removalFlag, self.alarmFlag, self.alarmVal, self.alarmType = parse(self.feibeeMsg.Records[0].Value, self.msgType, self.alarmMsgType)
 
-	if self.alarmFlag == 0 || self.alarmFlag == 1 {
-		if sli,ok := alarmValue[self.msgType]; ok {
-			self.alarmVal = sli[self.alarmFlag]
-		}
+	if self.alarmFlag < 0 {
+		return ErrMsgStruct
 	}
-	self.alarmType = alarmName[self.msgType]
+
 	return nil
 }
 
 func (self *BaseSensorAlarm) PushMsg() {
 	if err := self.parseAlarmMsg(); err != nil {
+		log.Warning("BaseSensorAlarm PushMsg() error = ", err)
 		return
 	}
-	if self.alarmFlag == 1 || self.msgType == DoorMagneticSensor {
+	if !(self.alarmFlag == 0) {
 		self.pushMsg2mns()
 	}
 	self.pushMsg2pmsForSave()
@@ -160,6 +134,17 @@ func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
 	return msg
 }
 
+func (self *BaseSensorAlarm) getDisplayName() (res string) {
+	if sli, ok := alarmValueMapByTyp[self.msgType]; ok {
+		if self.alarmFlag < len(sli) {
+			res = sli[self.alarmFlag]
+		} else {
+			return res
+		}
+	}
+	return
+}
+
 func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 	msg := self.createMsg2app()
 
@@ -210,114 +195,113 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 	}
 }
 
-type TemperAndHumiditySensorAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *TemperAndHumiditySensorAlarm) PushMsg() {
-	if err := self.parseAlarmMsg(); err != nil {
-		return
+func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	alarmVal = Little2BigEndianString(val)
+	if len(alarmVal) == 0 {
+		return -1, -1, "", ""
 	}
-
-	cid, aid := self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid
-
-	if cid == 1026 && aid == 0 {
-		self.alarmType = "temperature"
-	} else if cid == 1029 && aid == 0 {
-		self.alarmType = "humidity"
-	} else {
-		return
-	}
-
-	self.pushMsg2mns()
-	self.pushMsg2pmsForSave()
-	self.pushMsg2pmsForSceneTrigger()
-	self.pushForcedBreakMsg()
-}
-
-func parseTempAndHuminityVal(val string) (removalAlarmFlag, alarmFlag int, alarmVal string) {
-	if len(val) != 4 {
-		return -1, -1, ""
-	}
-
-	v64, err := strconv.ParseUint(val, 16, 64)
+	v64, err := strconv.ParseUint(alarmVal, 16, 64)
 	if err != nil {
-		return -1, -1, ""
-	}
-	res := make([]byte, 2)
-	binary.LittleEndian.PutUint16(res, uint16(v64))
-
-	alarmVal = hex.EncodeToString(res)
-	v64, err = strconv.ParseUint(alarmVal, 16, 64)
-	if err != nil {
-		return -1, -1, ""
+		return -1, -1, "", ""
 	}
 
 	alarmVal = strconv.FormatFloat(float64(v64)/100, 'f', 2, 64)
-	alarmFlag = 1
+	alarmFlag = int(v64)
 	removalAlarmFlag = -1
+	alarmName = varAlarmName[valType]
 	return
 }
 
-func parseIlluminanceVal(val string) (removalAlarmFlag, alarmFlag int, alarmVal string) {
-	if len(val) != 4 {
-		return -1, -1, ""
+func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	alarmVal = Little2BigEndianString(val)
+	if len(alarmVal) == 0 {
+		return -1, -1, "", ""
 	}
-
-	v64, err := strconv.ParseUint(val, 16, 64)
+	v64, err := strconv.ParseUint(alarmVal, 16, 64)
 	if err != nil {
-		return -1, -1, ""
+		return -1, -1, "", ""
 	}
-	res := make([]byte, 2)
-	binary.LittleEndian.PutUint16(res, uint16(v64))
-
-	alarmVal = hex.EncodeToString(res)
-	v64, err = strconv.ParseUint(alarmVal, 16, 64)
-	if err != nil {
-		return -1, -1, ""
+	if valType == illuminance {
+		if v64 > 1000 {
+			v64 = 1000
+		}
 	}
 
-	alarmVal = strconv.Itoa(int(v64))
-	alarmFlag = 1
+	alarmFlag = int(v64)
+	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
 	removalAlarmFlag = -1
+	alarmName = varAlarmName[valType]
 	return
 }
 
-func parseSensorVal(val string) (removalAlarmFlag, alarmFlag int, alarmVal string) {
+func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
 	bitFlagInt, err := strconv.ParseInt(val[0:2], 16, 64)
 	if err != nil {
 		log.Error("strconv.ParseInt() error = ", err)
-		return -1, -1, ""
+		return -1, -1, "", ""
 	}
-
 	if int(bitFlagInt)&3 > 0 {
 		alarmFlag = 1
 	}
-
+	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
 	removalAlarmFlag = int(bitFlagInt) & 4
+	alarmName = fixAlarmName[msgType]
 	return
 }
 
-func parseBatteryVal(val string) (removalAlarmFlag, alarmFlag int, alarmVal string) {
+func parseBatteryVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
 	valInt, err := strconv.ParseInt(val, 16, 64)
 	if err != nil {
 		log.Error("strconv.ParseInt() error = ", err)
-		return -1, -1, ""
+		return -1, -1, "", ""
 	}
 
 	alarmVal = strconv.Itoa(int(valInt) / 2)
-	alarmFlag = 1
+	alarmFlag = -1
+	alarmName = varAlarmName[valType]
 	return
 }
 
-func parseVoltageVal(val string) (removalAlarmFlag, alarmFlag int, alarmVal string) {
+func parseVoltageVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
 	valInt, err := strconv.ParseInt(val, 16, 64)
 	if err != nil {
 		log.Error("strconv.ParseInt() error = ", err)
-		return
+		return -1, -1, "", ""
 	}
 
 	alarmVal = strconv.Itoa(int(valInt) / 10)
-	alarmFlag = 1
+	alarmFlag = -1
+	alarmName = varAlarmName[valType]
 	return
+}
+
+func Little2BigEndianString(src string) (dst string) {
+	if len(src)%2 != 0 || len(src) > 16 {
+		return ""
+	}
+
+	v64, err := strconv.ParseUint(src, 16, 64)
+	if err != nil {
+		return ""
+	}
+	res := make([]byte, 8)
+	binary.LittleEndian.PutUint64(res, v64)
+	dst = hex.EncodeToString(res[:len(src)/2])
+	return
+}
+
+func getAlarmValName(msgType MsgType, valType int, alarmFlag int) (res string) {
+	sli, ok := alarmValueMapByTyp[msgType]
+	res = strconv.Itoa(alarmFlag)
+	if !ok {
+		sli, ok = alarmValueMapByCid[valType]
+		if !ok {
+			return
+		}
+	}
+	if alarmFlag < len(sli) && alarmFlag >= 0 {
+		return sli[alarmFlag]
+	} else {
+		return
+	}
 }

@@ -42,17 +42,7 @@ const (
 	FloodSensor
 	GasSensor
 	SosBtnSensor
-)
-
-const (
-	airerWorkStatus MsgType = iota
-	airerLightStatus
-	airerSterilizeStatus
-	airerSterilizeTime
-	airerDryStatus
-	airerDryTime
-	airerAirdryStatus
-	airerAirdryTime
+	FloorHeat
 )
 
 var (
@@ -85,6 +75,7 @@ var (
 		0x0402002a: FloodSensor,             //水浸传感器
 		0x0402002b: GasSensor,               //可燃气体传感器
 		0x0402002c: SosBtnSensor,            //紧急按钮
+		0x03010001: FloorHeat,
 	}
 
 	otherMsgTyp = map[int]MsgType{
@@ -95,28 +86,6 @@ var (
 		0x00010021: SensorBatt, //传感器低电量
 		0x00010035: SensorBatt,
 		0x0001003e: SensorVol,
-	}
-
-	airerMsgTyp = map[int]MsgType{
-		0x0201000a: airerLightStatus,
-		0x0201000b: airerSterilizeStatus,
-		0x0201000c: airerSterilizeTime,
-		0x0201000d: airerWorkStatus,
-		0x02020002: airerDryStatus,
-		0x02020003: airerAirdryStatus,
-		0x02020004: airerDryTime,
-		0x02020005: airerAirdryTime,
-	}
-
-	airerMsgName = map[MsgType]string{
-		airerLightStatus:     "airerLightStatus",
-		airerSterilizeStatus: "airerSterilizeStatus",
-		airerSterilizeTime:   "airerSterilizeTime",
-		airerWorkStatus:      "airerWorkStatus",
-		airerDryStatus:       "airerDryStatus",
-		airerAirdryStatus:    "airerAirdryStatus",
-		airerDryTime:         "airerDryTime",
-		airerAirdryTime:      "airerAirdryTime",
 	}
 )
 
@@ -139,12 +108,8 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &ZigbeeLockHandle{data: data}
 	case FeibeeScene:
 		msgHandle = &FeibeeSceneHandle{data: data}
-	case TemperAndHumiditySensor:
-		msgHandle = &TemperAndHumiditySensorAlarm{BaseSensorAlarm{feibeeMsg: data}}
-	case SensorVol, SensorBatt, BaseSensor, IlluminanceSensor, InfraredSensor, DoorMagneticSensor, GasSensor, FloodSensor, SosBtnSensor, SmokeSensor:
+	case SensorVol, SensorBatt, BaseSensor, TemperAndHumiditySensor, IlluminanceSensor, InfraredSensor, DoorMagneticSensor, GasSensor, FloodSensor, SosBtnSensor, SmokeSensor, Airer, FloorHeat:
 		msgHandle = &BaseSensorAlarm{feibeeMsg: data, msgType: typ}
-	case Airer:
-		msgHandle = &FeibeeAirerHandle{data: data}
 	default:
 		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
