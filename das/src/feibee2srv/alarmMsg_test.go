@@ -21,45 +21,49 @@ var (
 
 	infrared = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":13,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 	door     = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":21,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
-	smoke    = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":40,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
+	smoke    = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":40,"cid":1280,"aid":128,"value":"1100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 	flood    = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":42,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 	gas      = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":43,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 	sos      = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":44,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 )
 
-//func init() {
-//	conf := log.Init()
-//	rabbitmq.Init(conf)
-//}
+var tests = []struct {
+	msgName  string
+	msgValue string
+}{
+	{"airerLightStatus", airerLightStatus},
+	{"airerDisinfection", airerDisinfection},
+	{"airerDisinfectionTime", airerDisinfectionTime},
+	{"airerDryStatus", airerDryStatus},
+	{"airerAirDryStatus", airerAirDryStatus},
+	{"airerDryTime", airerDryTime},
+	{"airerAirDryTime", airerAirDryTime},
+	{"airerWorkStatus", airerWorkStatus},
+	{"floorHeatMode", floorHeatMode},
+	{"floorHeatLocalTemp", floorHeatLocalTemp},
+	{"floorHeatCurrTemp", floorHeatCurrTemp},
+	{"floorHeatWindspeed", floorHeatWindspeed},
+	{"infrared", infrared},
+	{"door", door},
+	{"smoke", smoke},
+	{"flood", flood},
+	{"gas", gas},
+	{"sos", sos},
+}
 
 func TestAlarmHandle(t *testing.T) {
-	var tests = []struct {
-		msgName  string
-		msgValue string
-	}{
-		{"airerLightStatus", airerLightStatus},
-		{"airerDisinfection", airerDisinfection},
-		{"airerDisinfectionTime", airerDisinfectionTime},
-		{"airerDryStatus", airerDryStatus},
-		{"airerAirDryStatus", airerAirDryStatus},
-		{"airerDryTime", airerDryTime},
-		{"airerAirDryTime", airerAirDryTime},
-		{"airerWorkStatus", airerWorkStatus},
-		{"floorHeatMode", floorHeatMode},
-		{"floorHeatLocalTemp", floorHeatLocalTemp},
-		{"floorHeatCurrTemp", floorHeatCurrTemp},
-		{"floorHeatWindspeed", floorHeatWindspeed},
-		{"infrared", infrared},
-		{"door", door},
-		{"smoke", smoke},
-		{"flood", flood},
-		{"gas", gas},
-		{"sos", sos},
-	}
-
 	for _, ts := range tests {
 		if ProcessFeibeeMsg([]byte(ts.msgValue)) != nil {
 			t.Errorf("Process %s error", ts.msgName)
+		}
+	}
+}
+
+
+func BenchmarkProcessFeibeeMsg(b *testing.B) {
+	for i:=0;i<b.N;i++ {
+		for _, ts := range tests {
+			ProcessFeibeeMsg([]byte(ts.msgValue))
 		}
 	}
 }

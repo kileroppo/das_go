@@ -3,6 +3,7 @@ package feibee2srv
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"strconv"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 
 var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	ErrAlarmMsg = errors.New("Feibee alarm message was invalid")
 )
 
 type parseFunc func(string, MsgType, int) (int, int, string, string)
@@ -54,7 +57,7 @@ func (self *BaseSensorAlarm) parseAlarmMsg() error {
 	self.removalFlag, self.alarmFlag, self.alarmVal, self.alarmType = parse(self.feibeeMsg.Records[0].Value, self.msgType, self.alarmMsgType)
 
 	if self.alarmFlag < 0 {
-		return ErrMsgStruct
+		return ErrAlarmMsg
 	}
 
 	return nil
@@ -243,6 +246,11 @@ func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag,
 	if int(bitFlagInt)&3 > 0 {
 		alarmFlag = 1
 	}
+	//todo: 周期上报数据不透传
+	if cycleFlag := (bitFlagInt & 16); cycleFlag > 0{
+		alarmFlag = -1
+	}
+
 	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
 	removalAlarmFlag = int(bitFlagInt) & 4
 	alarmName = fixAlarmName[msgType]

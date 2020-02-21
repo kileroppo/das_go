@@ -395,7 +395,7 @@ func init() {
 
 func TestProcessFeibeeMsg(t *testing.T) {
 	var tests = []struct {
-		msgName string
+		msgName  string
 		msgValue string
 	}{
 		{"devAdd", devAdd},
@@ -410,7 +410,7 @@ func TestProcessFeibeeMsg(t *testing.T) {
 		{"remoteOp", remoteOp},
 	}
 
-	for _,ts := range tests {
+	for _, ts := range tests {
 		if ProcessFeibeeMsg([]byte(ts.msgValue)) != nil {
 			t.Errorf("Process %s error", ts.msgName)
 		}
@@ -418,12 +418,11 @@ func TestProcessFeibeeMsg(t *testing.T) {
 }
 
 func TestPrcessOneMsg(t *testing.T) {
-	ProcessFeibeeMsg([]byte(lGuardScene))
+	ProcessFeibeeMsg([]byte(smoke))
 }
 
 func BenchmarkFeibeeProc(b *testing.B) {
-	for i:=0;i<b.N;i++ {
+	for i := 0; i < b.N; i++ {
 		ProcessFeibeeMsg([]byte(sceneAdd))
 	}
 }
-
