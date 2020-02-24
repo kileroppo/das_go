@@ -79,10 +79,9 @@ func MqttInit(conf *goconf.ConfigFile) {
 
 	// 订阅
 	log.Info("mqtt Subscribe ", strTopic)
-	if token := mqttcli.Subscribe(strTopic, 2, nil); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(strTopic, 0, nil); token.Wait() && token.Error() != nil {
 		log.Error(token.Error())
 	}
-
 }
 
 // 释放
