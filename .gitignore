@@ -18,3 +18,4 @@
 /.idea/
 logs/
 /das/src/feibee2srv/das.ini
+/das/src/core/httpgo/das.ini
