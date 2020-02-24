@@ -17,7 +17,7 @@ var (
 
 //订阅回调函数；收到消息后会执行它
 var fcallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	log.Debug("topic: %s--", msg.Topic(), ", msg: %s", msg.Payload())
+	log.Debug("topic: ", msg.Topic(), ", msg: ", msg.Payload())
 
 	//1. 检验数据是否合法
 	var wlMsg wlprotocol.WlMessage
