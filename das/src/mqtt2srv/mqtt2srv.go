@@ -1,21 +1,23 @@
 package mqtt2srv
 
 import (
+	"das/core/constant"
 	"das/core/jobque"
+	"das/core/log"
+	"das/core/redis"
 	"das/core/wlprotocol"
 	"github.com/dlintw/goconf"
 	"github.com/eclipse/paho.mqtt.golang"
-	"das/core/constant"
-	"das/core/log"
-	"das/core/redis"
-	"fmt"
 	"time"
+)
+var (
+	mqttcli mqtt.Client
+	strTopic string
 )
 
 //订阅回调函数；收到消息后会执行它
 var fcallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	fmt.Printf("TOPIC: %s--", msg.Topic())
-	fmt.Printf("MSG: %s\n", msg.Payload())
+	log.Debug("topic: %s--", msg.Topic(), ", msg: %s", msg.Payload())
 
 	//1. 检验数据是否合法
 	var wlMsg wlprotocol.WlMessage
@@ -34,26 +36,31 @@ var fcallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	jobque.JobQueue <- NewMqttJob(msg.Payload())
 }
 
-func MqttInit(conf *goconf.ConfigFile) (mqtt.Client) {
+func MqttInit(conf *goconf.ConfigFile) {
 	url, err := conf.GetString("mqtt2srv", "url")
 	if err != nil {
 		log.Error("get-mqtt2srv-url error = ", err)
-		return nil
+		return
 	}
 	user, err := conf.GetString("mqtt2srv", "user")
 	if err != nil {
 		log.Error("get-mqtt2srv-user error = ", err)
-		return nil
+		return
 	}
 	pwd, err := conf.GetString("mqtt2srv", "pwd")
 	if err != nil {
 		log.Error("get-mqtt2srv-pwd error = ", err)
-		return nil
+		return
 	}
 	cid, err := conf.GetString("mqtt2srv", "cid")
 	if err != nil {
 		log.Error("get-mqtt2srv-cid error = ", err)
-		return nil
+		return
+	}
+	strTopic, err = conf.GetString("mqtt2srv", "subtopic")
+	if err != nil {
+		log.Error("get-mqtt2srv-subtopic error = ", err)
+		return
 	}
 
 	opts := mqtt.NewClientOptions().AddBroker(url)
@@ -65,21 +72,31 @@ func MqttInit(conf *goconf.ConfigFile) (mqtt.Client) {
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetCleanSession(true)
 
-	c := mqtt.NewClient(opts)
-	if token := c.Connect(); token.Wait() && token.Error() != nil {
+	mqttcli = mqtt.NewClient(opts)
+	if token := mqttcli.Connect(); token.Wait() && token.Error() != nil {
 		log.Error(token.Error())
-		return c
 	}
 
 	// 订阅
-	log.Info("mqtt Subscribe wonly/things/smartlock/srv\n")
-	if token := c.Subscribe("wonly/things/smartlock/srv", 2, nil); token.Wait() && token.Error() != nil {
+	log.Info("mqtt Subscribe ", strTopic)
+	if token := mqttcli.Subscribe(strTopic, 2, nil); token.Wait() && token.Error() != nil {
 		log.Error(token.Error())
-		return c
 	}
 
-	return c
 }
+
+// 释放
+func MqttRelease() {
+	// 取消订阅
+	log.Debug("mqtt Unsubscribe")
+	if token := mqttcli.Unsubscribe(strTopic); token.Wait() && token.Error() != nil {
+		log.Error(token.Error())
+	}
+
+	// 关闭链接
+	mqttcli.Disconnect(250)
+}
+
 type MqttJob struct {
 	rawData []byte
 }
