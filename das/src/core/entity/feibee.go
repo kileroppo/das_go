@@ -71,7 +71,7 @@ type FeibeeRecordsMsg struct {
 }
 
 //feibee设备消息通知(推送给app)
-type Feibee2AppMsg struct {
+type Feibee2DevMsg struct {
 	Header
 
 	Note      string `json:"note,omitempty"` //设备别名
@@ -81,18 +81,13 @@ type Feibee2AppMsg struct {
 	OpType    string `json:"opType,omitempty"`
 	OpValue   string `json:"opValue,omitempty"`
 	Time      int    `json:"time,omitempty"`
+	Bindid    string `json:"bindid,omitempty"`
 
 	SceneMessages []FeibeeSceneMsg `json:"sceneMessages,omitempty"`
 }
 
-//feibee设备消息通知(推送给db)
-type Feibee2MnsMsg struct {
-	Feibee2AppMsg
-	Bindid string `json:"bindid,omitempty"`
-}
-
 //feibee设备报警消息通知(推送给app)
-type FeibeeAlarm2AppMsg struct {
+type Feibee2AlarmMsg struct {
 	Header
 
 	Time int `json:"time"`
@@ -105,7 +100,7 @@ type FeibeeAlarm2AppMsg struct {
 }
 
 //feibee传感器报警消息 作为自动场景触发消息(推送给pms)
-type FeibeeAutoScene2pmsMsg struct {
+type Feibee2AutoSceneMsg struct {
 	Header
 
 	Time int `json:"time"`

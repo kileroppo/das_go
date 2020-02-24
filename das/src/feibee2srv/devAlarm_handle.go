@@ -98,8 +98,8 @@ func (self *BaseSensorAlarm) pushMsg2mns() {
 	rabbitmq.Publish2mns(data, "")
 }
 
-func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.FeibeeAutoScene2pmsMsg {
-	var msg entity.FeibeeAutoScene2pmsMsg
+func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
+	var msg entity.Feibee2AutoSceneMsg
 
 	msg.Cmd = 0xf1
 	msg.Ack = 0
@@ -118,8 +118,8 @@ func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.FeibeeAutoScene2pmsM
 	return msg
 }
 
-func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
-	var msg entity.FeibeeAlarm2AppMsg
+func (self *BaseSensorAlarm) createMsg2app() entity.Feibee2AlarmMsg {
+	var msg entity.Feibee2AlarmMsg
 
 	msg.Cmd = 0xfc
 	msg.Ack = 0

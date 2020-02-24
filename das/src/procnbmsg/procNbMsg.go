@@ -734,7 +734,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 }
 
 func sendMsg2pmsForSceneTrigger(head entity.Header) {
-	var msg entity.FeibeeAutoScene2pmsMsg
+	var msg entity.Feibee2AutoSceneMsg
 
 	msg.Cmd = 0xf1
 	msg.Ack = 0
