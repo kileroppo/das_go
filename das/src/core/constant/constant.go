@@ -96,6 +96,7 @@ const (
 	WIFI_PLATFORM    = "wifi"
 	ALIIOT_PLATFORM = "aliIoT"
 	FEIBEE_PLATFORM = "feibee"
+	MQTT_PLATFORM 	= "mqtt"
 )
 
 // 电信平台订阅消息类型
