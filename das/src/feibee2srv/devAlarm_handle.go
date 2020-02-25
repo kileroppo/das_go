@@ -243,11 +243,15 @@ func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag,
 		log.Error("strconv.ParseInt() error = ", err)
 		return -1, -1, "", ""
 	}
-	if int(bitFlagInt)&3 > 0 {
-		alarmFlag = 1
+
+	if msgType == SosBtnSensor {
+		alarmFlag = (int(bitFlagInt) & 0b0000_0010) >> 1
+	} else {
+		alarmFlag = int(bitFlagInt) & 0b0000_0001
 	}
+
 	//todo: 周期上报数据不透传
-	if cycleFlag := (bitFlagInt & 16); cycleFlag > 0{
+	if cycleFlag := (bitFlagInt & 0b0001_0000); cycleFlag > 0{
 		alarmFlag = -1
 	}
 
