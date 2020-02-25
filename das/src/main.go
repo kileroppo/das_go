@@ -2,7 +2,9 @@ package main
 
 import (
 	aliIot2srv "das/aliIoT2srv"
+	"das/core/mqtt"
 	"das/mqtt2srv"
+	"das/paddoor2srv"
 	xm2srv2 "das/xm2srv"
 	"net/http"
 	_ "net/http/pprof"
@@ -16,7 +18,6 @@ import (
 	"das/feibee2srv"
 	"das/onenet2srv"
 	"das/rmq/consumer"
-	"das/wifi2srv"
 )
 
 func main() {
@@ -37,7 +38,7 @@ func main() {
 	go consumer.Run()
 
 	//5. 初始化平板消费者交换器，消息队列的参数
-	go wifi2srv.Run()
+	go paddoor2srv.Run()
 
 	//6. 启动ali IOT推送接收服务
 	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
@@ -53,7 +54,8 @@ func main() {
 	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
 
 	//9. 启动MQTT
-	mqtt2srv.MqttInit(conf)
+	mqtt2srv.MqttInit(conf)	// 订阅接收端
+	mqtt.MqttInit(conf)		// 发布端
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -84,7 +86,7 @@ func main() {
 	aliSrv.Close()
 
 	//13. 停止接收平板消息
-	wifi2srv.Close()
+	paddoor2srv.Close()
 
 	//14. 停止接收app消息
 	consumer.Close()
@@ -112,6 +114,7 @@ func main() {
 
 	//19. 断开MQTT连接
 	mqtt2srv.MqttRelease()
+	mqtt.MqttRelease()
 
 	//20. 关闭redis
 	redis.CloseRedisCli()

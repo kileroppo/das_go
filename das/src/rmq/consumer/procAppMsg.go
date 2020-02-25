@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"bytes"
+	"das/core/mqtt"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -254,7 +255,7 @@ func ProcAppMsg(appMsg string) error {
 	case constant.ANDLINK_PLATFORM:
 		{
 		} // 移动AndLink平台
-	case constant.WIFI_PLATFORM: // WiFi平板锁
+	case constant.PAD_DOOR_PLATFORM: // WiFi平板锁
 		{
 			// 加密数据
 			var toDevHead entity.MyHeader
@@ -307,6 +308,16 @@ func ProcAppMsg(appMsg string) error {
 				//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
 				redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
 			}
+		}
+	case constant.MQTT_PLATFORM: // MQTT
+		{
+			bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
+			if nil != err_ {
+				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
+				return err_
+			}
+
+			mqtt.WlMqttPublish(head.DevId, bData)
 		}
 	case constant.FEIBEE_PLATFORM: //飞比zigbee锁
 	{

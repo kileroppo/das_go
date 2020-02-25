@@ -6,6 +6,8 @@ import (
 	"das/core/log"
 	"das/core/redis"
 	"das/core/wlprotocol"
+	"das/procwlpro"
+	"encoding/hex"
 	"github.com/dlintw/goconf"
 	"github.com/eclipse/paho.mqtt.golang"
 	"time"
@@ -17,7 +19,7 @@ var (
 
 //订阅回调函数；收到消息后会执行它
 var fcallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	log.Debug("topic: ", msg.Topic(), ", msg: ", msg.Payload())
+	log.Debug("Mqtt-Topic: ", msg.Topic(), ", strHexMsg: ", hex.EncodeToString(msg.Payload()))
 
 	//1. 检验数据是否合法
 	var wlMsg wlprotocol.WlMessage
@@ -84,6 +86,9 @@ func MqttInit(conf *goconf.ConfigFile) {
 	}
 }
 
+func GetMqttClient() mqtt.Client {
+	return mqttcli
+}
 // 释放
 func MqttRelease() {
 	// 取消订阅
@@ -107,6 +112,5 @@ func NewMqttJob(rawData []byte) MqttJob {
 }
 
 func (o MqttJob) Handle() {
-	// TODO:jhhe 增加wifi锁数据的处理
-	log.Debug(o.rawData)
+	procwlpro.ParseData(o.rawData)
 }
