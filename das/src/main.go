@@ -2,7 +2,6 @@ package main
 
 import (
 	aliIot2srv "das/aliIoT2srv"
-	"das/mqtt2srv"
 	xm2srv2 "das/xm2srv"
 	"net/http"
 	_ "net/http/pprof"
@@ -53,7 +52,7 @@ func main() {
 	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
 
 	//9. 启动MQTT
-	mqtt2srv.MqttInit(conf)
+	// mqtt2srv.MqttInit(conf)
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -111,7 +110,7 @@ func main() {
 	}
 
 	//19. 断开MQTT连接
-	mqtt2srv.MqttRelease()
+	// mqtt2srv.MqttRelease()
 
 	//20. 关闭redis
 	redis.CloseRedisCli()
