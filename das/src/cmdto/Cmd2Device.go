@@ -1,15 +1,14 @@
 package cmdto
 
 import (
-	"das/core/mqtt"
-	"errors"
-	"fmt"
-
 	"das/core/constant"
 	"das/core/httpgo"
 	"das/core/log"
+	"das/core/mqtt"
 	"das/core/redis"
 	"das/rmq/producer"
+	"encoding/hex"
+	"errors"
 )
 
 func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
@@ -54,8 +53,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	case constant.MQTT_PLATFORM: {		// MQTT
 		data, ok := mydata.([]byte)
 		if ok {
-			// TODO:JHHE
-			fmt.Println(data)
+			log.Debug("mqtt.WlMqttPublish, data: ", hex.EncodeToString(data))
 			mqtt.WlMqttPublish(uuid, data)
 		}
 	}
