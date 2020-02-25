@@ -90,13 +90,13 @@ const (
 )
 
 const (
-	ONENET_PLATFORM  = "onenet"
-	TELECOM_PLATFORM = "telecom"
-	ANDLINK_PLATFORM = "andlink"
-	WIFI_PLATFORM    = "wifi"
-	ALIIOT_PLATFORM = "aliIoT"
-	FEIBEE_PLATFORM = "feibee"
-	MQTT_PLATFORM 	= "mqtt"
+	ONENET_PLATFORM  	= "onenet"
+	TELECOM_PLATFORM 	= "telecom"
+	ANDLINK_PLATFORM 	= "andlink"
+	PAD_DOOR_PLATFORM 	= "paddoor"
+	ALIIOT_PLATFORM 	= "aliIoT"
+	FEIBEE_PLATFORM 	= "feibee"
+	MQTT_PLATFORM 		= "mqtt"
 )
 
 // 电信平台订阅消息类型
