@@ -145,13 +145,17 @@ func MqttInit(conf *goconf.ConfigFile) {
 	opts.SetKeepAlive(15 * time.Second)
 	opts.SetDefaultPublishHandler(nil)
 	opts.SetPingTimeout(5 * time.Second)
-	opts.SetCleanSession(true)
+	opts.SetCleanSession(false)
+	opts.SetResumeSubs(true)
+	opts.SetOnConnectHandler(subscribeDefaultTopic)
 
 	mqttcli = mqtt.NewClient(opts)
 	if token := mqttcli.Connect(); token.Wait() && token.Error() != nil {
 		log.Error(token.Error())
 	}
+}
 
+func subscribeDefaultTopic(client mqtt.Client) {
 	// 订阅
 	log.Info("mqtt Subscribe ", msgTopic)
 	if token := mqttcli.Subscribe(msgTopic, 0, msgCallback); token.Wait() && token.Error() != nil {
