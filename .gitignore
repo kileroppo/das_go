@@ -19,3 +19,4 @@
 logs/
 /das/src/feibee2srv/das.ini
 /das/src/core/httpgo/das.ini
+/das/bin/das_dev.ini
