@@ -23,25 +23,9 @@ var (
 	disTopic = "$SYS/brokers/+/clients/+/disconnected"
 )
 
-// 上线事件。当某客户端上线时，会发布该消息
-type ConnectedEvent struct {
+// 上线下线事件。当某客户端上线时，会发布该消息；当某客户端离线时，会发布该消息
+type ConDisEvent struct {
 	Clientid string	`json:"clientid"`		//"clientid":"id1",
-	Username string `json:"username"`		//"username":"u",
-	Ipaddress string `json:"ipaddress"`		//"ipaddress":"127.0.0.1",
-	Connack string	`json:"connack"`		//"connack":0,
-	Ts int32 `json:"ts"`					//"ts":1554047291,
-	Proto_ver int32	`json:"proto_ver"`		//"proto_ver":3,
-	Proto_name string `json:"proto_name"`	//"proto_name":"MQIsdp",
-	Clean_start bool `json:"clean_start"`	//"clean_start":true,
-	Keepalive int32	`json:"keepalive"`		//"keepalive":60
-}
-
-// 下线事件。当某客户端离线时，会发布该消息
-type DisconnectedEvent struct {
-	Clientid string	`json:"clientid"`		//"clientid":"id1",
-	Username string	`json:"username"`		//"username":"u",
-	Reason string `json:"reason"`			//"reason":"normal",
-	Ts int32 `json:"ts"`					//"ts":1554047291
 }
 
 //订阅回调函数；收到消息后会执行它
@@ -67,8 +51,9 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 
 //订阅回调函数；设备上线消息 connected
 var conCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	log.Debug("conCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
 	var conMsg = msg.Payload()
-	var conEvent ConnectedEvent
+	var conEvent ConDisEvent
 	if err := json.Unmarshal(conMsg, &conEvent); err != nil {
 		log.Error("mqtt.MessageHandler conCallback json.Unmarshal Header error, err=", err)
 		return
@@ -97,8 +82,9 @@ var conCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 
 //订阅回调函数；设备下线消息 disconnected
 var disCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	log.Debug("disCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
 	var disMsg = msg.Payload()
-	var disEvent DisconnectedEvent
+	var disEvent ConDisEvent
 	if err := json.Unmarshal(disMsg, &disEvent); err != nil {
 		log.Error("mqtt.MessageHandler disCallback json.Unmarshal Header error, err=", err)
 		return
