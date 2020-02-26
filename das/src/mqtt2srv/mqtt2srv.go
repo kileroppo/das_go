@@ -174,6 +174,7 @@ func MqttInit(conf *goconf.ConfigFile) {
 func GetMqttClient() mqtt.Client {
 	return mqttcli
 }
+
 // 释放
 func MqttRelease() {
 	// 取消订阅
