@@ -127,7 +127,7 @@ func MqttInit(conf *goconf.ConfigFile) {
 		log.Error("get-mqtt2srv-pwd error = ", err)
 		return
 	}
-	cid, err := conf.GetString("mqtt2srv", "cid")
+	cid, err := conf.GetString("mqtt2srv", "subcid")
 	if err != nil {
 		log.Error("get-mqtt2srv-cid error = ", err)
 		return

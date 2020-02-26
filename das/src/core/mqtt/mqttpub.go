@@ -28,11 +28,16 @@ func MqttInit(conf *goconf.ConfigFile) {
 		log.Error("get-mqtt2srv-pwd error = ", err)
 		return
 	}
+	cid, err := conf.GetString("mqtt2srv", "pubcid")
+	if err != nil {
+		log.Error("get-mqtt2srv-cid error = ", err)
+		return
+	}
 
 	opts := mqtt.NewClientOptions().AddBroker(url)
 	opts.SetUsername(user)
 	opts.SetPassword(pwd)
-	opts.SetClientID("wonlysrvPub")
+	opts.SetClientID(cid)
 	opts.SetKeepAlive(15 * time.Second)
 	opts.SetDefaultPublishHandler(nil)
 	opts.SetPingTimeout(5 * time.Second)
