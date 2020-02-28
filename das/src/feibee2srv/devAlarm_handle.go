@@ -39,13 +39,15 @@ type BaseSensorAlarm struct {
 	removalFlag int
 }
 
-func (self *BaseSensorAlarm) parseAlarmMsg() error {
+func (self *BaseSensorAlarm) initData() {
 	self.devType = devTypeConv(self.feibeeMsg.Records[0].Deviceid, self.feibeeMsg.Records[0].Zonetype)
 	self.devid = self.feibeeMsg.Records[0].Uuid
 	self.time = int(time.Now().Unix())
 	self.bindid = self.feibeeMsg.Records[0].Bindid
 	self.alarmMsgType = getSpMsgKey(self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid)
+}
 
+func (self *BaseSensorAlarm) parseAlarmMsg() error {
 	parse := parseFunc(nil)
 	ok := false
 
@@ -64,14 +66,23 @@ func (self *BaseSensorAlarm) parseAlarmMsg() error {
 }
 
 func (self *BaseSensorAlarm) PushMsg() {
+	self.initData()
 	if err := self.parseAlarmMsg(); err != nil {
 		log.Warning("BaseSensorAlarm PushMsg() error = ", err)
 		return
 	}
+	//todo: 传感器正常消息不通知不存储
 	if !(self.alarmFlag == 0) {
 		self.pushMsg2mns()
+		self.pushMsg2pmsForSave()
 	}
-	self.pushMsg2pmsForSave()
+
+	//门磁报警正常通知并存储
+	if self.msgType == DoorMagneticSensor {
+		self.pushMsg2mns()
+		self.pushMsg2pmsForSave()
+	}
+
 	self.pushMsg2pmsForSceneTrigger()
 	self.pushForcedBreakMsg()
 }
@@ -196,6 +207,21 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 		}
 		rabbitmq.Publish2pms(data, "")
 	}
+}
+
+type ContinuousSensor struct {
+	BaseSensorAlarm
+}
+
+func (c *ContinuousSensor) PushMsg() {
+	c.initData()
+	if err := c.parseAlarmMsg(); err != nil {
+		log.Warning("ContinuousSensor PushMsg() error = ", err)
+		return
+	}
+	c.pushMsg2mns()
+	c.pushMsg2pmsForSave()
+	c.pushMsg2pmsForSceneTrigger()
 }
 
 func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {

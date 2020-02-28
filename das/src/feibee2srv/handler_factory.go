@@ -108,8 +108,10 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &ZigbeeLockHandle{data: data}
 	case FeibeeScene:
 		msgHandle = &FeibeeSceneHandle{data: data}
-	case SensorVol, SensorBatt, BaseSensor, TemperAndHumiditySensor, IlluminanceSensor, InfraredSensor, DoorMagneticSensor, GasSensor, FloodSensor, SosBtnSensor, SmokeSensor, Airer, FloorHeat:
+	case SensorVol, SensorBatt, BaseSensor, InfraredSensor, DoorMagneticSensor, GasSensor, FloodSensor, SosBtnSensor, SmokeSensor:
 		msgHandle = &BaseSensorAlarm{feibeeMsg: data, msgType: typ}
+	case TemperAndHumiditySensor, IlluminanceSensor, Airer, FloorHeat:
+		msgHandle = &ContinuousSensor{BaseSensorAlarm{feibeeMsg: data, msgType: typ}}
 	default:
 		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
