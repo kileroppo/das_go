@@ -220,6 +220,12 @@ func MqttRelease() {
 		log.Error(token.Error())
 	}
 
+	// 取消订阅
+	log.Debug("mqtt Unsubscribe ", msgTopic_test)
+	if token := mqttcli.Unsubscribe(msgTopic_test); token.Wait() && token.Error() != nil {
+		log.Error(token.Error())
+	}
+
 	// 关闭链接
 	mqttcli.Disconnect(250)
 }
