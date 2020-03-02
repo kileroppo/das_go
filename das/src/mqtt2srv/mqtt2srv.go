@@ -5,6 +5,7 @@ import (
 	"das/core/entity"
 	"das/core/jobque"
 	"das/core/log"
+	mymqtt "das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/wlprotocol"
@@ -18,6 +19,7 @@ import (
 var (
 	mqttcli mqtt.Client
 	msgTopic string
+	msgTopic_test string
 	// cdTopic string = "$SYS/brokers/+/clients/#"
 	conTopic = "$SYS/brokers/+/clients/+/connected"
 	disTopic = "$SYS/brokers/+/clients/+/disconnected"
@@ -47,6 +49,14 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 
 	//3. fetch job
 	jobque.JobQueue <- NewMqttJob(msg.Payload())
+}
+
+//TODO:JHHE 测试 订阅回调函数；收到消息后会执行它
+var msgCallback_test mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	strMsg := string(msg.Payload())
+	log.Debug("msgCallback_test Mqtt-Topic: ", msg.Topic(), ", strMsg: ", strMsg)
+
+	mymqtt.WlMqttPublish(strMsg, msg.Payload())
 }
 
 //订阅回调函数；设备上线消息 connected
@@ -137,6 +147,11 @@ func MqttInit(conf *goconf.ConfigFile) {
 		log.Error("get-mqtt2srv-subtopic error = ", err)
 		return
 	}
+	msgTopic_test, err = conf.GetString("mqtt2srv", "subtopic-test")
+	if err != nil {
+		log.Error("get-mqtt2srv-msgTopic-test error = ", err)
+		return
+	}
 
 	opts := mqtt.NewClientOptions().AddBroker(url)
 	opts.SetUsername(user)
@@ -171,6 +186,12 @@ func subscribeDefaultTopic(client mqtt.Client) {
 	// 订阅 设备下线消息
 	log.Info("mqtt Subscribe ", disTopic)
 	if token := mqttcli.Subscribe(disTopic, 0, disCallback); token.Wait() && token.Error() != nil {
+		log.Error(token.Error())
+	}
+
+	// 订阅 测试
+	log.Info("mqtt Subscribe ", msgTopic_test)
+	if token := mqttcli.Subscribe(msgTopic_test, 0, msgCallback_test); token.Wait() && token.Error() != nil {
 		log.Error(token.Error())
 	}
 }
