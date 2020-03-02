@@ -17,7 +17,7 @@ import (
 
 var (
 	ErrMsgStruct = errors.New("Feibee Msg structure was inValid")
-	ErrLGuardValLens = errors.New("LGuard value lens error")
+	ErrLGuardVal = errors.New("LGuard value not support")
 )
 
 type MsgHandler interface {
@@ -434,7 +434,7 @@ func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
 	//todo: parse lguard value
 	_, val, err := self.parseValue(self.data.Records[0].Value)
 	if err != nil {
-		log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
+		//log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
 		return
 	}
 
@@ -450,22 +450,22 @@ func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
 
 func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string, err error){
     if len(rawVal) < 10 {
-    	return typ, "", ErrLGuardValLens
+    	return typ, "", ErrLGuardVal
 	}
 
     rawValLens,err := strconv.ParseInt(rawVal[0:2], 16, 32)
     if err != nil || rawValLens != int64(len(rawVal[2:]))/2 {
-		return  typ,"", ErrLGuardValLens
+		return  typ,"", ErrLGuardVal
 	}
 
 	lens, err := strconv.ParseInt(rawVal[4:6], 16, 64)
 	if err != nil || int64(len(rawVal[6:])/2) < lens+3 {
-		return typ,"", ErrLGuardValLens
+		return typ,"", ErrLGuardVal
 	}
 
 	typ, err = strconv.ParseInt(rawVal[6:8], 16, 64)
 	if err != nil {
-		return typ,"", ErrLGuardValLens
+		return typ,"", ErrLGuardVal
 	}
 
 	funcData := rawVal[8:8+2*lens]
@@ -477,6 +477,8 @@ func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string,
 		} else if funcData == "01" {
 			val = "布防"
 		}
+	default:
+		return typ, "", ErrLGuardVal
 	}
 	return
 }
