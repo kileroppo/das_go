@@ -259,7 +259,7 @@ func ProcAppMsg(appMsg string) error {
 		{
 			var strToDevData string
 			var err error
-			if "WL025S1" == head.DevType && 0x36 == head.Cmd {
+			if "WL025S1" == head.DevType && 0x36 == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
 				strToDevData = appMsg
 			} else {
 				// 加密数据
