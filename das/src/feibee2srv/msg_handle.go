@@ -1,8 +1,6 @@
 package feibee2srv
 
 import (
-	"das/core/constant"
-	"das/core/util"
 	"errors"
 	"strconv"
 	"strings"
@@ -12,32 +10,14 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
+	"das/core/constant"
+	"das/core/util"
 )
 
-type MsgType int32
-
-const (
-	NewDev    MsgType = iota + 1 //设备入网
-	DevOnline                    //设备离上线
-	DevDelete                    //设备删除
-	DevRename                    //设备重命名
-	GtwOnline                    //网关离上线
-	DevDegree                    //设备控制程度通知（窗帘开关程度）
-
-	//设备操作消息
-	ManualOpDev //手动操作设备
-	RemoteOpDev //远程操作设备
-
-	//特殊设备
-	SensorAlarm      //传感器报警
-	InfraredTreasure //红外宝
-	WonlyLGuard      //小卫士
-	SceneSwitch      //情景开关
-	ZigbeeLock       //zigbee锁
-)
 
 var (
 	ErrMsgStruct = errors.New("Feibee Msg structure was inValid")
+	ErrLGuardVal = errors.New("LGuard value not support")
 )
 
 type MsgHandler interface {
@@ -50,8 +30,76 @@ type NormalMsgHandle struct {
 	msgType MsgType
 }
 
+func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
+	res.Cmd = 0xfb
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Time = int(time.Now().Unix())
+	res.Battery = 0xff
+
+	res.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
+	res.DevId = self.data.Msg[0].Uuid
+	res.Note = self.data.Msg[0].Name
+	res.Deviceuid = self.data.Msg[0].Deviceuid
+	res.Online = self.data.Msg[0].Online
+	res.Battery = self.data.Msg[0].Battery
+	res.Bindid = self.data.Msg[0].Bindid
+
+	bindid = self.data.Msg[0].Bindid
+
+	switch self.msgType {
+	case NewDev:
+		res.OpType = "newDevice"
+		//新入网设备online字段默认为1
+		if res.Online <= 0 {
+			res.Online = 1
+		}
+	case DevOnline:
+		res.OpType = "newOnline"
+	case DevDelete:
+		res.OpType = "devDelete"
+	case DevRename:
+		res.OpType = "devNewName"
+	case DevDegree:
+		res.OpType = "devDegree"
+		res.OpValue = strconv.Itoa(self.data.Msg[0].DevDegree)
+	case RemoteOpDev:
+		if self.data.Msg[0].Onoff == 1 {
+			res.OpType = "devRemoteOn"
+		} else if self.data.Msg[0].Onoff == 0 {
+			res.OpType = "devRemoteOff"
+		} else if self.data.Msg[0].Onoff == 2 {
+			res.OpType = "devRemoteStop"
+		}
+
+		if res.Online <= 0 {
+			res.Online = 1
+		}
+	}
+
+	routingKey = self.data.Msg[0].Uuid
+
+	return
+}
+
+func (self *NormalMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
+	res.Cmd = 0xfa
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.FeibeeData = *self.data
+
+	res.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
+	res.DevId = self.data.Msg[0].Uuid
+	res.Msg = []entity.FeibeeDevMsg{self.data.Msg[0]}
+	res.Msg[0].Devicetype = res.DevType
+
+	return
+}
+
 func (self *NormalMsgHandle) PushMsg() {
-	res, routingKey, bindid := createMsg2App(self.data, self.msgType)
+	res, routingKey, bindid := self.createMsg2App()
 
 	//发送给APP
 	data2app, err := json.Marshal(res)
@@ -63,21 +111,11 @@ func (self *NormalMsgHandle) PushMsg() {
 		} else {
 			rabbitmq.Publish2app(data2app, routingKey)
 		}
-	}
-
-	data2mns, err := json.Marshal(entity.Feibee2MnsMsg{
-		res,
-		bindid,
-	})
-	if err != nil {
-		log.Error("One Msg push2db() error = ", err)
-	} else {
-		//producer.SendMQMsg2Db(string(data2db))
-		rabbitmq.Publish2mns(data2mns, "")
+		rabbitmq.Publish2mns(data2app, "")
 	}
 
 	//发送给PMS
-	data2pms, err := json.Marshal(createMsg2pms(self.data, self.msgType))
+	data2pms, err := json.Marshal(self.createMsg2pms())
 	if err != nil {
 		log.Error("One Msg push2pms() error = ", err)
 	} else {
@@ -86,14 +124,85 @@ func (self *NormalMsgHandle) PushMsg() {
 	}
 }
 
+type ManualOpMsgHandle struct {
+	data *entity.FeibeeData
+}
+
+func (self *ManualOpMsgHandle) PushMsg() {
+	res, routingKey, _ := self.createMsg2App()
+	//发送给APP
+	data2app, err := json.Marshal(res)
+	if err != nil {
+		log.Error("One Msg push2app() error = ", err)
+	} else {
+		rabbitmq.Publish2app(data2app, routingKey)
+		rabbitmq.Publish2mns(data2app, "")
+	}
+
+	//发送给PMS
+	data2pms, err := json.Marshal(self.createMsg2pms())
+	if err != nil {
+		log.Error("One Msg push2pms() error = ", err)
+	} else {
+		rabbitmq.Publish2pms(data2pms, "")
+	}
+}
+
+func (self *ManualOpMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
+	res.Cmd = 0xfa
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.FeibeeData = *self.data
+	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+	res.DevId = self.data.Records[0].Uuid
+	res.Records = []entity.FeibeeRecordsMsg{
+		self.data.Records[0],
+	}
+	res.Records[0].Devicetype = res.DevType
+	return
+}
+
+func (self *ManualOpMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
+	res.Cmd = 0xfb
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Time = int(time.Now().Unix())
+	res.Battery = 0xff
+	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+	res.DevId = self.data.Records[0].Uuid
+	res.Deviceuid = self.data.Records[0].Deviceuid
+	bindid = self.data.Records[0].Bindid
+	res.Bindid = bindid
+	if self.data.Records[0].Value == "00" {
+		res.OpType = "devOff"
+	} else if self.data.Records[0].Value == "01" {
+		res.OpType = "devOn"
+	} else if self.data.Records[0].Value == "02" {
+		res.OpType = "devStop"
+	}
+	routingKey = res.DevId
+	return
+}
+
 type GtwMsgHandle struct {
 	data    *entity.FeibeeData
-	msgType MsgType
+}
+
+func (self *GtwMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
+	res.Cmd = 0xfa
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.FeibeeData = *self.data
+	res.Gateway = []entity.FeibeeGatewayMsg{self.data.Gateway[0]}
+	return
 }
 
 func (self *GtwMsgHandle) PushMsg() {
 	//发送给PMS
-	data2pms, err := json.Marshal(createMsg2pms(self.data, self.msgType))
+	data2pms, err := json.Marshal(self.createMsg2pms())
 	if err != nil {
 		log.Error("One Msg push2pms() error = ", err)
 	} else {
@@ -102,51 +211,49 @@ func (self *GtwMsgHandle) PushMsg() {
 	}
 
 	//发送给app
-	msg, routingKey, bindid := createMsg2App(self.data, self.msgType)
-	data2app, err := json.Marshal(msg)
-	if err != nil {
-		log.Error("One Msg push2app(0 error = ", err)
-	} else {
-		//producer.SendMQMsg2APP(bindId, string(data2app))
-		rabbitmq.Publish2app(data2app, routingKey)
-	}
+	//msg, routingKey, bindid := createMsg2App(self.data, self.msgType)
+	//data2app, err := json.Marshal(msg)
+	//if err != nil {
+	//	log.Error("One Msg push2app(0 error = ", err)
+	//} else {
+	//	//producer.SendMQMsg2APP(bindId, string(data2app))
+	//	rabbitmq.Publish2app(data2app, routingKey)
+	//}
 
-	//发送给ums
-	data2ums, err := json.Marshal(entity.Feibee2MnsMsg{
-		msg,
-		bindid,
-	})
-	if err != nil {
-		log.Error("One Msg push2db() error = ", err)
-	} else {
-		//producer.SendMQMsg2Db(string(data2db))
-		rabbitmq.Publish2mns(data2ums, "")
-	}
+	//发送给mns
+	//data2mns, err := json.Marshal(entity.Feibee2MnsMsg{
+	//	msg,
+	//	bindid,
+	//})
+	//if err != nil {
+	//	log.Error("One Msg push2db() error = ", err)
+	//} else {
+	//	//producer.SendMQMsg2Db(string(data2db))
+	//	rabbitmq.Publish2mns(data2mns, "")
+	//}
 
-}
-
-type SensorMsgHandle struct {
-	data *entity.FeibeeData
-}
-
-func (self *SensorMsgHandle) PushMsg() {
-	devAlarm := DevAlarmFactory(self.data)
-	if devAlarm == nil {
-		log.Error("该报警设备类型未支持")
-		return
-	}
-
-	devAlarm.PushMsg()
-}
-
-type RemoteOpMsgHandle struct {
-	data    entity.FeibeeData
-	msgType MsgType
 }
 
 type InfraredTreasureHandle struct {
 	data    *entity.FeibeeData
 	msgType MsgType
+}
+
+func (self *InfraredTreasureHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
+	res.Cmd = 0xfb
+	res.Ack = 0
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Time = int(time.Now().Unix())
+	res.Battery = 0xff
+
+	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+	res.DevId = self.data.Records[0].Uuid
+	res.Deviceuid = self.data.Records[0].Deviceuid
+	bindid = self.data.Records[0].Bindid
+	routingKey = self.data.Records[0].Uuid
+
+	return
 }
 
 func (self *InfraredTreasureHandle) PushMsg() {
@@ -164,7 +271,7 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 		return
 	}
 
-	data, routingKey, _ := createMsg2App(self.data, self.msgType)
+	data, routingKey, _ := self.createMsg2App()
 
 	switch flag {
 	case 10: //红外宝固件版本上报
@@ -213,7 +320,7 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 	return
 }
 
-func (self *InfraredTreasureHandle) push2app(data entity.Feibee2AppMsg, routingKey string) error {
+func (self *InfraredTreasureHandle) push2app(data entity.Feibee2DevMsg, routingKey string) error {
 	if len(data.OpType) <= 0 || len(data.OpValue) <= 0 {
 		err := errors.New("optype or opvalue error")
 		return err
@@ -299,13 +406,13 @@ type WonlyLGuardHandle struct {
 }
 
 func (self *WonlyLGuardHandle) PushMsg() {
-	msg2pms := createMsg2pms(self.data, ManualOpDev)
-	data2pms, err := json.Marshal(msg2pms)
-	if err != nil {
-		log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
-	} else {
-		rabbitmq.Publish2pms(data2pms, "")
-	}
+	//msg2pms := createMsg2pms(self.data, ManualOpDev)
+	//data2pms, err := json.Marshal(msg2pms)
+	//if err != nil {
+	//	log.Warning("WonlyLGuardHandle msg2pms json.Marshal() error = ", err)
+	//} else {
+	//	rabbitmq.Publish2pms(data2pms, "")
+	//}
 
 	msg2mns, routingKey, err := self.createOtherMsg2App()
 	if err != nil {
@@ -319,9 +426,64 @@ func (self *WonlyLGuardHandle) PushMsg() {
 		rabbitmq.Publish2mns(data2mns, "")
 		rabbitmq.Publish2app(data2mns, routingKey)
 	}
+
+	self.sendMsg2pmsForSceneTrigger()
 }
 
-func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, routingKey string, err error) {
+func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
+	//todo: parse lguard value
+	_, val, err := self.parseValue(self.data.Records[0].Value)
+	if err != nil {
+		//log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
+		return
+	}
+
+	msg := createSceneMsg2pms(self.data, val, "WonlyLGuard")
+
+	data2pms,err := json.Marshal(msg)
+	if err != nil {
+		log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
+	} else {
+		rabbitmq.Publish2pms(data2pms, "")
+	}
+}
+
+func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string, err error){
+    if len(rawVal) < 10 {
+    	return typ, "", ErrLGuardVal
+	}
+
+    rawValLens,err := strconv.ParseInt(rawVal[0:2], 16, 32)
+    if err != nil || rawValLens != int64(len(rawVal[2:]))/2 {
+		return  typ,"", ErrLGuardVal
+	}
+
+	lens, err := strconv.ParseInt(rawVal[4:6], 16, 64)
+	if err != nil || int64(len(rawVal[6:])/2) < lens+3 {
+		return typ,"", ErrLGuardVal
+	}
+
+	typ, err = strconv.ParseInt(rawVal[6:8], 16, 64)
+	if err != nil {
+		return typ,"", ErrLGuardVal
+	}
+
+	funcData := rawVal[8:8+2*lens]
+
+	switch typ {
+	case 0x23:
+		if funcData == "00" {
+			val = "撤防"
+		} else if funcData == "01" {
+			val = "布防"
+		}
+	default:
+		return typ, "", ErrLGuardVal
+	}
+	return
+}
+
+func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2DevMsg, routingKey string, err error) {
 	if len(self.data.Records) <= 0 {
 		err = ErrMsgStruct
 		return
@@ -333,7 +495,7 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, r
 	res.SeqId = 1
 	res.Time = int(time.Now().Unix())
 
-	res.Devid = self.data.Records[0].Uuid
+	res.DevId = self.data.Records[0].Uuid
 	res.Deviceuid = self.data.Records[0].Deviceuid
 
 	res.OpType = "WonlyLGuard"
@@ -343,18 +505,6 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2MnsMsg, r
 	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
 
 	routingKey = self.data.Records[0].Uuid
-	return
-}
-
-func (self *WonlyLGuardHandle) createNewDevMsg2App() (res entity.Feibee2AppMsg, routingKey,bindid string) {
-	if self.data.Code == 3 {
-		res, routingKey, bindid = createMsg2App(self.data, NewDev)
-	} else if self.data.Code == 4 {
-		res, routingKey, bindid = createMsg2App(self.data, DevOnline)
-	} else if self.data.Code == 5 {
-		res, routingKey, bindid = createMsg2App(self.data, DevDelete)
-	}
-
 	return
 }
 
@@ -374,7 +524,7 @@ func (self *SceneSwitchHandle) PushMsg() {
 	}
 }
 
-func (self *SceneSwitchHandle) createSceneMsg2pms() (res entity.FeibeeAutoScene2pmsMsg) {
+func (self *SceneSwitchHandle) createSceneMsg2pms() (res entity.Feibee2AutoSceneMsg) {
 	//情景开关作为无触发值的触发设备
 	res = createSceneMsg2pms(self.data, "", "sceneSwitch")
 	return
@@ -404,125 +554,47 @@ func (self *ZigbeeLockHandle) PushMsg() {
 	}
 }
 
-func createMsg2App(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2AppMsg, routingKey,bindid string) {
-	res.Cmd = 0xfb
-	res.Ack = 0
-	res.Vendor = "feibee"
-	res.SeqId = 1
-	res.Time = int(time.Now().Unix())
-	res.Battery = 0xff
-
-	switch msgType {
-	case NewDev, DevOnline, DevDelete, DevRename, DevDegree:
-		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
-		res.Devid = data.Msg[0].Uuid
-		res.Note = data.Msg[0].Name
-		res.Deviceuid = data.Msg[0].Deviceuid
-		res.Online = data.Msg[0].Online
-		res.Battery = data.Msg[0].Battery
-
-		bindid = data.Msg[0].Bindid
-
-		switch msgType {
-		case NewDev:
-			res.OpType = "newDevice"
-			//新入网设备online字段默认为1
-			if res.Online <= 0 {
-				res.Online = 1
-			}
-		case DevOnline:
-			res.OpType = "newOnline"
-		case DevDelete:
-			res.OpType = "devDelete"
-		case DevRename:
-			res.OpType = "devNewName"
-		case DevDegree:
-			res.OpType = "devDegree"
-			res.OpValue = strconv.Itoa(data.Msg[0].DevDegree)
-		}
-
-	case ManualOpDev, InfraredTreasure:
-		res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
-		res.Devid = data.Records[0].Uuid
-		res.Deviceuid = data.Records[0].Deviceuid
-		bindid = data.Records[0].Bindid
-
-		switch msgType {
-
-		case ManualOpDev:
-			if data.Records[0].Value == "00" {
-				res.OpType = "devOff"
-			} else if data.Records[0].Value == "01" {
-				res.OpType = "devOn"
-			} else if data.Records[0].Value == "02" {
-				res.OpType = "devStop"
-			}
-
-		case InfraredTreasure:
-
-		}
-
-	case RemoteOpDev:
-		if data.Msg[0].Onoff == 1 {
-			res.OpType = "devRemoteOn"
-		} else if data.Msg[0].Onoff == 0 {
-			res.OpType = "devRemoteOff"
-		} else if data.Msg[0].Onoff == 2 {
-			res.OpType = "devRemoteStop"
-		}
-
-		if res.Online <= 0 {
-			res.Online = 1
-		}
-
-		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
-		res.Devid = data.Msg[0].Uuid
-		res.Deviceuid = data.Msg[0].Deviceuid
-		bindid = data.Msg[0].Bindid
-	}
-
-	routingKey = res.Devid
-	return
+type FeibeeSceneHandle struct {
+    data *entity.FeibeeData
 }
 
-func createMsg2pms(data *entity.FeibeeData, msgType MsgType) (res entity.Feibee2PMS) {
-	res.Cmd = 0xfa
-	res.Ack = 0
-	res.Vendor = "feibee"
-	res.SeqId = 1
-	res.FeibeeData = *data
+func (self *FeibeeSceneHandle) PushMsg() {
+    msg2mns := self.createMsg2mns()
+    data2mns,err := json.Marshal(msg2mns)
+    if err != nil {
+		log.Warning("FeibeeSceneHandle PushMsg json.Marshal() error = ", err)
+	} else {
+		rabbitmq.Publish2mns(data2mns, "")
+	}
+}
 
-	switch msgType {
+func (self *FeibeeSceneHandle) createMsg2mns() (res entity.Feibee2DevMsg){
+	res.Header.Cmd = 0xfb
+	res.Header.Vendor = "feibee"
+	res.Header.SeqId = 1
+	res.SceneMessages = self.data.SceneMessages
 
-	case NewDev, DevOnline, DevDelete, DevRename, RemoteOpDev:
-		res.DevType = devTypeConv(data.Msg[0].Deviceid, data.Msg[0].Zonetype)
-		res.DevId = data.Msg[0].Uuid
-		res.Msg = []entity.FeibeeDevMsg{data.Msg[0]}
-		res.Msg[0].Devicetype = res.DevType
-
-	case ManualOpDev:
-		res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
-		res.DevId = data.Records[0].Uuid
-		res.Records = []entity.FeibeeRecordsMsg{
-			data.Records[0],
-		}
-		res.Records[0].Devicetype = res.DevType
-
-	case GtwOnline:
-		res.Gateway = []entity.FeibeeGatewayMsg{data.Gateway[0]}
+    switch self.data.Code {
+	case 21:
+		res.OpType = "addScene"
+	case 22:
+		res.OpType = "removeScene"
+	case 23:
+		res.OpType = "sceneName"
 	}
 
 	return
 }
 
-func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (res entity.FeibeeAutoScene2pmsMsg) {
+func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (res entity.Feibee2AutoSceneMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
 	res.DevType = devTypeConv(data.Records[0].Deviceid, data.Records[0].Zonetype)
-	res.Devid = data.Records[0].Uuid
+	res.DevId = data.Records[0].Uuid
 	res.TriggerType = 0
+	res.Time = int(time.Now().Unix())
 
 	res.AlarmValue = alarmValue
 	res.AlarmType = alarmType
@@ -548,38 +620,4 @@ func devTypeConv(devId, zoneType int) string {
 		}
 	}
 	return "0x" + pre + tail
-}
-
-func isDevAlarm(data *entity.FeibeeData) bool {
-
-	if data.Records[0].Cid == 1280 && data.Records[0].Aid == 128 {
-		return true
-	}
-
-	if data.Records[0].Cid == 1024 && data.Records[0].Aid == 0 {
-		//光照度上报
-		return true
-	}
-	if data.Records[0].Cid == 1026 && data.Records[0].Aid == 0 {
-		//温度上报
-		return true
-	}
-	if data.Records[0].Cid == 1029 && data.Records[0].Aid == 0 {
-		//湿度上报
-		return true
-	}
-	if (data.Records[0].Cid == 1 && data.Records[0].Aid == 33) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 53) {
-		//电量上报
-		return true
-	}
-	if (data.Records[0].Cid == 1 && data.Records[0].Aid == 32) || (data.Records[0].Cid == 1 && data.Records[0].Aid == 62) {
-		//电压上报
-		return true
-	}
-	if (data.Records[0].Cid == 9 && data.Records[0].Aid == 61685) {
-		//zigbee锁报警
-		return true
-	}
-
-	return false
 }

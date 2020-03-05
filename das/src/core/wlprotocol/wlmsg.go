@@ -87,6 +87,7 @@ func (msg *WlMessage) PkEncode(pdu IPdu) ([]byte, error)  {
 func (msg *WlMessage) PkDecode(pkg []byte) ([]byte, error) {
 	var err error
 	buf := bytes.NewBuffer(pkg)
+	bLen := buf.Len()
 
 	//1. 先解包头
 	if err = binary.Read(buf, binary.BigEndian, &msg.Started); err != nil {
@@ -125,8 +126,15 @@ func (msg *WlMessage) PkDecode(pkg []byte) ([]byte, error) {
 		log.Error("binary.Read failed:", err)
 		return nil, err
 	}
+
+	if 15 > bLen - int(msg.Length) { // 包头前部分长度为14字节，结尾1字节，共15字节
+		return nil, errors.New("包体长度不正确")
+	}
 	var bDevId []byte
 	bDevId = buf.Next(int(msg.DevId.Len))
+	if 0 > len(bDevId) - int(msg.DevId.Len) {
+		return nil, errors.New("设备编号长度不正确")
+	}
 	msg.DevId.Uuid = string(bDevId[:msg.DevId.Len])
 
 	//2. 获取包体

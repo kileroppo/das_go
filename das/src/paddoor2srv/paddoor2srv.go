@@ -1,4 +1,4 @@
-package wifi2srv
+package paddoor2srv
 
 import (
 	"context"
@@ -85,7 +85,7 @@ func consume() {
 
 		//3. 锁对接的平台，存入redis
 		mymap := make(map[string]interface{})
-		mymap["from"] = constant.WIFI_PLATFORM
+		mymap["from"] = constant.PAD_DOOR_PLATFORM
 		redis.SetDevicePlatformPool(devID, mymap)
 
 		//4. fetch job

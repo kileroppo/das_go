@@ -520,10 +520,14 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			PaValue2: pdu.ParamValue2,
 		}
 
-		if 0x0d == pdu.ParamNo || 0x0f == pdu.ParamNo || 0x10 == pdu.ParamNo {
+		if constant.IPC_SN_PNO == pdu.ParamNo || constant.WIFI_SSID_PNO == pdu.ParamNo || constant.PROJECT_No_PNO == pdu.ParamNo {
 			var byteData []byte
 			rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
-			paramValue := pdu.ParamValue.(string)
+			paramValue, ok := pdu.ParamValue.(string)
+			if !ok {
+				log.Error("ParseZlockData Update_dev_para pdu.ParamValue.(string), ok=", ok)
+				return nil
+			}
 			for m:=0;m<len(paramValue);m++{
 				if m >= 32 {
 					break

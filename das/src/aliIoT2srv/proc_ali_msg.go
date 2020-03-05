@@ -1,6 +1,8 @@
 package aliIot2srv
 
 import (
+	"das/procwlpro"
+	"encoding/json"
 	"strings"
 
 	"das/core/constant"
@@ -35,8 +37,6 @@ type AliIoTStatus struct {
 	Status     AliData `json:"status"`
 }
 
-var DEVICETYPE = []string{"", "WlWiFiLock", "WlZigbeeLock"}
-
 func ProcessAliMsg(data []byte, topic string) error {
 	log.Debugf("Receive ali-topic: %s -> \n %s", topic, string(data))
 	var err error
@@ -53,7 +53,7 @@ func ProcessAliMsg(data []byte, topic string) error {
 		redis.SetDevicePlatformPool(aliData.DeviceName, mymap)
 
 		// 数据解析
-		err = ParseData(aliData.Items.UserData.Value)
+		err = procwlpro.ParseData(aliData.Items.UserData.Value)
 		if nil != err {
 			log.Error("ProcessAliMsg ParseData, err=", err)
 			return err

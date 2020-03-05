@@ -1,6 +1,8 @@
 package feibee2srv
 
 import (
+	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"strconv"
 	"time"
@@ -14,46 +16,75 @@ import (
 
 var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	ErrAlarmMsg = errors.New("Feibee alarm message was invalid")
 )
 
+type parseFunc func(string, MsgType, int) (int, int, string, string)
+
 type BaseSensorAlarm struct {
-	feibeeMsg         entity.FeibeeData
-	alarmType         string
-	alarmVal          string
-	removalAlarmValue string
+	feibeeMsg    *entity.FeibeeData
+	msgType      MsgType
+	alarmMsgType int
+
+	alarmType string
+	alarmVal  string
 
 	devType string
 	devid   string
 	time    int
+	bindid  string
 
-	alarmFlag int
-	bindid    string
+	alarmFlag   int
+	removalFlag int
 }
 
-func (b *BaseSensorAlarm) parseAlarmMsg() (err error) {
-	b.devType = devTypeConv(b.feibeeMsg.Records[0].Deviceid, b.feibeeMsg.Records[0].Zonetype)
-	b.devid = b.feibeeMsg.Records[0].Uuid
-	b.time = int(time.Now().Unix())
-	b.bindid = b.feibeeMsg.Records[0].Bindid
+func (self *BaseSensorAlarm) initData() {
+	self.devType = devTypeConv(self.feibeeMsg.Records[0].Deviceid, self.feibeeMsg.Records[0].Zonetype)
+	self.devid = self.feibeeMsg.Records[0].Uuid
+	self.time = int(time.Now().Unix())
+	self.bindid = self.feibeeMsg.Records[0].Bindid
+	self.alarmMsgType = getSpMsgKey(self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid)
+}
 
-	removalAlarmFlag, alarmType, alarmVal := alarmMsgParse(b.feibeeMsg.Records[0])
-	if alarmType == "" && alarmVal == "" && removalAlarmFlag == "" {
-		err = errors.New("alarmMsgParse() error")
-		return
+func (self *BaseSensorAlarm) parseAlarmMsg() error {
+	parse := parseFunc(nil)
+	ok := false
+
+	parse, ok = alarmMsgTyp[self.alarmMsgType]
+	if !ok {
+		parse = parseContinuousVal
 	}
 
-	b.alarmVal = alarmVal
-	b.alarmType = alarmType
-	b.removalAlarmValue = removalAlarmFlag
+	self.removalFlag, self.alarmFlag, self.alarmVal, self.alarmType = parse(self.feibeeMsg.Records[0].Value, self.msgType, self.alarmMsgType)
 
-	return
+	if self.alarmFlag < 0 {
+		return ErrAlarmMsg
+	}
+
+	return nil
 }
 
 func (self *BaseSensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-	self.pushMsg2mns()
-	self.pushMsg2pmsForSave()
+	self.initData()
+	if err := self.parseAlarmMsg(); err != nil {
+		log.Warning("BaseSensorAlarm PushMsg() error = ", err)
+		return
+	}
+	//todo: 传感器正常消息不通知不存储
+	if !(self.alarmFlag == 0) {
+		self.pushMsg2mns()
+		self.pushMsg2pmsForSave()
+	}
+
+	//门磁报警正常通知并存储
+	if self.msgType == DoorMagneticSensor {
+		self.pushMsg2mns()
+		self.pushMsg2pmsForSave()
+	}
+
 	self.pushMsg2pmsForSceneTrigger()
+	self.pushForcedBreakMsg()
 }
 
 func (self *BaseSensorAlarm) pushMsg2app() {
@@ -64,8 +95,6 @@ func (self *BaseSensorAlarm) pushMsg2app() {
 		log.Error("BaseSensorAlarm pushMsg2app() error = ", err)
 		return
 	}
-
-	//producer.SendMQMsg2APP(self.bindid, string(data))
 	rabbitmq.Publish2app(data, self.devid)
 }
 
@@ -77,33 +106,36 @@ func (self *BaseSensorAlarm) pushMsg2mns() {
 		log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
 		return
 	}
-	//producer.SendMQMsg2Db(string(data))
-	if len(self.alarmType) > 0 && len(self.alarmVal) > 0 {
-		rabbitmq.Publish2mns(data, "")
-	}
-
-	if self.removalAlarmValue == "1" {
-		msg.AlarmType = "forcedBreak"
-		msg.AlarmValue = "传感器被强拆"
-		msg.AlarmFlag = 1
-
-		data, err = json.Marshal(msg)
-		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
-			return
-		}
-		rabbitmq.Publish2mns(data, "")
-	}
-
+	rabbitmq.Publish2mns(data, "")
 }
 
-func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
-	var msg entity.FeibeeAlarm2AppMsg
+func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
+	var msg entity.Feibee2AutoSceneMsg
+
+	msg.Cmd = 0xf1
+	msg.Ack = 0
+	msg.Vendor = "feibee"
+	msg.SeqId = 1
+
+	msg.DevType = self.devType
+	msg.DevId = self.devid
+
+	msg.TriggerType = 0
+	msg.Time = self.time
+
+	msg.AlarmValue = self.alarmVal
+	msg.AlarmType = self.alarmType
+
+	return msg
+}
+
+func (self *BaseSensorAlarm) createMsg2app() entity.Feibee2AlarmMsg {
+	var msg entity.Feibee2AlarmMsg
 
 	msg.Cmd = 0xfc
 	msg.Ack = 0
 	msg.DevType = self.devType
-	msg.Devid = self.devid
+	msg.DevId = self.devid
 	msg.Vendor = "feibee"
 	msg.SeqId = 1
 
@@ -116,6 +148,17 @@ func (self *BaseSensorAlarm) createMsg2app() entity.FeibeeAlarm2AppMsg {
 	return msg
 }
 
+func (self *BaseSensorAlarm) getDisplayName() (res string) {
+	if sli, ok := alarmValueMapByTyp[self.msgType]; ok {
+		if self.alarmFlag < len(sli) {
+			res = sli[self.alarmFlag]
+		} else {
+			return res
+		}
+	}
+	return
+}
+
 func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 	msg := self.createMsg2app()
 
@@ -124,333 +167,179 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 		log.Error("BaseSensorAlarm pushMsg2pmsForSave() error = ", err)
 		return
 	}
-	//producer.SendMQMsg2PMS(string(data))
-	if len(self.alarmVal) >0 && len(self.alarmType) > 0 {
-		rabbitmq.Publish2pms(data, "")
-	}
-	if self.removalAlarmValue == "1" {
-		msg.AlarmType = "forcedBreak"
-		msg.AlarmValue = "传感器被强拆"
-
-		data, err = json.Marshal(msg)
-		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
-			return
-		}
-		//producer.SendMQMsg2PMS(string(data))
-		rabbitmq.Publish2pms(data, "")
-	}
-
+	rabbitmq.Publish2pms(data, "")
 }
 
 func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
-	var msg entity.FeibeeAutoScene2pmsMsg
-
-	msg.Cmd = 0xf1
-	msg.Ack = 0
-	msg.Vendor = "feibee"
-	msg.SeqId = 1
-
-	msg.DevType = self.devType
-	msg.Devid = self.devid
-
-	msg.TriggerType = 0
-	msg.Time = self.time
-
-	msg.AlarmValue = self.alarmVal
-	msg.AlarmType = self.alarmType
+	msg := self.createMsg2pmsForSence()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Error("BaseSensorAlarm pushMsg2pmsForSceneTrigger() error = ", err)
 		return
 	}
-	//producer.SendMQMsg2PMS(string(data))
-	if len(self.alarmVal) >0 && len(self.alarmType) > 0 {
-		rabbitmq.Publish2pms(data, "")
-	}
+	rabbitmq.Publish2pms(data, "")
+}
 
-	if self.removalAlarmValue == "1" {
+func (self *BaseSensorAlarm) pushForcedBreakMsg() {
+	if self.removalFlag > 0 {
+		msg := self.createMsg2app()
+
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
 
-		data, err = json.Marshal(msg)
+		data, err := json.Marshal(msg)
 		if err != nil {
-			log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
+			log.Error("BaseSensorAlarm pushForcedBreakMsg() error = ", err)
 			return
 		}
-		//producer.SendMQMsg2PMS(string(data))
+		rabbitmq.Publish2mns(data, "")
+		rabbitmq.Publish2pms(data, "")
+
+		msgForScene := self.createMsg2pmsForSence()
+		msgForScene.AlarmType = "forcedBreak"
+		msgForScene.AlarmValue = "传感器被强拆"
+
+		data, err = json.Marshal(msgForScene)
+		if err != nil {
+			log.Error("BaseSensorAlarm pushForcedBreakMsg() error = ", err)
+			return
+		}
 		rabbitmq.Publish2pms(data, "")
 	}
 }
 
-type InfraredSensorAlarm struct {
+type ContinuousSensor struct {
 	BaseSensorAlarm
 }
 
-func (self *InfraredSensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-	if self.alarmType == "1" {
-		self.alarmVal = "有人"
-		self.alarmType = "infrared"
-		self.alarmFlag = 1
-		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
-		self.pushMsg2pmsForSceneTrigger()
-	} else if self.alarmType == "0" {
-		self.alarmVal = "无人"
-		self.alarmType = "infrared"
-		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
-	}
-
-}
-
-type DoorMagneticSensorAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *DoorMagneticSensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-	if self.alarmType == "1" {
-		self.alarmVal = "开启"
-		self.alarmType = "doorContact"
-		self.alarmFlag = 1
-	} else if self.alarmType == "0" {
-		self.alarmVal = "关闭"
-		self.alarmType = "doorContact"
-		self.alarmFlag = 0
-	}
-	self.pushMsg2mns()
-	self.pushMsg2pmsForSave()
-	self.pushMsg2pmsForSceneTrigger()
-}
-
-type GasSensorAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *GasSensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-	if self.alarmType == "1" {
-		self.alarmVal = "有气体"
-		self.alarmType = "gas"
-		self.alarmFlag = 1
-		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
-		self.pushMsg2pmsForSceneTrigger()
-	} else if self.alarmType == "0" {
-		self.alarmVal = "无气体"
-		self.alarmType = "gas"
-		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
-	}
-}
-
-type FloodSensorAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *FloodSensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-	if self.alarmType == "1" {
-		self.alarmVal = "有水"
-		self.alarmType = "flood"
-		self.alarmFlag = 1
-		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
-		self.pushMsg2pmsForSceneTrigger()
-	} else if self.alarmType == "0" {
-		self.alarmVal = "无水"
-		self.alarmType = "flood"
-		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
-	}
-}
-
-type SmokeSensorAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *SmokeSensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-	if self.alarmType == "1" {
-		self.alarmVal = "有烟"
-		self.alarmType = "smoke"
-		self.alarmFlag = 1
-		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
-		self.pushMsg2pmsForSceneTrigger()
-	} else if self.alarmType == "0" {
-		self.alarmVal = "无烟"
-		self.alarmType = "smoke"
-		self.alarmFlag = 0
-		self.pushMsg2pmsForSave()
-	}
-}
-
-type IlluminanceSensorAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *IlluminanceSensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-	self.alarmVal = self.getIlluminance()
-	if len(self.alarmVal) <= 0 {
-		log.Warning("IlluminanceSensorAlarm getIlluminance() error")
+func (c *ContinuousSensor) PushMsg() {
+	c.initData()
+	if err := c.parseAlarmMsg(); err != nil {
+		log.Warning("ContinuousSensor PushMsg() error = ", err)
 		return
 	}
-	self.alarmType = "illuminance"
-	self.pushMsg2mns()
-	self.pushMsg2pmsForSave()
-	self.pushMsg2pmsForSceneTrigger()
+	c.pushMsg2mns()
+	c.pushMsg2pmsForSave()
+	c.pushMsg2pmsForSceneTrigger()
 }
 
-func (self *IlluminanceSensorAlarm) getIlluminance() string {
-	if len(self.feibeeMsg.Records[0].Value) != 4 {
-		return ""
+func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	alarmVal = Little2BigEndianString(val)
+	if len(alarmVal) == 0 {
+		return -1, -1, "", ""
 	}
-
-	value := self.feibeeMsg.Records[0].Value[2:4] + self.feibeeMsg.Records[0].Value[0:2]
-	illuminance, err := strconv.ParseInt(value, 16, 64)
+	v64, err := strconv.ParseUint(alarmVal, 16, 64)
 	if err != nil {
-		return ""
-	}
-	return (strconv.Itoa(int(illuminance)))
-}
-
-type TemperAndHumiditySensorAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *TemperAndHumiditySensorAlarm) PushMsg() {
-	self.parseAlarmMsg()
-
-	cid, aid := self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid
-
-	if cid == 1026 && aid == 0 {
-		self.alarmType = "temperature"
-		self.alarmVal = self.getTemper()
-		if len(self.alarmVal) <= 0 {
-			log.Warning("TemperAndHumiditySensorAlarm getTemper() error")
-			return
-		}
-	} else if cid == 1029 && aid == 0 {
-		self.alarmType = "humidity"
-		self.alarmVal = self.getHumidity()
-		if len(self.alarmVal) <= 0 {
-			log.Warning("TemperAndHumiditySensorAlarm getHumidity() error")
-			return
-		}
-	} else {
-		return
+		return -1, -1, "", ""
 	}
 
-	self.pushMsg2mns()
-	self.pushMsg2pmsForSave()
-	self.pushMsg2pmsForSceneTrigger()
-}
-
-func (self *TemperAndHumiditySensorAlarm) getTemper() string {
-	if len(self.feibeeMsg.Records[0].Value) != 4 {
-		return ""
-	}
-
-	value := self.feibeeMsg.Records[0].Value[2:4] + self.feibeeMsg.Records[0].Value[0:2]
-	temper, err := strconv.ParseInt(value, 16, 64)
-	if err != nil {
-		return ""
-	}
-	return strconv.FormatFloat(float64(temper)/100, 'f', 2, 64)
-}
-
-func (self *TemperAndHumiditySensorAlarm) getHumidity() string {
-	if len(self.feibeeMsg.Records[0].Value) != 4 {
-		return ""
-	}
-
-	value := self.feibeeMsg.Records[0].Value[2:4] + self.feibeeMsg.Records[0].Value[0:2]
-	humidity, err := strconv.ParseInt(value, 16, 64)
-	if err != nil {
-		return ""
-	}
-	return strconv.FormatFloat(float64(humidity)/100, 'f', 2, 64)
-}
-
-type ZigbeeAlarm struct {
-	BaseSensorAlarm
-}
-
-func (self *ZigbeeAlarm) PushMsg() {
-
-}
-
-func alarmMsgParse(msg entity.FeibeeRecordsMsg) (removalAlarmFlag, alarmFlag, alarmValue string) {
-
-	if msg.Cid == 1280 && msg.Aid == 128 {
-		bitFlagInt, err := strconv.ParseInt(msg.Value[0:2], 16, 64)
-		if err != nil {
-			log.Error("strconv.ParseInt() error = ", err)
-			return
-		}
-
-		if int(bitFlagInt)&1 > 0 {
-			alarmFlag = "1"
-		} else {
-			alarmFlag = "0"
-		}
-
-		if int(bitFlagInt)&4 > 0 {
-			removalAlarmFlag = "1"
-		} else {
-			removalAlarmFlag = "0"
-		}
-		return
-	}
-
-	if (msg.Cid == 1 && msg.Aid == 33) || (msg.Cid == 1 && msg.Aid == 53) {
-
-		alarmFlag = "lowPower"
-		if msg.Aid == 33 {
-			alarmValue = batteryValueParse(msg.Value)
-		} else {
-			alarmValue = ""
-		}
-		return
-	}
-
-	if (msg.Cid == 1 && msg.Aid == 32) || (msg.Cid == 1 && msg.Aid == 62) {
-		alarmFlag = "lowVoltage"
-		if msg.Aid == 32 {
-			alarmValue = voltageValueParse(msg.Value)
-		} else {
-			alarmValue = ""
-		}
-	}
-
+	alarmVal = strconv.FormatFloat(float64(v64)/100, 'f', 2, 64)
+	alarmFlag = int(v64)
+	removalAlarmFlag = -1
+	alarmName = varAlarmName[valType]
 	return
 }
 
-func batteryValueParse(val string) string {
-	valInt, err := strconv.ParseInt(val, 16, 64)
-
+func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	alarmVal = Little2BigEndianString(val)
+	if len(alarmVal) == 0 {
+		return -1, -1, "", ""
+	}
+	v64, err := strconv.ParseUint(alarmVal, 16, 64)
 	if err != nil {
-		log.Error("strconv.ParseInt() error = ", err)
-		return ""
+		return -1, -1, "", ""
+	}
+	if valType == illuminance {
+		if v64 > 1000 {
+			v64 = 1000
+		}
 	}
 
-	res := strconv.Itoa(int(valInt) / 2)
-	return res
+	alarmFlag = int(v64)
+	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
+	removalAlarmFlag = -1
+	alarmName = varAlarmName[valType]
+	return
 }
 
-func voltageValueParse(val string) string {
-	valInt, err := strconv.ParseInt(val, 16, 64)
-
+func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	bitFlagInt, err := strconv.ParseInt(val[0:2], 16, 64)
 	if err != nil {
 		log.Error("strconv.ParseInt() error = ", err)
+		return -1, -1, "", ""
+	}
+
+	if msgType == SosBtnSensor {
+		alarmFlag = (int(bitFlagInt) & 0b0000_0010) >> 1
+	} else {
+		alarmFlag = int(bitFlagInt) & 0b0000_0001
+	}
+
+	//todo: 周期上报数据不透传
+	if cycleFlag := (bitFlagInt & 0b0001_0000); cycleFlag > 0{
+		alarmFlag = -1
+	}
+
+	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
+	removalAlarmFlag = int(bitFlagInt) & 4
+	alarmName = fixAlarmName[msgType]
+	return
+}
+
+func parseBatteryVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	valInt, err := strconv.ParseInt(val, 16, 64)
+	if err != nil {
+		log.Error("strconv.ParseInt() error = ", err)
+		return -1, -1, "", ""
+	}
+
+	alarmVal = strconv.Itoa(int(valInt) / 2)
+	alarmFlag = -1
+	alarmName = varAlarmName[valType]
+	return
+}
+
+func parseVoltageVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	valInt, err := strconv.ParseInt(val, 16, 64)
+	if err != nil {
+		log.Error("strconv.ParseInt() error = ", err)
+		return -1, -1, "", ""
+	}
+
+	alarmVal = strconv.Itoa(int(valInt) / 10)
+	alarmFlag = -1
+	alarmName = varAlarmName[valType]
+	return
+}
+
+func Little2BigEndianString(src string) (dst string) {
+	if len(src)%2 != 0 || len(src) > 16 {
 		return ""
 	}
 
-	res := strconv.Itoa(int(valInt) / 10)
-	return res
+	v64, err := strconv.ParseUint(src, 16, 64)
+	if err != nil {
+		return ""
+	}
+	res := make([]byte, 8)
+	binary.LittleEndian.PutUint64(res, v64)
+	dst = hex.EncodeToString(res[:len(src)/2])
+	return
+}
+
+func getAlarmValName(msgType MsgType, valType int, alarmFlag int) (res string) {
+	sli, ok := alarmValueMapByTyp[msgType]
+	res = strconv.Itoa(alarmFlag)
+	if !ok {
+		sli, ok = alarmValueMapByCid[valType]
+		if !ok {
+			return
+		}
+	}
+	if alarmFlag < len(sli) && alarmFlag >= 0 {
+		return sli[alarmFlag]
+	} else {
+		return
+	}
 }

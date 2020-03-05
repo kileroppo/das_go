@@ -77,6 +77,7 @@ func (msg *WlZigbeeMsg) PkEncode(pdu IPdu) ([]byte, error)  {
 func (msg *WlZigbeeMsg) PkDecode(pkg []byte) ([]byte, error) {
 	var err error
 	buf := bytes.NewBuffer(pkg)
+	bLen := buf.Len()
 
 	//1. 先解包头
 	if err = binary.Read(buf, binary.BigEndian, &msg.Started); err != nil {
@@ -111,7 +112,9 @@ func (msg *WlZigbeeMsg) PkDecode(pkg []byte) ([]byte, error) {
 		log.Error("binary.Read failed:", err)
 		return nil, err
 	}
-
+	if 11 > bLen - int(msg.Length) { // 包头前部分长度为10字节，结尾1字节，共11字节
+		return nil, errors.New("zigbee常在线锁协议包体长度不正确")
+	}
 	//2. 获取包体
 	var bBody []byte
 	bBody = buf.Next(int(msg.Length))

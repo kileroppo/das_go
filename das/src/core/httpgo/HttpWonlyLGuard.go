@@ -26,7 +26,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		log.Warning("Http2FeibeeWonlyLGuard json.Unmarshal() error = ", err)
 		return
 	}
-	log.Infof("Send WonlyGuard '%s' control to feibee", msg.Devid)
+	log.Infof("Send WonlyGuard '%s' control to feibee", msg.DevId)
 	var err error
 	var reqMsg entity.Req2Feibee
 	var conf = log.Conf
@@ -46,7 +46,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		return
 	}
 
-	key := "W" + msg.Devid + "only"
+	key := "W" + msg.DevId + "only"
 
 	reqMsg.Bindstr, err = WonlyGuardAESDecrypt(msg.Bindstr, key)
 	if err != nil {
@@ -55,7 +55,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 	}
 	reqMsg.Ver = "2.0"
 	reqMsg.Devs = append(reqMsg.Devs, entity.ReqDevInfo2Feibee{
-		Uuid:  msg.Devid,
+		Uuid:  msg.DevId,
 		Value: msg.Value,
 	})
 
