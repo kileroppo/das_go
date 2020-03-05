@@ -18,6 +18,11 @@ var (
 	floorHeatLocalTemp = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":513,"aid":0,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
 	floorHeatCurrTemp  = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":513,"aid":17,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
 	floorHeatWindspeed = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":514,"aid":0,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
+    floorHeatDevStatus = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":6,"aid":0,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
+	floorHeatlockStatus = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":0,"aid":18,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
+	floorHeatMaxTemp = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":513,"aid":6,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
+	floorHeatMinTemp = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":513,"aid":5,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
+
 
 	infrared = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":13,"cid":1280,"aid":128,"value":"0000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 	door     = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":21,"cid":1280,"aid":128,"value":"0000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
@@ -45,6 +50,11 @@ var tests = []struct {
 	{"floorHeatLocalTemp", floorHeatLocalTemp},
 	{"floorHeatCurrTemp", floorHeatCurrTemp},
 	{"floorHeatWindspeed", floorHeatWindspeed},
+	{"floorHeatDevStatus", floorHeatDevStatus},
+	{"floorHeatlockStatus", floorHeatlockStatus},
+	{"floorHeatMaxTemp", floorHeatMaxTemp},
+	{"floorHeatMinTemp", floorHeatMinTemp},
+
 	{"infrared", infrared},
 	{"door", door},
 	{"smoke", smoke},
