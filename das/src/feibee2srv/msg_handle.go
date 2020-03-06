@@ -548,8 +548,8 @@ func (self *ZigbeeLockHandle) PushMsg() {
 		return
 	}
 
-	//todo: parse data and handle
-    if err := ParseZlockData(self.data.Records[0].Value, "WlZigbeeLock", retUuid[0]); err != nil {
+	//TODO: parse data and handle, 去掉飞比加上的长度1个字节（16进制字符串2位）
+    if err := ParseZlockData(self.data.Records[0].Value[2:], "WlZigbeeLock", retUuid[0]); err != nil {
     	log.Warning("ZigbeeLockHandle PushMsg() error = ", err)
 	}
 }
