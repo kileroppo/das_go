@@ -3,6 +3,8 @@ package feibee2srv
 const (
 	voltage          = 0x00010020
 	battery          = 0x00010021
+	lowVoltage       = 0x0001003e
+	lowPower         = 0x00010035
 	sensorAlarm      = 0x05000080
 	temperature      = 0x04020000
 	humidity         = 0x04050000
@@ -37,6 +39,19 @@ var (
 		currentTemperature: parseTempAndHuminityVal,
 		maxTemperature:     parseTempAndHuminityVal,
 		minTemperature:     parseTempAndHuminityVal,
+		illumination:       parseFixVal,
+		disinfection:       parseFixVal,
+		motorOperation:     parseFixVal,
+		drying:             parseFixVal,
+		airDrying:          parseFixVal,
+		mode:               parseFixVal,
+		windspeed:          parseFixVal,
+		devStatus:          parseFixVal,
+		lockStatus:         parseFixVal,
+		illuminance:        parseContinuousVal,
+		disinfectionTime:   parseContinuousVal,
+		dryingTime:         parseContinuousVal,
+		airDryingTime:      parseContinuousVal,
 	}
 
 	fixAlarmName = map[MsgType]string{
