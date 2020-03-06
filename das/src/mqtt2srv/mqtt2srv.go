@@ -1,6 +1,13 @@
 package mqtt2srv
 
 import (
+	"encoding/hex"
+	"encoding/json"
+	"time"
+
+	"github.com/dlintw/goconf"
+	"github.com/eclipse/paho.mqtt.golang"
+
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/jobque"
@@ -9,12 +16,7 @@ import (
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/wlprotocol"
-	"das/procwlpro"
-	"encoding/hex"
-	"encoding/json"
-	"github.com/dlintw/goconf"
-	"github.com/eclipse/paho.mqtt.golang"
-	"time"
+	"das/procLock"
 )
 var (
 	mqttcli mqtt.Client
@@ -241,5 +243,5 @@ func NewMqttJob(rawData []byte) MqttJob {
 }
 
 func (o MqttJob) Handle() {
-	procwlpro.ParseData(o.rawData)
+	procLock.ParseData(o.rawData)
 }

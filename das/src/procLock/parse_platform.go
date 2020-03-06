@@ -1,14 +1,15 @@
-package cmdto
+package procLock
 
 import (
+	"encoding/hex"
+	"errors"
+
 	"das/core/constant"
 	"das/core/httpgo"
 	"das/core/log"
 	"das/core/mqtt"
+	"das/core/rabbitmq"
 	"das/core/redis"
-	"das/rmq/producer"
-	"encoding/hex"
-	"errors"
 )
 
 func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
@@ -37,7 +38,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	case constant.PAD_DOOR_PLATFORM: {
 		data, ok := mydata.(string)
 		if ok {
-			producer.SendMQMsg2Device(uuid, data, cmd)
+			SendMQMsg2Device(uuid, data, cmd)
 		}
 	}
 	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
@@ -63,4 +64,11 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	}
 
 	return nil
+}
+
+func SendMQMsg2Device(uuid string, message string, cmd string) {
+	var rkey string
+	rkey = uuid + "_robot"
+	log.Info("[ ", rkey, " ] "+cmd+" rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
+	rabbitmq.Publish2dev([]byte(message), rkey)
 }

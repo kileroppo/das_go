@@ -1,4 +1,4 @@
-package cmdto
+package procLock
 
 import (
 	"das/core/entity"

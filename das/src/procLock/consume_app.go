@@ -1,4 +1,4 @@
-package consumer
+package procLock
 
 import (
 	"context"
@@ -7,11 +7,6 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 )
-
-var rmq_uri string
-var exchange string     // = "App2OneNET"
-var exchangeType string // = "direct"
-var routingKey string   // = "wonlycloud"
 
 var (
 	ctx, cancel = context.WithCancel(context.Background())
@@ -44,11 +39,12 @@ func (c ConsumerJob) Handle() {
 }
 
 func Run() {
-	log.Info("start ReceiveMQMsgFromAPP......")
 	go consume()
+	go consumePadDoor()
 }
 
 func consume() {
+	log.Info("start ReceiveMQMsgFromAPP......")
 	msgs, err := rabbitmq.Consumer2appMQ.Consumer()
 	if err != nil {
 		log.Error("Consumer2appMQ.Consumer() error = ", err)
