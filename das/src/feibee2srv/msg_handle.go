@@ -114,6 +114,12 @@ func (self *NormalMsgHandle) PushMsg() {
 		rabbitmq.Publish2mns(data2app, "")
 	}
 
+	//情景开关以ieee作为routingKey推送
+	if self.msgType == DevOnline && self.data.Msg[0].Deviceid == 0x0004 {
+        routingKey = self.data.Msg[0].IEEE
+        rabbitmq.Publish2app(data2app, routingKey)
+	}
+
 	//发送给PMS
 	data2pms, err := json.Marshal(self.createMsg2pms())
 	if err != nil {
