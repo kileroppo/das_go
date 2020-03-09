@@ -1,8 +1,6 @@
 package main
 
 import (
-	"das/core/mqtt"
-	"das/mqtt2srv"
 	"das/paddoor2srv"
 	xm2srv2 "das/xm2srv"
 	"net/http"
@@ -53,8 +51,8 @@ func main() {
 	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
 
 	//9. 启动MQTT
-	mqtt2srv.MqttInit(conf)	// 订阅接收端
-	mqtt.MqttInit(conf)		// 发布端
+	// mqtt2srv.MqttInit(conf)	// 订阅接收端
+	// mqtt.MqttInit(conf)		// 发布端
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -112,8 +110,8 @@ func main() {
 	}
 
 	//19. 断开MQTT连接
-	mqtt2srv.MqttRelease()
-	mqtt.MqttRelease()
+	// mqtt2srv.MqttRelease()
+	// mqtt.MqttRelease()
 
 	//20. 关闭redis
 	redis.CloseRedisCli()
