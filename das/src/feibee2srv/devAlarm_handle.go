@@ -246,6 +246,7 @@ func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmF
 	}
 
 	alarmFlag = int(v64)
+	alarmVal = strconv.FormatUint(v64, 10)
 	//alarmVal = getAlarmValName(msgType, valType, alarmFlag)
 	removalAlarmFlag = -1
 	alarmName = varAlarmName[valType]
