@@ -173,29 +173,33 @@ func MqttInit(conf *goconf.ConfigFile) {
 }
 
 func subscribeDefaultTopic(client mqtt.Client) {
+
+	log.Info("call subscribeDefaultTopic")
 	// 订阅
 	log.Info("mqtt Subscribe ", msgTopic)
-	if token := mqttcli.Subscribe(msgTopic, 0, msgCallback); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(msgTopic, 0, msgCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
 	// 订阅 设备上线消息
 	log.Info("mqtt Subscribe ", conTopic)
-	if token := mqttcli.Subscribe(conTopic, 0, conCallback); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(conTopic, 0, conCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
 	// 订阅 设备下线消息
 	log.Info("mqtt Subscribe ", disTopic)
-	if token := mqttcli.Subscribe(disTopic, 0, disCallback); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(disTopic, 0, disCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
 	// 订阅 测试
 	log.Info("mqtt Subscribe ", msgTopic_test)
-	if token := mqttcli.Subscribe(msgTopic_test, 0, msgCallback_test); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(msgTopic_test, 0, msgCallback_test); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
+
+	log.Info("exit subscribeDefaultTopic")
 }
 
 func GetMqttClient() mqtt.Client {
