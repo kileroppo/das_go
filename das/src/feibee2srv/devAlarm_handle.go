@@ -71,16 +71,15 @@ func (self *BaseSensorAlarm) PushMsg() {
 		log.Warning("BaseSensorAlarm PushMsg() error = ", err)
 		return
 	}
-	//todo: 传感器正常消息不通知不存储
-	if !(self.alarmFlag == 0) {
-		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
-	}
-
-	//门磁报警正常通知并存储
+	//todo: 传感器正常消息不通知不存储 门磁除外
 	if self.msgType == DoorMagneticSensor {
 		self.pushMsg2mns()
 		self.pushMsg2pmsForSave()
+	} else {
+		if !(self.alarmFlag == 0) {
+			self.pushMsg2mns()
+			self.pushMsg2pmsForSave()
+		}
 	}
 
 	self.pushMsg2pmsForSceneTrigger()
