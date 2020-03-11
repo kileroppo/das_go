@@ -120,13 +120,17 @@ func (self *NormalMsgHandle) PushMsg() {
         rabbitmq.Publish2app(data2app, routingKey)
 	}
 
-	//发送给PMS
-	data2pms, err := json.Marshal(self.createMsg2pms())
-	if err != nil {
-		log.Error("One Msg push2pms() error = ", err)
+	if self.msgType == NewDev && res.Online < 1 {
+		log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
 	} else {
-		//producer.SendMQMsg2PMS(string(data2pms))
-		rabbitmq.Publish2pms(data2pms, "")
+		//发送给PMS
+		data2pms, err := json.Marshal(self.createMsg2pms())
+		if err != nil {
+			log.Error("One Msg push2pms() error = ", err)
+		} else {
+			//producer.SendMQMsg2PMS(string(data2pms))
+			rabbitmq.Publish2pms(data2pms, "")
+		}
 	}
 }
 
