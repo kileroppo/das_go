@@ -158,7 +158,7 @@ func MqttInit(conf *goconf.ConfigFile) {
 	opts := mqtt.NewClientOptions().AddBroker(url)
 	opts.SetUsername(user)
 	opts.SetPassword(pwd)
-	opts.SetClientID(cid)
+	opts.SetClientID(mymqtt.GetUuid(cid))
 	opts.SetKeepAlive(15 * time.Second)
 	opts.SetDefaultPublishHandler(nil)
 	opts.SetPingTimeout(5 * time.Second)
