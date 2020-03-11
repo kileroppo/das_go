@@ -9,6 +9,7 @@ require (
 	github.com/garyburd/redigo v1.6.0
 	github.com/go-redis/redis v6.15.6+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
+	github.com/google/uuid v1.1.1
 	github.com/json-iterator/go v1.1.9
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2
