@@ -39,19 +39,21 @@ type BaseSensorAlarm struct {
 	removalFlag int
 }
 
-func (self *BaseSensorAlarm) parseAlarmMsg() error {
+func (self *BaseSensorAlarm) initData() {
 	self.devType = devTypeConv(self.feibeeMsg.Records[0].Deviceid, self.feibeeMsg.Records[0].Zonetype)
 	self.devid = self.feibeeMsg.Records[0].Uuid
 	self.time = int(time.Now().Unix())
 	self.bindid = self.feibeeMsg.Records[0].Bindid
 	self.alarmMsgType = getSpMsgKey(self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid)
+}
 
+func (self *BaseSensorAlarm) parseAlarmMsg() error {
 	parse := parseFunc(nil)
 	ok := false
 
 	parse, ok = alarmMsgTyp[self.alarmMsgType]
 	if !ok {
-		parse = parseContinuousVal
+		return ErrAlarmMsg
 	}
 
 	self.removalFlag, self.alarmFlag, self.alarmVal, self.alarmType = parse(self.feibeeMsg.Records[0].Value, self.msgType, self.alarmMsgType)
@@ -64,14 +66,22 @@ func (self *BaseSensorAlarm) parseAlarmMsg() error {
 }
 
 func (self *BaseSensorAlarm) PushMsg() {
+	self.initData()
 	if err := self.parseAlarmMsg(); err != nil {
 		log.Warning("BaseSensorAlarm PushMsg() error = ", err)
 		return
 	}
-	if !(self.alarmFlag == 0) {
+	//todo: 传感器正常消息不通知不存储 门磁除外
+	if self.msgType == DoorMagneticSensor {
 		self.pushMsg2mns()
+		self.pushMsg2pmsForSave()
+	} else {
+		if !(self.alarmFlag == 0) {
+			self.pushMsg2mns()
+			self.pushMsg2pmsForSave()
+		}
 	}
-	self.pushMsg2pmsForSave()
+
 	self.pushMsg2pmsForSceneTrigger()
 	self.pushForcedBreakMsg()
 }
@@ -137,17 +147,6 @@ func (self *BaseSensorAlarm) createMsg2app() entity.Feibee2AlarmMsg {
 	return msg
 }
 
-func (self *BaseSensorAlarm) getDisplayName() (res string) {
-	if sli, ok := alarmValueMapByTyp[self.msgType]; ok {
-		if self.alarmFlag < len(sli) {
-			res = sli[self.alarmFlag]
-		} else {
-			return res
-		}
-	}
-	return
-}
-
 func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 	msg := self.createMsg2app()
 
@@ -198,6 +197,21 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 	}
 }
 
+type ContinuousSensor struct {
+	BaseSensorAlarm
+}
+
+func (c *ContinuousSensor) PushMsg() {
+	c.initData()
+	if err := c.parseAlarmMsg(); err != nil {
+		log.Warning("ContinuousSensor PushMsg() error = ", err)
+		return
+	}
+	c.pushMsg2mns()
+	c.pushMsg2pmsForSave()
+	c.pushMsg2pmsForSceneTrigger()
+}
+
 func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
 	alarmVal = Little2BigEndianString(val)
 	if len(alarmVal) == 0 {
@@ -231,10 +245,37 @@ func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmF
 	}
 
 	alarmFlag = int(v64)
-	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
+	alarmVal = strconv.FormatUint(v64, 10)
+	//alarmVal = getAlarmValName(msgType, valType, alarmFlag)
 	removalAlarmFlag = -1
 	alarmName = varAlarmName[valType]
 	return
+}
+
+func parseFixVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	alarmVal = Little2BigEndianString(val)
+	if len(alarmVal) == 0 {
+		return -1, -1, "", ""
+	}
+	v64, err := strconv.ParseUint(alarmVal, 16, 64)
+	if err != nil {
+		return -1, -1, "", ""
+	}
+	if valType == illuminance {
+		if v64 > 1000 {
+			v64 = 1000
+		}
+	}
+
+	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
+	if alarmVal == "" {
+		alarmFlag = -1
+		return
+	} else {
+		alarmFlag = int(v64)
+		alarmName = varAlarmName[valType]
+		return
+	}
 }
 
 func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
@@ -243,11 +284,15 @@ func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag,
 		log.Error("strconv.ParseInt() error = ", err)
 		return -1, -1, "", ""
 	}
-	if int(bitFlagInt)&3 > 0 {
-		alarmFlag = 1
+
+	if msgType == SosBtnSensor {
+		alarmFlag = (int(bitFlagInt) & 0b0000_0010) >> 1
+	} else {
+		alarmFlag = int(bitFlagInt) & 0b0000_0001
 	}
+
 	//todo: 周期上报数据不透传
-	if cycleFlag := (bitFlagInt & 16); cycleFlag > 0{
+	if cycleFlag := (bitFlagInt & 0b0001_0000); cycleFlag > 0{
 		alarmFlag = -1
 	}
 

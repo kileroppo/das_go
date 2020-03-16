@@ -17,7 +17,7 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
-	"das/procnbmsg"
+	"das/procLock"
 )
 
 var (
@@ -124,7 +124,7 @@ func (o OnenetJob) Handle() {
 	case 1: // 数据点消息(type=1)，
 		{
 			// 处理数据点消息
-			procnbmsg.ProcessNbMsg(data.Msg.Value, data.Msg.Imei)
+			procLock.ProcessNbMsg(data.Msg.Value, data.Msg.Imei)
 		}
 	}
 }

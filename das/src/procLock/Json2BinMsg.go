@@ -1,11 +1,9 @@
-package consumer
+package procLock
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
-
-	"github.com/json-iterator/go"
 
 	"das/core/constant"
 	"das/core/entity"
@@ -13,9 +11,6 @@ import (
 	"das/core/wlprotocol"
 )
 
-var (
-	json = jsoniter.ConfigCompatibleWithStandardLibrary
-)
 
 func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 	// 1、解析消息

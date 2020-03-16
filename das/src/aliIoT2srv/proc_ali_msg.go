@@ -1,7 +1,7 @@
 package aliIot2srv
 
 import (
-	"das/procwlpro"
+	"das/procLock"
 	"encoding/json"
 	"strings"
 
@@ -53,7 +53,7 @@ func ProcessAliMsg(data []byte, topic string) error {
 		redis.SetDevicePlatformPool(aliData.DeviceName, mymap)
 
 		// 数据解析
-		err = procwlpro.ParseData(aliData.Items.UserData.Value)
+		err = procLock.ParseData(aliData.Items.UserData.Value)
 		if nil != err {
 			log.Error("ProcessAliMsg ParseData, err=", err)
 			return err

@@ -1,10 +1,13 @@
 package mqtt
 
 import (
-	"das/core/log"
+	"time"
+
 	"github.com/dlintw/goconf"
 	"github.com/eclipse/paho.mqtt.golang"
-	"time"
+	"github.com/google/uuid"
+
+	"das/core/log"
 )
 
 var (
@@ -28,11 +31,16 @@ func MqttInit(conf *goconf.ConfigFile) {
 		log.Error("get-mqtt2srv-pwd error = ", err)
 		return
 	}
+	cid, err := conf.GetString("mqtt2srv", "pubcid")
+	if err != nil {
+		log.Error("get-mqtt2srv-cid error = ", err)
+		return
+	}
 
 	opts := mqtt.NewClientOptions().AddBroker(url)
 	opts.SetUsername(user)
 	opts.SetPassword(pwd)
-	opts.SetClientID("wonlysrvPub")
+	opts.SetClientID(GetUuid(cid))
 	opts.SetKeepAlive(15 * time.Second)
 	opts.SetDefaultPublishHandler(nil)
 	opts.SetPingTimeout(5 * time.Second)
@@ -57,4 +65,10 @@ func WlMqttPublish(uuid string, data []byte) error {
 func MqttRelease() {
 	// 关闭链接
 	mqttcli.Disconnect(250)
+}
+
+func GetUuid(cid string) string {
+	uid := cid + uuid.New().String()
+	log.Info("Get MQTT ClientId: ", uid)
+	return uid
 }

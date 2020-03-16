@@ -1,8 +1,7 @@
-package consumer
+package procLock
 
 import (
 	"bytes"
-	"das/core/mqtt"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -14,10 +13,10 @@ import (
 	"das/core/entity"
 	"das/core/httpgo"
 	"das/core/log"
+	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/util"
-	"das/rmq/producer"
 )
 
 /*
@@ -257,24 +256,27 @@ func ProcAppMsg(appMsg string) error {
 		} // 移动AndLink平台
 	case constant.PAD_DOOR_PLATFORM: // WiFi平板锁
 		{
-			// 加密数据
-			var toDevHead entity.MyHeader
-			toDevHead.ApiVersion = constant.API_VERSION
-			toDevHead.ServiceType = constant.SERVICE_TYPE
-
-			myKey := util.MD52Bytes(head.DevId)
 			var strToDevData string
 			var err error
-			if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
-				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+			if 0x1001 == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
+				strToDevData = appMsg
+			} else {
+				// 加密数据
+				var toDevHead entity.MyHeader
+				toDevHead.ApiVersion = constant.API_VERSION
+				toDevHead.ServiceType = constant.SERVICE_TYPE
 
-				buf := new(bytes.Buffer)
-				binary.Write(buf, binary.BigEndian, toDevHead)
-				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+				myKey := util.MD52Bytes(head.DevId)
+				if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
+					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+
+					buf := new(bytes.Buffer)
+					binary.Write(buf, binary.BigEndian, toDevHead)
+					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+				}
 			}
-
-			producer.SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
+			SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
 		}
 	case constant.ALIIOT_PLATFORM: // 阿里云飞燕平台
 		{

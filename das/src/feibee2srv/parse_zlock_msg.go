@@ -1,18 +1,19 @@
 package feibee2srv
 
 import (
+	"fmt"
+	"strconv"
+	"time"
 	"bytes"
-	"das/cmdto"
+	"encoding/hex"
+
+	"das/procLock"
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/wlprotocol"
-	"encoding/hex"
-	"fmt"
-	"strconv"
-	"time"
 )
 
 
@@ -400,7 +401,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			log.Error("ParseZlockData() Upload_dev_info wlMsg.PkEncode, error: ", err_)
 			return err_
 		}
-		go cmdto.Cmd2Device(uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
+		go procLock.Cmd2Device(uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
 
 		//2. 解包体
 		pdu := &wlprotocol.UploadZigbeeDevInfo{}
