@@ -89,7 +89,7 @@ var (
 
 	alarmValueMapByTyp = map[MsgType]([]string){
 		InfraredSensor:     []string{"无人", "有人"},
-		DoorMagneticSensor: []string{"关闭", "开启"},
+		DoorMagneticSensor: []string{"关门", "开门"},
 		SmokeSensor:        []string{"无烟", "有烟"},
 		FloodSensor:        []string{"无水", "有水"},
 		GasSensor:          []string{"无气体", "有气体"},
