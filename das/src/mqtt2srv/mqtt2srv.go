@@ -3,6 +3,7 @@ package mqtt2srv
 import (
 	"encoding/hex"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/dlintw/goconf"
@@ -57,7 +58,15 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 var msgCallback_test mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	strMsg := string(msg.Payload())
 	log.Debug("msgCallback_test Mqtt-Topic: ", msg.Topic(), ", strMsg: ", strMsg)
+	if strings.Contains(strMsg, "\"") {
+		nStart := strings.IndexAny(strMsg, "\"")
+		nEnd := strings.LastIndexAny(strMsg, "\"")
+		if -1 != nStart && -1 != nEnd {
+			strMsg = strMsg[nStart+1:nEnd]
+		}
+	}
 
+	log.Debug("msgCallback_test mymqtt.WlMqttPublish, ClientID: ", strMsg, ", strMsg: ", string(msg.Payload()))
 	mymqtt.WlMqttPublish(strMsg, msg.Payload())
 }
 
