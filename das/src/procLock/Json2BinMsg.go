@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"das/core/constant"
 	"das/core/entity"
@@ -222,7 +223,14 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 		pdu := &wlprotocol.RemoteOpenLock{
 			/*Passwd: (remoteOpen.Passwd),	// 密码1（6）
 			Passwd2: remoteOpen.Passwd2,	// 密码2（6）*/
-			Time: remoteOpen.Time, // 随机数（4）
+		}
+
+		nTime, ok := remoteOpen.Time.(int32) // 随机数（4）
+		if ok {
+			pdu.Time = nTime
+		} else {
+			log.Error("WlJson2BinMsg remoteOpen.Time.(int32) error, ok=", ok)
+			pdu.Time = int32(time.Now().Unix())
 		}
 		pwd := []byte(remoteOpen.Passwd)
 		for i := 0; i < len(pwd); i++ {
