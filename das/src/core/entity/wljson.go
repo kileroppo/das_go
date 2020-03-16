@@ -182,7 +182,7 @@ type SRemoteOpenLockReq struct {
 	SeqId   int    `json:"seqId"`
 
 	Passwd string `json:"passwd"`
-	Time   int32  `json:"time"`
+	Time   interface{}  `json:"time"`
 
 	Bindid  string `json:"bindid"`  // zigbee锁网关账号
 	Bindstr string `json:"bindstr"` // zigbee锁网关密码
@@ -199,7 +199,7 @@ type MRemoteOpenLockReq struct {
 
 	Passwd  string `json:"passwd"`
 	Passwd2 string `json:"passwd2"`
-	Time    int32  `json:"time"`
+	Time    interface{}  `json:"time"`
 
 	Bindid  string `json:"bindid"`  // zigbee锁网关账号
 	Bindstr string `json:"bindstr"` // zigbee锁网关密码
@@ -215,7 +215,7 @@ type RemoteOpenLockResp struct {
 
 	UserId  uint16 `json:"userId"`
 	UserId2 uint16 `json:"userId2"`
-	Time    int32  `json:"time"`
+	Time    interface{}  `json:"time"`
 }
 
 //8. 上传设备信息
