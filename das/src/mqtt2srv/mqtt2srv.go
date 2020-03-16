@@ -1,6 +1,13 @@
 package mqtt2srv
 
 import (
+	"encoding/hex"
+	"encoding/json"
+	"time"
+
+	"github.com/dlintw/goconf"
+	"github.com/eclipse/paho.mqtt.golang"
+
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/jobque"
@@ -9,12 +16,7 @@ import (
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/wlprotocol"
-	"das/procwlpro"
-	"encoding/hex"
-	"encoding/json"
-	"github.com/dlintw/goconf"
-	"github.com/eclipse/paho.mqtt.golang"
-	"time"
+	"das/procLock"
 )
 var (
 	mqttcli mqtt.Client
@@ -156,7 +158,7 @@ func MqttInit(conf *goconf.ConfigFile) {
 	opts := mqtt.NewClientOptions().AddBroker(url)
 	opts.SetUsername(user)
 	opts.SetPassword(pwd)
-	opts.SetClientID(cid)
+	opts.SetClientID(mymqtt.GetUuid(cid))
 	opts.SetKeepAlive(15 * time.Second)
 	opts.SetDefaultPublishHandler(nil)
 	opts.SetPingTimeout(5 * time.Second)
@@ -171,29 +173,33 @@ func MqttInit(conf *goconf.ConfigFile) {
 }
 
 func subscribeDefaultTopic(client mqtt.Client) {
+
+	log.Info("call subscribeDefaultTopic")
 	// 订阅
 	log.Info("mqtt Subscribe ", msgTopic)
-	if token := mqttcli.Subscribe(msgTopic, 0, msgCallback); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(msgTopic, 0, msgCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
 	// 订阅 设备上线消息
 	log.Info("mqtt Subscribe ", conTopic)
-	if token := mqttcli.Subscribe(conTopic, 0, conCallback); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(conTopic, 0, conCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
 	// 订阅 设备下线消息
 	log.Info("mqtt Subscribe ", disTopic)
-	if token := mqttcli.Subscribe(disTopic, 0, disCallback); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(disTopic, 0, disCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
 	// 订阅 测试
 	log.Info("mqtt Subscribe ", msgTopic_test)
-	if token := mqttcli.Subscribe(msgTopic_test, 0, msgCallback_test); token.Wait() && token.Error() != nil {
+	if token := mqttcli.Subscribe(msgTopic_test, 0, msgCallback_test); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
+
+	log.Info("exit subscribeDefaultTopic")
 }
 
 func GetMqttClient() mqtt.Client {
@@ -241,5 +247,5 @@ func NewMqttJob(rawData []byte) MqttJob {
 }
 
 func (o MqttJob) Handle() {
-	procwlpro.ParseData(o.rawData)
+	procLock.ParseData(o.rawData)
 }

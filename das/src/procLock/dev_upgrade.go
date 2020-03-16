@@ -1,4 +1,4 @@
-package upgrade
+package procLock
 
 import (
 	"bytes"
@@ -14,17 +14,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/json-iterator/go"
-
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/httpgo"
 	"das/core/log"
 	"das/core/util"
-)
-
-var (
-	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
 type Msg struct {

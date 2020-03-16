@@ -24,13 +24,14 @@ var (
 	floorHeatMinTemp = `{"code":2,"status":"report","ver":"2","records":[{"bindid":"5233586","deviceuid":85390,"cid":513,"aid":5,"value":"0100","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","deviceid":769,"zonetype":1,"uptime":1581527097545}]}`
 
 
-	infrared = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":13,"cid":1280,"aid":128,"value":"0000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
-	door     = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":21,"cid":1280,"aid":128,"value":"0000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
+	infrared = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":13,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
+	door     = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":21,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 	smoke    = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":40,"cid":1280,"aid":128,"value":"1000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
-	flood    = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":42,"cid":1280,"aid":128,"value":"0000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
-	gas      = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":43,"cid":1280,"aid":128,"value":"0000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
-	sos      = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":44,"cid":1280,"aid":128,"value":"0000","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
+	flood    = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":42,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
+	gas      = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1026,"zonetype":43,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
+	sos      = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":1025,"zonetype":44,"cid":1280,"aid":128,"value":"0100","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"00158d0003e8b2e3_01","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 	temp = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":770,"zonetype":1,"cid":1026,"aid":0,"value":"2817","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"test0","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
+	illumi = `{"code":2,"status":"report","ver":"2","records":[{"deviceid":262,"zonetype":1,"cid":1024,"aid":0,"value":"28","bindid":"5233586","orgdata":"700f8e4d010000010c414205ab000b41e7","pushstring":"","uuid":"test0","snid":"FZD56","devicetype":"0x30b0001","uptime":1581527097545}]}`
 
 )
 
@@ -62,6 +63,7 @@ var tests = []struct {
 	{"gas", gas},
 	{"sos", sos},
 	{"temp", temp},
+	{"huminity", illumi},
 }
 
 func TestAlarmHandle(t *testing.T) {

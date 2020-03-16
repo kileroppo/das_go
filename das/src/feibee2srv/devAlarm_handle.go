@@ -53,7 +53,7 @@ func (self *BaseSensorAlarm) parseAlarmMsg() error {
 
 	parse, ok = alarmMsgTyp[self.alarmMsgType]
 	if !ok {
-		parse = parseContinuousVal
+		return ErrAlarmMsg
 	}
 
 	self.removalFlag, self.alarmFlag, self.alarmVal, self.alarmType = parse(self.feibeeMsg.Records[0].Value, self.msgType, self.alarmMsgType)
@@ -71,16 +71,15 @@ func (self *BaseSensorAlarm) PushMsg() {
 		log.Warning("BaseSensorAlarm PushMsg() error = ", err)
 		return
 	}
-	//todo: 传感器正常消息不通知不存储
-	if !(self.alarmFlag == 0) {
-		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
-	}
-
-	//门磁报警正常通知并存储
+	//todo: 传感器正常消息不通知不存储 门磁除外
 	if self.msgType == DoorMagneticSensor {
 		self.pushMsg2mns()
 		self.pushMsg2pmsForSave()
+	} else {
+		if !(self.alarmFlag == 0) {
+			self.pushMsg2mns()
+			self.pushMsg2pmsForSave()
+		}
 	}
 
 	self.pushMsg2pmsForSceneTrigger()
@@ -146,17 +145,6 @@ func (self *BaseSensorAlarm) createMsg2app() entity.Feibee2AlarmMsg {
 	msg.AlarmFlag = self.alarmFlag
 
 	return msg
-}
-
-func (self *BaseSensorAlarm) getDisplayName() (res string) {
-	if sli, ok := alarmValueMapByTyp[self.msgType]; ok {
-		if self.alarmFlag < len(sli) {
-			res = sli[self.alarmFlag]
-		} else {
-			return res
-		}
-	}
-	return
 }
 
 func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
@@ -257,10 +245,37 @@ func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmF
 	}
 
 	alarmFlag = int(v64)
-	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
+	alarmVal = strconv.FormatUint(v64, 10)
+	//alarmVal = getAlarmValName(msgType, valType, alarmFlag)
 	removalAlarmFlag = -1
 	alarmName = varAlarmName[valType]
 	return
+}
+
+func parseFixVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+	alarmVal = Little2BigEndianString(val)
+	if len(alarmVal) == 0 {
+		return -1, -1, "", ""
+	}
+	v64, err := strconv.ParseUint(alarmVal, 16, 64)
+	if err != nil {
+		return -1, -1, "", ""
+	}
+	if valType == illuminance {
+		if v64 > 1000 {
+			v64 = 1000
+		}
+	}
+
+	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
+	if alarmVal == "" {
+		alarmFlag = -1
+		return
+	} else {
+		alarmFlag = int(v64)
+		alarmName = varAlarmName[valType]
+		return
+	}
 }
 
 func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {

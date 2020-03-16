@@ -1,4 +1,4 @@
-package procwlpro
+package procLock
 
 import (
 	"bytes"
@@ -13,10 +13,9 @@ import (
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
+	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/wlprotocol"
-	"das/core/rabbitmq"
-	"das/cmdto"
 )
 
 var (
@@ -421,9 +420,9 @@ func ParseData(mydata interface{}) error {
 			return err_
 		}
 		if 1 == whereTo {
-			go cmdto.Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
+			go Cmd2Device(wlMsg.DevId.Uuid, hex.EncodeToString(bData), "constant.Upload_dev_info resp")
 		} else {
-			go cmdto.Cmd2Device(wlMsg.DevId.Uuid, bData, "constant.Upload_dev_info resp")
+			go Cmd2Device(wlMsg.DevId.Uuid, bData, "constant.Upload_dev_info resp")
 		}
 
 		//2. 解包体

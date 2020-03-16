@@ -1,8 +1,7 @@
-package consumer
+package procLock
 
 import (
 	"bytes"
-	"das/core/mqtt"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -14,10 +13,10 @@ import (
 	"das/core/entity"
 	"das/core/httpgo"
 	"das/core/log"
+	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/util"
-	"das/rmq/producer"
 )
 
 /*
@@ -259,7 +258,7 @@ func ProcAppMsg(appMsg string) error {
 		{
 			var strToDevData string
 			var err error
-			if "WL025S1" == head.DevType && 0x36 == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
+			if 0x1001 == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
 				strToDevData = appMsg
 			} else {
 				// 加密数据
@@ -277,7 +276,7 @@ func ProcAppMsg(appMsg string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 			}
-			producer.SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
+			SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
 		}
 	case constant.ALIIOT_PLATFORM: // 阿里云飞燕平台
 		{

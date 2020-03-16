@@ -51,10 +51,10 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 	switch self.msgType {
 	case NewDev:
 		res.OpType = "newDevice"
-		//新入网设备online字段默认为1
-		if res.Online <= 0 {
-			res.Online = 1
-		}
+		//todo: 若online=0，则该设备可能已经在其他网关下
+		//if res.Online <= 0 {
+		//	res.Online = 1
+		//}
 	case DevOnline:
 		res.OpType = "newOnline"
 	case DevDelete:
@@ -114,13 +114,23 @@ func (self *NormalMsgHandle) PushMsg() {
 		rabbitmq.Publish2mns(data2app, "")
 	}
 
-	//发送给PMS
-	data2pms, err := json.Marshal(self.createMsg2pms())
-	if err != nil {
-		log.Error("One Msg push2pms() error = ", err)
+	//情景开关以ieee作为routingKey推送
+	if self.msgType == DevOnline && self.data.Msg[0].Deviceid == 0x0004 {
+        routingKey = self.data.Msg[0].IEEE
+        rabbitmq.Publish2app(data2app, routingKey)
+	}
+
+	if self.msgType == NewDev && res.Online < 1 {
+		log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
 	} else {
-		//producer.SendMQMsg2PMS(string(data2pms))
-		rabbitmq.Publish2pms(data2pms, "")
+		//发送给PMS
+		data2pms, err := json.Marshal(self.createMsg2pms())
+		if err != nil {
+			log.Error("One Msg push2pms() error = ", err)
+		} else {
+			//producer.SendMQMsg2PMS(string(data2pms))
+			rabbitmq.Publish2pms(data2pms, "")
+		}
 	}
 }
 
@@ -548,8 +558,8 @@ func (self *ZigbeeLockHandle) PushMsg() {
 		return
 	}
 
-	//todo: parse data and handle
-    if err := ParseZlockData(self.data.Records[0].Value, "WlZigbeeLock", retUuid[0]); err != nil {
+	//TODO: parse data and handle, 去掉飞比加上的长度1个字节（16进制字符串2位）
+    if err := ParseZlockData(self.data.Records[0].Value[2:], "WlZigbeeLock", retUuid[0]); err != nil {
     	log.Warning("ZigbeeLockHandle PushMsg() error = ", err)
 	}
 }

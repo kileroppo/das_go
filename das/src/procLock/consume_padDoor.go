@@ -1,7 +1,6 @@
-package paddoor2srv
+package procLock
 
 import (
-	"context"
 	"strings"
 
 	"das/core/constant"
@@ -9,17 +8,8 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
-	"das/procnbmsg"
 )
 
-var rmq_uri string
-var exchange string     // = "App2OneNET"
-var exchangeType string // = "direct"
-var routingKey string   // = "wonlycloud"
-
-var (
-	ctx, cancel = context.WithCancel(context.Background())
-)
 
 //初始化RabbitMQ交换器，消息队列名称
 //func InitRmq_Ex_Que_Name(conf *goconf.ConfigFile) {
@@ -46,15 +36,11 @@ func NewWifiPlatJob(rawData string, devID string) WifiPlatJob {
 }
 
 func (w WifiPlatJob) Handle() {
-	procnbmsg.ProcessNbMsg(w.rawData, w.devID)
+	ProcessNbMsg(w.rawData, w.devID)
 }
 
-func Run() {
-	log.Info("start ReceiveMQMsgFromDevice......")
-	go consume()
-}
-
-func consume() {
+func consumePadDoor() {
+	log.Info("start ReceiveMQMsgFromPadDoor......")
 	msgs, err := rabbitmq.Consumer2devMQ.Consumer()
 	if err != nil {
 		log.Error("Consumer2devMQ.Consumer() error = ", err)
@@ -98,11 +84,7 @@ func consume() {
 		log.Info("ReceiveMQMsgFromDevice Close")
 		return
 	default:
-		go consume()
+		go consumePadDoor()
 		return
 	}
-}
-
-func Close() {
-	cancel()
 }
