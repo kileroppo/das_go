@@ -88,12 +88,12 @@ var (
 	}
 
 	alarmValueMapByTyp = map[MsgType]([]string){
-		InfraredSensor:     []string{"无人", "有人"},
-		DoorMagneticSensor: []string{"关门", "开门"},
-		SmokeSensor:        []string{"无烟", "有烟"},
-		FloodSensor:        []string{"无水", "有水"},
-		GasSensor:          []string{"无气体", "有气体"},
-		SosBtnSensor:       []string{"正常", "报警"},
+		InfraredSensor:     []string{"无人经过", "有人经过"},
+		DoorMagneticSensor: []string{"门磁已关闭", "门磁已打开"},
+		SmokeSensor:        []string{"检测正常", "烟雾浓度已超标，正在报警"},
+		FloodSensor:        []string{"检测正常", "水浸位已超标，正在报警"},
+		GasSensor:          []string{"检测正常", "燃气浓度已超标，正在报警"},
+		SosBtnSensor:       []string{"检测正常", "发生紧急呼叫"},
 	}
 
 	alarmValueMapByCid = map[int]([]string){

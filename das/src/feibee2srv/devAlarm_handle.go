@@ -292,8 +292,8 @@ func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag,
 		alarmFlag = int(bitFlagInt) & 0b0000_0001
 	}
 
-	//周期上报数据不透传
-	if cycleFlag := (bitFlagInt & 0b0001_0000); cycleFlag > 0{
+	//todo:周期上报数据不透传（暂定）
+	if cycleFlag := (bitFlagInt & 0b0001_0000); cycleFlag > 0 {
 		alarmFlag = -1
 	}
 
@@ -310,8 +310,12 @@ func parseBatteryVal(val string, msgType MsgType, valType int) (removalAlarmFlag
 		return -1, -1, "", ""
 	}
 
-	alarmVal = strconv.Itoa(int(valInt) / 2)
-	alarmFlag = -1
+	if int(valInt)/2 <= 30 {
+		alarmVal = "电量过低"
+		alarmFlag = int(valInt) / 2
+	} else {
+		alarmFlag = -1
+	}
 	alarmName = varAlarmName[valType]
 	return
 }
