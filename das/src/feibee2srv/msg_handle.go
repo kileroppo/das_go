@@ -441,7 +441,6 @@ func (self *WonlyLGuardHandle) PushMsg() {
 }
 
 func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
-	//todo: parse lguard value
 	_, val, err := self.parseValue(self.data.Records[0].Value)
 	if err != nil {
 		//log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
