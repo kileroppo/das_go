@@ -38,8 +38,8 @@ type AddDevUser struct {
 	MyDate   MyDTM       `json:"date"`        // 开始有效时间
 	MyTime   [3]MyDTM    `json:"time"`        // 时段
 	TimeLen  interface{} `json:"time_length"` // 兼容捷博生产商，临时用户时长（单位：秒）
-	Bindid   string      `json:"bindid"`      // zigbee锁网关账号
-	Bindstr  string      `json:"bindstr"`     // zigbee锁网关密码
+	Bindid   string      `json:"bindid,omitempty"`      // zigbee锁网关账号
+	Bindstr  string      `json:"bindstr,omitempty"`     // zigbee锁网关密码
 }
 
 //2. 设置临时用户
@@ -88,8 +88,8 @@ type DelDevUser struct {
 	MainOpen uint8  `json:"mainOpen"` // 主开锁方式（1-密码，2-刷卡，3-指纹）
 	SubOpen  uint8  `json:"subOpen"`  // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
 	Time     int32  `json:"time"`
-	Bindid   string `json:"bindid"`  // zigbee锁网关账号
-	Bindstr  string `json:"bindstr"` // zigbee锁网关密码
+	Bindid   string `json:"bindid,omitempty"`  // zigbee锁网关账号
+	Bindstr  string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 
 //5. 用户更新上报
@@ -184,8 +184,8 @@ type SRemoteOpenLockReq struct {
 	Passwd string `json:"passwd"`
 	Time   interface{}  `json:"time"`
 
-	Bindid  string `json:"bindid"`  // zigbee锁网关账号
-	Bindstr string `json:"bindstr"` // zigbee锁网关密码
+	Bindid  string `json:"bindid,omitempty"`  // zigbee锁网关账号
+	Bindstr string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 
 // 双人
@@ -201,8 +201,8 @@ type MRemoteOpenLockReq struct {
 	Passwd2 string `json:"passwd2"`
 	Time    interface{}  `json:"time"`
 
-	Bindid  string `json:"bindid"`  // zigbee锁网关账号
-	Bindstr string `json:"bindstr"` // zigbee锁网关密码
+	Bindid  string `json:"bindid,omitempty"`  // zigbee锁网关账号
+	Bindstr string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 
 type RemoteOpenLockResp struct {
