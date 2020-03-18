@@ -86,19 +86,30 @@ func (self *BaseSensorAlarm) PushMsg() {
 	self.pushForcedBreakMsg()
 }
 
-func (self *BaseSensorAlarm) pushMsg2app() {
-	msg := self.createMsg2app()
+func (self *BaseSensorAlarm) pushStatusMsg2app() {
+	msg := self.createStatusMsg()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Error("BaseSensorAlarm pushMsg2app() error = ", err)
+		log.Error("BaseSensorAlarm pushStatusMsg2app() error = ", err)
+		return
+	}
+	rabbitmq.Publish2app(data, self.devid)
+}
+
+func (self *BaseSensorAlarm) pushAlarmMsg2app() {
+	msg := self.createAlarmMsg()
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Error("BaseSensorAlarm pushAlarmMsg2app() error = ", err)
 		return
 	}
 	rabbitmq.Publish2app(data, self.devid)
 }
 
 func (self *BaseSensorAlarm) pushMsg2mns() {
-	msg := self.createMsg2app()
+	msg := self.createAlarmMsg()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -128,7 +139,24 @@ func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 	return msg
 }
 
-func (self *BaseSensorAlarm) createMsg2app() entity.Feibee2AlarmMsg {
+func (self *BaseSensorAlarm) createStatusMsg() entity.Feibee2DevMsg {
+	var msg entity.Feibee2DevMsg
+
+	msg.Cmd = 0xfb
+	msg.Ack = 0
+	msg.DevType = self.devType
+	msg.DevId = self.devid
+	msg.Vendor = "feibee"
+	msg.SeqId = 1
+
+	msg.OpType = self.alarmType
+	msg.OpValue = self.alarmVal
+	msg.Time = self.time
+
+	return msg
+}
+
+func (self *BaseSensorAlarm) createAlarmMsg() entity.Feibee2AlarmMsg {
 	var msg entity.Feibee2AlarmMsg
 
 	msg.Cmd = 0xfc
@@ -148,7 +176,7 @@ func (self *BaseSensorAlarm) createMsg2app() entity.Feibee2AlarmMsg {
 }
 
 func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
-	msg := self.createMsg2app()
+	msg := self.createAlarmMsg()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -171,7 +199,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 
 func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 	if self.removalFlag > 0 {
-		msg := self.createMsg2app()
+		msg := self.createAlarmMsg()
 
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
@@ -209,6 +237,9 @@ func (c *ContinuousSensor) PushMsg() {
 	}
 	//todo: 其他类型暂不推送mns
 	//c.pushMsg2mns()
+	if c.msgType == FloorHeat {
+		c.pushStatusMsg2app()
+	}
 	c.pushMsg2pmsForSave()
 	c.pushMsg2pmsForSceneTrigger()
 }
