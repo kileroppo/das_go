@@ -719,6 +719,13 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2APP(head.DevId, DValue)
 			rabbitmq.Publish2app([]byte(DValue), head.DevId)
 		}
+	case constant.Door_Pad_Weather: // 平板锁天气信息透传至mns
+		{
+			log.Info("[", head.DevId, "] constant.Door_Pad_Weather")
+
+			//推送到mns
+			rabbitmq.Publish2mns([]byte(DValue), "")
+		}
 	default:
 		log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
 	}

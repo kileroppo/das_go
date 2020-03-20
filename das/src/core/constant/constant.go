@@ -45,8 +45,8 @@ const (
 	Update_dev_para = 0x73 // 设备参数更新上报
 	Soft_reset      = 0x74 // 软件复位
 	// Factory_reset = 0x75		// 恢复出厂设置
-	Factory_reset   = 0xEA // 恢复出厂设置
-	Upload_open_log = 0x40 // 门锁开门日志上报
+	Factory_reset    = 0xEA // 恢复出厂设置
+	Upload_open_log  = 0x40 // 门锁开门日志上报
 	UpEnter_menu_log = 0x42 // 用户进入菜单上报
 
 	// 报警
@@ -62,10 +62,10 @@ const (
 	Upload_lock_active = 0x46 // 锁激活状态上报
 
 	// 视频设备
-	Real_Video = 0x36 // 实时视频
-	Set_Wifi   = 0x37 // Wifi设置
-	Notify_Set_Wifi   = 0x3A // 锁端Wifi设置成功通知
-	Door_Call  = 0x38 // 门铃呼叫
+	Real_Video      = 0x36 // 实时视频
+	Set_Wifi        = 0x37 // Wifi设置
+	Notify_Set_Wifi = 0x3A // 锁端Wifi设置成功通知
+	Door_Call       = 0x38 // 门铃呼叫
 
 	// 锁状态
 	Door_State = 0x55 // 锁状态上报
@@ -86,17 +86,18 @@ const (
 	Active_Yisuma_SE    = 0x68 //激活亿速码安全芯片
 	Random_Yisuma_State = 0x66 //亿速码随机数上报
 
-	Wonly_Guard_Msg = 0xfb
+	Wonly_Guard_Msg  = 0xfb
+	Door_Pad_Weather = 0x1002
 )
 
 const (
-	ONENET_PLATFORM  	= "onenet"
-	TELECOM_PLATFORM 	= "telecom"
-	ANDLINK_PLATFORM 	= "andlink"
-	PAD_DOOR_PLATFORM 	= "paddoor"
-	ALIIOT_PLATFORM 	= "aliIoT"
-	FEIBEE_PLATFORM 	= "feibee"
-	MQTT_PLATFORM 		= "mqtt"
+	ONENET_PLATFORM   = "onenet"
+	TELECOM_PLATFORM  = "telecom"
+	ANDLINK_PLATFORM  = "andlink"
+	PAD_DOOR_PLATFORM = "paddoor"
+	ALIIOT_PLATFORM   = "aliIoT"
+	FEIBEE_PLATFORM   = "feibee"
+	MQTT_PLATFORM     = "mqtt"
 )
 
 // 电信平台订阅消息类型
@@ -132,14 +133,13 @@ const (
 // 协议选择
 const (
 	GENERAL_PROTOCOL = 1
-	ZIGBEE_PROTOCOL = 2
+	ZIGBEE_PROTOCOL  = 2
 )
 
 //	设备参数设置编号，需要特殊处理的字符串
 const (
-	IPC_SN_PNO 		= 0x0d	// 视频模组sn
-	WIFI_SSID_PNO 	= 0x0f	// WIFI_SSID
-	PROJECT_No_PNO 	= 0x10	// 产品序列号
-
+	IPC_SN_PNO     = 0x0d // 视频模组sn
+	WIFI_SSID_PNO  = 0x0f // WIFI_SSID
+	PROJECT_No_PNO = 0x10 // 产品序列号
 
 )
