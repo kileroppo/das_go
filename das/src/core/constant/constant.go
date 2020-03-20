@@ -86,8 +86,10 @@ const (
 	Active_Yisuma_SE    = 0x68 //激活亿速码安全芯片
 	Random_Yisuma_State = 0x66 //亿速码随机数上报
 
-	Wonly_Guard_Msg  = 0xfb
+	Wonly_LGuard_Msg = 0xfb
 	Door_Pad_Weather = 0x1002
+	Range_Hood_Control = 0x1000
+	Range_Hood_Gas_Alarm = 0x27
 )
 
 const (

@@ -497,3 +497,9 @@ type ZigbeeLockHead struct {
 	Bindid  string `json:"bindid"`
 	Bindstr string `json:"bindstr"`
 }
+
+type RangeHoodAlarm struct {
+	Header
+
+	Time int `json:"time"`
+}
