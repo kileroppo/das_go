@@ -282,7 +282,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 				}
 			}
 		default:
-			log.Debug("[", head.DevId, "] constant.Set_dev_para，setParam.Time type=", t)
+			log.Debugf("[", head.DevId, "] constant.Set_dev_para，setParam.Time type=%t", t)
 			nTimeV, ok := setParam.Time.(int)
 			if ok {
 				pdu.Time = int32(nTimeV)
