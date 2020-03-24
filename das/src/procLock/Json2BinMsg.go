@@ -273,8 +273,19 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			ParamValue2: setParam.PaValue2, // 参数值2(1)
 			// Time: setParam.Time,			// 时间(4)
 		}
-		if nTime, err_0 := strconv.Atoi(setParam.Time); err_0 == nil {
-			pdu.Time = int32(nTime)
+		switch setParam.Time.(type) {
+		case string:
+			strTimeV, ok := setParam.Time.(string)
+			if ok {
+				if nTime, err_0 := strconv.Atoi(strTimeV); err_0 == nil {
+					pdu.Time = int32(nTime)
+				}
+			}
+		default:
+			nTimeV, ok := setParam.Time.(float64)
+			if ok {
+				pdu.Time = int32(nTimeV)
+			}
 		}
 
 		bData, err_ := wlMsg.PkEncode(pdu)
