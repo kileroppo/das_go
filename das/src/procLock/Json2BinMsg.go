@@ -273,7 +273,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			ParamValue2: setParam.PaValue2, // 参数值2(1)
 			// Time: setParam.Time,			// 时间(4)
 		}
-		switch t := setParam.Time.(type) {
+		switch setParam.Time.(type) {
 		case string:
 			strTimeV, ok := setParam.Time.(string)
 			if ok {
@@ -282,7 +282,6 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 				}
 			}
 		default:
-			log.Debugf("[", head.DevId, "] constant.Set_dev_para，setParam.Time type=%t", t)
 			nTimeV, ok := setParam.Time.(float64)
 			if ok {
 				pdu.Time = int32(nTimeV)
