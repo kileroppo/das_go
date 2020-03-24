@@ -743,24 +743,8 @@ func sendMsg2pmsForSceneTrigger(head entity.Header) {
 
 	msg.TriggerType = 0
 	msg.Time = int(time.Now().Unix())
-	msg.AlarmType = "NBLock"
-
-	switch head.Cmd {
-	case constant.Noatmpt_alarm:
-		msg.AlarmValue = "非法操作报警"
-	case constant.Forced_break_alarm:
-		msg.AlarmValue = "强拆报警"
-	case constant.Fakelock_alarm:
-		msg.AlarmValue = "假锁报警"
-	case constant.Nolock_alarm:
-		msg.AlarmValue = "门未关报警"
-	case constant.Low_battery_alarm:
-		msg.AlarmValue = "低压报警"
-	case constant.Infrared_alarm:
-		msg.AlarmValue = "人体感应报警"
-	default:
-		return
-	}
+	msg.AlarmFlag = 1
+	msg.AlarmType = "lockAlarm"
 
 	data, err := json.Marshal(msg)
 	if err != nil {

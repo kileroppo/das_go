@@ -74,14 +74,12 @@ func (self *BaseSensorAlarm) PushMsg() {
 	//传感器正常消息不通知不存储 门磁除外
 	if self.msgType == DoorMagneticSensor {
 		self.pushMsg2mns()
-		self.pushMsg2pmsForSave()
 	} else {
 		if !(self.alarmFlag == 0) {
 			self.pushMsg2mns()
-			self.pushMsg2pmsForSave()
 		}
 	}
-
+    self.pushMsg2pmsForSave()
 	self.pushMsg2pmsForSceneTrigger()
 	self.pushForcedBreakMsg()
 }
@@ -133,7 +131,7 @@ func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 	msg.TriggerType = 0
 	msg.Time = self.time
 
-	msg.AlarmValue = self.alarmVal
+	msg.AlarmFlag = self.alarmFlag
 	msg.AlarmType = self.alarmType
 
 	return msg
@@ -214,7 +212,7 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 
 		msgForScene := self.createMsg2pmsForSence()
 		msgForScene.AlarmType = "forcedBreak"
-		msgForScene.AlarmValue = "传感器被强拆"
+		msgForScene.AlarmFlag = 1
 
 		data, err = json.Marshal(msgForScene)
 		if err != nil {

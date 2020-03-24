@@ -106,7 +106,7 @@ type Feibee2AutoSceneMsg struct {
 	Time int `json:"time"`
 
 	TriggerType int    `json:"triggerT"`
-	AlarmValue  string `json:"alarmValue"`
+	AlarmFlag   int    `json:"alarmFlag"`
 	AlarmType   string `json:"alarmType"`
 	SceneId     string `json:"sceneId"`
 	Zone        string `json:"zone"`

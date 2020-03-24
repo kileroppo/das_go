@@ -443,7 +443,6 @@ func (self *WonlyLGuardHandle) PushMsg() {
 func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
 	_, val, err := self.parseValue(self.data.Records[0].Value)
 	if err != nil {
-		//log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
 		return
 	}
 
@@ -457,24 +456,24 @@ func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
 	}
 }
 
-func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string, err error){
+func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val int, err error){
     if len(rawVal) < 10 {
-    	return typ, "", ErrLGuardVal
+    	return typ, 0, ErrLGuardVal
 	}
 
     rawValLens,err := strconv.ParseInt(rawVal[0:2], 16, 32)
     if err != nil || rawValLens != int64(len(rawVal[2:]))/2 {
-		return  typ,"", ErrLGuardVal
+		return  typ,0, ErrLGuardVal
 	}
 
 	lens, err := strconv.ParseInt(rawVal[4:6], 16, 64)
 	if err != nil || int64(len(rawVal[6:])/2) < lens+3 {
-		return typ,"", ErrLGuardVal
+		return typ,0, ErrLGuardVal
 	}
 
 	typ, err = strconv.ParseInt(rawVal[6:8], 16, 64)
 	if err != nil {
-		return typ,"", ErrLGuardVal
+		return typ,0, ErrLGuardVal
 	}
 
 	funcData := rawVal[8:8+2*lens]
@@ -482,12 +481,12 @@ func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string,
 	switch typ {
 	case 0x23:
 		if funcData == "00" {
-			val = "撤防"
+			val = 0
 		} else if funcData == "01" {
-			val = "布防"
+			val = 1
 		}
 	default:
-		return typ, "", ErrLGuardVal
+		return typ, 0, ErrLGuardVal
 	}
 	return
 }
@@ -535,7 +534,7 @@ func (self *SceneSwitchHandle) PushMsg() {
 
 func (self *SceneSwitchHandle) createSceneMsg2pms() (res entity.Feibee2AutoSceneMsg) {
 	//情景开关作为无触发值的触发设备
-	res = createSceneMsg2pms(self.data, "", "sceneSwitch")
+	res = createSceneMsg2pms(self.data, 1, "sceneSwitch")
 	return
 }
 
@@ -595,7 +594,7 @@ func (self *FeibeeSceneHandle) createMsg2mns() (res entity.Feibee2DevMsg){
 	return
 }
 
-func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (res entity.Feibee2AutoSceneMsg) {
+func createSceneMsg2pms(data *entity.FeibeeData, alarmFlag int, alarmType string) (res entity.Feibee2AutoSceneMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -605,7 +604,7 @@ func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (
 	res.TriggerType = 0
 	res.Time = int(time.Now().Unix())
 
-	res.AlarmValue = alarmValue
+	res.AlarmFlag = alarmFlag
 	res.AlarmType = alarmType
 
 	return

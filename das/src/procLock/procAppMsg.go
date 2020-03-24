@@ -197,8 +197,8 @@ func ProcAppMsg(appMsg string) error {
 				Header:     msg.Header,
 				Time:        msg.Time,
 				TriggerType: 0,
-				AlarmValue:  "rangeHoodGas",
-				AlarmType:   "有气体",
+				AlarmType:  "rangeHoodGas",
+				AlarmFlag:   1,
 			}
 	    	msg2pms.Cmd = 0xf1
 	    	data2pms,err := json.Marshal(msg2pms)
