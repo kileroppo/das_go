@@ -181,10 +181,39 @@ func ProcAppMsg(appMsg string) error {
 			log.Debug("ProcAppMsg , appMsg=", appMsg)
 		}
 
-	case constant.Wonly_Guard_Msg:
+	case constant.Wonly_LGuard_Msg:
 		//小卫士消息
 		httpgo.Http2FeibeeWonlyLGuard(appMsg)
 		return nil // TODO:JHHE after HTTP request, no other processes, otherwise return
+	case constant.Range_Hood_Gas_Alarm: //油烟机燃气报警通知
+	    {
+	    	msg := entity.RangeHoodAlarm{}
+	    	if err := json.Unmarshal([]byte(appMsg), &msg); err != nil {
+				log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Unmarshal() error = ", err)
+				return err
+			}
+
+	    	msg2pms := entity.Feibee2AutoSceneMsg{
+				Header:     msg.Header,
+				Time:        msg.Time,
+				TriggerType: 0,
+				AlarmType:  "rangeHoodGas",
+				AlarmFlag:   1,
+			}
+	    	msg2pms.Cmd = 0xf1
+	    	data2pms,err := json.Marshal(msg2pms)
+	    	if err != nil {
+				log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Marshal() error = ", err)
+				return err
+			}
+	    	//作为场景触发通知
+	    	rabbitmq.Publish2pms(data2pms, "")
+		}
+		return nil
+	case constant.Range_Hood_Control: //油烟机控制请求
+	//todo: zh/油烟机控制是否通过das 暂定
+	    rabbitmq.Publish2app([]byte(appMsg), head.DevId)
+	    return nil
 	}
 
 	log.Debug("ProcAppMsg after, ", appMsg)
