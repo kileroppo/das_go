@@ -62,7 +62,7 @@ func ProcAppMsg(appMsg string) error {
 						log.Error("ProcAppMsg json.Unmarshal MRemoteOpenLockReq error, err=", err)
 					}
 
-					decryptPwdFlag := false	// 密码解密
+					decryptPwdFlag := false // 密码解密
 					stringKey := strings.ToUpper(util.Md5(head.DevId))
 
 					if len(mROpenLockReq.Passwd) > 6 {
@@ -186,34 +186,18 @@ func ProcAppMsg(appMsg string) error {
 		httpgo.Http2FeibeeWonlyLGuard(appMsg)
 		return nil // TODO:JHHE after HTTP request, no other processes, otherwise return
 	case constant.Range_Hood_Gas_Alarm: //油烟机燃气报警通知
-	    {
-	    	msg := entity.RangeHoodAlarm{}
-	    	if err := json.Unmarshal([]byte(appMsg), &msg); err != nil {
+		{
+			msg := entity.RangeHoodAlarm{}
+			if err := json.Unmarshal([]byte(appMsg), &msg); err != nil {
 				log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Unmarshal() error = ", err)
 				return err
 			}
-
-	    	msg2pms := entity.Feibee2AutoSceneMsg{
-				Header:     msg.Header,
-				Time:        msg.Time,
-				TriggerType: 0,
-				AlarmType:  "rangeHoodGas",
-				AlarmFlag:   1,
-			}
-	    	msg2pms.Cmd = 0xf1
-	    	data2pms,err := json.Marshal(msg2pms)
-	    	if err != nil {
-				log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Marshal() error = ", err)
-				return err
-			}
-	    	//作为场景触发通知
-	    	rabbitmq.Publish2pms(data2pms, "")
+			pushMsgForSceneTrigger(&msg)
 		}
 		return nil
 	case constant.Range_Hood_Control: //油烟机控制请求
-	//todo: zh/油烟机控制是否通过das 暂定
-	    rabbitmq.Publish2app([]byte(appMsg), head.DevId)
-	    return nil
+		//todo:zh:油烟机控制是否通过das 暂定
+		return nil
 	}
 
 	log.Debug("ProcAppMsg after, ", appMsg)
@@ -351,24 +335,24 @@ func ProcAppMsg(appMsg string) error {
 			mqtt.WlMqttPublish(head.DevId, bData)
 		}
 	case constant.FEIBEE_PLATFORM: //飞比zigbee锁
-	{
-		var msgHead entity.ZigbeeLockHead
-		if err := json.Unmarshal([]byte(appMsg), &msgHead); err != nil {
-			log.Error("ProcAppMsg json.Unmarshal() error = ", err)
-			return err
-		}
+		{
+			var msgHead entity.ZigbeeLockHead
+			if err := json.Unmarshal([]byte(appMsg), &msgHead); err != nil {
+				log.Error("ProcAppMsg json.Unmarshal() error = ", err)
+				return err
+			}
 
-		appData, err_ := WlJson2BinMsg(appMsg, constant.ZIGBEE_PROTOCOL)
-		if nil != err_ {
-			log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
-			return err_
-		}
-		if "" == ret["uuid"] || "" == ret["uid"] {
-			return errors.New("下发给飞比zigbee锁的uuid, uid为空")
-		}
+			appData, err_ := WlJson2BinMsg(appMsg, constant.ZIGBEE_PROTOCOL)
+			if nil != err_ {
+				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
+				return err_
+			}
+			if "" == ret["uuid"] || "" == ret["uid"] {
+				return errors.New("下发给飞比zigbee锁的uuid, uid为空")
+			}
 
-		httpgo.Http2FeibeeZigbeeLock(hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
-	}
+			httpgo.Http2FeibeeZigbeeLock(hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
+		}
 
 	default:
 		{
@@ -378,4 +362,39 @@ func ProcAppMsg(appMsg string) error {
 
 	// time.Sleep(time.Second)
 	return nil
+}
+
+func pushMsgForSceneTrigger(msg *entity.RangeHoodAlarm) {
+	msg2pms := entity.Feibee2AutoSceneMsg{
+		Header:      msg.Header,
+		Time:        msg.Time,
+		TriggerType: 0,
+		AlarmType:   "rangeHoodGas",
+		AlarmFlag:   1,
+	}
+	msg2pms.Cmd = 0xf1
+	data2pms, err := json.Marshal(msg2pms)
+	if err != nil {
+		log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Marshal() error = ", err)
+		return
+	}
+	//作为场景触发通知
+	rabbitmq.Publish2pms(data2pms, "")
+}
+
+func pushMsgForSave(msg *entity.RangeHoodAlarm) {
+    msg2pms := entity.Feibee2AlarmMsg{
+		Header:     msg.Header,
+		Time:       msg.Time,
+		AlarmType:  "rangeHoodGas",
+		AlarmValue: "油烟机燃气泄漏",
+		AlarmFlag:  1,
+	}
+	msg2pms.Cmd = 0xfc
+	data2pms, err := json.Marshal(msg2pms)
+	if err != nil {
+		log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Marshal() error = ", err)
+		return
+	}
+	rabbitmq.Publish2pms(data2pms, "")
 }
