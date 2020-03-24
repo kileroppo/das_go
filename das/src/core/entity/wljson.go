@@ -289,7 +289,7 @@ type SetLockParamReq struct {
 	ParaNo   uint8  `json:"paraNo"`   // 参数编号
 	PaValue  uint8  `json:"paValue"`  // 参数值1
 	PaValue2 uint8  `json:"paValue2"` // 参数值2，当参数编号为0x0b（人体感应报警开关）且”参数值1”为2时候，此字段有效
-	Time     string `json:"time"`     // 时间戳
+	Time     interface{} `json:"time"`     // 时间戳
 }
 type LockParam struct {
 	Cmd     int    `json:"cmd"`
