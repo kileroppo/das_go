@@ -13,6 +13,7 @@ const (
 	DevDelete                //设备删除
 	DevRename                //设备重命名
 	GtwOnline                //网关离上线
+	GtwInfo                  //网关信息
 
 	//设备操作消息
 	ManualOpDev //手动操作设备
@@ -54,6 +55,7 @@ var (
 		7:  RemoteOpDev,
 		10: DevDegree,
 		12: DevRename,
+		15: GtwInfo,
 		32: GtwOnline,
 		21: FeibeeScene,
 		22: FeibeeScene,
@@ -96,7 +98,7 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &NormalMsgHandle{data: data, msgType: typ}
 	case ManualOpDev:
 		msgHandle = &ManualOpMsgHandle{data: data}
-	case GtwOnline:
+	case GtwOnline, GtwInfo:
 		msgHandle = &GtwMsgHandle{data: data}
 	case InfraredTreasure:
 		msgHandle = &InfraredTreasureHandle{data: data, msgType: typ}
