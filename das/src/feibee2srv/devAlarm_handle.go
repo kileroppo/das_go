@@ -75,12 +75,14 @@ func (self *BaseSensorAlarm) PushMsg() {
 	if self.msgType == DoorMagneticSensor {
 		self.pushMsg2mns()
 	} else {
-		if !(self.alarmFlag == 0) {
+		if (self.alarmFlag > 0) {
 			self.pushMsg2mns()
 		}
 	}
     self.pushMsg2pmsForSave()
-	self.pushMsg2pmsForSceneTrigger()
+	if self.alarmMsgType == sensorAlarm {
+		self.pushMsg2pmsForSceneTrigger()
+	}
 	self.pushForcedBreakMsg()
 }
 
@@ -209,17 +211,6 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 		}
 		rabbitmq.Publish2mns(data, "")
 		rabbitmq.Publish2pms(data, "")
-
-		msgForScene := self.createMsg2pmsForSence()
-		msgForScene.AlarmType = "forcedBreak"
-		msgForScene.AlarmFlag = 1
-
-		data, err = json.Marshal(msgForScene)
-		if err != nil {
-			log.Error("BaseSensorAlarm pushForcedBreakMsg() error = ", err)
-			return
-		}
-		rabbitmq.Publish2pms(data, "")
 	}
 }
 
@@ -237,9 +228,12 @@ func (c *ContinuousSensor) PushMsg() {
 	//c.pushMsg2mns()
 	if c.msgType == FloorHeat {
 		c.pushStatusMsg2app()
+	} else {
+		c.pushMsg2pmsForSave()
+		if c.msgType != Airer {
+			c.pushMsg2pmsForSceneTrigger()
+		}
 	}
-	c.pushMsg2pmsForSave()
-	c.pushMsg2pmsForSceneTrigger()
 }
 
 func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
