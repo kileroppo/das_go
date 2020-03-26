@@ -26,6 +26,7 @@ func (pdu *SyncDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] SyncDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -143,6 +144,7 @@ func (pdu *DelDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] DelDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -214,6 +216,7 @@ func (pdu *AddDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] AddDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -366,6 +369,7 @@ func (pdu *RealVideo) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] RealVideo Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -420,6 +424,7 @@ func (pdu *WiFiSet) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] WiFiSet Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -787,6 +792,7 @@ func (pdu *RemoteOpenLock) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] RemoteOpenLock Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -861,6 +867,7 @@ func (pdu *SetLockParamReq) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] SetLockParamReq Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -933,6 +940,7 @@ func (pdu *RebootLock) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] RebootLock Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -981,6 +989,7 @@ func (pdu *SetTmpDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] SetTmpDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -1165,6 +1174,7 @@ func (pdu *UploadDevInfoResp) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] UploadDevInfoResp Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
