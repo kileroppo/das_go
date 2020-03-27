@@ -183,7 +183,7 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 			datas[i].Ver = data.Ver
 			datas[i].Status = data.Status
 		}
-	case 32:
+	case 15,32:
 		datas = make([]entity.FeibeeData, len(data.Gateway))
 		for i := 0; i < len(data.Gateway); i++ {
 			datas[i].Gateway = []entity.FeibeeGatewayMsg{
