@@ -145,3 +145,12 @@ const (
 	PROJECT_No_PNO = 0x10 // 产品序列号
 
 )
+
+// 开锁方式 1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙
+const (
+	OPEN_PWD = 1	// 1-密码
+	OPEN_CARD = 2	// 2-刷卡
+	OPEN_FINGER = 3	// 3-指纹
+	OPEN_FACE = 5	// 5-人脸
+	OPEN_BLE = 12	// 12-蓝牙
+)

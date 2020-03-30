@@ -76,10 +76,19 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			UserNote:  int32(nRandom),   // 用户别名-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
 			PermitNum: addDevUser.Count, // 允许开门次数
 		}
-		pwd := []byte(addDevUser.Passwd)
-		for i := 0; i < len(pwd); i++ {
-			if i < 6 {
-				pdu.Passwd[i] = pwd[i]
+		if constant.OPEN_BLE == addDevUser.MainOpen {
+			pwd := []byte(addDevUser.Passwd)
+			for i := 0; i < len(pwd); i++ {
+				if i < 8 {
+					pdu.BlePin[i] = pwd[i]
+				}
+			}
+		} else {
+			pwd := []byte(addDevUser.Passwd)
+			for i := 0; i < len(pwd); i++ {
+				if i < 6 {
+					pdu.Passwd[i] = pwd[i]
+				}
 			}
 		}
 
