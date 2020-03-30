@@ -13,7 +13,6 @@ var (
 	producer2appMQ      *baseMq
 	producer2mnsMQ      *baseMq
 	producer2pmsMQ      *baseMq
-	producerGuard2appMQ *baseMq
 	Consumer2devMQ      *baseMq
 	Consumer2appMQ      *baseMq
 	Consumer2aliMQ      *baseMq
@@ -30,7 +29,6 @@ func Init(conf *goconf.ConfigFile) {
 		initProducer2devMQ(conf)
 		initProducer2pmsMQ(conf)
 		initProducer2mnsMQ(conf)
-		initProducerGuard2appMQ(conf)
 		log.Info("RabbitMQ init")
 	})
 }
@@ -64,14 +62,6 @@ func Publish2pms(data []byte, routingKey string) {
 		log.Warning("Publish2pms error = ", err)
 	} else {
 		log.Debug("Publish2pms msg: ", string(data))
-	}
-}
-
-func PublishGuard2app(data []byte, routingKey string) {
-	if err := producerGuard2appMQ.Publish(data, routingKey); err != nil {
-		log.Warning("PublishGuard2app error = ", err)
-	} else {
-		log.Debugf("RoutingKey = '%s', PublishGuard2app msg: %s", routingKey, string(data))
 	}
 }
 
@@ -318,42 +308,6 @@ func initConsumer2devMQ(conf *goconf.ConfigFile) {
 	}
 }
 
-func initProducerGuard2appMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initProducerGuard2appMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "guard2app_ex")
-	if err != nil {
-		panic("initProducerGuard2appMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "guard2app_ex_type")
-	if err != nil {
-		panic("initProducerGuard2appMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-		Name:         "ProducerGuard2appMQ",
-	}
-	producerGuard2appMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producerGuard2appMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producerGuard2appMQ.initExchange(); err != nil {
-		panic(err)
-	}
-
-}
-
 func initProducer2devMQ(conf *goconf.ConfigFile) {
 	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
 	if err != nil {
@@ -393,7 +347,6 @@ func Close() {
 	producer2appMQ.Close()
 	producer2pmsMQ.Close()
 	producer2mnsMQ.Close()
-	producerGuard2appMQ.Close()
 	producer2devMQ.Close()
 	Consumer2devMQ.Close()
 	Consumer2appMQ.Close()
