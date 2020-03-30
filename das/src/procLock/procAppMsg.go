@@ -197,7 +197,11 @@ func ProcAppMsg(appMsg string) error {
 		return nil
 	case constant.Range_Hood_Control: //油烟机控制请求
 		//todo:zh:油烟机控制是否通过das 暂定
-		return nil
+		{
+			rabbitmq.Publish2app([]byte(appMsg), head.DevId)
+			return nil
+		}
+
 	}
 
 	log.Debug("ProcAppMsg after, ", appMsg)
