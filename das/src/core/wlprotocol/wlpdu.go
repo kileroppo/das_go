@@ -214,6 +214,10 @@ func (pdu *AddDevUser) Encode(uuid string) ([]byte, error) {
 		log.Error("binary.Write failed:", err)
 		return nil, err
 	}
+	if err = binary.Write(buf, binary.BigEndian, pdu.BlePin); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
 
 	toDevice_byte := buf.Bytes()
 	log.Debug("[ ", uuid, " ] AddDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")

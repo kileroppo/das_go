@@ -99,6 +99,7 @@ type AddDevUser struct {
 	TimeSlot1 [4]byte	// 时段1
 	TimeSlot2 [4]byte	// 时段2
 	TimeSlot3 [4]byte	// 时段3
+	BlePin [10]byte		// 蓝牙PIN码
 }
 
 //5. 新增用户报告步骤(0x34)(前板-->服务器)

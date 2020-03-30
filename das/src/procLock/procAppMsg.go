@@ -153,7 +153,7 @@ func ProcAppMsg(appMsg string) error {
 			addDevUser.UserNote = userNoteTag // 值跟KEY交换，下发到锁端
 			// }
 
-			if 1 == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
+			if constant.OPEN_PWD == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
 				if len(addDevUser.Passwd) > 6 {
 					psw1, err0 := hex.DecodeString(addDevUser.Passwd)
 					if err0 != nil {
