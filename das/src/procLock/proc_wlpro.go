@@ -166,13 +166,12 @@ func ParseData(mydata interface{}) error {
 		devUserUpload.UserId = pdu.UserNo
 		devUserUpload.UserNote = strconv.FormatInt(int64(pdu.Time), 16)
 		devUserUpload.UserType = int(pdu.UserType)
-		devUserUpload.Finger = int(pdu.OpenBitMap & 0x01)
 		devUserUpload.Passwd = int(pdu.OpenBitMap & 0x01)
 		devUserUpload.Card = int(pdu.OpenBitMap >> 1 & 0x01)
 		devUserUpload.Finger = int((pdu.OpenBitMap >> 2 & 0x01) + (pdu.OpenBitMap >> 3 & 0x01) + (pdu.OpenBitMap >> 4 & 0x01))
 		devUserUpload.Ffinger = int((pdu.OpenBitMap >> 5 & 0x01) + (pdu.OpenBitMap >> 6 & 0x01))
 		devUserUpload.Face = int(pdu.OpenBitMap >> 7 & 0x01)
-		devUserUpload.Bluetooth = 0
+		devUserUpload.Bluetooth = int(pdu.OpenBitMap >> 8 & 0x01)
 		devUserUpload.Count	= int(pdu.PermitNum)
 		devUserUpload.Remainder	= int(pdu.Remainder)
 
@@ -284,7 +283,7 @@ func ParseData(mydata interface{}) error {
 			devUser.Finger = int((pdu.DevUserInfos[i].OpenBitMap >> 2 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 3 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 4 & 0x01))
 			devUser.Ffinger = int((pdu.DevUserInfos[i].OpenBitMap >> 5 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 6 & 0x01))
 			devUser.Face = int(pdu.DevUserInfos[i].OpenBitMap >> 7 & 0x01)
-			devUser.Bluetooth = int(pdu.DevUserInfos[i].OpenBitMap >> 7 & 0x01)
+			devUser.Bluetooth = int(pdu.DevUserInfos[i].OpenBitMap >> 8 & 0x01)
 			devUser.Count = int(pdu.DevUserInfos[i].PermitNum)
 			devUser.Remainder = int(pdu.DevUserInfos[i].Remainder)
 
