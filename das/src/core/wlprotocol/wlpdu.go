@@ -1123,6 +1123,10 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 		log.Error("binary.Read failed:", err)
 		return err
 	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.FBreakSwitch); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
 	if err = binary.Read(buf, binary.BigEndian, &pdu.IpcSn); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err

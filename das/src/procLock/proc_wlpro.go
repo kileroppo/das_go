@@ -496,6 +496,7 @@ func ParseData(mydata interface{}) error {
 		}
 		uploadDevInfo.WifiSsid = string(rbyf_pn[:])		// wifi的ssid
 		uploadDevInfo.BellSwitch = pdu.BellSwitch	// 门铃开关 0：关闭，1：开启
+		uploadDevInfo.FBreakSwitch = pdu.FBreakSwitch	// 防拆报警开关：0关闭，1开启
 
 		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.ProductId);m++{

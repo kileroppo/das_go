@@ -343,6 +343,7 @@ type UploadDevInfo struct {
 	AlarmSwitch uint8		// 报警类型： 1拍照+录像，2拍照
 	BellSwitch uint8		// 门铃开关 0：关闭，1：开启
 	ActiveMode uint8		// 0门锁唤醒后立即激活，1输入激活码激活
+	FBreakSwitch uint8		// 防拆报警开关：0关闭，1开启
 	IpcSn [16]byte			// 视频模组sn码：16字节
 	Ssid [32]byte			// Ssid:模组连接的路由器的ssid 32字节
 	Capability uint32		// 能力集：无符号4字节

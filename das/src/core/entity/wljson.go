@@ -248,6 +248,7 @@ type UploadDevInfo struct {
 	AlarmSwitch    uint8  `json:"alarm_switch"`    // 报警类型开关，0：关闭，1：拍照+录像，2：拍照
 	WifiSsid       string `json:"wifi_ssid"`       // wifi的ssid
 	BellSwitch     uint8  `json:"bell_switch"`     // 门铃开关 0：关闭，1：开启
+	FBreakSwitch   uint8  `json:"fbreak_swtch"`    // 防拆报警开关：0关闭，1开启
 	ProductID      string `json:"productID"`       // 产品序列号
 	Capability     uint32 `json:"capability"`      // 能力集
 
