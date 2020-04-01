@@ -234,11 +234,11 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			Passwd2: remoteOpen.Passwd2,	// 密码2（6）*/
 		}
 
-		nTime, ok := remoteOpen.Time.(int32) // 随机数（4）
+		nTime, ok := remoteOpen.Time.(float64) // 随机数（4）
 		if ok {
-			pdu.Time = nTime
+			pdu.Time = int32(nTime)
 		} else {
-			log.Error("WlJson2BinMsg remoteOpen.Time.(int32) error, ok=", ok)
+			log.Error("WlJson2BinMsg remoteOpen.Time.(float64) error, ok=", ok)
 			pdu.Time = int32(time.Now().Unix())
 		}
 		pwd := []byte(remoteOpen.Passwd)
