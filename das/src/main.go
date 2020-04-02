@@ -50,8 +50,8 @@ func main() {
 	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
 
 	//9. 启动MQTT
-	mqtt2srv.MqttInit(conf)	// 订阅接收端
 	mqtt.MqttInit(conf)		// 发布端
+	mqtt2srv.MqttInit(conf)	// 订阅接收端
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
