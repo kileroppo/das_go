@@ -82,6 +82,7 @@ type Feibee2DevMsg struct {
 	OpValue   string `json:"opValue,omitempty"`
 	Time      int    `json:"time,omitempty"`
 	Bindid    string `json:"bindid,omitempty"`
+	Snid      string `json:"snid,omitempty"`
 
 	SceneMessages []FeibeeSceneMsg `json:"sceneMessages,omitempty"`
 }
