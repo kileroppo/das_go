@@ -45,6 +45,7 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 	res.Online = self.data.Msg[0].Online
 	res.Battery = self.data.Msg[0].Battery
 	res.Bindid = self.data.Msg[0].Bindid
+	res.Snid = self.data.Msg[0].Snid
 
 	bindid = self.data.Msg[0].Bindid
 
