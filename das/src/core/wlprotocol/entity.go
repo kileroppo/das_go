@@ -375,6 +375,7 @@ type UploadZigbeeDevInfo struct {
 	AlarmSwitch uint8		// 报警类型： 1拍照+录像，2拍照
 	BellSwitch uint8		// 门铃开关 0：关闭，1：开启
 	ActiveMode uint8		// 0门锁唤醒后立即激活，1输入激活码激活
+	FBreakSwitch uint8		// 防拆报警开关：0关闭，1开启
 	Capability uint32		// 能力集：无符号4字节
 
 	BMainVer uint8			// 后板主版本号：0x01

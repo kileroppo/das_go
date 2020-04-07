@@ -442,6 +442,8 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		uploadDevInfo.InfraSwitch =	pdu.InfraSwitch // 人体感应报警开关，0：关闭，1：唤醒，但不推送消息，2：唤醒并且推送消息
 		uploadDevInfo.InfraTime = pdu.InfraTime		// 人体感应报警，红外持续监测到多少秒 就上报消息
 		uploadDevInfo.AlarmSwitch =	pdu.AlarmSwitch // 报警类型开关，0：关闭，1：拍照+录像，2：拍照
+		uploadDevInfo.BellSwitch = pdu.BellSwitch	// 门铃开关 0：关闭，1：开启
+		uploadDevInfo.FBreakSwitch = pdu.FBreakSwitch	// 防拆报警开关：0关闭，1开启
 		uploadDevInfo.Capability = pdu.Capability			// 能力集
 
 		// 亿速码安全芯片相关参数
