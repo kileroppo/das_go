@@ -193,3 +193,9 @@ type FeibeeSceneMember struct {
 	SceneFunctionID int    `json:"sceneFunctionID"`
 	Uuid            string `json:"uuid"`
 }
+
+type YKInfraredStatus struct {
+	Devid     string `json:"mac"`
+	Online    int `json:"state"`
+	Timestamp int  `json:"timestamp"`
+}
