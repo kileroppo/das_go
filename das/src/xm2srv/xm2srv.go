@@ -8,6 +8,7 @@ import (
 
 	"github.com/dlintw/goconf"
 
+	"das/core/jobque"
 	"das/core/log"
 )
 
@@ -26,6 +27,7 @@ func XM2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 	}
 
 	http.HandleFunc("/xm", XMAlarmMsgHandler)
+	http.HandleFunc("/yk", XKMsgHandler)
 
 	go func() {
 		if isHttps {
@@ -53,6 +55,35 @@ func XMAlarmMsgHandler(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("Get XM alarm msg Body failed")
 	} else {
-		log.Info("Get XM alarm msg: ", string(rawData))
+		log.Infof("Get XM alarm msg: %s", rawData)
 	}
+}
+
+func XKMsgHandler(res http.ResponseWriter, req *http.Request) {
+	rawData, err := ioutil.ReadAll(req.Body)
+	defer req.Body.Close()
+
+	if err != nil {
+		log.Error("get yk http Body failed")
+	} else {
+		jobque.JobQueue <- NewYKJob(rawData)
+	}
+}
+
+type YKJob struct {
+	rawData []byte
+}
+
+func (y YKJob) Handle() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error(err)
+		}
+	}()
+    //todo(zh): 遥看红外宝在线状态推送处理
+	log.Infof("yk2srv.Handle() get: %s", y.rawData)
+}
+
+func NewYKJob(rawData []byte) YKJob {
+    return YKJob{rawData:rawData}
 }

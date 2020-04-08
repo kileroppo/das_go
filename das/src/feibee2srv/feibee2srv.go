@@ -1,7 +1,6 @@
 package feibee2srv
 
 import (
-	"bytes"
 	"errors"
 	"io/ioutil"
 	"net/http"
@@ -34,7 +33,7 @@ func (f FeibeeJob) Handle() {
 		}
 	}()
 
-	log.Debug("feibee2srv.Handle() get: ", bytes.NewBuffer(f.rawData).String())
+	log.Debugf("feibee2srv.Handle() get: %s", f.rawData)
 	ProcessFeibeeMsg(f.rawData)
 }
 
