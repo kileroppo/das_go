@@ -66,6 +66,9 @@ var (
 		//get key by feibee: deviceuid,zonetype
 		0x030b0001: WonlyLGuard,      //小卫士
 		0x01630001: InfraredTreasure, //红外宝
+		0x00040001: SceneSwitch,
+		0x00040002: SceneSwitch,
+		0x00040003: SceneSwitch,
 		0x00040004: SceneSwitch,      //情景开关
 		0x02040001: Airer,            //晾衣架
 
