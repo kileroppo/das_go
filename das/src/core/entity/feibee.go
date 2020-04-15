@@ -82,6 +82,7 @@ type Feibee2DevMsg struct {
 	OpValue   string `json:"opValue,omitempty"`
 	Time      int    `json:"time,omitempty"`
 	Bindid    string `json:"bindid,omitempty"`
+	Snid      string `json:"snid,omitempty"`
 
 	SceneMessages []FeibeeSceneMsg `json:"sceneMessages,omitempty"`
 }
@@ -191,4 +192,10 @@ type FeibeeSceneMember struct {
 	Delaytime       int    `json:"delaytime"`
 	SceneFunctionID int    `json:"sceneFunctionID"`
 	Uuid            string `json:"uuid"`
+}
+
+type YKInfraredStatus struct {
+	Devid     string `json:"mac"`
+	Online    int `json:"state"`
+	Timestamp int  `json:"timestamp"`
 }

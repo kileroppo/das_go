@@ -1,6 +1,7 @@
 package xm2srv
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -8,7 +9,10 @@ import (
 
 	"github.com/dlintw/goconf"
 
+	"das/core/entity"
+	"das/core/jobque"
 	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 func XM2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -26,6 +30,7 @@ func XM2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 	}
 
 	http.HandleFunc("/xm", XMAlarmMsgHandler)
+	http.HandleFunc("/yk", XKMsgHandler)
 
 	go func() {
 		if isHttps {
@@ -53,6 +58,74 @@ func XMAlarmMsgHandler(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("Get XM alarm msg Body failed")
 	} else {
-		log.Info("Get XM alarm msg: ", string(rawData))
+		log.Infof("Get XM alarm msg: %s", rawData)
 	}
+}
+
+func XKMsgHandler(res http.ResponseWriter, req *http.Request) {
+	rawData, err := ioutil.ReadAll(req.Body)
+	defer req.Body.Close()
+
+	if err != nil {
+		log.Error("get yk http Body failed")
+	} else {
+		jobque.JobQueue <- NewYKJob(rawData)
+	}
+}
+
+type YKJob struct {
+	rawData []byte
+}
+
+func (y YKJob) Handle() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error(err)
+		}
+	}()
+    //todo(zh): 遥看红外宝在线状态推送处理
+	log.Debugf("yk2srv.Handle() get: %s", y.rawData)
+	ProcessYKMsg(y.rawData)
+}
+
+func ProcessYKMsg(rawData []byte)  {
+	msg2app := entity.Feibee2DevMsg{
+		Header:        entity.Header{
+			Cmd:0xfb,
+			DevType:"WonlyYKInfrared",
+			Vendor:"yk",
+		},
+		Note:          "",
+		Deviceuid:     0,
+		Online:        0,
+		Battery:       0,
+		OpType:        "newOnline",
+		OpValue:       "",
+		Time:          0,
+		Bindid:        "",
+		Snid:          "",
+		SceneMessages: nil,
+	}
+
+	msg := entity.YKInfraredStatus{}
+	if err := json.Unmarshal(rawData, &msg); err != nil {
+		log.Warningf("ProcessYKMsg > json.Unmarshal > %s", err)
+		return
+	}
+	msg2app.Online = msg.Online
+	msg2app.DevId = msg.Devid
+	msg2app.OpValue = strconv.Itoa(msg.Online)
+	msg2app.Time = msg.Timestamp
+
+	data2app,err := json.Marshal(msg2app)
+	if err != nil {
+		log.Warningf("ProcessYKMsg > json.Marshal > %s", err)
+		return
+	}
+	rabbitmq.Publish2app(data2app, msg2app.DevId)
+	rabbitmq.Publish2mns(data2app, "")
+}
+
+func NewYKJob(rawData []byte) YKJob {
+    return YKJob{rawData:rawData}
 }

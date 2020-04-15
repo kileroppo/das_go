@@ -282,7 +282,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Set_dev_para")
 			//1. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
-			rabbitmq.Publish2app([]byte(DValue), head.DevId)
+			//rabbitmq.Publish2app([]byte(DValue), head.DevId)
 
 			//2. 需要存到mongodb
 			if 1 == head.Ack {
@@ -315,7 +315,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 
 			//2. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
-			rabbitmq.Publish2app([]byte(DValue), head.DevId)
+			//rabbitmq.Publish2app([]byte(DValue), head.DevId)
 
 			//3. 需要存到mongodb
 			//producer.SendMQMsg2Db(DValue)
@@ -596,7 +596,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Set_Wifi")
 			//1. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
-			rabbitmq.Publish2app([]byte(DValue), head.DevId)
+			//rabbitmq.Publish2app([]byte(DValue), head.DevId)
 
 			//2. 需要存到mongodb
 			// producer.SendMQMsg2Db(DValue)

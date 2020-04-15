@@ -45,6 +45,7 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 	res.Online = self.data.Msg[0].Online
 	res.Battery = self.data.Msg[0].Battery
 	res.Bindid = self.data.Msg[0].Bindid
+	res.Snid = self.data.Msg[0].Snid
 
 	bindid = self.data.Msg[0].Bindid
 
@@ -511,6 +512,7 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2DevMsg, r
 
 	res.Bindid = self.data.Records[0].Bindid
 	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+	res.Snid = self.data.Records[0].Snid
 
 	routingKey = self.data.Records[0].Uuid
 	return
@@ -558,7 +560,7 @@ func (self *ZigbeeLockHandle) PushMsg() {
 
 	//TODO: parse data and handle, 去掉飞比加上的长度1个字节（16进制字符串2位）
 	if 22 < len(self.data.Records[0].Value) {	// 包头长度为11字节
-		nStart, err := strconv.Atoi(self.data.Records[0].Value[2:4]) // 去掉飞比的两位长度，再取两位[2:4)为王力数据包开始位0xA5
+		nStart, err := strconv.ParseInt(self.data.Records[0].Value[2:4], 16, 64) // 去掉飞比的两位长度，再取两位[2:4)为王力数据包开始位0xA5
 		if err != nil {
 			log.Errorf("strconv.Atoi err: ", err)
 			return
