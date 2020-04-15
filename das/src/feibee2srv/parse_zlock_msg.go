@@ -549,7 +549,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(lockParam); err1 == nil {
 			// 回复到APP
-			rabbitmq.Publish2app(to_byte, uuid)
+			//rabbitmq.Publish2app(to_byte, uuid)
 
 			// PMS存储到DB
 			rabbitmq.Publish2pms(to_byte, "")
@@ -892,8 +892,8 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		}
 		setLockWiFi.WifiPwd = string(rbyf_pn[:])
 
-		if to_byte, err1 := json.Marshal(setLockWiFi); err1 == nil {
-			rabbitmq.Publish2app(to_byte, uuid)
+		if _, err1 := json.Marshal(setLockWiFi); err1 == nil {
+			//rabbitmq.Publish2app(to_byte, uuid)
 		} else {
 			log.Error("[", uuid, "] constant.Set_Wifi to_byte json.Marshal, err=", err1)
 			return err1
