@@ -489,12 +489,11 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(lockParam); err1 == nil {
 			// 回复到APP
-			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
-			rabbitmq.Publish2app(to_byte, uuid)
-
+			//rabbitmq.Publish2app(to_byte, uuid)
 			if 1 == wlMsg.Ack { // 设置成功存入DB
-				//producer.SendMQMsg2PMS(string(to_byte))
 				rabbitmq.Publish2pms(to_byte, "")
+			} else {
+				rabbitmq.Publish2app(to_byte, uuid)
 			}
 		} else {
 			log.Error("[", uuid, "] constant.Set_dev_para, err=", err1)
@@ -550,9 +549,8 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		if to_byte, err1 := json.Marshal(lockParam); err1 == nil {
 			// 回复到APP
 			//rabbitmq.Publish2app(to_byte, uuid)
-
-			// PMS存储到DB
 			rabbitmq.Publish2pms(to_byte, "")
+
 		} else {
 			log.Error("[", uuid, "] constant.Update_dev_para, err=", err1)
 			return err1

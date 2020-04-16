@@ -557,13 +557,10 @@ func ParseData(mydata interface{}) error {
 
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(lockParam); err1 == nil {
-			// 回复到APP
-			//producer.SendMQMsg2APP(wlMsg.DevId.Uuid, string(to_byte))
-			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
-
-			if 1 == wlMsg.Ack { // 设置成功存入DB
-				//producer.SendMQMsg2PMS(string(to_byte))
+			if 1 == wlMsg.Ack {
 				rabbitmq.Publish2pms(to_byte, "")
+			} else {
+				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 			}
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_dev_para, err=", err1)
@@ -617,9 +614,6 @@ func ParseData(mydata interface{}) error {
 
 		//2. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(lockParam); err1 == nil {
-			// 回复到APP
-			//rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
-
 			// PMS存储到DB
 			rabbitmq.Publish2pms(to_byte, "")
 		} else {

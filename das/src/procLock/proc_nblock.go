@@ -280,14 +280,10 @@ func ProcessNbMsg(DValue string, Imei string) error {
 	case constant.Set_dev_para: // 设置设备参数
 		{
 			log.Info("[", head.DevId, "] constant.Set_dev_para")
-			//1. 回复到APP
-			//producer.SendMQMsg2APP(head.DevId, DValue)
-			//rabbitmq.Publish2app([]byte(DValue), head.DevId)
-
-			//2. 需要存到mongodb
 			if 1 == head.Ack {
-				//producer.SendMQMsg2Db(DValue)
 				rabbitmq.Publish2pms([]byte(DValue), "")
+			} else {
+				rabbitmq.Publish2app([]byte(DValue), head.DevId)
 			}
 		}
 	case constant.Update_dev_para: // 设备参数更新上报
@@ -312,14 +308,9 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			} else {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
-
-			//2. 回复到APP
-			//producer.SendMQMsg2APP(head.DevId, DValue)
-			//rabbitmq.Publish2app([]byte(DValue), head.DevId)
-
 			//3. 需要存到mongodb
-			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2pms([]byte(DValue), "")
+
 		}
 	case constant.Active_Yisuma_SE: // 亿速码安全芯片激活(锁-后台-亿速码-后台->锁)
 		{
