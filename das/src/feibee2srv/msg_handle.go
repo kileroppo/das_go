@@ -1,17 +1,15 @@
 package feibee2srv
 
 import (
+	"das/core/redis"
 	"errors"
 	"strconv"
-	"strings"
 	"time"
 
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
-	"das/core/redis"
-	"das/core/util"
 )
 
 
@@ -550,13 +548,7 @@ func (self *ZigbeeLockHandle) PushMsg() {
 	mymap["uuid"] = self.data.Records[0].Uuid
 	mymap["uid"] = self.data.Records[0].Deviceuid
 	mymap["from"] = constant.FEIBEE_PLATFORM
-	retUuid := make([]string, 4)
-	if "" != self.data.Records[0].Uuid { // uuid不能为空
-		retUuid = strings.FieldsFunc(self.data.Records[0].Uuid, util.Split) // 去掉下划线后边，如：_01
-		redis.SetDevicePlatformPool(retUuid[0], mymap)
-	} else {
-		return
-	}
+	redis.SetDevicePlatformPool(self.data.Records[0].Uuid, mymap)
 
 	//TODO: parse data and handle, 去掉飞比加上的长度1个字节（16进制字符串2位）
 	if 22 < len(self.data.Records[0].Value) {	// 包头长度为11字节
@@ -566,7 +558,7 @@ func (self *ZigbeeLockHandle) PushMsg() {
 			return
 		}
 		if 0xA5 == nStart { // 透传的zigbee常在线锁数据
-			if err := ParseZlockData(self.data.Records[0].Value[2:], "WlZigbeeLock", retUuid[0]); err != nil {
+			if err := ParseZlockData(self.data.Records[0].Value[2:], "WlZigbeeLock", self.data.Records[0].Uuid); err != nil {
 				log.Warning("ZigbeeLockHandle PushMsg() error = ", err)
 			}
 		}
