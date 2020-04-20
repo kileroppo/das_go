@@ -219,7 +219,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				rabbitmq.Publish2mns([]byte(DValue), "")
 				rabbitmq.Publish2pms([]byte(DValue), "")
 				//远程开锁作为场景触发条件
-				sendMsg2pmsForSceneTrigger(head)
+				sendMsg2pmsForSceneTrigger(&head, "lockStatus", 1)
 			}
 		}
 	case constant.Upload_dev_info: // 上传设备信息
@@ -464,6 +464,9 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//2. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
 			rabbitmq.Publish2app([]byte(DValue), head.DevId)
+
+			//可视锁开门触发场景
+			sendMsg2pmsForSceneTrigger(&head, "lockStatus", 1)
 		}
 	case constant.Noatmpt_alarm: // 非法操作报警
 		{
@@ -472,7 +475,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(head)
+			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
 		}
 	case constant.Forced_break_alarm: // 强拆报警
 		{
@@ -481,7 +484,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(head)
+			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
 		}
 	case constant.Fakelock_alarm: // 假锁报警
 		{
@@ -490,7 +493,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(head)
+			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
 		}
 	case constant.Nolock_alarm: // 门未关报警
 		{
@@ -499,7 +502,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(head)
+			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
 		}
 	case constant.Low_battery_alarm: // 锁体的电池，低电量报警
 		{
@@ -508,7 +511,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(head)
+			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
 		}
 	case constant.Infrared_alarm: // 人体感应报警（infra红外感应)
 		{
@@ -518,7 +521,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(head)
+			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
 		}
 	case constant.Lock_PIC_Upload: // 视频锁图片上报
 		{
@@ -724,7 +727,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 	return nil
 }
 
-func sendMsg2pmsForSceneTrigger(head entity.Header) {
+func sendMsg2pmsForSceneTrigger(head *entity.Header, alarmType string, alarmFlag int) {
 	var msg entity.Feibee2AutoSceneMsg
 
 	msg.Cmd = 0xf1
@@ -734,8 +737,8 @@ func sendMsg2pmsForSceneTrigger(head entity.Header) {
 
 	msg.TriggerType = 0
 	msg.Time = int(time.Now().Unix())
-	msg.AlarmFlag = 1
-	msg.AlarmType = "lockAlarm"
+	msg.AlarmFlag = alarmFlag
+	msg.AlarmType = alarmType
 
 	data, err := json.Marshal(msg)
 	if err != nil {
