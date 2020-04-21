@@ -66,10 +66,6 @@ var (
 		//get key by feibee: deviceuid,zonetype
 		0x030b0001: WonlyLGuard,      //小卫士
 		0x01630001: InfraredTreasure, //红外宝
-		0x00040001: SceneSwitch,
-		0x00040002: SceneSwitch,
-		0x00040003: SceneSwitch,
-		0x00040004: SceneSwitch,      //情景开关
 		0x02040001: Airer,            //晾衣架
 
 		0x01060001: IlluminanceSensor,       //光照度传感器
@@ -85,6 +81,7 @@ var (
 
 	otherMsgTyp = map[int]MsgType{
 		//get key by feibee: cid,aid
+		0xf0f0f0f0: SceneSwitch,
 		0x00060000: ManualOpDev,
 		0x05000080: BaseSensor, //传感器
 		0x00010020: SensorVol,  //传感器低压
