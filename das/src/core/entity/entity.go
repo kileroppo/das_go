@@ -51,4 +51,8 @@ type TelecomDeviceDataChanged struct {
 	Service    TelecomDeviceServiceData
 }
 
-
+type SysLogMsg struct {
+	Vendor    string     `json:"vendor"`
+	FeibeeMsg FeibeeData `json:"feibeeMsg"`
+	Timestamp int64      `json:"timestamp"`
+}

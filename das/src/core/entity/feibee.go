@@ -12,9 +12,9 @@ type FeibeeData struct {
 	Code          int                `josn:"code"`
 	Status        string             `json:"status"`
 	Ver           string             `json:"ver"`
-	Msg           []FeibeeDevMsg     `json:"msg"`
-	Gateway       []FeibeeGatewayMsg `json:"gateway"`
-	Records       []FeibeeRecordsMsg `json:"records"`
+	Msg           []FeibeeDevMsg     `json:"msg,omitempty"`
+	Gateway       []FeibeeGatewayMsg `json:"gateway,omitempty"`
+	Records       []FeibeeRecordsMsg `json:"records,omitempty"`
 	SceneMessages []FeibeeSceneMsg   `json:"sceneMessages,omitempty"`
 }
 
@@ -67,7 +67,7 @@ type FeibeeRecordsMsg struct {
 	Orgdata    string `json:"orgdata,omitempty"`
 	Uptime     int    `json:"uptime,omitempty"`
 	Pushstring string `json:"pushstring,omitempty"`
-	Snid       string `json:"snid"`
+	Snid       string `json:"snid,omitempty"`
 }
 
 //feibee设备消息通知(推送给app)
@@ -171,12 +171,12 @@ type InfraredTreasureControlResult struct {
 }
 
 type FeibeeSceneMsg struct {
-	Bindid string            `json:"bindid"`
-	Scenes []FeibeeSceneInfo `json:"scenes"`
+	Bindid string            `json:"bindid,omitempty"`
+	Scenes []FeibeeSceneInfo `json:"scenes,omitempty"`
 }
 
 type FeibeeSceneInfo struct {
-	SceneName    string              `json:"sceneName"`
+	SceneName    string              `json:"sceneName,omitempty"`
 	SceneID      int                 `json:"sceneID"`
 	SceneMembers []FeibeeSceneMember `json:"sceneMembers,omitempty"`
 }
@@ -191,7 +191,7 @@ type FeibeeSceneMember struct {
 	IRID            int    `json:"IRID"`
 	Delaytime       int    `json:"delaytime"`
 	SceneFunctionID int    `json:"sceneFunctionID"`
-	Uuid            string `json:"uuid"`
+	Uuid            string `json:"uuid,omitempty"`
 }
 
 type YKInfraredStatus struct {
