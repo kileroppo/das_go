@@ -203,6 +203,7 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
+		msg.AlarmFlag = 1
 
 		data, err := json.Marshal(msg)
 		if err != nil {
