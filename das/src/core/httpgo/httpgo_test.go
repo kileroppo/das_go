@@ -10,7 +10,9 @@ func init() {
 }
 
 var (
-	WonlyLGuard = `{"vendor":"00158d0003e8b2e3_01","bindid":"5233586","devId":"00158d0003e8b2e3_01","seqId":1,"devType":"WonlyLGuard","cmd":251,"bindstr":"fd4fdc69f43248ff4a6fb55833f5c386","ack":0,"value":"ab000e81e4"}`
+	WonlyLGuard = `
+{"ack":0,"bindid":"5233647","bindstr":"9799ee283c7721135f522bb27db32fda","cmd":251,"devId":"00158d0004623f11_01","devType":"WonlyLGuard","seqId":2,"value":"AB012301A930","vendor":"WonlyLGuard"}
+`
 )
 
 func TestHttp2FeibeeWonlyLGuard(t *testing.T) {

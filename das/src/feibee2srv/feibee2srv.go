@@ -96,6 +96,8 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 		return err
 	}
 
+	go sendFeibeeLogMsg(rawData)
+
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
 		err := errors.New("the feibee message's structure is invalid")
@@ -151,7 +153,6 @@ func (f *FeibeeData) push2MQ() {
 	datas := splitFeibeeMsg(&f.data)
 
 	for _, data := range datas {
-		go sendFeibeeLogMsg(&data)
 		msgHandle := msgHandleFactory(&data)
 		if msgHandle == nil {
 			return
@@ -209,13 +210,12 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 	return
 }
 
-func sendFeibeeLogMsg(rawData *entity.FeibeeData) {
+func sendFeibeeLogMsg(rawData []byte) {
     var logMsg entity.SysLogMsg
 
     logMsg.Timestamp = time.Now().Unix()
-    logMsg.Vendor = "feibee"
-
-    logMsg.FeibeeMsg = *rawData
+    logMsg.MsgType = 1
+    logMsg.RawData = string(rawData)
 
     data,err := json.Marshal(logMsg)
     if err != nil {

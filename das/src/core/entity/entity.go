@@ -52,7 +52,7 @@ type TelecomDeviceDataChanged struct {
 }
 
 type SysLogMsg struct {
-	Vendor    string     `json:"vendor"`
-	FeibeeMsg FeibeeData `json:"feibeeMsg"`
+	MsgType   uint8      `json:"msgType"`
+	RawData   string     `json:"rawData"`
 	Timestamp int64      `json:"timestamp"`
 }
