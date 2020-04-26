@@ -227,14 +227,23 @@ func (c *ContinuousSensor) PushMsg() {
 	}
 	//todo: 其他类型暂不推送mns
 	//c.pushMsg2mns()
-	if c.msgType == FloorHeat {
-		c.pushStatusMsg2app()
-	} else {
+	c.pushStatusMsg2app()
+	if c.msgType == Airer {
 		c.pushMsg2pmsForSave()
-		if c.msgType != Airer {
-			c.pushMsg2pmsForSceneTrigger()
-		}
 	}
+
+	if c.msgType != FloorHeat && c.msgType != Airer {
+		c.pushMsg2pmsForSceneTrigger()
+	}
+
+	//if c.msgType == FloorHeat {
+	//	c.pushStatusMsg2app()
+	//} else {
+	//	c.pushMsg2pmsForSave()
+	//	if c.msgType != Airer {
+	//		c.pushMsg2pmsForSceneTrigger()
+	//	}
+	//}
 }
 
 func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {

@@ -199,3 +199,8 @@ type YKInfraredStatus struct {
 	Online    int `json:"state"`
 	Timestamp int  `json:"timestamp"`
 }
+
+type FeibeeLockAlarmMsg struct {
+	Header
+	Timestamp int64 `json:"time"`
+}

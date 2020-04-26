@@ -44,6 +44,10 @@ const (
 	GasSensor
 	SosBtnSensor
 	FloorHeat
+
+	LockAlarm
+	LockBell
+	LockRemoteOpen
 )
 
 var (
@@ -88,6 +92,9 @@ var (
 		0x00010021: SensorBatt, //传感器低电量
 		0x00010035: SensorBatt,
 		0x0001003e: SensorVol,
+		0x0009f0f5: LockAlarm,
+		0x05020082: LockBell,
+		0x0101f0f5: LockRemoteOpen,
 	}
 )
 
