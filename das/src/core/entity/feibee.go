@@ -196,11 +196,36 @@ type FeibeeSceneMember struct {
 
 type YKInfraredStatus struct {
 	Devid     string `json:"mac"`
-	Online    int `json:"state"`
-	Timestamp int  `json:"timestamp"`
+	Online    int    `json:"state"`
+	Timestamp int    `json:"timestamp"`
 }
 
 type FeibeeLockAlarmMsg struct {
 	Header
-	Timestamp int64 `json:"time"`
+	Timestamp int `json:"time"`
+}
+
+type FeibeeLockBattMsg struct {
+	Header
+	Value     int `json:"value"`
+	Timestamp int `json:"time"`
+}
+
+type FeibeeLockRemoteOn struct {
+	Header
+	UserId    int `json:"userId"`
+	UserId2   int `json:"userId2"`
+	Timestamp int `json:"time"`
+}
+
+type FeibeeLockOpen struct {
+	Uuid         string `json:"uuid"`
+	VendorName   string `json:"vendor_name"`
+	Timestamp    int    `json:"timestamp"`
+	DeviceUserId int    `json:"device_user_id"`
+	UnlockMode   string `json:"unlock_mode"`
+	AuthMode     string `json:"auth_mode"`
+	StressStatus string `json:"stress_status"`
+	OpType       string `json:"op_type"`
+	MsgType      string `json:"unlock_message_type"`
 }

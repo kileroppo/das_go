@@ -45,9 +45,7 @@ const (
 	SosBtnSensor
 	FloorHeat
 
-	LockAlarm
-	LockBell
-	LockRemoteOpen
+	FbZigbeeLock //王力1.0锁
 )
 
 var (
@@ -92,9 +90,6 @@ var (
 		0x00010021: SensorBatt, //传感器低电量
 		0x00010035: SensorBatt,
 		0x0001003e: SensorVol,
-		0x0009f0f5: LockAlarm,
-		0x05020082: LockBell,
-		0x0101f0f5: LockRemoteOpen,
 	}
 )
 
@@ -121,6 +116,8 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &BaseSensorAlarm{feibeeMsg: data, msgType: typ}
 	case TemperAndHumiditySensor, IlluminanceSensor, Airer, FloorHeat:
 		msgHandle = &ContinuousSensor{BaseSensorAlarm{feibeeMsg: data, msgType: typ}}
+	case FbZigbeeLock:
+		msgHandle = &FbLockHandle{data: data}
 	default:
 		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
@@ -139,6 +136,8 @@ func getMsgTyp(data *entity.FeibeeData) (typ MsgType) {
 	if typ == SpecialMsg {
 		if data.Records[0].Snid == "FZD56-DOR07WL2.4" {
 			return ZigbeeLock
+		} else if data.Records[0].Snid == "FB56-DOR07WL2.3" {
+			return FbZigbeeLock
 		} else {
 			typ, ok = spDevMsgTyp[getSpMsgKey(data.Records[0].Deviceid, data.Records[0].Zonetype)]
 			if ok {
@@ -153,7 +152,7 @@ func getMsgTyp(data *entity.FeibeeData) (typ MsgType) {
 			}
 		}
 	} else {
-		return
+		return -1
 	}
 }
 
