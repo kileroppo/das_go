@@ -1,8 +1,10 @@
 package redis
 
 import (
-	"das/core/log"
+	"fmt"
 	"time"
+
+	"das/core/log"
 )
 
 func SetActTimePool(devId string, data int64) error {
@@ -91,5 +93,24 @@ func GetAliIoTtoken() (string, error) {
 	}
 
 	return ret.Val(), nil
+}
+
+func GetFbLockUserId(key string) (res int, err error) {
+	res,err = redisCli.Get(key).Int()
+	if err != nil {
+		err = fmt.Errorf("GetFbLockUserId > redisCli.Get > %w", err)
+		return
+	} else {
+		return
+	}
+}
+
+func SetFbLockUserId(key string , val interface{}) (err error){
+	cmd := redisCli.Set(key, val, time.Minute*1)
+	if cmd.Err() != nil {
+		err = fmt.Errorf("SetFbLockUserId > redisCli.Set > %w", cmd.Err())
+		return
+	}
+	return
 }
 

@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/dlintw/goconf"
 
 	"das/core/entity"
 	"das/core/jobque"
 	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 type FeibeeJob struct {
@@ -89,11 +91,12 @@ type FeibeeData struct {
 }
 
 func ProcessFeibeeMsg(rawData []byte) (err error) {
-
 	feibeeData, err := NewFeibeeData(rawData)
 	if err != nil {
 		return err
 	}
+
+	go sendFeibeeLogMsg(rawData)
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
@@ -205,4 +208,19 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 	}
 
 	return
+}
+
+func sendFeibeeLogMsg(rawData []byte) {
+    var logMsg entity.SysLogMsg
+
+    logMsg.Timestamp = time.Now().Unix()
+    logMsg.MsgType = 1
+    logMsg.RawData = string(rawData)
+
+    data,err := json.Marshal(logMsg)
+    if err != nil {
+    	log.Warningf("createLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
 }

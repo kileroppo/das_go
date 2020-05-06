@@ -150,7 +150,7 @@ func (self *BaseSensorAlarm) createStatusMsg() entity.Feibee2DevMsg {
 	msg.SeqId = 1
 
 	msg.OpType = self.alarmType
-	msg.OpValue = self.alarmVal
+	msg.OpValue = strconv.Itoa(self.alarmFlag)
 	msg.Time = self.time
 
 	return msg
@@ -203,6 +203,7 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 
 		msg.AlarmType = "forcedBreak"
 		msg.AlarmValue = "传感器被强拆"
+		msg.AlarmFlag = 1
 
 		data, err := json.Marshal(msg)
 		if err != nil {
@@ -226,14 +227,27 @@ func (c *ContinuousSensor) PushMsg() {
 	}
 	//todo: 其他类型暂不推送mns
 	//c.pushMsg2mns()
-	if c.msgType == FloorHeat {
+	if c.msgType == FloorHeat || c.msgType == Airer {
 		c.pushStatusMsg2app()
-	} else {
-		c.pushMsg2pmsForSave()
-		if c.msgType != Airer {
-			c.pushMsg2pmsForSceneTrigger()
-		}
 	}
+
+	if c.msgType == TemperAndHumiditySensor || c.msgType == IlluminanceSensor || c.msgType == Airer {
+		c.pushMsg2pmsForSave()
+
+	}
+
+	if c.msgType == TemperAndHumiditySensor || c.msgType == IlluminanceSensor {
+		c.pushMsg2pmsForSceneTrigger()
+	}
+
+	//if c.msgType == FloorHeat {
+	//	c.pushStatusMsg2app()
+	//} else {
+	//	c.pushMsg2pmsForSave()
+	//	if c.msgType != Airer {
+	//		c.pushMsg2pmsForSceneTrigger()
+	//	}
+	//}
 }
 
 func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {

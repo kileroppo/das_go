@@ -51,4 +51,8 @@ type TelecomDeviceDataChanged struct {
 	Service    TelecomDeviceServiceData
 }
 
-
+type SysLogMsg struct {
+	MsgType   uint8      `json:"msgType"`
+	RawData   string     `json:"rawData"`
+	Timestamp int64      `json:"timestamp"`
+}
