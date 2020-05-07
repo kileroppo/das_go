@@ -93,7 +93,7 @@ func (fh *FbLockHandle) FbLockAlarmDecode() (err error){
 		Header:    entity.Header{
 			Cmd:     0,
 			Ack:     1,
-			DevType: "",
+			DevType: "WonlyFBlock",
 			DevId:   fh.data.Records[0].Uuid,
 			Vendor:  "feibee",
 			SeqId:   0,
@@ -202,7 +202,7 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error){
 	msg := entity.UploadOpenLockLog{
 		Cmd:     0x40,
 		Ack:     1,
-		DevType: "FbLock",
+		DevType: "WonlyFBlock",
 		DevId:   fh.data.Records[0].Uuid,
 		Vendor:  "feibee",
 		SeqId:   0,
@@ -260,7 +260,7 @@ func (fh *FbLockHandle) FbLockBattDecode() (err error){
 		Header:    entity.Header{
 			Cmd:     0x2a,
 			Ack:     1,
-			DevType: "",
+			DevType: "WonlyFBlock",
 			DevId:   fh.data.Records[0].Uuid,
 			Vendor:  "feibee",
 			SeqId:   0,
