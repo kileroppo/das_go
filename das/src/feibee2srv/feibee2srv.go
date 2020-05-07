@@ -96,7 +96,9 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 		return err
 	}
 
-	go sendFeibeeLogMsg(rawData)
+	if log.VerType() == "beta" {
+		go sendFeibeeLogMsg(rawData)
+	}
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {

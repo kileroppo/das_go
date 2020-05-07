@@ -24,10 +24,6 @@ var m_FileName string
 var m_PathName string
 
 var (
-
-)
-
-var (
 	ErrArgsInvaild  = errors.New("args can be vaild")
 	ErrOpenFileFail = errors.New("open file failed")
 
@@ -174,6 +170,7 @@ func autoClearLogFiles(logsDirPath string) {
 }
 
 func loadConfig() *goconf.ConfigFile {
+	PrintVersion()
 	conf_file := flag.String("config", "./das.ini", "设置配置文件.")
 	flag.Parse()
 
