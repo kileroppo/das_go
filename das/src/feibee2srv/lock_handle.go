@@ -168,7 +168,7 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error){
 		Timestamp: fh.data.Records[0].Uptime/1000,
 	}
     sendFlag := false
-	if stateFlag & 0b0001_0000 == 1 {
+	if stateFlag & 0b0001_0000 > 1 {
 		redisKey := "FbRemoteUnlock_" + fh.data.Records[0].Uuid
 		if prevUserId,err := redis.GetFbLockUserId(redisKey); err != nil {
 			if err = redis.SetFbLockUserId(redisKey, userId); err != nil {
