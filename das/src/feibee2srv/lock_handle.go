@@ -93,7 +93,7 @@ func (fh *FbLockHandle) FbLockAlarmDecode() (err error){
 		Header:    entity.Header{
 			Cmd:     0,
 			Ack:     1,
-			DevType: "",
+			DevType: "WonlyFBlock",
 			DevId:   fh.data.Records[0].Uuid,
 			Vendor:  "feibee",
 			SeqId:   0,
@@ -140,7 +140,7 @@ func (fh *FbLockHandle) FbLockOnoffDecode() (err error){
 		return
 	}
 
-	userId := int(fh.Protocal.Data[5]) << 8 + int(fh.Protocal.Data[6])
+	userId := int(fh.Protocal.Data[5]) + int(fh.Protocal.Data[6]) << 8
 
 	switch unlockType {
 	case 0x04:
@@ -162,12 +162,13 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error){
 			DevId:fh.data.Records[0].Uuid,
 			Vendor:"feibee",
 			SeqId:1,
+			DevType:"WonlyFBlock",
 		},
 		UserId:    userId,
 		Timestamp: fh.data.Records[0].Uptime/1000,
 	}
     sendFlag := false
-	if stateFlag & 0b0001_0000 == 1 {
+	if stateFlag & 0b0001_0000 > 1 {
 		redisKey := "FbRemoteUnlock_" + fh.data.Records[0].Uuid
 		if prevUserId,err := redis.GetFbLockUserId(redisKey); err != nil {
 			if err = redis.SetFbLockUserId(redisKey, userId); err != nil {
@@ -201,7 +202,7 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error){
 	msg := entity.UploadOpenLockLog{
 		Cmd:     0x40,
 		Ack:     1,
-		DevType: "FbLock",
+		DevType: "WonlyFBlock",
 		DevId:   fh.data.Records[0].Uuid,
 		Vendor:  "feibee",
 		SeqId:   0,
@@ -217,11 +218,11 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error){
 		},
 	}
 	stateFlag := fh.Protocal.Data[13]
-	if stateFlag & 0b1000_0000 == 1 {
+	if stateFlag & 0b1000_0000 > 1 {
 		msg.LogList[0].SubOpen = 1
 	}
 
-	if stateFlag & 0b0001_0000 == 1 {
+	if stateFlag & 0b0001_0000 > 1 {
 		msg.LogList[0].SinMul = 2
 	}
 
@@ -259,7 +260,7 @@ func (fh *FbLockHandle) FbLockBattDecode() (err error){
 		Header:    entity.Header{
 			Cmd:     0x2a,
 			Ack:     1,
-			DevType: "",
+			DevType: "WonlyFBlock",
 			DevId:   fh.data.Records[0].Uuid,
 			Vendor:  "feibee",
 			SeqId:   0,

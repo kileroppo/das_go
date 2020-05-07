@@ -3,6 +3,7 @@ package feibee2srv
 import (
 	"das/core/entity"
 	"das/core/log"
+	"strings"
 )
 
 type MsgType int32
@@ -134,9 +135,9 @@ func getMsgTyp(data *entity.FeibeeData) (typ MsgType) {
 	}
 
 	if typ == SpecialMsg {
-		if data.Records[0].Snid == "FZD56-DOR07WL2.4" {
+		if strings.Contains(data.Records[0].Snid, "DOR07W2") {
 			return ZigbeeLock
-		} else if data.Records[0].Snid == "FB56-DOR07WL2.3" {
+		} else if strings.Contains(data.Records[0].Snid, "DOR07WL") {
 			return FbZigbeeLock
 		} else {
 			typ, ok = spDevMsgTyp[getSpMsgKey(data.Records[0].Deviceid, data.Records[0].Zonetype)]
@@ -152,7 +153,7 @@ func getMsgTyp(data *entity.FeibeeData) (typ MsgType) {
 			}
 		}
 	} else {
-		return -1
+		return
 	}
 }
 
