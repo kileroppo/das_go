@@ -140,7 +140,7 @@ func (fh *FbLockHandle) FbLockOnoffDecode() (err error){
 		return
 	}
 
-	userId := int(fh.Protocal.Data[5]) << 8 + int(fh.Protocal.Data[6])
+	userId := int(fh.Protocal.Data[5]) + int(fh.Protocal.Data[6]) << 8
 
 	switch unlockType {
 	case 0x04:
@@ -162,6 +162,7 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error){
 			DevId:fh.data.Records[0].Uuid,
 			Vendor:"feibee",
 			SeqId:1,
+			DevType:"WonlyFBlock",
 		},
 		UserId:    userId,
 		Timestamp: fh.data.Records[0].Uptime/1000,
@@ -217,11 +218,11 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error){
 		},
 	}
 	stateFlag := fh.Protocal.Data[13]
-	if stateFlag & 0b1000_0000 == 1 {
+	if stateFlag & 0b1000_0000 > 1 {
 		msg.LogList[0].SubOpen = 1
 	}
 
-	if stateFlag & 0b0001_0000 == 1 {
+	if stateFlag & 0b0001_0000 > 1 {
 		msg.LogList[0].SinMul = 2
 	}
 
