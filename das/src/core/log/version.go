@@ -3,7 +3,7 @@ package log
 var (
 	sysName = "DAS"
 	version = "0.0.1"
-	verType = "beta"
+	verType = "official"
 )
 
 func Version() string {
