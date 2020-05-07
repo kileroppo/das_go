@@ -153,7 +153,7 @@ func getMsgTyp(data *entity.FeibeeData) (typ MsgType) {
 			}
 		}
 	} else {
-		return -1
+		return
 	}
 }
 
