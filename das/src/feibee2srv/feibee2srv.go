@@ -96,7 +96,7 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 		return err
 	}
 
-	if log.VerType() == "beta" {
+	if log.SysType() == log.Beta {
 		go sendFeibeeLogMsg(rawData)
 	}
 
