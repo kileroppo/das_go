@@ -48,9 +48,9 @@ func Http2FeibeeWonlyLGuard(appData string) {
 
 	key := "W" + msg.DevId + "only"
 
-	reqMsg.Bindstr, err = WonlyGuardAESDecrypt(msg.Bindstr, key)
+	reqMsg.Bindstr, err = WonlyAESDecrypt(msg.Bindstr, key)
 	if err != nil {
-		log.Warningf("Http2FeibeeWonlyLGuard WonlyGuardAESDecrypt() error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard WonlyAESDecrypt() error = ", err)
 		return
 	}
 	reqMsg.Ver = "2.0"
@@ -86,7 +86,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 	}
 }
 
-func WonlyGuardAESDecrypt(cipher, key string) (res string ,err error) {
+func WonlyAESDecrypt(cipher, key string) (res string ,err error) {
 	cipherByte,err := hex.DecodeString(cipher)
 	if err != nil {
 		return "", err

@@ -14,7 +14,11 @@ func Http2FeibeeZigbeeLock(appData, bindid, bindstr, uuid, uid string) {
 	reqMsg.Act = "setcommand"// "standardWriteAttribute"
 	reqMsg.Code = "295" // "286"
 	reqMsg.Bindid = bindid
-	reqMsg.Bindstr = bindstr
+	reqMsg.Bindstr,err = WonlyAESDecrypt(bindstr, "W" + uuid + "only")
+	if err != nil {
+		log.Errorf("Http2FeibeeZigbeeLock.WonlyAESDecrypt > %s", err)
+		return
+	}
 	reqMsg.AccessId,err = conf.GetString("feibee2http", "accessid")
 	if err != nil {
 		log.Warning("Http2FeibeeZigbeeLock get accessId error = ", err)
