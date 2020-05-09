@@ -26,6 +26,7 @@ import (
 *	2、根据包头来确定包体
 *	3、组JSON包后转发APP，PMS模块
  */
+//feibee zigbee lock
 func ParseZlockData(hexData, devType, uuid string) error {
 	//1、飞比设备编号去掉下划线
 	retUuid := make([]string, 4)

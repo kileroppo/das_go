@@ -34,6 +34,7 @@ const (
 
 	SensorVol
 	SensorBatt
+	OTAUpdate
 
 	BaseSensor
 	IlluminanceSensor
@@ -91,6 +92,7 @@ var (
 		0x00010021: SensorBatt, //传感器低电量
 		0x00010035: SensorBatt,
 		0x0001003e: SensorVol,
+		0xfbeef0d4: OTAUpdate, //ota升级进度
 	}
 )
 
