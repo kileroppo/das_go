@@ -199,6 +199,17 @@ type GtwMsgHandle struct {
 	data    *entity.FeibeeData
 }
 
+func (self *GtwMsgHandle) createMsg2mns() (res entity.Feibee2DevMsg) {
+	res.Cmd = 0xfb
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Bindid = self.data.Gateway[0].Bindid
+	res.DevId = res.Bindid
+	res.OpType = "gtwVer"
+	res.OpValue = self.data.Gateway[0].Version
+	return
+}
+
 func (self *GtwMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
 	res.Cmd = 0xfa
 	res.Ack = 0
@@ -213,34 +224,17 @@ func (self *GtwMsgHandle) PushMsg() {
 	//发送给PMS
 	data2pms, err := json.Marshal(self.createMsg2pms())
 	if err != nil {
-		log.Error("One Msg push2pms() error = ", err)
+		log.Errorf("GtwMsgHandle.PushMsg > json.Marshal > pms > %s", err)
 	} else {
-		//producer.SendMQMsg2PMS(string(data2pms))
 		rabbitmq.Publish2pms(data2pms, "")
 	}
 
-	//发送给app
-	//msg, routingKey, bindid := createMsg2App(self.data, self.msgType)
-	//data2app, err := json.Marshal(msg)
-	//if err != nil {
-	//	log.Error("One Msg push2app(0 error = ", err)
-	//} else {
-	//	//producer.SendMQMsg2APP(bindId, string(data2app))
-	//	rabbitmq.Publish2app(data2app, routingKey)
-	//}
-
-	//发送给mns
-	//data2mns, err := json.Marshal(entity.Feibee2MnsMsg{
-	//	msg,
-	//	bindid,
-	//})
-	//if err != nil {
-	//	log.Error("One Msg push2db() error = ", err)
-	//} else {
-	//	//producer.SendMQMsg2Db(string(data2db))
-	//	rabbitmq.Publish2mns(data2mns, "")
-	//}
-
+	data2mns,err := json.Marshal(self.createMsg2mns())
+	if err != nil {
+		log.Errorf("GtwMsgHandle.PushMsg > json.Marshal > mns > %s", err)
+	} else {
+		rabbitmq.Publish2mns(data2mns, "")
+	}
 }
 
 type InfraredTreasureHandle struct {

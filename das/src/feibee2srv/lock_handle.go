@@ -193,6 +193,7 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error){
 
     if sendFlag {
     	rabbitmq.Publish2pms(bs, "")
+    	rabbitmq.Publish2app(bs, msg.DevId)
     	rabbitmq.Publish2mns(bs, "")
 	}
 	return nil

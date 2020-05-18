@@ -3,7 +3,9 @@ package wlprotocol
 // 开始，结束标志
 const (
 	Started = 0xAA
+	ZbStarted = 0xa5
 	Ended = 0x55
+	ZbEnded = 0x5a
 	Version = 0x01
 )
 

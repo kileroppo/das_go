@@ -39,13 +39,13 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 		}
 	case constant.ZIGBEE_PROTOCOL:
 		wlMsg = &wlprotocol.WlZigbeeMsg{
-			Started: wlprotocol.Started, // 开始标志
+			Started: wlprotocol.ZbStarted, // 开始标志
 			Version: wlprotocol.Version, // 协议版本号
 			SeqId:   uint16(head.SeqId), // 包序列号
 			Cmd:     uint8(head.Cmd),    // 命令
 			Ack:     uint8(head.Ack),    // 回应标志
 			Type:    1,                  // 设备类型
-			Ended: wlprotocol.Ended, // 结束标志
+			Ended: wlprotocol.ZbEnded, // 结束标志
 		}
 	default:
 		return nil, errors.New("协议选择错误")

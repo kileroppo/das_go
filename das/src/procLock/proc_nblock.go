@@ -219,7 +219,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 				rabbitmq.Publish2mns([]byte(DValue), "")
 				rabbitmq.Publish2pms([]byte(DValue), "")
 				//远程开锁作为场景触发条件
-				sendMsg2pmsForSceneTrigger(&head, "lockStatus", 1)
+				sendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockOpen", 1)
 			}
 		}
 	case constant.Upload_dev_info: // 上传设备信息
@@ -466,7 +466,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			rabbitmq.Publish2app([]byte(DValue), head.DevId)
 
 			//可视锁开门触发场景
-			sendMsg2pmsForSceneTrigger(&head, "lockStatus", 1)
+			parseOpenLog(DValue)
 		}
 	case constant.Noatmpt_alarm: // 非法操作报警
 		{
@@ -475,7 +475,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
+			sendLockMsgForSceneTrigger(head.DevId, head.DevType,"lockAlarm", 1)
 		}
 	case constant.Forced_break_alarm: // 强拆报警
 		{
@@ -484,7 +484,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
+			sendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockAlarm", 1)
 		}
 	case constant.Fakelock_alarm: // 假锁报警
 		{
@@ -493,7 +493,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
+			sendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockAlarm", 1)
 		}
 	case constant.Nolock_alarm: // 门未关报警
 		{
@@ -502,7 +502,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
+			sendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockAlarm", 1)
 		}
 	case constant.Low_battery_alarm: // 锁体的电池，低电量报警
 		{
@@ -511,7 +511,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
+			sendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockAlarm", 1)
 		}
 	case constant.Infrared_alarm: // 人体感应报警（infra红外感应)
 		{
@@ -521,7 +521,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			//producer.SendMQMsg2Db(DValue)
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
-			sendMsg2pmsForSceneTrigger(&head, "lockAlarm", 1)
+			sendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockAlarm", 1)
 		}
 	case constant.Lock_PIC_Upload: // 视频锁图片上报
 		{
@@ -727,13 +727,13 @@ func ProcessNbMsg(DValue string, Imei string) error {
 	return nil
 }
 
-func sendMsg2pmsForSceneTrigger(head *entity.Header, alarmType string, alarmFlag int) {
+func sendLockMsgForSceneTrigger(devId, devType , alarmType string, alarmFlag int) {
 	var msg entity.Feibee2AutoSceneMsg
 
 	msg.Cmd = 0xf1
 	msg.Ack = 0
-	msg.DevType = head.DevType
-	msg.DevId = head.DevId
+	msg.DevType = devId
+	msg.DevId =devType
 
 	msg.TriggerType = 0
 	msg.Time = int(time.Now().Unix())
@@ -748,4 +748,20 @@ func sendMsg2pmsForSceneTrigger(head *entity.Header, alarmType string, alarmFlag
 
 	//producer.SendMQMsg2PMS(string(data))
 	rabbitmq.Publish2pms(data, "")
+}
+
+func parseOpenLog(rawData string) {
+	var openLog entity.UploadOpenLockLog
+	if err := json.Unmarshal([]byte(rawData), &openLog); err != nil {
+		log.Warningf("parseOpenLog > json.Unmarshal > %s", err)
+		return
+	}
+
+	for i,_ := range openLog.LogList {
+		if openLog.LogList[i].MainOpen == 0 { //手动开门-室内开门
+			sendLockMsgForSceneTrigger(openLog.DevId, openLog.DevType, "lockOpen", 0)
+		} else {
+			sendLockMsgForSceneTrigger(openLog.DevId, openLog.DevType, "lockOpen", 1)
+		}
+	}
 }
