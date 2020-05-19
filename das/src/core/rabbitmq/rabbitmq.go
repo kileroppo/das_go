@@ -17,6 +17,7 @@ var (
 	Consumer2devMQ      *baseMq
 	Consumer2appMQ      *baseMq
 	Consumer2aliMQ      *baseMq
+	producer2wonlymsMQ  *baseMq
 
 	OnceInitMQ sync.Once
 )
@@ -31,6 +32,7 @@ func Init(conf *goconf.ConfigFile) {
 		initProducer2pmsMQ(conf)
 		initProducer2mnsMQ(conf)
 		initProducer2logMQ(conf)
+		initProduct2wonlymsMQ(conf)
 		log.Info("RabbitMQ init")
 	})
 }
@@ -70,6 +72,12 @@ func Publish2pms(data []byte, routingKey string) {
 func Publish2log(data []byte, routingKey string) {
 	if err := producer2logMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2log error = ", err)
+	}
+}
+
+func Publish2wonlyms(data []byte, routingKey string) {
+	if err := producer2wonlymsMQ.Publish(data, routingKey); err != nil {
+		log.Warning("Publish2wonlyms error = ", err)
 	}
 }
 
@@ -386,6 +394,41 @@ func initProducer2logMQ(conf *goconf.ConfigFile) {
 	}
 }
 
+func initProduct2wonlymsMQ(conf *goconf.ConfigFile) {
+	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
+	if err != nil {
+		panic("initProduct2wonlymsMQ load uri conf error")
+	}
+	exchange, err := conf.GetString("rabbitmq", "srv2wonlyms_ex")
+	if err != nil {
+		panic("initProduct2wonlymsMQ load exchange conf error")
+	}
+	exchangeType, err := conf.GetString("rabbitmq", "srv2wonlyms_ex_type")
+	if err != nil {
+		panic("initProduct2wonlymsMQ load exchangeType conf error")
+	}
+
+	channelCtx := ChannelContext{
+		Exchange:     exchange,
+		ExchangeType: exchangeType,
+		Durable:      false,
+		AutoDelete:   false,
+		Name:         "Producer2WonlymsMQ",
+	}
+	producer2wonlymsMQ = &baseMq{
+		mqUri:      uri,
+		channelCtx: channelCtx,
+	}
+
+	if err := producer2wonlymsMQ.init(); err != nil {
+		panic(err)
+	}
+
+	if err := producer2wonlymsMQ.initExchange(); err != nil {
+		panic(err)
+	}
+}
+
 func Close() {
 	producer2appMQ.Close()
 	producer2pmsMQ.Close()
@@ -395,5 +438,6 @@ func Close() {
 	Consumer2devMQ.Close()
 	Consumer2appMQ.Close()
 	Consumer2aliMQ.Close()
+	producer2wonlymsMQ.Close()
 	log.Info("RabbitMQ close")
 }
