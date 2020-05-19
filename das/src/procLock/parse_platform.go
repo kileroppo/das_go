@@ -35,7 +35,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	//		httpgo.HttpCmd2DeviceTelecom(uuid, data)
 	//	}
 	case constant.ANDLINK_PLATFORM: {}
-	case constant.PAD_DOOR_PLATFORM: {
+	case constant.PAD_DEVICE_PLATFORM: {
 		data, ok := mydata.(string)
 		if ok {
 			SendMQMsg2Device(uuid, data, cmd)

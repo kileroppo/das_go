@@ -19,11 +19,11 @@ import (
 	"das/core/util"
 )
 
-func ProcessNbMsg(DValue string, Imei string) error {
+func ProcessJsonMsg(DValue string, devID string) error {
 	// 处理OneNET推送过来的消息
-	log.Info("[", Imei, "] ProcessNbMsg msg from before: ", DValue)
+	log.Info("[", devID, "] ProcessJsonMsg msg from before: ", DValue)
 
-	myKey := util.MD52Bytes(Imei)
+	myKey := util.MD52Bytes(devID)
 
 	// 增加二进制包头，以及加密的包体
 	// 1、 获取包头部分 8个字节
@@ -31,7 +31,7 @@ func ProcessNbMsg(DValue string, Imei string) error {
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否包含{ }，不存在，则是加密数据
 		lens := strings.Count(DValue, "") - 1
 		if lens < 16 {
-			log.Error("[", Imei, "] ProcessNbMsg() error msg : ", DValue, ", len: ", lens)
+			log.Error("[", devID, "] ProcessJsonMsg() error msg : ", DValue, ", len: ", lens)
 			return errors.New("error msg.")
 		}
 
@@ -43,14 +43,14 @@ func ProcessNbMsg(DValue string, Imei string) error {
 		myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
 		myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
 		myHead.CheckSum = util.BytesToInt16(byteHead[6:8])
-		log.Info("[", Imei, "] ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
+		log.Info("[", devID, "] ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
 
 		var checkSum uint16
 		var strData string
 		strData = DValue[16:]
 		checkSum = util.CheckSum([]byte(strData))
 		if checkSum != myHead.CheckSum {
-			log.Error("[", Imei, "] ProcessNbMsg() CheckSum failed, src:", myHead.CheckSum, ", dst: ", checkSum)
+			log.Error("[", devID, "] ProcessJsonMsg() CheckSum failed, src:", myHead.CheckSum, ", dst: ", checkSum)
 			return errors.New("CheckSum failed.")
 		}
 
@@ -60,17 +60,17 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			var err_aes error
 			DValue, err_aes = util.ECBDecrypt(strData, myKey)
 			if nil != err_aes {
-				log.Error("[", Imei, "] util.ECBDecrypt failed, strData:", strData, ", key: ", myKey, ", error: ", err_aes)
+				log.Error("[", devID, "] util.ECBDecrypt failed, strData:", strData, ", key: ", myKey, ", error: ", err_aes)
 				return err_aes
 			}
-			log.Info("[", Imei, "] After ECBDecrypt, data.Msg.Value: ", DValue)
+			log.Info("[", devID, "] After ECBDecrypt, data.Msg.Value: ", DValue)
 		}
 	}
 
 	DValue = strings.Replace(DValue, "#", ",", -1)
-	log.Debug("[", Imei, "] ProcessNbMsg() DValue after: ", DValue)
+	log.Debug("[", devID, "] ProcessJsonMsg() DValue after: ", DValue)
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
-		log.Error("[", Imei, "] ProcessNbMsg() error msg : ", DValue)
+		log.Error("[", devID, "] ProcessJsonMsg() error msg : ", DValue)
 		return errors.New("error msg.")
 	}
 
@@ -504,6 +504,15 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			rabbitmq.Publish2pms([]byte(DValue), "")
 			sendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockAlarm", 1)
 		}
+	case constant.Gas_Alarm: //	燃气报警
+		{
+			msg := entity.RangeHoodAlarm{}
+			if err := json.Unmarshal([]byte(DValue), &msg); err != nil {
+				log.Warning("ProcessJsonMsg RangeHoodAlarm json.Unmarshal() error = ", err)
+				return err
+			}
+			pushMsgForSceneTrigger(&msg)
+		}
 	case constant.Low_battery_alarm: // 锁体的电池，低电量报警
 		{
 			log.Info("[", head.DevId, "] constant.Low_battery_alarm")
@@ -710,15 +719,58 @@ func ProcessNbMsg(DValue string, Imei string) error {
 			log.Info("[", head.DevId, "] constant.Upload_B_Upgrade_State")
 
 			//1. 推到APP
-			//producer.SendMQMsg2APP(head.DevId, DValue)
 			rabbitmq.Publish2app([]byte(DValue), head.DevId)
 		}
-	case constant.Door_Pad_Weather: // 平板锁天气信息透传至mns
+	case constant.PadDoor_Weather: // 平板锁天气信息透传至mns
 		{
 			log.Info("[", head.DevId, "] constant.Door_Pad_Weather")
 
 			//推送到mns
 			rabbitmq.Publish2mns([]byte(DValue), "")
+		}
+	case constant.Set_AIPad_Reboot_Time: // 设置中控网关定时参数
+		{
+			log.Info("[", head.DevId, "] constant.Set_AIPad_Reboot_Time")
+
+			//1. 需要存到mongodb
+			if 1 == head.Ack { // 回应包
+				rabbitmq.Publish2pms([]byte(DValue), "")
+			}
+		}
+	case constant.PadDoor_Persons_check: // 平板锁人流检测上报
+		{
+			log.Info("[", head.DevId, "] constant.Pad_Door_Persons_check")
+
+			// TODO:JHHE 2020-05-19
+			//1. 场景触发
+			rabbitmq.Publish2pms([]byte(DValue), "")
+		}
+	case constant.RangeHood_Control: // 油烟机档位控制
+		{
+			log.Info("[", head.DevId, "] constant.Range_Hood_Control")
+
+			//1. 推到APP
+			if 1 == head.Ack { // 油烟机回应包
+				rabbitmq.Publish2app([]byte(DValue), head.DevId)
+			}
+		}
+	case constant.RangeHood_BindUnbind_Lock: // 油烟机绑定/解绑视频锁
+		{
+			log.Info("[", head.DevId, "] constant.Range_Hood_Bind_Unbind_Lock")
+
+			//1. 根据操作类型新增，还是删除，操作数据关联下的视频锁的绑定，删除
+			if 1 == head.Ack { // 油烟机回应包
+				rabbitmq.Publish2pms([]byte(DValue), "")
+			}
+		}
+	case constant.RangeHood_Query: // 油烟机查询视频锁列表
+		{
+			log.Info("[", head.DevId, "] constant.Range_Hood_Bind_Unbind_Lock")
+
+			//1. 根据版本号，以及数量作比较，不一致，则存入MongoDB
+			if 1 == head.Ack { // 油烟机回应包
+				rabbitmq.Publish2pms([]byte(DValue), "")
+			}
 		}
 	default:
 		log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
