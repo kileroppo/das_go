@@ -397,6 +397,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 
 			if 1 == wlMsg.Ack { // 开门成功才记录远程开锁记录
 				rabbitmq.Publish2pms(to_byte, "")
+				procLock.SendLockMsgForSceneTrigger(remoteOpenLockResp.DevId, remoteOpenLockResp.DevType, "lockOpen", 1)
 			}
 		} else {
 			log.Error("[", uuid, "] constant.Remote_open, err=", err1)
@@ -653,7 +654,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 
 		if to_byte, err1 := json.Marshal(openLogUpload); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
-
+			procLock.HandleOpenLog(&openLogUpload)
 			rabbitmq.Publish2mns(to_byte, "")
 		} else {
 			log.Error("[", uuid, "] constant.Upload_open_log, Uplocal_open_log, err=", err1)
@@ -725,7 +726,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		}
 		if to_byte, err1 := json.Marshal(alarmMsg); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
-
+			procLock.SendLockMsgForSceneTrigger(alarmMsg.DevId, alarmMsg.DevType, "lockAlarm", 1)
 			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", uuid, "] constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm to_byte json.Marshal, err=", err1)
@@ -754,7 +755,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
-
+			procLock.SendLockMsgForSceneTrigger(doorBellCall.DevId, doorBellCall.DevType, "lockAlarm", 1)
 			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", uuid, "] constant.Low_battery_alarm, err=", err1)
