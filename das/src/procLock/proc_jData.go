@@ -733,9 +733,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			log.Info("[", head.DevId, "] constant.Set_AIPad_Reboot_Time")
 
 			//1. 重启时间存储到mysql
-			if 1 == head.Ack { // 回应包
-				rabbitmq.Publish2wonlyms([]byte(DValue), "")
-			}
+			rabbitmq.Publish2wonlyms([]byte(DValue), "")
 		}
 	case constant.PadDoor_Persons_check: // 平板锁人流检测上报
 		{
