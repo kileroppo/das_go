@@ -57,8 +57,8 @@ func Http2FeibeeZigbeeLock(appData, bindid, bindstr, uuid, uid string) {
 	}
 
 	if respMsg.Code != 1 {
-		log.Warning("Control ZigbeeLock failed")
+		log.Warning("Control ZigbeeLock failed", respData)
 	} else {
-		log.Info("Control ZigbeeLock successfully")
+		log.Info("Control ZigbeeLock successfully", respData)
 	}
 }
