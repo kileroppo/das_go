@@ -48,6 +48,8 @@ const (
 	FloorHeat
 
 	FbZigbeeLock //王力1.0锁
+	FbZigbeeLockEnable     //飞比zigbee锁可控状态
+	FbZigbeeLockActivation //飞比zigbee锁激活状态
 )
 
 var (
@@ -93,6 +95,9 @@ var (
 		0x00010035: SensorBatt,
 		0x0001003e: SensorVol,
 		0xfbeef0d4: OTAUpdate, //ota升级进度
+
+		0x00000012: FbZigbeeLockEnable,
+		0x00005000: FbZigbeeLockActivation,
 	}
 )
 

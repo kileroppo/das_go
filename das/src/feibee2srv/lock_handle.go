@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 
 	"das/core/entity"
 	"das/core/log"
@@ -14,6 +15,7 @@ import (
 var (
 	ErrFbLockStruct = errors.New("the FbLock's structure was invalid")
 	ErrFbLockLen    = errors.New("the FbLock's lens was wrong")
+	ErrFbLockType   = errors.New("the msg type was not supported")
 )
 
 type FbLockMsgTyp = uint16
@@ -50,15 +52,38 @@ func (fh *FbLockHandle) PushMsg() {
 		}
 	}()
 
-    if err := fh.decode(); err != nil {
-    	log.Warningf("FbLockHandle.PushMsg > %s", err)
+	if err := fh.decodeValue(); err == nil {
+		return
+	}
+
+	if err := fh.decodeOrg(); err != nil {
+		log.Warningf("FbLockHandle.PushMsg > %s", err)
 	}
 }
+
+func (fh *FbLockHandle) decodeValue() (err error) {
+	msgType, ok := otherMsgTyp[getSpMsgKey(fh.data.Records[0].Cid, fh.data.Records[0].Aid)]
+	if !ok {
+		return fmt.Errorf("decodeValue > %w", ErrFbLockType)
+	}
+
+	switch msgType {
+	case FbZigbeeLockActivation:
+		fh.FbLockActivationDecode()
+	case FbZigbeeLockEnable:
+		fh.FbLockEnableDecode()
+	default:
+		return fmt.Errorf("decodeValue > %w", ErrFbLockType)
+	}
+
+	return nil
+}
+
 //todo: feibeelock handle
-func (fh *FbLockHandle) decode() (err error) {
+func (fh *FbLockHandle) decodeOrg() (err error) {
 	fh.Protocal, err = FbLockDecode(fh.data.Records[0].Orgdata)
 	if err != nil {
-		err = fmt.Errorf("FbLockHandle.decode > %w", err)
+		err = fmt.Errorf("FbLockHandle.decodeOrg > %w", err)
 		return
 	}
 
@@ -72,25 +97,56 @@ func (fh *FbLockHandle) decode() (err error) {
 	}
 
 	if err != nil {
-		err = fmt.Errorf("FbLockHandle.decode > %w", err)
+		err = fmt.Errorf("FbLockHandle.decodeOrg > %w", err)
 	}
 
 	return
 }
 
-func (fh *FbLockHandle) FbLockAlarmDecode() (err error){
-    if fh.Protocal.Data[0] != 0x42 {
-    	err = fmt.Errorf("FbLockHandle.FbLockAlarmDecode > %w", ErrFbLockStruct)
-    	return
+func (fh *FbLockHandle) FbLockEnableDecode() {
+	val,err := strconv.ParseInt(fh.data.Records[0].Value, 16, 32)
+	if err != nil {
+		log.Warningf("FbLockHandle.FbLockEnableDecode > strconv.ParseInt > %s", err)
+		return
 	}
 
-    if dataLen := fh.Protocal.Data[1]; int(dataLen) != len(fh.Protocal.Data[2:]) {
+	msg := entity.DeviceActive{
+		Cmd:     0x46,
+		Ack:     1,
+		DevType: "WonlyFBlock",
+		DevId:   fh.data.Records[0].Uuid,
+		Vendor:  "feibee",
+		SeqId:   0,
+		Signal:  0,
+		Time:    val,
+	}
+	data,err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("FbLockHandle.FbLockEnableDecode > json.Marshal > %s", err)
+		return
+	}
+
+	rabbitmq.Publish2app(data, fh.data.Records[0].Uuid)
+	rabbitmq.Publish2pms(data, "")
+}
+
+func (fh *FbLockHandle) FbLockActivationDecode() {
+
+}
+
+func (fh *FbLockHandle) FbLockAlarmDecode() (err error) {
+	if fh.Protocal.Data[0] != 0x42 {
+		err = fmt.Errorf("FbLockHandle.FbLockAlarmDecode > %w", ErrFbLockStruct)
+		return
+	}
+
+	if dataLen := fh.Protocal.Data[1]; int(dataLen) != len(fh.Protocal.Data[2:]) {
 		err = fmt.Errorf("FbLockHandle.FbLockAlarmDecode > %w", ErrFbLockLen)
 		return
 	}
 
-    msg := entity.FeibeeLockAlarmMsg{
-		Header:    entity.Header{
+	msg := entity.FeibeeLockAlarmMsg{
+		Header: entity.Header{
 			Cmd:     0,
 			Ack:     1,
 			DevType: "WonlyFBlock",
@@ -101,29 +157,29 @@ func (fh *FbLockHandle) FbLockAlarmDecode() (err error){
 		Timestamp: fh.data.Records[0].Uptime,
 	}
 
-    switch fh.Protocal.Data[3] {
+	switch fh.Protocal.Data[3] {
 	case 0x04: //强拆报警
 		msg.Cmd = 0x22
-	case 0x05://门未关报警
+	case 0x05: //门未关报警
 		msg.Cmd = 0x26
-	case 0x06://胁迫报警
-	case 0x07://假锁报警
+	case 0x06: //胁迫报警
+	case 0x07: //假锁报警
 		msg.Cmd = 0x24
-	case 0x33://非法操作报警
-	    msg.Cmd = 0x20
+	case 0x33: //非法操作报警
+		msg.Cmd = 0x20
 	}
 
-    bs,err := json.Marshal(msg)
-    if err != nil {
-    	err = fmt.Errorf("FbLockHandle.FbLockAlarmDecode > json.Marshal > %w", err)
-    	return
+	bs, err := json.Marshal(msg)
+	if err != nil {
+		err = fmt.Errorf("FbLockHandle.FbLockAlarmDecode > json.Marshal > %w", err)
+		return
 	}
-    rabbitmq.Publish2pms(bs, "")
-    rabbitmq.Publish2mns(bs, "")
-    return nil
+	rabbitmq.Publish2pms(bs, "")
+	rabbitmq.Publish2mns(bs, "")
+	return nil
 }
 
-func (fh *FbLockHandle) FbLockOnoffDecode() (err error){
+func (fh *FbLockHandle) FbLockOnoffDecode() (err error) {
 	if len(fh.Protocal.Data) < 14 {
 		err = fmt.Errorf("FbLockHandle.FbLockOnoffDecode > %w", ErrFbLockLen)
 		return
@@ -140,37 +196,37 @@ func (fh *FbLockHandle) FbLockOnoffDecode() (err error){
 		return
 	}
 
-	userId := int(fh.Protocal.Data[5]) + int(fh.Protocal.Data[6]) << 8
+	userId := int(fh.Protocal.Data[5]) + int(fh.Protocal.Data[6])<<8
 
 	switch unlockType {
 	case 0x04:
-        err = fh.remoteUnlock(userId)
-	case 0x00,0x01,0x02,03:
+		err = fh.remoteUnlock(userId)
+	case 0x00, 0x01, 0x02, 03:
 		err = fh.otherUnlock(userId)
 	}
 
 	return
 }
 
-func (fh *FbLockHandle) remoteUnlock(userId int) (err error){
+func (fh *FbLockHandle) remoteUnlock(userId int) (err error) {
 	stateFlag := fh.Protocal.Data[13]
-	
+
 	msg := entity.FeibeeLockRemoteOn{
-		Header:    entity.Header{
-			Cmd:0x52,
-			Ack:1,
-			DevId:fh.data.Records[0].Uuid,
-			Vendor:"feibee",
-			SeqId:1,
-			DevType:"WonlyFBlock",
+		Header: entity.Header{
+			Cmd:     0x52,
+			Ack:     1,
+			DevId:   fh.data.Records[0].Uuid,
+			Vendor:  "feibee",
+			SeqId:   1,
+			DevType: "WonlyFBlock",
 		},
 		UserId:    userId,
-		Timestamp: fh.data.Records[0].Uptime/1000,
+		Timestamp: fh.data.Records[0].Uptime / 1000,
 	}
-    sendFlag := false
-	if stateFlag & 0b0001_0000 > 1 {
+	sendFlag := false
+	if stateFlag&0b0001_0000 > 1 {
 		redisKey := "FbRemoteUnlock_" + fh.data.Records[0].Uuid
-		if prevUserId,err := redis.GetFbLockUserId(redisKey); err != nil {
+		if prevUserId, err := redis.GetFbLockUserId(redisKey); err != nil {
 			if err = redis.SetFbLockUserId(redisKey, userId); err != nil {
 				log.Warningf("FbLockHandle.remoteUnlock > %s", err)
 				sendFlag = true
@@ -185,21 +241,21 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error){
 		sendFlag = true
 	}
 
-    bs,err := json.Marshal(msg)
-    if err != nil {
+	bs, err := json.Marshal(msg)
+	if err != nil {
 		err = fmt.Errorf("FbLockHandle.remoteUnlock > json.Marshal > %w", err)
 		return
 	}
 
-    if sendFlag {
-    	rabbitmq.Publish2pms(bs, "")
-    	rabbitmq.Publish2app(bs, msg.DevId)
-    	rabbitmq.Publish2mns(bs, "")
+	if sendFlag {
+		rabbitmq.Publish2pms(bs, "")
+		rabbitmq.Publish2app(bs, msg.DevId)
+		rabbitmq.Publish2mns(bs, "")
 	}
 	return nil
 }
 
-func (fh *FbLockHandle) otherUnlock(userId int) (err error){
+func (fh *FbLockHandle) otherUnlock(userId int) (err error) {
 	msg := entity.UploadOpenLockLog{
 		Cmd:     0x40,
 		Ack:     1,
@@ -214,21 +270,21 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error){
 				SubOpen:   0,
 				SinMul:    1,
 				Remainder: 0,
-				Time:      int32(fh.data.Records[0].Uptime/1000),
+				Time:      int32(fh.data.Records[0].Uptime / 1000),
 			},
 		},
 	}
 	stateFlag := fh.Protocal.Data[13]
-	if stateFlag & 0b1000_0000 > 1 {
+	if stateFlag&0b1000_0000 > 1 {
 		msg.LogList[0].SubOpen = 1
 	}
 
-	if stateFlag & 0b0001_0000 > 1 {
+	if stateFlag&0b0001_0000 > 1 {
 		msg.LogList[0].SinMul = 2
 	}
 
 	switch fh.Protocal.Data[3] {
-	case 0x00,0x01:
+	case 0x00, 0x01:
 		msg.LogList[0].MainOpen = 1
 	case 0x02:
 		msg.LogList[0].MainOpen = 3
@@ -236,7 +292,7 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error){
 		msg.LogList[0].MainOpen = 2
 	}
 
-	bs,err := json.Marshal(msg)
+	bs, err := json.Marshal(msg)
 	if err != nil {
 		err = fmt.Errorf("FbLockHandle.FbLockBattDecode > json.Marshal > %w", err)
 		return
@@ -247,18 +303,18 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error){
 	return nil
 }
 
-func (fh *FbLockHandle) FbLockStateDecode(data []byte) (err error){
-    return
+func (fh *FbLockHandle) FbLockStateDecode(data []byte) (err error) {
+	return
 }
 
-func (fh *FbLockHandle) FbLockBattDecode() (err error){
+func (fh *FbLockHandle) FbLockBattDecode() (err error) {
 	if fh.Protocal.Data[0] != 0x1b || len(fh.Protocal.Data) != 9 || fh.Protocal.Data[5] != 1 {
 		err = fmt.Errorf("FbLockHandle.FbLockBattDecode > %w", ErrFbLockStruct)
 		return
 	}
 
 	msg := entity.FeibeeLockBattMsg{
-		Header:    entity.Header{
+		Header: entity.Header{
 			Cmd:     0x2a,
 			Ack:     1,
 			DevType: "WonlyFBlock",
@@ -267,10 +323,10 @@ func (fh *FbLockHandle) FbLockBattDecode() (err error){
 			SeqId:   0,
 		},
 		Timestamp: fh.data.Records[0].Uptime,
-		Value: int(fh.Protocal.Data[8]) / 2,
+		Value:     int(fh.Protocal.Data[8]) / 2,
 	}
 
-	bs,err := json.Marshal(msg)
+	bs, err := json.Marshal(msg)
 	if err != nil {
 		err = fmt.Errorf("FbLockHandle.FbLockBattDecode > json.Marshal > %w", err)
 		return
