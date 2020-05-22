@@ -735,9 +735,9 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			//1. 重启时间存储到mysql
 			rabbitmq.Publish2wonlyms([]byte(DValue), "")
 		}
-	case constant.PadDoor_Persons_check: // 平板锁人流检测上报
+	case constant.PadDoor_Num_Upload, constant.PadDoor_Num_Reset: // 平板锁人流检测上报
 		{
-			log.Info("[", head.DevId, "] constant.Pad_Door_Persons_check")
+			log.Info("[", head.DevId, "] constant.PadDoor_Num")
 
 			// TODO:JHHE 2020-05-19
 			//1. 场景触发
