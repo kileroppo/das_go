@@ -94,8 +94,11 @@ const (
 	Set_AIPad_Reboot_Time 		= 0x1003 // 设置中控网关定时参数
 	PadDoor_Persons_check 		= 0x1004 // 平板锁人流检测上报
 	RangeHood_Control 			= 0x1005 // 油烟机档位控制
-	RangeHood_BindUnbind_Lock = 0x1006 // 油烟机绑定/解绑视频锁
+	RangeHood_BindUnbind_Lock   = 0x1006 // 油烟机绑定/解绑视频锁
 	RangeHood_Query 			= 0x1007 // 油烟机查询视频锁列表
+
+	PadDoor_Num_Upload = 0x1100 // 平板锁人流检测上报
+	PadDoor_Num_Reset  = 0x1101
 
 )
 
