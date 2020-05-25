@@ -36,7 +36,7 @@ func NewWifiPlatJob(rawData string, devID string) WifiPlatJob {
 }
 
 func (w WifiPlatJob) Handle() {
-	ProcessNbMsg(w.rawData, w.devID)
+	ProcessJsonMsg(w.rawData, w.devID)
 }
 
 func consumePadDoor() {
@@ -71,7 +71,7 @@ func consumePadDoor() {
 
 		//3. 锁对接的平台，存入redis
 		mymap := make(map[string]interface{})
-		mymap["from"] = constant.PAD_DOOR_PLATFORM
+		mymap["from"] = constant.PAD_DEVICE_PLATFORM
 		redis.SetDevicePlatformPool(devID, mymap)
 
 		//4. fetch job

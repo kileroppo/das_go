@@ -185,25 +185,7 @@ func ProcAppMsg(appMsg string) error {
 		//小卫士消息
 		httpgo.Http2FeibeeWonlyLGuard(appMsg)
 		return nil // TODO:JHHE after HTTP request, no other processes, otherwise return
-	case constant.Range_Hood_Gas_Alarm: //油烟机燃气报警通知
-		{
-			msg := entity.RangeHoodAlarm{}
-			if err := json.Unmarshal([]byte(appMsg), &msg); err != nil {
-				log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Unmarshal() error = ", err)
-				return err
-			}
-			pushMsgForSceneTrigger(&msg)
-		}
-		return nil
-	case constant.Range_Hood_Control: //油烟机控制请求
-		//todo:zh:油烟机控制是否通过das 暂定
-		{
-			SendMQMsg2Device(head.DevId, appMsg, "0x1000")
-			return nil
-		}
-
 	}
-
 	log.Debug("ProcAppMsg after, ", appMsg)
 
 	ret, errPlat := redis.GetDevicePlatformPool(head.DevId)
@@ -265,17 +247,16 @@ func ProcAppMsg(appMsg string) error {
 				}
 			}
 		}
-	case constant.TELECOM_PLATFORM:
-		{
-		} // 电信平台
-	case constant.ANDLINK_PLATFORM:
-		{
-		} // 移动AndLink平台
-	case constant.PAD_DOOR_PLATFORM: // WiFi平板锁
+	case constant.TELECOM_PLATFORM: {} // 电信平台
+	case constant.ANDLINK_PLATFORM: {} // 移动AndLink平台
+	case constant.PAD_DEVICE_PLATFORM: // WiFi平板
 		{
 			var strToDevData string
 			var err error
-			if 0x1001 == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
+			if constant.PadDoor_RealVideo == head.Cmd ||
+				constant.RangeHood_Control == head.Cmd ||
+				constant.RangeHood_BindUnbind_Lock == head.Cmd ||
+				constant.RangeHood_Query == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
 				strToDevData = appMsg
 			} else {
 				// 加密数据
@@ -357,7 +338,6 @@ func ProcAppMsg(appMsg string) error {
 
 			httpgo.Http2FeibeeZigbeeLock(hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 		}
-
 	default:
 		{
 			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", ret)

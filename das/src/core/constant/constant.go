@@ -54,6 +54,7 @@ const (
 	Forced_break_alarm = 0x22 // 强拆报警
 	Fakelock_alarm     = 0x24 // 假锁报警
 	Nolock_alarm       = 0x26 // 门未关报警
+	Gas_Alarm 		   = 0x27 // 燃气报警
 	Low_battery_alarm  = 0x2A // 锁体的电池，低电量报警
 	Infrared_alarm     = 0x39 // 人体感应报警（infra红外感应)
 	Lock_PIC_Upload    = 0x2F // 视频锁图片上报
@@ -87,16 +88,25 @@ const (
 	Random_Yisuma_State = 0x66 //亿速码随机数上报
 
 	Wonly_LGuard_Msg = 0xfb
-	Door_Pad_Weather = 0x1002
-	Range_Hood_Control = 0x1000
-	Range_Hood_Gas_Alarm = 0x27
+
+	PadDoor_RealVideo 			= 0x1001 // 平板锁实时视频
+	PadDoor_Weather 			= 0x1002 // 平板锁当前天气
+	Set_AIPad_Reboot_Time 		= 0x1003 // 设置中控网关定时参数
+	PadDoor_Persons_check 		= 0x1004 // 平板锁人流检测上报
+	RangeHood_Control 			= 0x1005 // 油烟机档位控制
+	RangeHood_BindUnbind_Lock   = 0x1006 // 油烟机绑定/解绑视频锁
+	RangeHood_Query 			= 0x1007 // 油烟机查询视频锁列表
+
+	PadDoor_Num_Upload = 0x1100 // 平板锁人流检测上报
+	PadDoor_Num_Reset  = 0x1101
+
 )
 
 const (
 	ONENET_PLATFORM   = "onenet"
 	TELECOM_PLATFORM  = "telecom"
 	ANDLINK_PLATFORM  = "andlink"
-	PAD_DOOR_PLATFORM = "paddoor"
+	PAD_DEVICE_PLATFORM = "paddevice"
 	ALIIOT_PLATFORM   = "aliIoT"
 	FEIBEE_PLATFORM   = "feibee"
 	MQTT_PLATFORM     = "mqtt"

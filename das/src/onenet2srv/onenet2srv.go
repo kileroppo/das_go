@@ -124,7 +124,7 @@ func (o OnenetJob) Handle() {
 	case 1: // 数据点消息(type=1)，
 		{
 			// 处理数据点消息
-			procLock.ProcessNbMsg(data.Msg.Value, data.Msg.Imei)
+			procLock.ProcessJsonMsg(data.Msg.Value, data.Msg.Imei)
 		}
 	}
 }

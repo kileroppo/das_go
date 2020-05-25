@@ -401,6 +401,7 @@ func ParseData(mydata interface{}) error {
 
 			if 1 == wlMsg.Ack { // 开门成功才记录远程开锁记录
 				rabbitmq.Publish2pms(to_byte, "")
+				SendLockMsgForSceneTrigger(remoteOpenLockResp.DevId, remoteOpenLockResp.DevType, "lockOpen", 1)
 			}
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Remote_open, err=", err1)
@@ -705,7 +706,7 @@ func ParseData(mydata interface{}) error {
 
 		if to_byte, err1 := json.Marshal(openLogUpload); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
-
+			HandleOpenLog(&openLogUpload)
 			rabbitmq.Publish2mns(to_byte, "")
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Upload_open_log, Uplocal_open_log, err=", err1)
@@ -777,7 +778,7 @@ func ParseData(mydata interface{}) error {
 		}
 		if to_byte, err1 := json.Marshal(alarmMsg); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
-
+			SendLockMsgForSceneTrigger(alarmMsg.DevId, alarmMsg.DevType, "lockAlarm", 1)
 			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm to_byte json.Marshal, err=", err1)
@@ -806,7 +807,7 @@ func ParseData(mydata interface{}) error {
 		}
 		if to_byte, err1 := json.Marshal(doorBellCall); err1 == nil {
 			rabbitmq.Publish2pms(to_byte, "")
-
+			SendLockMsgForSceneTrigger(doorBellCall.DevId, doorBellCall.DevType, "lockAlarm", 1)
 			rabbitmq.Publish2mns(to_byte, "") // MNS
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Low_battery_alarm, err=", err1)
