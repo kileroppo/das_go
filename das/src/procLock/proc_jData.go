@@ -770,6 +770,11 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				rabbitmq.Publish2pms([]byte(DValue), "")
 			}
 		}
+	case constant.Scene_Trigger: //中控闹钟触发爱岗场景
+	    {
+			log.Info("[", head.DevId, "] constant.Scene_Trigger")
+	    	rabbitmq.Publish2pms([]byte(DValue), "")
+	    }
 	default:
 		log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
 	}
