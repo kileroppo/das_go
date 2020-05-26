@@ -99,6 +99,7 @@ const (
 
 	PadDoor_Num_Upload = 0x1100 // 平板锁人流检测上报
 	PadDoor_Num_Reset  = 0x1101
+	Scene_Trigger = 0xf1 //爱岗场景触发（中控平板的闹钟作为触发条件）
 
 )
 
