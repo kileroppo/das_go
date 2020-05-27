@@ -31,6 +31,8 @@ const (
 	SceneSwitch      //情景开关
 	ZigbeeLock       //zigbee锁
 	Airer            //晾衣架
+	PM25             //PM2.5
+	PM               //PM 5合1
 
 	SensorVol
 	SensorBatt
@@ -73,6 +75,8 @@ var (
 		0x030b0001: WonlyLGuard,      //小卫士
 		0x01630001: InfraredTreasure, //红外宝
 		0x02040001: Airer,            //晾衣架
+		0x03090001: PM25,
+		0x030a0001: PM,
 
 		0x01060001: IlluminanceSensor,       //光照度传感器
 		0x03020001: TemperAndHumiditySensor, //温湿度传感器
@@ -126,6 +130,8 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &ContinuousSensor{BaseSensorAlarm{feibeeMsg: data, msgType: typ}}
 	case FbZigbeeLock:
 		msgHandle = &FbLockHandle{data: data}
+	case PM:
+		msgHandle = &PMHandle{data:data}
 	default:
 		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
