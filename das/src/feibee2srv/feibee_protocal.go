@@ -12,6 +12,7 @@ const (
 	Fb_Lock_Batt       FbLockMsgTyp = 0x0001 //电量
 	Fb_Lock_State      FbLockMsgTyp = 0x0000 //锁状态
 	Fb_Lock_Alarm      FbLockMsgTyp = 0x0009 //锁报警
+	Fb_PM_PM25         FbLockMsgTyp = 0x0415 //PM pm2.5
 	Fb_PM_Formaldehyde FbLockMsgTyp = 0x0417 //PM 甲醛
 	Fb_PM_CO2          FbLockMsgTyp = 0x0416 //PM CO2
 	Fb_PM_VOC          FbLockMsgTyp = 0x0418 //PM VOC
