@@ -87,11 +87,11 @@ func (pm *PMHandle) decodeCO2() {
 		attrs[i] = uint16(pm.Protocal.Value[i*5]) | (uint16(pm.Protocal.Value[i*5+1]) << 8)
 		switch attrs[i] {
 		case 0x0000:
-			opType = "CO2ppm"
+			opType = "CO2"
 			opFlag = int(uint16(pm.Protocal.Value[i*5+3]) | (uint16(pm.Protocal.Value[i*5+1+3]) << 8))
             opValue = strconv.Itoa(opFlag)
 		case 0x0001:
-			opType = "CO2"
+			opType = "CO2level"
 			opFlag = int(pm.Protocal.Value[i*5+3])
 			opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
 		}
