@@ -57,6 +57,9 @@ func (pm *PMHandle) pushMsg() {
 	opFlag := int(uint16(pm.Protocal.Value[3]) | (uint16(pm.Protocal.Value[4]) << 8))
 
 	switch pm.Protocal.Cluster {
+	case Fb_PM_PM25:
+		opType = "PM2.5"
+		opValue = strconv.Itoa(opFlag)
 	case Fb_PM_VOC:
 		opType = "VOC"
 		opValue = strconv.Itoa(opFlag)
@@ -91,9 +94,10 @@ func (pm *PMHandle) decodeCO2() {
 			opFlag = int(uint16(pm.Protocal.Value[i*5+3]) | (uint16(pm.Protocal.Value[i*5+1+3]) << 8))
             opValue = strconv.Itoa(opFlag)
 		case 0x0001:
-			opType = "CO2level"
-			opFlag = int(pm.Protocal.Value[i*5+3])
-			opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
+			continue
+			//opType = "CO2level"
+			//opFlag = int(pm.Protocal.Value[i*5+3])
+			//opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
 		}
 		pm.push2pmsForSave(opType, opValue, opFlag)
 		pm.push2app(opType, opValue)
