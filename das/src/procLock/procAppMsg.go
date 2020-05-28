@@ -185,6 +185,9 @@ func ProcAppMsg(appMsg string) error {
 		//小卫士消息
 		httpgo.Http2FeibeeWonlyLGuard(appMsg)
 		return nil // TODO:JHHE after HTTP request, no other processes, otherwise return
+	case constant.Body_Fat_Scale:
+		rabbitmq.Publish2pms([]byte(appMsg), "")
+		return nil
 	}
 	log.Debug("ProcAppMsg after, ", appMsg)
 
