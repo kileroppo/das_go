@@ -26,8 +26,51 @@ import (
 func ProcAppMsg(appMsg string) error {
 	log.Debug("ProcAppMsg process msg from app.")
 	if !strings.ContainsAny(appMsg, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
-		log.Error("ProcAppMsg() error msg : ", appMsg)
-		return errors.New("error msg.")
+		/*log.Error("ProcAppMsg() error msg : ", appMsg)
+		return errors.New("error msg.")*/
+		// TODO:JHHE APP下行数据解密
+		//1. 获取设备编号
+		prData := strings.Split(appMsg, "#")
+		var devID string
+		var devData string
+		devID = prData[0]
+		devData = prData[1]
+
+		//2. 校验数据正确性
+		lens := strings.Count(devData, "") - 1
+		if lens < 16 {
+			log.Error("[", devID, "] ProcAppMsg() error msg : ", devData, ", len: ", lens)
+			return errors.New("error msg.")
+		}
+
+		//3. 解密数据
+		var myHead entity.MyHeader
+		var strHead string
+		strHead = appMsg[0:16]
+		byteHead, _ := hex.DecodeString(strHead)
+		myHead.ApiVersion = util.BytesToInt16(byteHead[0:2])
+		myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
+		myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
+		myHead.CheckSum = util.BytesToInt16(byteHead[6:8])
+		log.Info("[", devID, "] ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
+
+		var checkSum uint16
+		var strData string
+		strData = devData[16:]
+		checkSum = util.CheckSum([]byte(strData))
+		if checkSum != myHead.CheckSum {
+			log.Error("[", devID, "] ProcAppMsg() CheckSum failed, src:", myHead.CheckSum, ", dst: ", checkSum)
+			return errors.New("CheckSum failed.")
+		}
+
+		myKey := util.MD52Bytes(devID + "Potato")
+		var err_aes error
+		appMsg, err_aes = util.ECBDecrypt(strData, myKey)
+		if nil != err_aes {
+			log.Error("[", devID, "] util.ECBDecrypt failed, strData:", strData, ", key: ", myKey, ", error: ", err_aes)
+			return err_aes
+		}
+		log.Info("[", devID, "] After ECBDecrypt, data.Msg.Value: ", appMsg)
 	}
 
 	// 1、解析消息
