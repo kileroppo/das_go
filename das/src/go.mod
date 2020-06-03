@@ -17,6 +17,7 @@ require (
 	github.com/onsi/gomega v1.8.1 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
+	github.com/valyala/bytebufferpool v1.0.0
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
