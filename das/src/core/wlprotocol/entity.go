@@ -397,13 +397,14 @@ type DoorStateUpload struct {
 	State uint8
 }
 
-type AromaLampsProtocal struct {
-	AromaLampsProtocalHeader
-	Data []byte
-	CheckCode []byte
+type SleepaceProtocal struct {
+	SleepaceProtocalHeader
+	Data         []byte
+	CheckCode    uint32
+	SeperateFlag []byte
 }
 
-type AromaLampsProtocalHeader struct {
+type SleepaceProtocalHeader struct {
 	Ver         uint8
 	Source      uint8
 	ChannelNo   uint32
@@ -411,10 +412,15 @@ type AromaLampsProtocalHeader struct {
 	FrameNum    uint16
 	FrameNo     uint16
 	FrameSerial uint16
+	SpecialFlag uint16
+	DevType     uint16
 	MsgType     uint16
 }
 
-type AromaLampsProtocalData struct {
-
-
+type AromaLampsData struct {
+	OpType   uint32 `json:"opType"`
+	OpValue  uint8  `json:"opValue"`
+	OpValue1 uint8  `json:"opValue1"`
+	OpValue2 uint8  `json:"opValue2"`
+	OpValue3 uint8  `json:"opValue3"`
 }
