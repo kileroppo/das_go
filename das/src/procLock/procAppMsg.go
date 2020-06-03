@@ -223,7 +223,6 @@ func ProcAppMsg(appMsg string) error {
 			appMsg = string(addDevUserStr)
 			log.Debug("ProcAppMsg , appMsg=", appMsg)
 		}
-
 	case constant.Wonly_LGuard_Msg:
 		//小卫士消息
 		httpgo.Http2FeibeeWonlyLGuard(appMsg)
