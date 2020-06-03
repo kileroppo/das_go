@@ -29,6 +29,10 @@ func ProcAppMsg(appMsg string) error {
 		/*log.Error("ProcAppMsg() error msg : ", appMsg)
 		return errors.New("error msg.")*/
 		// TODO:JHHE APP下行数据解密
+		if !strings.ContainsAny(appMsg, "#") {
+			log.Error("ProcAppMsg() error msg")
+			return errors.New("error msg.")
+		}
 		//1. 获取设备编号
 		prData := strings.Split(appMsg, "#")
 		var devID string
