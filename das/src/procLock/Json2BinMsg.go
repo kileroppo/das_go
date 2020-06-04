@@ -20,6 +20,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		return nil, err
 	}
+	sendMQTTDownLogMsg(head.DevId, jsonMsg)
 
 	var wlMsg wlprotocol.IPKG
 	switch wlProtocol {
