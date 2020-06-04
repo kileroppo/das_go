@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"github.com/valyala/bytebufferpool"
 	"strconv"
 	"strings"
 	"time"
@@ -833,8 +834,14 @@ func sendPadDoorUpLogMsg(devId, oriData, msgName string) {
 	logMsg.MsgName = msgName
 	logMsg.UUid = devId
 	logMsg.VendorName = "RabbitMQ"
-	logMsg.RawData = oriData
 
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("Json数据：")
+	buf.WriteString(oriData)
+
+	logMsg.RawData = buf.String()
 	data,err := json.Marshal(logMsg)
 	if err != nil {
 		log.Warningf("sendPadDoorUpLogMsg > json.Marshal > %s", err)
