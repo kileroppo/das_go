@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/valyala/bytebufferpool"
+
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/httpgo"
@@ -432,4 +434,28 @@ func pushMsgForSave(msg *entity.RangeHoodAlarm) {
 		return
 	}
 	rabbitmq.Publish2pms(data2pms, "")
+}
+
+func sendMQTTDownLogMsg(devId, oriData string) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.MsgName = "下行设备数据"
+	logMsg.UUid = devId
+	logMsg.VendorName = "王力MQTT"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("Json数据：")
+	buf.WriteString(oriData)
+
+	logMsg.RawData = buf.String()
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendMQTTDownLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
 }
