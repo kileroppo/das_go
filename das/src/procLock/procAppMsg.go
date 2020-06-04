@@ -40,6 +40,8 @@ func ProcAppMsg(appMsg string) error {
 		devID = prData[0]
 		devData = prData[1]
 
+		sendPadDoorUpLogMsg(devID, devData, "下行设备数据")
+
 		//2. 校验数据正确性
 		lens := strings.Count(devData, "") - 1
 		if lens < 16 {

@@ -1,13 +1,13 @@
 package aliIot2srv
 
 import (
-	"das/procLock"
 	"encoding/json"
 	"strings"
 
 	"das/core/constant"
 	"das/core/log"
 	"das/core/redis"
+	"das/procLock"
 )
 
 type AliData struct {

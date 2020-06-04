@@ -28,6 +28,13 @@ type NormalMsgHandle struct {
 	msgType MsgType
 }
 
+func (self *NormalMsgHandle) createMsgHeader() (header entity.Header) {
+	header.Vendor = "feibee"
+	header.DevId  = self.data.Msg[0].Uuid
+	header.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
+	return
+}
+
 func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
 	res.Cmd = 0xfb
 	res.Ack = 0
@@ -97,14 +104,31 @@ func (self *NormalMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
 	return
 }
 
+func (self *NormalMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
+	var msg entity.Feibee2AutoSceneMsg
+
+	msg.Cmd = 0xf1
+	msg.Ack = 0
+	msg.Vendor = "feibee"
+	msg.SeqId = 1
+
+	msg.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
+	msg.DevId = self.data.Msg[0].Uuid
+
+	msg.TriggerType = 0
+
+	msg.AlarmFlag = self.data.Msg[0].Onoff
+	msg.AlarmType = "curtain"
+
+	return msg
+}
+
 func (self *NormalMsgHandle) PushMsg() {
 	res, routingKey, bindid := self.createMsg2App()
 
 	//发送给APP
 	data2app, err := json.Marshal(res)
-	if err != nil {
-		log.Error("One Msg push2app() error = ", err)
-	} else {
+	if err == nil {
 		if self.msgType == NewDev {
 			rabbitmq.Publish2app(data2app, bindid)
 		} else {
@@ -124,11 +148,16 @@ func (self *NormalMsgHandle) PushMsg() {
 	} else {
 		//发送给PMS
 		data2pms, err := json.Marshal(self.createMsg2pms())
-		if err != nil {
-			log.Error("One Msg push2pms() error = ", err)
-		} else {
-			//producer.SendMQMsg2PMS(string(data2pms))
+		if err == nil {
 			rabbitmq.Publish2pms(data2pms, "")
+		}
+	}
+
+	//电动窗帘作为触发条件
+	if self.msgType == RemoteOpDev && self.data.Msg[0].Deviceid == 0x0202 {
+		data,err := json.Marshal(self.createMsg2pmsForSence())
+		if err == nil {
+			rabbitmq.Publish2pms(data, "")
 		}
 	}
 }
@@ -141,19 +170,23 @@ func (self *ManualOpMsgHandle) PushMsg() {
 	res, routingKey, _ := self.createMsg2App()
 	//发送给APP
 	data2app, err := json.Marshal(res)
-	if err != nil {
-		log.Error("One Msg push2app() error = ", err)
-	} else {
+	if err == nil {
 		rabbitmq.Publish2app(data2app, routingKey)
 		rabbitmq.Publish2mns(data2app, "")
 	}
 
 	//发送给PMS
 	data2pms, err := json.Marshal(self.createMsg2pms())
-	if err != nil {
-		log.Error("One Msg push2pms() error = ", err)
-	} else {
+	if err == nil {
 		rabbitmq.Publish2pms(data2pms, "")
+	}
+
+	//电动窗帘作为触发条件
+	if self.data.Records[0].Deviceid == 0x0202 {
+		data,err := json.Marshal(self.createMsg2pmsForSence())
+		if err == nil {
+			rabbitmq.Publish2pms(data, "")
+		}
 	}
 }
 
@@ -193,6 +226,32 @@ func (self *ManualOpMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routin
 	}
 	routingKey = res.DevId
 	return
+}
+
+func (self *ManualOpMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
+	var msg entity.Feibee2AutoSceneMsg
+    var err error
+	alarmFlag := 0
+
+	if alarmFlag,err = strconv.Atoi(self.data.Records[0].Value);err != nil  {
+	    log.Warningf("ManualOpMsgHandle.createMsg2pmsForSence > strconv.Atoi > %s",err)
+	    return msg
+	}
+
+	msg.Cmd = 0xf1
+	msg.Ack = 0
+	msg.Vendor = "feibee"
+	msg.SeqId = 1
+
+	msg.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+	msg.DevId = self.data.Records[0].Uuid
+
+	msg.TriggerType = 0
+
+	msg.AlarmFlag = alarmFlag
+	msg.AlarmType = "curtain"
+
+	return msg
 }
 
 type GtwMsgHandle struct {

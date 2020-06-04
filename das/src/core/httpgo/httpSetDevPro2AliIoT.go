@@ -2,12 +2,18 @@ package httpgo
 
 import (
 	"bytes"
-	"das/core/go-aliyun-sign"
-	"das/core/log"
-	"das/core/redis"
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"time"
+
+	"github.com/valyala/bytebufferpool"
+
+	"das/core/entity"
+	"das/core/go-aliyun-sign"
+	"das/core/log"
+	"das/core/rabbitmq"
+	"das/core/redis"
 )
 //{"code":200,"data":{"isolationId":"a103HWXIkjOlEuzM","expireIn":7200000,"cloudToken":"2b796e0a78a444f084c5512b29dbc37e"},"id":"1509086454181"}
 type aliData struct {
@@ -106,6 +112,7 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro http.NewRequest()，error=", err0)
 		return "", err0
 	}
+	sendAliIOTDownLogMsg(deviceName, req_body.Bytes())
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
@@ -222,4 +229,29 @@ func HttpSetAliPro(deviceName, data, cmd string) (int, error) {
 	}
 
 	return aliResp.Code, nil
+}
+
+func sendAliIOTDownLogMsg(devId string, rawData []byte) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.UUid = devId
+	logMsg.MsgName = "下行设备数据"
+	logMsg.VendorName = "阿里飞燕IOT"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("Json数据：")
+	buf.Write(rawData)
+
+	logMsg.RawData = buf.String()
+
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("createLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
 }

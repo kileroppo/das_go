@@ -22,7 +22,7 @@ import (
 func ProcessJsonMsg(DValue string, devID string) error {
 	// 处理OneNET推送过来的消息
 	log.Info("[", devID, "] ProcessJsonMsg msg from before: ", DValue)
-
+    sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
 	myKey := util.MD52Bytes(devID)
 
 	// 增加二进制包头，以及加密的包体
@@ -824,3 +824,22 @@ func HandleOpenLog(openLog *entity.UploadOpenLockLog) {
 		}
 	}
 }
+
+func sendPadDoorUpLogMsg(devId, oriData, msgName string) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.MsgName = msgName
+	logMsg.UUid = devId
+	logMsg.VendorName = "RabbitMQ"
+	logMsg.RawData = oriData
+
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendPadDoorUpLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
+}
+

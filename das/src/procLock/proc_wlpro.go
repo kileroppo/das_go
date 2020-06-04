@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/json-iterator/go"
+	"github.com/valyala/bytebufferpool"
 
 	"das/core/constant"
 	"das/core/entity"
@@ -54,6 +55,8 @@ func ParseData(mydata interface{}) error {
 		log.Error("ParseData wlMsg.PkDecode, err0=", err0)
 		return err0
 	}
+
+	sendAliIOTUpLogMsg(&wlMsg, data)
 	switch wlMsg.Cmd {
 	case constant.Add_dev_user:			// 新增用户(0x33)(服务器-->前板)
 		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Add_dev_user")
@@ -1044,4 +1047,29 @@ func ParseData(mydata interface{}) error {
 	}
 
 	return nil
+}
+
+func sendAliIOTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.MsgName = "上行设备数据"
+	logMsg.UUid = msg.DevId.Uuid
+	logMsg.VendorName = "阿里飞燕IOT"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("二进制数据：")
+	buf.Write(rawData)
+
+	logMsg.RawData = buf.String()
+
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendAliIOTUpLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
 }
