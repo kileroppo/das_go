@@ -1068,7 +1068,7 @@ func sendAliIOTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
 
 	data,err := json.Marshal(logMsg)
 	if err != nil {
-		log.Warningf("createLogMsg > json.Marshal > %s", err)
+		log.Warningf("sendAliIOTUpLogMsg > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2log(data, "")
 	}
