@@ -51,6 +51,8 @@ func ParseData(mydata interface{}) error {
 
 	var wlMsg wlprotocol.WlMessage
 	bBody, err0 := wlMsg.PkDecode(data)
+	sendMQTTUpLogMsg(&wlMsg)
+//todo
 	if err0 != nil {
 		log.Error("ParseData wlMsg.PkDecode, err0=", err0)
 		return err0
@@ -1069,6 +1071,35 @@ func sendAliIOTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
 	data,err := json.Marshal(logMsg)
 	if err != nil {
 		log.Warningf("sendAliIOTUpLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
+}
+
+func sendMQTTUpLogMsg(msg *wlprotocol.WlMessage) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.MsgName = "上行设备数据"
+	logMsg.UUid = msg.DevId.Uuid
+	logMsg.VendorName = "王力MQTT"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("Json数据：")
+	oriData,err := json.Marshal(&msg)
+	if err != nil {
+		log.Warningf("sendMQTTUpLogMsg > json.Marshal > %s", err)
+		return
+	}
+	buf.Write(oriData)
+
+	logMsg.RawData = buf.String()
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendMQTTUpLogMsg > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2log(data, "")
 	}
