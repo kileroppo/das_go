@@ -27,6 +27,13 @@ func SetDevicePlatformPool(devId string, fields map[string]interface{}) error {
 	// 2592000 过期时间一个月
 	redisCli.Expire(devId+"_platform", time.Second * 60 * 60 * 24 * 30)
 
+	// 设备激活状态存入redis
+	ret1 := redisCli.Set(devId, 1, time.Second * 120) // 写入值120S后过期
+	if nil != ret1.Err() {
+		log.Error("redis SetDevicePlatformPool SetActTimePool failed, key=", devId, ", err=", ret1.Err())
+		return ret1.Err()
+	}
+
 	return nil
 }
 
