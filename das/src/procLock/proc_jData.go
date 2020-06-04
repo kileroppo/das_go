@@ -23,7 +23,6 @@ import (
 func ProcessJsonMsg(DValue string, devID string) error {
 	// 处理OneNET推送过来的消息
 	log.Info("[", devID, "] ProcessJsonMsg msg from before: ", DValue)
-    sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
 	myKey := util.MD52Bytes(devID)
 
 	// 增加二进制包头，以及加密的包体
@@ -67,7 +66,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			log.Info("[", devID, "] After ECBDecrypt, data.Msg.Value: ", DValue)
 		}
 	}
-
+	sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
 	DValue = strings.Replace(DValue, "#", ",", -1)
 	log.Debug("[", devID, "] ProcessJsonMsg() DValue after: ", DValue)
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
