@@ -51,8 +51,25 @@ type TelecomDeviceDataChanged struct {
 	Service    TelecomDeviceServiceData
 }
 
+type LogHeader struct {
+	MsgType   int32  `json:"msgType" bson:"msgType"`
+	Timestamp int64  `json:"timestamp" bson:"timestamp"`
+	RawData   string `json:"rawData,omitempty" bson:"rawData,omitempty"`
+	TimeStr   string `json:"timeStr,omitempty" bson:"timeStr,omitempty"`
+	MsgName   string `json:"msgName,omitempty" bson:"msgName,omitempty"`
+}
+
 type SysLogMsg struct {
-	MsgType   uint8      `json:"msgType"`
-	RawData   string     `json:"rawData"`
-	Timestamp int64      `json:"timestamp"`
+	LogHeader `json:",inline" bson:",inline"`
+
+	UUid      string `json:"uuid,omitempty" bson:"uuid,omitempty"`
+	DevType   string `json:"devType,omitempty" bson:"devType,omitempty"`
+	URL       string `json:"url" bson:"url,omitempty"`
+	UserName  string `json:"username" bson:"username,omitempty"`
+	GtwId     string `json:"gatewayId,omitempty" bson:"gatewayId,omitempty"`
+	Result    string `json:"result" bson:"result,omitempty"`
+	FamilyId  string `json:"familyId,omitempty" bson:"familyId,omitempty"`
+	SceneName string `json:"sceneName,omitempty" bson:"sceneName,omitempty"`
+	VendorName string `json:"vendorName,omitempty" bson:"vendorName,omitempty"`
+	DevName   string `json:"devName,omitempty" bson:"devName,omitempty"`
 }
