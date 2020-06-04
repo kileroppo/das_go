@@ -1,6 +1,11 @@
 package mqtt
 
 import (
+	"das/core/entity"
+	"das/core/rabbitmq"
+	"encoding/hex"
+	"encoding/json"
+	"github.com/valyala/bytebufferpool"
 	"time"
 
 	"github.com/dlintw/goconf"
@@ -53,6 +58,7 @@ func MqttInit(conf *goconf.ConfigFile) {
 }
 
 func WlMqttPublish(uuid string, data []byte) error {
+	go sendMQTTDownLogMsg(uuid, data)
 	if token := mqttcli.Publish(topic2Dev + uuid, 0, false, data); token.Wait() && token.Error() != nil {
 		log.Error("WlMqttPublish failed, err: ", token.Error())
 		return token.Error()
@@ -71,4 +77,28 @@ func GetUuid(cid string) string {
 	uid := cid + uuid.New().String()
 	log.Info("Get MQTT ClientId: ", uid)
 	return uid
+}
+
+func sendMQTTDownLogMsg(devId string, oriData []byte) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.MsgName = "下行设备数据"
+	logMsg.UUid = devId
+	logMsg.VendorName = "王力MQTT"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("十六进制数据：")
+	buf.WriteString(hex.EncodeToString(oriData))
+
+	logMsg.RawData = buf.String()
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendMQTTDownLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
 }
