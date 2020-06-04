@@ -1061,8 +1061,8 @@ func sendAliIOTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
 	buf := bytebufferpool.Get()
 	defer bytebufferpool.Put(buf)
 
-	buf.WriteString("二进制数据：")
-	buf.Write(rawData)
+	buf.WriteString("十六进制数据：")
+	buf.WriteString(hex.EncodeToString(rawData))
 
 	logMsg.RawData = buf.String()
 
