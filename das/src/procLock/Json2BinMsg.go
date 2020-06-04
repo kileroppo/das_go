@@ -1,9 +1,11 @@
 package procLock
 
 import (
+	"das/core/util"
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"das/core/constant"
@@ -39,6 +41,14 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			Ended: wlprotocol.Ended, // 结束标志
 		}
 	case constant.ZIGBEE_PROTOCOL:
+		//1、飞比设备编号去掉下划线
+		retUuid := make([]string, 4)
+		if "" != head.DevId { // uuid不能为空
+			retUuid = strings.FieldsFunc(head.DevId, util.Split) // 去掉下划线后边，如：_01
+		} else {
+			return nil, errors.New("feibee device uuid is nil.")
+		}
+
 		wlMsg = &wlprotocol.WlZigbeeMsg{
 			Started: wlprotocol.ZbStarted, // 开始标志
 			Version: wlprotocol.Version, // 协议版本号
@@ -46,6 +56,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			Cmd:     uint8(head.Cmd),    // 命令
 			Ack:     uint8(head.Ack),    // 回应标志
 			Type:    1,                  // 设备类型
+			Uuid:	retUuid[0],			// 飞比zigbee设备编号
 			Ended: wlprotocol.ZbEnded, // 结束标志
 		}
 	default:

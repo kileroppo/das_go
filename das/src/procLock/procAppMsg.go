@@ -388,8 +388,9 @@ func ProcAppMsg(appMsg string) error {
 			if "" == ret["uuid"] || "" == ret["uid"] {
 				return errors.New("下发给飞比zigbee锁的uuid, uid为空")
 			}
-
-			httpgo.Http2FeibeeZigbeeLock(hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
+			// TODO:JHHE 包体前面增加长度
+			bLen := IntToBytes(len(appData))
+			httpgo.Http2FeibeeZigbeeLock(hex.EncodeToString(bLen)+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 		}
 	default:
 		{
@@ -458,4 +459,18 @@ func sendMQTTDownLogMsg(devId, oriData string) {
 	} else {
 		rabbitmq.Publish2log(data, "")
 	}
+}
+
+func IntToBytes(n int) []byte {
+	data := int64(n)
+	bytebuf := bytes.NewBuffer([]byte{})
+	binary.Write(bytebuf, binary.BigEndian, data)
+	return bytebuf.Bytes()
+}
+
+func BytesToInt(bys []byte) int {
+	bytebuff := bytes.NewBuffer(bys)
+	var data int64
+	binary.Read(bytebuff, binary.BigEndian, &data)
+	return int(data)
 }
