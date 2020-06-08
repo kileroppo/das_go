@@ -54,13 +54,13 @@ func ProcAppMsg(appMsg string) error {
 		//3. 解密数据
 		var myHead entity.MyHeader
 		var strHead string
-		strHead = appMsg[0:16]
+		strHead = devData[0:16]
 		byteHead, _ := hex.DecodeString(strHead)
 		myHead.ApiVersion = util.BytesToInt16(byteHead[0:2])
 		myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
 		myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
 		myHead.CheckSum = util.BytesToInt16(byteHead[6:8])
-		log.Info("[", devID, "] ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
+		log.Info("[", devID, "] ProcAppMsg() ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
 
 		var checkSum uint16
 		var strData string
