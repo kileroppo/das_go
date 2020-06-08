@@ -27,6 +27,7 @@ import (
  */
 func ProcAppMsg(appMsg string) error {
 	log.Debug("ProcAppMsg process msg from app.")
+	var strAppMsg string = appMsg
 	if !strings.ContainsAny(appMsg, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
 		/*log.Error("ProcAppMsg() error msg : ", appMsg)
 		return errors.New("error msg.")*/
@@ -41,8 +42,6 @@ func ProcAppMsg(appMsg string) error {
 		var devData string
 		devID = prData[0]
 		devData = prData[1]
-
-		sendPadDoorUpLogMsg(devID, devData, "下行设备数据")
 
 		//2. 校验数据正确性
 		lens := strings.Count(devData, "") - 1
@@ -87,6 +86,9 @@ func ProcAppMsg(appMsg string) error {
 		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		return err
 	}
+
+	// 记录APP下行日志
+	sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 
 	//2. 数据干预处理
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
