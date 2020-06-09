@@ -308,10 +308,7 @@ func ProcAppMsg(appMsg string) error {
 		{
 			var strToDevData string
 			var err error
-			if constant.PadDoor_RealVideo == head.Cmd ||
-				constant.RangeHood_Control == head.Cmd ||
-				constant.RangeHood_BindUnbind_Lock == head.Cmd ||
-				constant.RangeHood_Query == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
+			if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
 				strToDevData = appMsg
 			} else {
 				// 加密数据
