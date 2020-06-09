@@ -752,22 +752,12 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				rabbitmq.Publish2app([]byte(DValue), head.DevId)
 			}
 		}
-	case constant.RangeHood_BindUnbind_Lock: // 油烟机绑定/解绑视频锁
+	case constant.RangeHood_Ctrl_Query: // 油烟机档位查询
 		{
-			log.Info("[", head.DevId, "] constant.Range_Hood_Bind_Unbind_Lock")
+			log.Info("[", head.DevId, "] constant.RangeHood_Ctrl_Query")
 
-			//1. 根据操作类型新增，还是删除，操作数据关联下的视频锁的绑定，删除
 			if 1 == head.Ack { // 油烟机回应包
-				rabbitmq.Publish2pms([]byte(DValue), "")
-			}
-		}
-	case constant.RangeHood_Query: // 油烟机查询视频锁列表
-		{
-			log.Info("[", head.DevId, "] constant.Range_Hood_Bind_Unbind_Lock")
-
-			//1. 根据版本号，以及数量作比较，不一致，则存入MongoDB
-			if 1 == head.Ack { // 油烟机回应包
-				rabbitmq.Publish2pms([]byte(DValue), "")
+				rabbitmq.Publish2app([]byte(DValue), head.DevId)
 			}
 		}
 	case constant.Scene_Trigger: //中控闹钟触发爱岗场景
