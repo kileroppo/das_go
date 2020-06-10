@@ -62,10 +62,10 @@ func (pm *PMHandle) pushMsg() {
 		opValue = strconv.Itoa(opFlag)
 	case Fb_PM_VOC:
 		opType = "VOC"
-		opValue = strconv.Itoa(opFlag)
+		opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
 	case Fb_PM_Formaldehyde:
 		opType = "formaldehyde"
-		opValue = strconv.Itoa(opFlag)
+		opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
 	case Fb_PM_Temperature:
 		opType = "temperature"
 		opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
