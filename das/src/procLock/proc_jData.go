@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"github.com/valyala/bytebufferpool"
 	"strconv"
 	"strings"
 	"time"
@@ -22,7 +23,6 @@ import (
 func ProcessJsonMsg(DValue string, devID string) error {
 	// 处理OneNET推送过来的消息
 	log.Info("[", devID, "] ProcessJsonMsg msg from before: ", DValue)
-
 	myKey := util.MD52Bytes(devID)
 
 	// 增加二进制包头，以及加密的包体
@@ -66,7 +66,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			log.Info("[", devID, "] After ECBDecrypt, data.Msg.Value: ", DValue)
 		}
 	}
-
+	sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
 	DValue = strings.Replace(DValue, "#", ",", -1)
 	log.Debug("[", devID, "] ProcessJsonMsg() DValue after: ", DValue)
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
@@ -752,22 +752,12 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				rabbitmq.Publish2app([]byte(DValue), head.DevId)
 			}
 		}
-	case constant.RangeHood_BindUnbind_Lock: // 油烟机绑定/解绑视频锁
+	case constant.RangeHood_Ctrl_Query: // 油烟机档位查询
 		{
-			log.Info("[", head.DevId, "] constant.Range_Hood_Bind_Unbind_Lock")
+			log.Info("[", head.DevId, "] constant.RangeHood_Ctrl_Query")
 
-			//1. 根据操作类型新增，还是删除，操作数据关联下的视频锁的绑定，删除
 			if 1 == head.Ack { // 油烟机回应包
-				rabbitmq.Publish2pms([]byte(DValue), "")
-			}
-		}
-	case constant.RangeHood_Query: // 油烟机查询视频锁列表
-		{
-			log.Info("[", head.DevId, "] constant.Range_Hood_Bind_Unbind_Lock")
-
-			//1. 根据版本号，以及数量作比较，不一致，则存入MongoDB
-			if 1 == head.Ack { // 油烟机回应包
-				rabbitmq.Publish2pms([]byte(DValue), "")
+				rabbitmq.Publish2app([]byte(DValue), head.DevId)
 			}
 		}
 	case constant.Scene_Trigger: //中控闹钟触发爱岗场景
@@ -824,3 +814,28 @@ func HandleOpenLog(openLog *entity.UploadOpenLockLog) {
 		}
 	}
 }
+
+func sendPadDoorUpLogMsg(devId, oriData, msgName string) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.MsgName = msgName
+	logMsg.UUid = devId
+	logMsg.VendorName = "RabbitMQ"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("Json数据：")
+	buf.WriteString(oriData)
+
+	logMsg.RawData = buf.String()
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendPadDoorUpLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
+}
+

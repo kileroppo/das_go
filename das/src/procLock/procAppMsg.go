@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/valyala/bytebufferpool"
+
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/httpgo"
@@ -25,6 +27,7 @@ import (
  */
 func ProcAppMsg(appMsg string) error {
 	log.Debug("ProcAppMsg process msg from app.")
+	var strAppMsg string = appMsg
 	if !strings.ContainsAny(appMsg, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
 		/*log.Error("ProcAppMsg() error msg : ", appMsg)
 		return errors.New("error msg.")*/
@@ -50,13 +53,13 @@ func ProcAppMsg(appMsg string) error {
 		//3. 解密数据
 		var myHead entity.MyHeader
 		var strHead string
-		strHead = appMsg[0:16]
+		strHead = devData[0:16]
 		byteHead, _ := hex.DecodeString(strHead)
 		myHead.ApiVersion = util.BytesToInt16(byteHead[0:2])
 		myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
 		myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
 		myHead.CheckSum = util.BytesToInt16(byteHead[6:8])
-		log.Info("[", devID, "] ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
+		log.Info("[", devID, "] ProcAppMsg() ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
 
 		var checkSum uint16
 		var strData string
@@ -83,6 +86,9 @@ func ProcAppMsg(appMsg string) error {
 		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		return err
 	}
+
+	// 记录APP下行日志
+	sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 
 	//2. 数据干预处理
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
@@ -302,10 +308,7 @@ func ProcAppMsg(appMsg string) error {
 		{
 			var strToDevData string
 			var err error
-			if constant.PadDoor_RealVideo == head.Cmd ||
-				constant.RangeHood_Control == head.Cmd ||
-				constant.RangeHood_BindUnbind_Lock == head.Cmd ||
-				constant.RangeHood_Query == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
+			if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
 				strToDevData = appMsg
 			} else {
 				// 加密数据
@@ -384,8 +387,10 @@ func ProcAppMsg(appMsg string) error {
 			if "" == ret["uuid"] || "" == ret["uid"] {
 				return errors.New("下发给飞比zigbee锁的uuid, uid为空")
 			}
-
-			httpgo.Http2FeibeeZigbeeLock(hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
+			// TODO:JHHE 包体前面增加长度
+			bLen := IntToBytes(len(appData))
+			strLen := hex.EncodeToString(bLen)
+			httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:]+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 		}
 	default:
 		{
@@ -430,4 +435,42 @@ func pushMsgForSave(msg *entity.RangeHoodAlarm) {
 		return
 	}
 	rabbitmq.Publish2pms(data2pms, "")
+}
+
+func sendMQTTDownLogMsg(devId, oriData string) {
+	var logMsg entity.SysLogMsg
+
+	logMsg.Timestamp = time.Now().Unix()
+	logMsg.MsgType = 4
+	logMsg.MsgName = "下行设备数据"
+	logMsg.UUid = devId
+	logMsg.VendorName = "王力MQTT"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("Json数据：")
+	buf.WriteString(oriData)
+
+	logMsg.RawData = buf.String()
+	data,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendMQTTDownLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
+}
+
+func IntToBytes(n int) []byte {
+	data := int64(n)
+	bytebuf := bytes.NewBuffer([]byte{})
+	binary.Write(bytebuf, binary.BigEndian, data)
+	return bytebuf.Bytes()
+}
+
+func BytesToInt(bys []byte) int {
+	bytebuff := bytes.NewBuffer(bys)
+	var data int64
+	binary.Read(bytebuff, binary.BigEndian, &data)
+	return int(data)
 }

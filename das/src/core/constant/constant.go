@@ -92,15 +92,13 @@ const (
 	PadDoor_RealVideo 			= 0x1001 // 平板锁实时视频
 	PadDoor_Weather 			= 0x1002 // 平板锁当前天气
 	Set_AIPad_Reboot_Time 		= 0x1003 // 设置中控网关定时参数
-	PadDoor_Persons_check 		= 0x1004 // 平板锁人流检测上报
 	RangeHood_Control 			= 0x1005 // 油烟机档位控制
-	RangeHood_BindUnbind_Lock   = 0x1006 // 油烟机绑定/解绑视频锁
-	RangeHood_Query 			= 0x1007 // 油烟机查询视频锁列表
-	Body_Fat_Scale              = 0x1008 //体脂称数据上报
+	RangeHood_Ctrl_Query	    = 0x1006 // 油烟机档位查询
+	Body_Fat_Scale              = 0x1008 // 体脂称数据上报
 
-	PadDoor_Num_Upload = 0x1100 // 平板锁人流检测上报
-	PadDoor_Num_Reset  = 0x1101
-	Scene_Trigger = 0xf1 //爱岗场景触发（中控平板的闹钟作为触发条件）
+	PadDoor_Num_Upload 			= 0x1100 // 平板锁人流检测上报
+	PadDoor_Num_Reset  			= 0x1101 // 平板门锁人流检测重置
+	Scene_Trigger 				= 0xf1   //爱岗场景触发（中控平板的闹钟作为触发条件）
 
 )
 
