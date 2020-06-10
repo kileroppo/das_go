@@ -390,7 +390,7 @@ func ProcAppMsg(appMsg string) error {
 			// TODO:JHHE 包体前面增加长度
 			bLen := IntToBytes(len(appData))
 			strLen := hex.EncodeToString(bLen)
-			httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:]+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
+			httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:] + "00" +hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 		}
 	default:
 		{
