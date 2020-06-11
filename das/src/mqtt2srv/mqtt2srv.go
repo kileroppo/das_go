@@ -73,6 +73,7 @@ var msgCallback_test mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 //订阅回调函数；设备上线消息 connected
 var conCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	log.Debug("conCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
+	/* TODO:JHHE WiFi锁去掉在线侦测
 	var conMsg = msg.Payload()
 	var conEvent ConDisEvent
 	if err := json.Unmarshal(conMsg, &conEvent); err != nil {
@@ -98,7 +99,7 @@ var conCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 		rabbitmq.Publish2app(toApp_str, devAct.DevId)
 	} else {
 		log.Error("[", conEvent.Clientid, "] mqtt.MessageHandler conCallback device connected, resp to APP, json.Marshal, err=", err)
-	}
+	}*/
 }
 
 //订阅回调函数；设备下线消息 disconnected
