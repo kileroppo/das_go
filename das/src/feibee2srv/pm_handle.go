@@ -60,11 +60,11 @@ func (pm *PMHandle) pushMsg() {
     opType, opValue := "", ""
     opFlag := 0
 
-    if len(pm.Protocal.Value) >= 4 {
-		opFlag = int(uint16(pm.Protocal.Value[3]) | (uint16(pm.Protocal.Value[4]) << 8))
-	} else if len(pm.Protocal.Value) == 2 {
-		opFlag = int(uint16(pm.Protocal.Value[3]))
+    if len(pm.Protocal.Value) < 5 {
+    	return
 	}
+
+    opFlag = int(uint16(pm.Protocal.Value[3]) | (uint16(pm.Protocal.Value[4]) << 8))
 
 	switch pm.Protocal.Cluster {
 	case Fb_PM_PM25:
@@ -84,6 +84,8 @@ func (pm *PMHandle) pushMsg() {
 		opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
 	case Fb_PM_CO2:
 		pm.decodeCO2()
+		return
+	default:
 		return
 	}
 	pm.push2pmsForSave(opType, opValue, opFlag)
