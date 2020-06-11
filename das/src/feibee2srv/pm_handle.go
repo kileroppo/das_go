@@ -52,9 +52,19 @@ func (pm *PMHandle) decodeHeader() (err error) {
 }
 
 func (pm *PMHandle) pushMsg() {
+	if pm.Protocal.Value[2] != 0x21 {
+		return
+	}
+
 	pm.initMsg()
     opType, opValue := "", ""
-	opFlag := int(uint16(pm.Protocal.Value[3]) | (uint16(pm.Protocal.Value[4]) << 8))
+    opFlag := 0
+
+    if len(pm.Protocal.Value) >= 4 {
+		opFlag = int(uint16(pm.Protocal.Value[3]) | (uint16(pm.Protocal.Value[4]) << 8))
+	} else if len(pm.Protocal.Value) == 2 {
+		opFlag = int(uint16(pm.Protocal.Value[3]))
+	}
 
 	switch pm.Protocal.Cluster {
 	case Fb_PM_PM25:
