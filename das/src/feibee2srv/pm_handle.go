@@ -52,9 +52,19 @@ func (pm *PMHandle) decodeHeader() (err error) {
 }
 
 func (pm *PMHandle) pushMsg() {
+	if pm.Protocal.Value[2] != 0x21 {
+		return
+	}
+
 	pm.initMsg()
     opType, opValue := "", ""
-	opFlag := int(uint16(pm.Protocal.Value[3]) | (uint16(pm.Protocal.Value[4]) << 8))
+    opFlag := 0
+
+    if len(pm.Protocal.Value) >= 4 {
+		opFlag = int(uint16(pm.Protocal.Value[3]) | (uint16(pm.Protocal.Value[4]) << 8))
+	} else if len(pm.Protocal.Value) == 2 {
+		opFlag = int(uint16(pm.Protocal.Value[3]))
+	}
 
 	switch pm.Protocal.Cluster {
 	case Fb_PM_PM25:
@@ -62,10 +72,10 @@ func (pm *PMHandle) pushMsg() {
 		opValue = strconv.Itoa(opFlag)
 	case Fb_PM_VOC:
 		opType = "VOC"
-		opValue = strconv.Itoa(opFlag)
+		opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
 	case Fb_PM_Formaldehyde:
 		opType = "formaldehyde"
-		opValue = strconv.Itoa(opFlag)
+		opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
 	case Fb_PM_Temperature:
 		opType = "temperature"
 		opValue = fmt.Sprintf("%0.2f", float64(opFlag)/float64(100))
