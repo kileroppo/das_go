@@ -650,6 +650,50 @@ func (self *FeibeeSceneHandle) createMsg2mns() (res entity.Feibee2DevMsg){
 	return
 }
 
+type CurtainDevgreeHandle struct {
+	data *entity.FeibeeData
+}
+
+func (self *CurtainDevgreeHandle) PushMsg() {
+	self.publish2app()
+}
+
+func (self *CurtainDevgreeHandle) publish2app() {
+	i,err := strconv.ParseInt(self.data.Records[0].Value, 16, 64)
+	if err != nil {
+		log.Warningf("CurtainDevgreeHandle.publish2app > strconv.ParseInt > %s", err)
+		return
+	}
+
+	msg := entity.Feibee2DevMsg{
+		Header:        entity.Header{
+			Cmd:     0xfb,
+			Ack:     0,
+			DevType: devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype),
+			DevId:  self.data.Records[0].Uuid,
+			Vendor:  "feibee",
+			SeqId:   0,
+		},
+		Note:          "",
+		Deviceuid:     self.data.Records[0].Deviceuid,
+		Online:        0,
+		Battery:       0,
+		OpType:        "devDegree",
+		OpValue:       strconv.FormatInt(i, 10),
+		Time:          int(time.Now().Unix()),
+		Bindid:        self.data.Records[0].Bindid,
+		Snid:          self.data.Records[0].Snid,
+		SceneMessages: nil,
+	}
+
+	data,err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("CurtainDevgreeHandle.publish2app > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.Header.DevId)
+	}
+}
+
 func createSceneMsg2pms(data *entity.FeibeeData, alarmFlag int, alarmType string) (res entity.Feibee2AutoSceneMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0

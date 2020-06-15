@@ -33,6 +33,8 @@ const (
 	Airer            //晾衣架
 	PM25             //PM2.5
 	PM               //PM 5合1
+	Curtain          //窗帘
+	CurtainDegree    //窗帘开关程度
 
 	SensorVol
 	SensorBatt
@@ -77,6 +79,8 @@ var (
 		0x02040001: Airer,            //晾衣架
 		0x03090001: PM25,
 		0x030a0001: PM,
+		0x02020001: Curtain,              //窗帘
+		0x02020002: Curtain,
 
 		0x01060001: IlluminanceSensor,       //光照度传感器
 		0x03020001: TemperAndHumiditySensor, //温湿度传感器
@@ -91,6 +95,7 @@ var (
 
 	otherMsgTyp = map[int]MsgType{
 		//get key by feibee: cid,aid
+		0x00080000: CurtainDegree, //窗帘开关程度
 		0xf0f0f0f0: SceneSwitch,
 		0x00060000: ManualOpDev,
 		0x05000080: BaseSensor, //传感器
@@ -132,6 +137,8 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &FbLockHandle{data: data}
 	case PM:
 		msgHandle = &PMHandle{data:data}
+	case CurtainDegree:
+		msgHandle = &CurtainDevgreeHandle{data:data}
 	default:
 		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
@@ -155,6 +162,9 @@ func getMsgTyp(data *entity.FeibeeData) (typ MsgType) {
 		} else {
 			typ, ok = spDevMsgTyp[getSpMsgKey(data.Records[0].Deviceid, data.Records[0].Zonetype)]
 			if ok {
+				if typ == Curtain {
+					typ = otherMsgTyp[getSpMsgKey(data.Records[0].Cid, data.Records[0].Aid)]
+				}
 				return
 			} else {
 				typ, ok = otherMsgTyp[getSpMsgKey(data.Records[0].Cid, data.Records[0].Aid)]
