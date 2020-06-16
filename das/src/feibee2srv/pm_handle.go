@@ -36,10 +36,6 @@ func (pm *PMHandle) decodeHeader() (err error) {
 }
 
 func (pm *PMHandle) pushMsg() {
-	if pm.Protocal.Value[2] != 0x21 {
-		return
-	}
-
 	opType, opValue := "", ""
 	opFlag := 0
 
