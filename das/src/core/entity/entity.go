@@ -73,3 +73,9 @@ type SysLogMsg struct {
 	VendorName string `json:"vendorName,omitempty" bson:"vendorName,omitempty"`
 	DevName   string `json:"devName,omitempty" bson:"devName,omitempty"`
 }
+
+type TuyaMsg struct {
+	Header
+
+	OriData string `json:"oriData,omitempty"`
+}

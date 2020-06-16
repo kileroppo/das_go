@@ -4,6 +4,7 @@ import (
 	"das/core/mqtt"
 	"das/mqtt2srv"
 	"das/procLock"
+	"das/tuya2srv"
 	xm2srv2 "das/xm2srv"
 	"net/http"
 	_ "net/http/pprof"
@@ -48,6 +49,8 @@ func main() {
 	//8. 启动雄迈告警消息接收
 	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
 
+	go tuya2srv.Tuya2SrvStart()
+
 	//9. 启动MQTT
 	mqtt.MqttInit(conf)		// 发布端
 	mqtt2srv.MqttInit(conf)	// 订阅接收端
@@ -85,6 +88,8 @@ func main() {
 
 	//15. 停止rabbitmq连接
 	rabbitmq.Close()
+
+	tuya2srv.Close()
 
 	//16. 停止OneNETHTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
