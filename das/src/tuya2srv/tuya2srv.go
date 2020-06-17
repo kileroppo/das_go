@@ -2,19 +2,18 @@ package tuya2srv
 
 import (
 	"context"
-	"das/core/entity"
-	"das/core/rabbitmq"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tyutils"
-	"github.com/tidwall/gjson"
 
 	pulsar "github.com/TuyaInc/tuya_pulsar_sdk_go"
 	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tylog"
+	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tyutils"
 	"github.com/sirupsen/logrus"
-	_ "github.com/tidwall/gjson"
+	"github.com/tidwall/gjson"
 
+	"das/core/entity"
 	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 var consumer pulsar.Consumer
@@ -28,7 +27,7 @@ func Tuya2SrvStart() {
 
 	log.Info("Tuya2SrvStart...")
 
-	pulsar.SetInternalLogLevel(logrus.WarnLevel)
+	pulsar.SetInternalLogLevel(logrus.DebugLevel)
 	opt := tylog.WithMaxSizeOption(10)
 	tylog.SetGlobalLog("sdk", true, opt)
 
@@ -163,6 +162,8 @@ func (t *TuyaHandle) decryptData(payload []byte) (jsonData []byte, err error) {
 }
 
 func Close() {
-    consumer.Stop()
+	if consumer != nil {
+		consumer.Stop()
+	}
     log.Info("Tuya2Srv close")
 }
