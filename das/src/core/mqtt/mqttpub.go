@@ -13,6 +13,7 @@ import (
 var (
 	mqttcli mqtt.Client
 	topic2Dev string = "wonly/things/smartlock/"
+	topic2Pad string = "wonly/things/smartpad/"
 )
 
 func MqttInit(conf *goconf.ConfigFile) {
@@ -55,6 +56,15 @@ func MqttInit(conf *goconf.ConfigFile) {
 func WlMqttPublish(uuid string, data []byte) error {
 	if token := mqttcli.Publish(topic2Dev + uuid, 0, false, data); token.Wait() && token.Error() != nil {
 		log.Error("WlMqttPublish failed, err: ", token.Error())
+		return token.Error()
+	}
+
+	return nil
+}
+
+func WlMqttPublishPad(uuid string, data string) error {
+	if token := mqttcli.Publish(topic2Pad + uuid, 0, false, data); token.Wait() && token.Error() != nil {
+		log.Error("WlMqttPublishPad failed, err: ", token.Error())
 		return token.Error()
 	}
 
