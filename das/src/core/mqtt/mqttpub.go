@@ -42,7 +42,7 @@ func MqttInit(conf *goconf.ConfigFile) {
 	opts.SetUsername(user)
 	opts.SetPassword(pwd)
 	opts.SetClientID(GetUuid(cid))
-	opts.SetKeepAlive(15 * time.Second)
+	opts.SetKeepAlive(30 * time.Second)
 	opts.SetDefaultPublishHandler(nil)
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetCleanSession(true)
