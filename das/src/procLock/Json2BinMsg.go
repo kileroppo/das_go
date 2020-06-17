@@ -361,39 +361,69 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			return nil, err
 		}
 
-		pdu := &wlprotocol.WiFiSet{
-			// Ssid: setWifi.WifiSsid,		// Ssid（32）
-			// Passwd: setWifi.WifiPwd,		// 密码（16）
-		}
-		wifiSsid := []byte(setWifi.WifiSsid)
-		for i := 0; i < len(wifiSsid); i++ {
-			if i < 32 {
-				pdu.Ssid[i] = wifiSsid[i]
-			}
-		}
-		wifiPwd := []byte(setWifi.WifiPwd)
-		for i := 0; i < len(wifiPwd); i++ {
-			if i < 16 {
-				pdu.Passwd[i] = wifiPwd[i]
-			}
-		}
+		switch wlProtocol {
+		case constant.GENERAL_PROTOCOL:
+			{
+				pdu := &wlprotocol.WiFiSet{
+					// Ssid: setWifi.WifiSsid,		// Ssid（32）
+					// Passwd: setWifi.WifiPwd,		// 密码（16）
+				}
+				wifiSsid := []byte(setWifi.WifiSsid)
+				for i := 0; i < len(wifiSsid); i++ {
+					if i < 32 {
+						pdu.Ssid[i] = wifiSsid[i]
+					}
+				}
+				wifiPwd := []byte(setWifi.WifiPwd)
+				for i := 0; i < len(wifiPwd); i++ {
+					if i < 16 {
+						pdu.Passwd[i] = wifiPwd[i]
+					}
+				}
 
-		bData, err_ := wlMsg.PkEncode(pdu)
-		if nil != err_ {
-			log.Error("WlJson2BinMsg() Set_Wifi wlMsg.PkEncode, error: ", err_)
-			return nil, err_
-		}
-		return bData, nil
+				bData, err_ := wlMsg.PkEncode(pdu)
+				if nil != err_ {
+					log.Error("WlJson2BinMsg() Set_Wifi wlMsg.PkEncode, error: ", err_)
+					return nil, err_
+				}
+				return bData, nil
+			}
+		case constant.ZIGBEE_PROTOCOL:
+			{
+				pdu := &wlprotocol.WiFiSet_Zigbee {
+					// Ssid: setWifi.WifiSsid,		// Ssid（16）
+					// Passwd: setWifi.WifiPwd,		// 密码（16）
+				}
+				wifiSsid := []byte(setWifi.WifiSsid)
+				for i := 0; i < len(wifiSsid); i++ {
+					if i < 16 {
+						pdu.Ssid[i] = wifiSsid[i]
+					}
+				}
+				wifiPwd := []byte(setWifi.WifiPwd)
+				for i := 0; i < len(wifiPwd); i++ {
+					if i < 16 {
+						pdu.Passwd[i] = wifiPwd[i]
+					}
+				}
 
+				bData, err_ := wlMsg.PkEncode(pdu)
+				if nil != err_ {
+					log.Error("WlJson2BinMsg() Set_Wifi wlMsg.PkEncode, error: ", err_)
+					return nil, err_
+				}
+				return bData, nil
+			}
+		default:
+			return nil, errors.New("协议选择错误")
+		}
 	case constant.Notify_F_Upgrade: // 通知前板升级（APP—后台—>锁）
 		{
 			log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
-
 		}
 	case constant.Notify_B_Upgrade: // 通知后板升级（APP—后台—>锁）
 		{
 			log.Info("[", head.DevId, "] constant.Notify_B_Upgrade")
-
 		}
 	default:
 		log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)

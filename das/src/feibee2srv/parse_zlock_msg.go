@@ -536,7 +536,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			PaValue2: pdu.ParamValue2,
 		}
 
-		if constant.IPC_SN_PNO == pdu.ParamNo || constant.WIFI_SSID_PNO == pdu.ParamNo || constant.PROJECT_No_PNO == pdu.ParamNo {
+		if constant.IPC_SN_PNO == pdu.ParamNo || constant.PROJECT_No_PNO == pdu.ParamNo {
 			var byteData []byte
 			rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
 			paramValue, ok := pdu.ParamValue.(string)
@@ -546,6 +546,27 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			}
 			for m:=0;m<len(paramValue);m++{
 				if m >= 32 {
+					break
+				}
+				byteData =  append(byteData, paramValue[m])
+			}
+			index := bytes.IndexByte(byteData, 0)
+			if -1 == index {
+				rbyf_pn = byteData[0:len(byteData)]
+			} else {
+				rbyf_pn = byteData[0:index]
+			}
+			lockParam.PaValue = string(rbyf_pn[:])
+		} else if constant.WIFI_SSID_PNO == pdu.ParamNo {
+			var byteData []byte
+			rbyf_pn := make([]byte, 16, 16)    //make语法声明 ，len为16，cap为16
+			paramValue, ok := pdu.ParamValue.(string)
+			if !ok {
+				log.Error("ParseZlockData Update_dev_para pdu.ParamValue.(string), ok=", ok)
+				return nil
+			}
+			for m:=0;m<len(paramValue);m++{
+				if m >= 16 {
 					break
 				}
 				byteData =  append(byteData, paramValue[m])
@@ -853,11 +874,11 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Set_Wifi:				// Wifi设置(0x37)(服务器-->前板)
-		log.Info("[", uuid, "] ParseZlockData constant.Set_Wifi")
-		pdu := &wlprotocol.WiFiSet{}
+		log.Info("[", uuid, "] ParseZlockData constant.Set_Wifi Zigbee")
+		pdu := &wlprotocol.WiFiSet_Zigbee{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
-			log.Error("ParseZlockData Set_Wifi pdu.Decode, err=", err)
+			log.Error("ParseZlockData Set_Wifi Zigbee pdu.Decode, err=", err)
 			return err
 		}
 
@@ -874,9 +895,9 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		}
 
 		var byteData []byte
-		rbyf_pn := make([]byte, 32, 32)    //make语法声明 ，len为32，cap为32
+		rbyf_pn := make([]byte, 16, 16)    //make语法声明 ，len为16，cap为32
 		for m:=0;m<len(pdu.Ssid);m++{
-			if m >= 32 {
+			if m >= 16 {
 				break
 			}
 			byteData =  append(byteData, pdu.Ssid[m])
@@ -891,7 +912,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 
 		byteData = byteData[0:0]
 		for m:=0;m<len(pdu.Passwd);m++{
-			if m >= 32 {
+			if m >= 16 {
 				break
 			}
 			byteData = append(byteData, pdu.Passwd[m])
