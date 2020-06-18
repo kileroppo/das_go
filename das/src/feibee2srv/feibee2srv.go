@@ -16,6 +16,10 @@ import (
 	"das/core/rabbitmq"
 )
 
+var (
+	ErrFeibeeMsgInvalid = errors.New("the feibee message's structure is invalid")
+)
+
 type FeibeeJob struct {
 	rawData []byte
 }
@@ -35,8 +39,10 @@ func (f FeibeeJob) Handle() {
 		}
 	}()
 
-	log.Debugf("feibee2srv.Handle() get: %s", f.rawData)
-	ProcessFeibeeMsg(f.rawData)
+	err := ProcessFeibeeMsg(f.rawData)
+	if err != nil {
+		log.Warningf("FeibeeJob.Handle > %s", err)
+	}
 }
 
 func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -102,8 +108,7 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
-		err := errors.New("the feibee message's structure is invalid")
-		log.Debug(err)
+		log.Warningf("ProcessFeibeeMsg > %s", ErrFeibeeMsgInvalid)
 		return err
 	}
 
@@ -117,7 +122,7 @@ func NewFeibeeData(data []byte) (FeibeeData, error) {
 	var feibeeData FeibeeData
 
 	if err := json.Unmarshal(data, &feibeeData.data); err != nil {
-		log.Error("NewFeibeeData() unmarshal error = ", err)
+		log.Errorf("NewFeibeeData > json.Unmarshal > %s", err)
 		return feibeeData, err
 	}
 
@@ -221,7 +226,7 @@ func sendFeibeeLogMsg(rawData []byte) {
 
     data,err := json.Marshal(logMsg)
     if err != nil {
-    	log.Warningf("createLogMsg > json.Marshal > %s", err)
+    	log.Warningf("sendFeibeeLogMsg > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2log(data, "")
 	}
