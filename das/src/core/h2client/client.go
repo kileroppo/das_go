@@ -31,9 +31,9 @@ const (
 )
 
 var (
-	ReadFrameErr = errors.New("read frame error")
-	TLSDialErr   = errors.New("tls dial error")
-	ConnCloseErr = errors.New("conn is closed")
+	ErrReadFrame = errors.New("read frame error")
+	ErrTLSDial   = errors.New("tls dial error")
+	ErrConnClose = errors.New("conn is closed")
 )
 
 type H2Client struct {
@@ -93,7 +93,7 @@ func (h2 *H2Client) init() error {
 	h2.conn, err = tls.DialWithDialer(h2.dialer, "tcp", h2.addr, h2.tlsConfig)
 	if err != nil {
 		log.Error("tls.DialWithDialer() error = ", err.Error())
-		return TLSDialErr
+		return ErrTLSDial
 	}
 
 	h2.hdec = hpack.NewDecoder(4096, nil)
@@ -163,6 +163,8 @@ func (h2 *H2Client) do() error {
 		return err
 	}
 
+	log.Info("AliIOTSrv connection succeeded")
+
 	h2.sendPreface()
 	h2.sendWriteSettings()
 	h2.framer.WriteWindowUpdate(0, 1<<30)
@@ -173,7 +175,6 @@ func (h2 *H2Client) do() error {
 		return err
 	}
 
-	go h2.ctxDetect()
 	go h2.heartBeat()
 
 	if err := h2.readLoop(); err != nil {
@@ -275,7 +276,6 @@ func (h2 *H2Client) heartBeat() {
 		case <-h2.reCh:
 			continue
 		case <-time.After(time.Second * 30):
-
 			if err := h2.framer.WritePing(false, [8]byte{'h', 'e', 'l', 'l', 'o', 'h', '2', 's'}); err != nil {
 				log.Error("heartBeat() error = ", err)
 				//log.Info("H2Client reConn...")
@@ -294,69 +294,66 @@ func (h2 *H2Client) readLoop() error {
 
 	frameProc := NewFrameHandler(h2)
 	for {
-		fra, err := h2.framer.ReadFrame()
-		h2.reCh <- struct{}{}
-
-		if err != nil {
-			log.Error("ReadFrame() error = ", err)
-			h2.Close()
-			return ReadFrameErr
-		}
-		//帧处理
-		switch f := fra.(type) {
-		case *http2.HeadersFrame:
-			//log.Info("Receive HeadersFrame: ", f.Header().String())
-			frameProc.HandleHeadersFrame(f)
-			h2.bw.Flush()
-
-		case *http2.DataFrame:
-			//log.Info("Receive DataFrame: ", string(f.Data()))
-			frameProc.HandleDataFrame(f)
-			//h2.bw.Flush()
-
-		case *http2.SettingsFrame:
-			//log.Info("Receive SettingsFrame:", f.String())
-			//for i := 0; i < f.NumSettings(); i++ {
-			//	log.Debugf("setting: %s\n", f.Setting(i).String())
-			//}
-			if !f.Header().Flags.Has(http2.FlagSettingsAck) {
-				h2.sendSettingAck()
-				//log.Info("SettingsFrame is ack")
-			}
-
-		case *http2.GoAwayFrame:
-			log.Info("receive GoAwayFrame:", f.String())
-			h2.Close()
-			return ConnCloseErr
-
-		case *http2.PushPromiseFrame:
-			//log.Info("receive PushPromiseFrame:", f.String())
-
-		case *http2.WindowUpdateFrame:
-			//log.Info("receive WindowUpdateFrame:", f.String())
-
-		case *http2.ContinuationFrame:
-			//log.Info("receive ContinuationFrame:", f.String())
-
-		case *http2.RSTStreamFrame:
-			//log.Info("receive RSTStreamFrame:", f.String())
-
-		case *http2.PingFrame:
-			//log.Info("receive PingFrame:", f.String())
-
+		select {
+		case <-h2.ctx.Done():
+			h2.conn.Close()
+			log.Info("H2Client.readLoop > close")
+			return ErrConnClose
 		default:
-			log.Info("unknown frame")
+			fra, err := h2.framer.ReadFrame()
+			h2.reCh <- struct{}{}
+
+			if err != nil {
+				log.Error("ReadFrame() error = ", err)
+				h2.Close()
+				return ErrReadFrame
+			}
+			//帧处理
+			switch f := fra.(type) {
+			case *http2.HeadersFrame:
+				//log.Info("Receive HeadersFrame: ", f.Header().String())
+				frameProc.HandleHeadersFrame(f)
+				h2.bw.Flush()
+
+			case *http2.DataFrame:
+				//log.Info("Receive DataFrame: ", string(f.Data()))
+				frameProc.HandleDataFrame(f)
+				//h2.bw.Flush()
+
+			case *http2.SettingsFrame:
+				//log.Info("Receive SettingsFrame:", f.String())
+				//for i := 0; i < f.NumSettings(); i++ {
+				//	log.Debugf("setting: %s\n", f.Setting(i).String())
+				//}
+				if !f.Header().Flags.Has(http2.FlagSettingsAck) {
+					h2.sendSettingAck()
+					//log.Info("SettingsFrame is ack")
+				}
+
+			case *http2.GoAwayFrame:
+				log.Info("receive GoAwayFrame:", f.String())
+				h2.Close()
+				return ErrConnClose
+
+			case *http2.PushPromiseFrame:
+				//log.Info("receive PushPromiseFrame:", f.String())
+
+			case *http2.WindowUpdateFrame:
+				//log.Info("receive WindowUpdateFrame:", f.String())
+
+			case *http2.ContinuationFrame:
+				//log.Info("receive ContinuationFrame:", f.String())
+
+			case *http2.RSTStreamFrame:
+				//log.Info("receive RSTStreamFrame:", f.String())
+
+			case *http2.PingFrame:
+				//log.Info("receive PingFrame:", f.String())
+
+			default:
+				log.Info("unknown frame")
+			}
 		}
-	}
-
-	return nil
-}
-
-func (h2 *H2Client) ctxDetect() {
-	select {
-	case <-h2.ctx.Done():
-		h2.Close()
-		return
 	}
 }
 
