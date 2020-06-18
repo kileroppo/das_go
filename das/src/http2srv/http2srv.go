@@ -153,18 +153,22 @@ func (r RGJob) Handle() {
 			log.Error(err)
 		}
 	}()
+	devId := gjson.GetBytes(r.rawData, "mid").String()
+	if len(devId) == 0 {
+		return
+	}
 
 	msg := entity.OtherVendorDevMsg{
-		Header:  entity.Header{
-			Cmd: 0x1200,
-			DevId:gjson.GetBytes(r.rawData, "mid").String(),
-			Vendor: "rg",
+		Header: entity.Header{
+			Cmd:     0x1200,
+			DevId:   devId,
+			Vendor:  "rg",
 			DevType: "",
 		},
 		OriData: util.Bytes2Str(r.rawData),
 	}
 
-	data,err := json.Marshal(msg)
+	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Warningf("RGJob.Handle > json.Marshal > %s", err)
 	} else {
