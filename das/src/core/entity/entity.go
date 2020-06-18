@@ -74,7 +74,7 @@ type SysLogMsg struct {
 	DevName   string `json:"devName,omitempty" bson:"devName,omitempty"`
 }
 
-type TuyaMsg struct {
+type OtherVendorDevMsg struct {
 	Header
 
 	OriData string `json:"oriData,omitempty"`

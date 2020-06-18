@@ -1,7 +1,9 @@
-package xm2srv
+package http2srv
 
 import (
+	"das/core/util"
 	"encoding/json"
+	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -15,7 +17,7 @@ import (
 	"das/core/rabbitmq"
 )
 
-func XM2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
+func OtherVendorHttp2SrvStart(conf *goconf.ConfigFile) *http.Server {
 	isHttps, err := conf.GetBool("xm2http", "is_https")
 
 	if err != nil {
@@ -31,34 +33,34 @@ func XM2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
 
 	http.HandleFunc("/xm", XMAlarmMsgHandler)
 	http.HandleFunc("/yk", XKMsgHandler)
+	http.HandleFunc("/rg", RGMsgHandler)
 
 	go func() {
 		if isHttps {
-			log.Info("XM2HttpSrvStart ListenAndServeTLS() start...")
+			log.Info("OtherVendorHttp2SrvStart ListenAndServeTLS() start...")
 			serverCrt, _ := conf.GetString("https", "https_server_crt")
 			serverKey, _ := conf.GetString("https", "https_server_key")
 			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
-				log.Error("XM2HttpSrvStart ListenAndServeTLS() error = ", err_https)
+				log.Error("OtherVendorHttp2SrvStart ListenAndServeTLS() error = ", err_https)
 			}
 		} else {
-			log.Info("XM2HttpSrvStart ListenAndServer() start...")
+			log.Info("OtherVendorHttp2SrvStart ListenAndServer() start...")
 			if err_http := srv.ListenAndServe(); err_http != nil {
-				log.Error("XM2HttpSrvStart ListenAndServer() error = ", err_http)
+				log.Error("OtherVendorHttp2SrvStart ListenAndServer() error = ", err_http)
 			}
 		}
 	}()
 
 	return srv
-
 }
 
 func XMAlarmMsgHandler(res http.ResponseWriter, req *http.Request) {
 	rawData, err := ioutil.ReadAll(req.Body)
 	defer req.Body.Close()
 	if err != nil {
-		log.Error("Get XM alarm msg Body failed")
+		log.Errorf("XMAlarmMsgHandler > ioutil.ReadAll > %s", err)
 	} else {
-		log.Infof("Get XM alarm msg: %s", rawData)
+		log.Infof("XMAlarmMsgHandler recv: %s", rawData)
 	}
 }
 
@@ -67,9 +69,22 @@ func XKMsgHandler(res http.ResponseWriter, req *http.Request) {
 	defer req.Body.Close()
 
 	if err != nil {
-		log.Error("get yk http Body failed")
+		log.Errorf("XKMsgHandler > ioutil.ReadAll > %s", err)
 	} else {
+		log.Infof("XKMsgHandler recv: %s", rawData)
 		jobque.JobQueue <- NewYKJob(rawData)
+	}
+}
+
+func RGMsgHandler(res http.ResponseWriter, req *http.Request) {
+	rawData, err := ioutil.ReadAll(req.Body)
+	defer req.Body.Close()
+
+	if err != nil {
+		log.Errorf("RGMsgHandler > ioutil.ReadAll > %s", err)
+	} else {
+		log.Infof("RGMsgHandler recv: %s", rawData)
+		jobque.JobQueue <- RGJob{rawData: rawData}
 	}
 }
 
@@ -83,17 +98,15 @@ func (y YKJob) Handle() {
 			log.Error(err)
 		}
 	}()
-    //todo(zh): 遥看红外宝在线状态推送处理
-	log.Debugf("yk2srv.Handle() get: %s", y.rawData)
 	ProcessYKMsg(y.rawData)
 }
 
-func ProcessYKMsg(rawData []byte)  {
+func ProcessYKMsg(rawData []byte) {
 	msg2app := entity.Feibee2DevMsg{
-		Header:        entity.Header{
-			Cmd:0xfb,
-			DevType:"WonlyYKInfrared",
-			Vendor:"yk",
+		Header: entity.Header{
+			Cmd:     0xfb,
+			DevType: "WonlyYKInfrared",
+			Vendor:  "yk",
 		},
 		Note:          "",
 		Deviceuid:     0,
@@ -117,7 +130,7 @@ func ProcessYKMsg(rawData []byte)  {
 	msg2app.OpValue = strconv.Itoa(msg.Online)
 	msg2app.Time = msg.Timestamp
 
-	data2app,err := json.Marshal(msg2app)
+	data2app, err := json.Marshal(msg2app)
 	if err != nil {
 		log.Warningf("ProcessYKMsg > json.Marshal > %s", err)
 		return
@@ -127,5 +140,34 @@ func ProcessYKMsg(rawData []byte)  {
 }
 
 func NewYKJob(rawData []byte) YKJob {
-    return YKJob{rawData:rawData}
+	return YKJob{rawData: rawData}
+}
+
+type RGJob struct {
+	rawData []byte
+}
+
+func (r RGJob) Handle() {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error(err)
+		}
+	}()
+
+	msg := entity.OtherVendorDevMsg{
+		Header:  entity.Header{
+			Cmd: 0x1200,
+			DevId:gjson.GetBytes(r.rawData, "mid").String(),
+			Vendor: "rg",
+			DevType: "",
+		},
+		OriData: util.Bytes2Str(r.rawData),
+	}
+
+	data,err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("RGJob.Handle > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2pms(data, "")
+	}
 }

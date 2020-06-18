@@ -108,7 +108,7 @@ func (t *TuyaHandle) sendBattMsg(jsonData []byte) {
 }
 
 func (t *TuyaHandle) sendCleanRecordMsg(jsonData []byte) {
-    msg := entity.TuyaMsg{}
+    msg := entity.OtherVendorDevMsg{}
     msg.Cmd = 0x1200
     msg.DevId = gjson.GetBytes(jsonData, "devId").String()
 	msg.DevType = "TYRobotCleaner"
