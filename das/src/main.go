@@ -1,23 +1,23 @@
 package main
 
 import (
-	aliIot2srv "das/aliIoT2srv"
-	"das/core/mqtt"
-	"das/mqtt2srv"
-	"das/procLock"
-	"das/tuya2srv"
-	xm2srv2 "das/http2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 
+	aliIot2srv "das/aliIoT2srv"
 	"das/core/log"
+	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/feibee2srv"
+	"das/http2srv"
+	"das/mqtt2srv"
 	"das/onenet2srv"
+	"das/procLock"
+	"das/tuya2srv"
 )
 
 func main() {
@@ -48,7 +48,7 @@ func main() {
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	//8. 启动雄迈告警消息接收
-	xm2srv := xm2srv2.OtherVendorHttp2SrvStart(conf)
+	xm2srv := http2srv.OtherVendorHttp2SrvStart(conf)
 
 	go tuya2srv.Tuya2SrvStart()
 
