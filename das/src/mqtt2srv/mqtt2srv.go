@@ -17,12 +17,12 @@ import (
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/wlprotocol"
-	"das/procLock"
 )
 var (
 	mqttcli mqtt.Client
-	msgTopic string
-	msgTopic_test string
+	msgTopic string			// WiFi锁（使用自定义二进制协议）
+	msgTopic_pad string		// 平板设备（使用JSON协议）
+	msgTopic_test string	// echo测试用
 	// cdTopic string = "$SYS/brokers/+/clients/#"
 	conTopic = "$SYS/brokers/+/clients/+/connected"
 	disTopic = "$SYS/brokers/+/clients/+/disconnected"
@@ -54,6 +54,33 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 	jobque.JobQueue <- NewMqttJob(msg.Payload())
 }
 
+//订阅回调函数；收到消息后会执行它
+var msgCallbackPad mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
+	log.Debug("Mqtt-Topic: ", msg.Topic(), ", strHexMsg: ", hex.EncodeToString(msg.Payload()))
+
+	//1. 检验数据是否合法
+	getData := string(msg.Payload())
+	if !strings.Contains(getData, "#") {
+		log.Error("msgCallbackPad mqtt.MessageHandler error msg: ", getData)
+		return
+	}
+
+	//2. 获取设备编号
+	prData := strings.Split(getData, "#")
+	var devID string
+	var devData string
+	devID = prData[0]
+	devData = prData[1]
+
+	//3. 锁对接的平台，存入redis
+	mymap := make(map[string]interface{})
+	mymap["from"] = constant.MQTT_PAD_PLATFORM
+	redis.SetDevicePlatformPool(devID, mymap)
+
+	//4. fetch job
+	jobque.JobQueue <- NewSmartPadJob(devData, devID)
+}
+
 //TODO:JHHE 测试 订阅回调函数；收到消息后会执行它
 var msgCallback_test mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	strMsg := string(msg.Payload())
@@ -73,8 +100,8 @@ var msgCallback_test mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 //订阅回调函数；设备上线消息 connected
 var conCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	log.Debug("conCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
-	/* TODO:JHHE WiFi锁去掉在线侦测
-	var conMsg = msg.Payload()
+	// TODO:JHHE WiFi锁去掉在线侦测
+	/*var conMsg = msg.Payload()
 	var conEvent ConDisEvent
 	if err := json.Unmarshal(conMsg, &conEvent); err != nil {
 		log.Error("mqtt.MessageHandler conCallback json.Unmarshal Header error, err=", err)
@@ -159,6 +186,11 @@ func MqttInit(conf *goconf.ConfigFile) {
 		log.Error("get-mqtt2srv-subtopic error = ", err)
 		return
 	}
+	msgTopic_pad, err = conf.GetString("mqtt2srv", "subtopic-pad")
+	if err != nil {
+		log.Error("get-mqtt2srv-subtopic-pad error = ", err)
+		return
+	}
 	msgTopic_test, err = conf.GetString("mqtt2srv", "subtopic-test")
 	if err != nil {
 		log.Error("get-mqtt2srv-msgTopic-test error = ", err)
@@ -169,7 +201,7 @@ func MqttInit(conf *goconf.ConfigFile) {
 	opts.SetUsername(user)
 	opts.SetPassword(pwd)
 	opts.SetClientID(mymqtt.GetUuid(cid))
-	opts.SetKeepAlive(15 * time.Second)
+	opts.SetKeepAlive(30 * time.Second)
 	opts.SetDefaultPublishHandler(nil)
 	opts.SetPingTimeout(5 * time.Second)
 	opts.SetCleanSession(false)
@@ -183,7 +215,6 @@ func MqttInit(conf *goconf.ConfigFile) {
 }
 
 func subscribeDefaultTopic(client mqtt.Client) {
-
 	log.Info("call subscribeDefaultTopic")
 	// 订阅
 	log.Info("mqtt Subscribe ", msgTopic)
@@ -200,6 +231,12 @@ func subscribeDefaultTopic(client mqtt.Client) {
 	// 订阅 设备下线消息
 	log.Info("mqtt Subscribe ", disTopic)
 	if token := mqttcli.Subscribe(disTopic, 0, disCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
+		log.Error(token.Error())
+	}
+
+	// 订阅 平板智能设备
+	log.Info("mqtt Subscribe ", msgTopic_pad)
+	if token := mqttcli.Subscribe(msgTopic_pad, 0, msgCallback_test); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
@@ -237,6 +274,12 @@ func MqttRelease() {
 	}
 
 	// 取消订阅
+	log.Debug("mqtt Unsubscribe ", msgTopic_pad)
+	if token := mqttcli.Unsubscribe(msgTopic_pad); token.Wait() && token.Error() != nil {
+		log.Error(token.Error())
+	}
+
+	// 取消订阅
 	log.Debug("mqtt Unsubscribe ", msgTopic_test)
 	if token := mqttcli.Unsubscribe(msgTopic_test); token.Wait() && token.Error() != nil {
 		log.Error(token.Error())
@@ -244,18 +287,4 @@ func MqttRelease() {
 
 	// 关闭链接
 	mqttcli.Disconnect(250)
-}
-
-type MqttJob struct {
-	rawData []byte
-}
-
-func NewMqttJob(rawData []byte) MqttJob {
-	return MqttJob{
-		rawData: rawData,
-	}
-}
-
-func (o MqttJob) Handle() {
-	procLock.ParseData(o.rawData)
 }

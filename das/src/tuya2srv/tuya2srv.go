@@ -2,19 +2,18 @@ package tuya2srv
 
 import (
 	"context"
-	"das/core/entity"
-	"das/core/rabbitmq"
 	"encoding/base64"
 	"encoding/json"
-	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tyutils"
-	"github.com/tidwall/gjson"
 
 	pulsar "github.com/TuyaInc/tuya_pulsar_sdk_go"
 	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tylog"
+	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tyutils"
 	"github.com/sirupsen/logrus"
-	_ "github.com/tidwall/gjson"
+	"github.com/tidwall/gjson"
 
+	"das/core/entity"
 	"das/core/log"
+	"das/core/rabbitmq"
 )
 
 var consumer pulsar.Consumer
@@ -28,7 +27,7 @@ func Tuya2SrvStart() {
 
 	log.Info("Tuya2SrvStart...")
 
-	pulsar.SetInternalLogLevel(logrus.WarnLevel)
+	pulsar.SetInternalLogLevel(logrus.DebugLevel)
 	opt := tylog.WithMaxSizeOption(10)
 	tylog.SetGlobalLog("sdk", true, opt)
 
@@ -70,7 +69,7 @@ func (t *TuyaHandle) HandlePayload(ctx context.Context, msg *pulsar.Message, pay
 		return err
 	}
 
-	//log.Infof("TuyaHandle.HandlePayload > recv: %s", jsonData)
+	log.Infof("TuyaHandle.HandlePayload > recv: %s", jsonData)
 
 	bizCode := gjson.GetBytes(jsonData, "bizCode").String()
 	if len(bizCode) > 0 {
@@ -109,7 +108,7 @@ func (t *TuyaHandle) sendBattMsg(jsonData []byte) {
 }
 
 func (t *TuyaHandle) sendCleanRecordMsg(jsonData []byte) {
-    msg := entity.TuyaMsg{}
+    msg := entity.OtherVendorDevMsg{}
     msg.Cmd = 0x1200
     msg.DevId = gjson.GetBytes(jsonData, "devId").String()
 	msg.DevType = "TYRobotCleaner"
@@ -150,6 +149,8 @@ func (t *TuyaHandle) sendOnOffLineMsg(jsonData []byte) {
 }
 
 func (t *TuyaHandle) decryptData(payload []byte) (jsonData []byte, err error) {
+	log.Infof("TuyaHandle rawData > recv: %s", payload)
+
 	val := gjson.GetBytes(payload, "data")
 
 	jsonData, err = base64.StdEncoding.DecodeString(val.String())
@@ -163,6 +164,79 @@ func (t *TuyaHandle) decryptData(payload []byte) (jsonData []byte, err error) {
 }
 
 func Close() {
-    consumer.Stop()
+	if consumer != nil {
+		consumer.Stop()
+	}
     log.Info("Tuya2Srv close")
 }
+
+//type tuyaClientImpl struct {
+//	pool *manage.ClientPool
+//	Addr string
+//}
+//
+//func (c *tuyaClientImpl) NewConsumer(config manage.ConsumerConfig) (pulsar.Consumer, error) {
+//	tylog.Info("start creating consumer",
+//		tylog.String("pulsar", c.Addr),
+//		tylog.String("topic", config.Topic),
+//	)
+//
+//	errs := make(chan error, 10)
+//	go func() {
+//		for err := range errs {
+//			tylog.Error("async errors", tylog.ErrorField(err))
+//		}
+//	}()
+//	cfg := manage.ConsumerConfig{
+//		ClientConfig: manage.ClientConfig{
+//			Addr:       c.Addr,
+//			AuthData:   config.Auth.AuthData(),
+//			AuthMethod: config.Auth.AuthMethod(),
+//			TLSConfig: &tls.Config{
+//				InsecureSkipVerify: true,
+//			},
+//			Errs: errs,
+//		},
+//		Topic:              config.Topic,
+//		SubMode:            manage.SubscriptionModeFailover,
+//		Name:               subscriptionName(config.Topic),
+//		NewConsumerTimeout: time.Minute,
+//	}
+//	p := c.GetPartition(config.Topic, cfg.ClientConfig)
+//
+//	// partitioned topic
+//	if p > 0 {
+//		list := make([]*consumerImpl, 0, p)
+//		originTopic := cfg.Topic
+//		for i := 0; i < p; i++ {
+//			cfg.Topic = fmt.Sprintf("%s-partition-%d", originTopic, i)
+//			mc := manage.NewManagedConsumer(c.pool, cfg)
+//			list = append(list, &consumerImpl{
+//				csm:     mc,
+//				topic:   cfg.Topic,
+//				stopped: make(chan struct{}),
+//			})
+//		}
+//		consumerList := &ConsumerList{
+//			list:             list,
+//			FlowPeriodSecond: DefaultFlowPeriodSecond,
+//			FlowPermit:       DefaultFlowPermit,
+//			Topic:            config.Topic,
+//			Stopped:          make(chan struct{}),
+//		}
+//		return consumerList, nil
+//	}
+//
+//	// single topic
+//	mc := manage.NewManagedConsumer(c.pool, config)
+//	tylog.Info("create consumer success",
+//		tylog.String("pulsar", c.Addr),
+//		tylog.String("topic", config.Topic),
+//	)
+//	return &consumerImpl{
+//		csm:     mc,
+//		topic:   cfg.Topic,
+//		stopped: make(chan struct{}),
+//	}, nil
+//
+//}

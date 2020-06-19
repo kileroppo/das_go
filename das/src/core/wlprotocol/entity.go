@@ -151,6 +151,13 @@ type WiFiSet struct {
 	Passwd [16]byte // 密码（16）
 }
 
+//8. zigbee Wifi设置(0x37)(服务器-->前板)
+// Ssid（16）+密码（16）
+type WiFiSet_Zigbee struct {
+	Ssid   [16]byte // Ssid（16）
+	Passwd [16]byte // 密码（16）
+}
+
 //9. 门铃呼叫(0x38)(前板-->服务器)
 type DoorbellCall struct {
 	Time int32 // 时间戳

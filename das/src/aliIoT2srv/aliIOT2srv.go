@@ -2,6 +2,7 @@ package aliIot2srv
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -85,21 +86,19 @@ func (a *AliIOTSrv) Run() {
 
 	go func() {
 		for {
-			select {
-			default:
-				err := a.conn()
-				if err != nil {
-					if atomic.LoadInt32(&a.currReConnNum) < a.reConnNum {
-						log.Warningf("AliIOTSrv第%d重连中...", a.currReConnNum+1)
-						atomic.AddInt32(&a.currReConnNum, 1)
-						a.cancelCli()
-						time.Sleep(time.Second * 3)
-						continue
-					} else {
-						log.Warningf("AliIOTSrv重连失败")
-						//a.Close()
-						return
-					}
+			err := a.conn()
+			if errors.Is(err, h2client.ErrConnClose) {
+				log.Info("AliIOTSrv.Run > close")
+			} else {
+				if atomic.LoadInt32(&a.currReConnNum) < a.reConnNum {
+					log.Warningf("AliIOTSrv第%d重连中...", a.currReConnNum+1)
+					atomic.AddInt32(&a.currReConnNum, 1)
+					a.cancelCli()
+					time.Sleep(time.Second * 5)
+					continue
+				} else {
+					log.Warningf("AliIOTSrv重连失败")
+					return
 				}
 			}
 		}
@@ -109,7 +108,7 @@ func (a *AliIOTSrv) Run() {
 		for rawData := range h2client.AliDataCh {
 			jobque.JobQueue <- NewAliIOTJob(rawData)
 		}
-		log.Debug("AliDataCh close")
+		log.Debug("AliDataCh closed")
 	}()
 
 }

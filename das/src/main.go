@@ -1,22 +1,22 @@
 package main
 
 import (
-	"das/core/mqtt"
-	"das/mqtt2srv"
-	"das/procLock"
-	"das/tuya2srv"
-	xm2srv2 "das/xm2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
-
+	
 	"das/core/log"
+	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/feibee2srv"
+	"das/http2srv"
+	"das/mqtt2srv"
 	"das/onenet2srv"
+	"das/procLock"
+	"das/tuya2srv"
 )
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	//8. 启动雄迈告警消息接收
-	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
+	xm2srv := http2srv.OtherVendorHttp2SrvStart(conf)
 
 	go tuya2srv.Tuya2SrvStart()
 
@@ -105,7 +105,7 @@ func main() {
 
 	//18. 停止雄迈HTTP服务器
 	if err := xm2srv.Shutdown(nil); err != nil {
-		log.Error("xm2srv.Shutdown failed, err=", err)
+		log.Error("http2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
