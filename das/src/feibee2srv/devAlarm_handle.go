@@ -68,7 +68,7 @@ func (self *BaseSensorAlarm) parseAlarmMsg() error {
 func (self *BaseSensorAlarm) PushMsg() {
 	self.initData()
 	if err := self.parseAlarmMsg(); err != nil {
-		log.Warning("BaseSensorAlarm PushMsg() error = ", err)
+		//log.Warning("BaseSensorAlarm PushMsg > %s", err)
 		return
 	}
 	//传感器正常消息不通知不存储 门磁除外
@@ -91,7 +91,7 @@ func (self *BaseSensorAlarm) pushStatusMsg2app() {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Error("BaseSensorAlarm pushStatusMsg2app() error = ", err)
+		log.Error("BaseSensorAlarm.pushStatusMsg2app > %s", err)
 		return
 	}
 	rabbitmq.Publish2app(data, self.devid)
@@ -102,7 +102,7 @@ func (self *BaseSensorAlarm) pushAlarmMsg2app() {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Error("BaseSensorAlarm pushAlarmMsg2app() error = ", err)
+		log.Error("BaseSensorAlarm.pushAlarmMsg2app > %s", err)
 		return
 	}
 	rabbitmq.Publish2app(data, self.devid)
@@ -113,7 +113,7 @@ func (self *BaseSensorAlarm) pushMsg2mns() {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Error("BaseSensorAlarm pushMsg2mns() error = ", err)
+		log.Error("BaseSensorAlarm.pushMsg2mns > %s", err)
 		return
 	}
 	rabbitmq.Publish2mns(data, "")
@@ -180,7 +180,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSave() {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Error("BaseSensorAlarm pushMsg2pmsForSave() error = ", err)
+		log.Error("BaseSensorAlarm.pushMsg2pmsForSave > %s", err)
 		return
 	}
 	rabbitmq.Publish2pms(data, "")
@@ -191,7 +191,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Error("BaseSensorAlarm pushMsg2pmsForSceneTrigger() error = ", err)
+		log.Error("BaseSensorAlarm.pushMsg2pmsForSceneTrigger > %s", err)
 		return
 	}
 	rabbitmq.Publish2pms(data, "")
@@ -207,7 +207,7 @@ func (self *BaseSensorAlarm) pushForcedBreakMsg() {
 
 		data, err := json.Marshal(msg)
 		if err != nil {
-			log.Error("BaseSensorAlarm pushForcedBreakMsg() error = ", err)
+			log.Error("BaseSensorAlarm.pushForcedBreakMsg > %s", err)
 			return
 		}
 		rabbitmq.Publish2mns(data, "")
@@ -222,7 +222,7 @@ type ContinuousSensor struct {
 func (c *ContinuousSensor) PushMsg() {
 	c.initData()
 	if err := c.parseAlarmMsg(); err != nil {
-		log.Warning("ContinuousSensor PushMsg() error = ", err)
+		log.Warning("ContinuousSensor.PushMsg > %s", err)
 		return
 	}
 	//todo: 其他类型暂不推送mns

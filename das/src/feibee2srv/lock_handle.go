@@ -33,9 +33,7 @@ func (fh *FbLockHandle) PushMsg() {
 		return
 	}
 
-	if err := fh.decodeOrg(); err != nil {
-		log.Warningf("FbLockHandle.PushMsg > %s", err)
-	}
+	fh.decodeOrg()
 }
 
 func (fh *FbLockHandle) decodeValue() (err error) {
