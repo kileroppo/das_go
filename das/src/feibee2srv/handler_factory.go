@@ -1,9 +1,9 @@
 package feibee2srv
 
 import (
-	"das/core/entity"
-	"das/core/log"
 	"strings"
+
+	"das/core/entity"
 )
 
 type MsgType int32
@@ -140,7 +140,6 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 	case CurtainDegree:
 		msgHandle = &CurtainDevgreeHandle{data:data}
 	default:
-		log.Warning("The FeibeeMsg type was not supported")
 		msgHandle = nil
 	}
 
