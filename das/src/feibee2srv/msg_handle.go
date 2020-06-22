@@ -144,7 +144,7 @@ func (self *NormalMsgHandle) PushMsg() {
 	}
 
 	if self.msgType == NewDev && res.Online < 1 {
-		log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
+		//log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
 	} else {
 		//发送给PMS
 		data2pms, err := json.Marshal(self.createMsg2pms())
