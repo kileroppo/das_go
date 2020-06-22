@@ -87,7 +87,7 @@ func (bmq *baseMq) initConsumer() (err error) {
 		nil,                       // arguments
 	)
 	if nil != err {
-		log.Errorf("initConsumer > %s QueueBind() > %s", bmq.channelCtx.Name, err)
+		log.Errorf("initConsumer > %s QueueBind > %s", bmq.channelCtx.Name, err)
 		bmq.channel.Close()
 		return err
 	}
