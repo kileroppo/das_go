@@ -57,6 +57,24 @@ type SetTmpDevUser struct {
 	MyTime [3]MyDTM `json:"time"`   // 时段
 }
 
+type UserOperUpload struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	UserType int    `json:"userType"` 	// 用户类型
+	UserId int  	`json:"userId"` 	// 用户1
+	UserId2 int  	`json:"userId2"` 	// 用户2，单人模式用户2为0xffff
+	OpType int 		`json:"opType"` 	// 操作
+	OpUserPara int	`json:"opUserPara"` // 被操作用户/参数
+	OpValue int 	`json:"opValue"` 	// 内容(1)，当操作不为5时有效，0-用户整体，1-密码，2-卡，3-指纹
+
+	Time int32 		`json:"time"`		// 时间戳，整型（单位：秒）
+}
+
 //3. 新增用户步骤（锁-->后台-->APP，锁主动上报，指纹，卡）
 type AddDevUserStep struct {
 	Cmd     int    `json:"cmd"`

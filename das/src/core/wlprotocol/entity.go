@@ -310,6 +310,22 @@ type SetTmpDevUser struct {
 	TimeSlot3 [4]byte // 时段3
 }
 
+// 用户操作上报 (0x77)(前板-->服务器)
+/*
+用户类型：1-锁，2-app。
+用户1，用户2：用户编号，单人模式用户2为0xffff，
+操作：0新增用户，1修改用户，2删除用户，3删除普通组，4删除临时组，5设置参数
+内容：当操作不为5时有效，0用户整体，1密码，2卡，3指纹
+*/
+type UserOperUpload struct {
+	UserType uint8  // 用户类型
+	UserId uint16  	// 用户1
+	UserId2 uint16  // 用户2，单人模式用户2为0xffff
+	OpType uint8 	// 操作
+	OpUserPara uint8	// 被操作用户/参数
+	OpValue uint8 	// 内容(1)，当操作不为5时有效，0-用户整体，1-密码，2-卡，3-指纹
+}
+
 //27. 发送设备信息(0x70)(前板，后板-->服务器)
 // 前板信息长度(1)+前板信息+后板信息长度(1)+后板信息
 /*

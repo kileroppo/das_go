@@ -52,7 +52,7 @@ func ParseData(mydata interface{}) error {
 	var wlMsg wlprotocol.WlMessage
 	bBody, err0 := wlMsg.PkDecode(data)
 	sendMQTTUpLogMsg(&wlMsg)
-//todo
+	//todo
 	if err0 != nil {
 		log.Error("ParseData wlMsg.PkDecode, err0=", err0)
 		return err0
@@ -97,6 +97,41 @@ func ParseData(mydata interface{}) error {
 			rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_dev_user_temp, err=", err1)
+			return err1
+		}
+	case constant.User_oper_upload:
+		log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.User_oper_upload")
+		// 1.解包
+		pdu := &wlprotocol.UserOperUpload{}
+		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
+		if nil != err {
+			log.Error("ParseData User_oper_upload pdu.Decode, err=", err)
+			return err
+		}
+
+		// 2.组json包
+		userOperUpload := entity.UserOperUpload {
+			Cmd: int(wlMsg.Cmd),
+			Ack: int(wlMsg.Ack),
+			DevType: DEVICETYPE[wlMsg.Type],
+			DevId: wlMsg.DevId.Uuid,
+			Vendor: "general",
+			SeqId: int(wlMsg.SeqId),
+
+			UserType: int(pdu.UserType),
+			UserId: int(pdu.UserId),
+			UserId2: int(pdu.UserId2),
+			OpType: int(pdu.OpType),
+			OpUserPara: int(pdu.OpUserPara),
+			OpValue: int(pdu.OpValue),
+			Time: int32(time.Now().Unix()),
+		}
+
+		//3. 发送到PMS模块
+		if to_byte, err1 := json.Marshal(userOperUpload); err1 == nil {
+			rabbitmq.Publish2pms(to_byte, wlMsg.DevId.Uuid)
+		} else {
+			log.Error("[", wlMsg.DevId.Uuid, "] constant.User_oper_upload, err=", err1)
 			return err1
 		}
 	case constant.Add_dev_user_step:	// 新增用户报告步骤(0x34)(前板-->服务器)

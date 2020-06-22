@@ -1008,6 +1008,55 @@ func (pdu *SetTmpDevUser) Decode(bBody []byte, uuid string) error {
 	return nil
 }
 
+// 用户操作上报 (0x77)(前板-->服务器)
+func (pdu *UserOperUpload) Encode(uuid string) ([]byte, error) {
+	return nil, nil
+}
+
+func (pdu *UserOperUpload) Decode(bBody []byte, uuid string) error {
+	var err error
+	var DValue []byte
+
+	//1. 生成密钥
+	myKey := util.MD52Bytes(uuid)
+
+	//2. 解密
+	DValue, err = util.ECBDecryptByte(bBody, myKey)
+	if nil != err {
+		log.Error("ECBDecryptByte failed, err=", err)
+		return err
+	}
+	log.Debug("[ ", uuid, " ] UserOperUpload Decode [ ", hex.EncodeToString(DValue), " ]")
+
+	//3. 解包体 FLen
+	buf := bytes.NewBuffer(DValue)
+	if err = binary.Read(buf, binary.BigEndian, &pdu.UserType); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.UserId); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.UserId2); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.OpType); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.OpUserPara); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.OpValue); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+
+	return nil
+}
 //27. 发送设备信息(0x70)(前板，后板-->服务器)
 /*
 前板信息：
