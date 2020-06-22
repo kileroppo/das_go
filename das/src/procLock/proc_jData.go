@@ -512,6 +512,9 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				return err
 			}
 			pushMsgForSceneTrigger(&msg)
+
+			// 燃气告警，存redis缓存
+			redis.SetDevGasAlarmState(devID, 1)
 		}
 	case constant.Low_battery_alarm: // 锁体的电池，低电量报警
 		{
