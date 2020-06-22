@@ -29,7 +29,7 @@ var (
 
 	logPath = "./logs"
 	logLevel = "DEBUG"
-	logSaveDay = 3
+	logSaveDay = 7
 
 	Conf *goconf.ConfigFile
 	log = logging.MustGetLogger("das_go")
