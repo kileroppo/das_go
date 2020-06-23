@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	ErrFeibeeMsgInvalid = errors.New("the feibee message's structure is invalid")
+	ErrMsgInvalid = errors.New("msg was invalid")
 )
 
 type FeibeeJob struct {
@@ -106,7 +106,7 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
-		log.Warningf("ProcessFeibeeMsg > %s", ErrFeibeeMsgInvalid)
+		log.Warningf("ProcessFeibeeMsg > %s > msg: %s", ErrMsgInvalid, rawData)
 		return err
 	}
 

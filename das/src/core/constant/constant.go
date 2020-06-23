@@ -34,6 +34,7 @@ const (
 
 	Add_dev_user      = 0x33 // 添加设备用户
 	Set_dev_user_temp = 0x76 // 设置临时用户
+	User_oper_upload = 0x77 // 用户操作上报
 	Add_dev_user_step = 0x34 // 新增用户步骤
 	Del_dev_user      = 0x32 // 删除设备用户
 	Update_dev_user   = 0x35 // 用户更新上报

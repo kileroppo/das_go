@@ -144,7 +144,7 @@ func (self *NormalMsgHandle) PushMsg() {
 	}
 
 	if self.msgType == NewDev && res.Online < 1 {
-		log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
+		//log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
 	} else {
 		//发送给PMS
 		data2pms, err := json.Marshal(self.createMsg2pms())
@@ -344,19 +344,19 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 
 	default:
 		if len(self.data.Records[0].Value) < 24 {
-			log.Warning("InfraredTreasureHandle.pushMsgByType() error = msg type parse error")
+			//log.Warning("InfraredTreasureHandle.pushMsgByType() error = msg type parse error")
 			return
 		}
 
 		funcCode, err := strconv.ParseInt(self.data.Records[0].Value[20:24], 16, 64)
 		if err != nil {
-			log.Warning("InfraredTreasureHandle.pushMsgByType() error = ", err)
+			log.Warning("InfraredTreasureHandle.pushMsgByType > strconv.ParseInt > %s", err)
 			return
 		}
 
 		switch funcCode {
 		case 0x8100: //匹配上报
-			log.Debug("红外宝 匹配上报")
+			//log.Debug("红外宝 匹配上报")
 			data.OpType = "devMatch"
 			data.OpValue = self.getMatchResult()
 			if err := self.push2app(data, routingKey); err != nil {
@@ -364,9 +364,9 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 			}
 			return
 		case 0x8200: //控制上报
-			log.Debug("红外宝 控制上报: ", self.getControlResult())
+			//log.Debug("红外宝 控制上报: ", self.getControlResult())
 		case 0x8300: //学习上报
-			log.Debug("红外宝 学习上报")
+			//log.Debug("红外宝 学习上报")
 			data.OpType = "devTrain"
 			data.OpValue = self.getTrainResult()
 			if err := self.push2app(data, routingKey); err != nil {
@@ -374,9 +374,9 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 			}
 			return
 		case 0x8700: //码库更新通知上报
-			log.Debug("红外宝 码库更新通知上报")
+			//log.Debug("红外宝 码库更新通知上报")
 		case 0x8800: //码库保存上报
-			log.Debug("红外宝 码库保存上报")
+			//log.Debug("红外宝 码库保存上报")
 		}
 	}
 	return

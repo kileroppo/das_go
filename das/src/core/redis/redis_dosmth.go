@@ -114,3 +114,13 @@ func SetFbLockUserId(key string , val interface{}) (err error){
 	return
 }
 
+// 设置设备燃气告警状态
+func SetDevGasAlarmState(devId string, data int64) error {
+	ret := redisCli.Set(devId + "_gas", data, time.Second * 68) // 写入值68S后过期
+	if nil != ret.Err() {
+		log.Error("redis SetDevGasAlarmState failed, key=", devId, ", err=", ret.Err())
+		return ret.Err()
+	}
+
+	return nil
+}
