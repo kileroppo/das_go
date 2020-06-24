@@ -515,6 +515,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 
 			// 燃气告警通知APP
 			rabbitmq.Publish2app([]byte(DValue), head.DevId)
+			rabbitmq.Publish2mns([]byte(DValue), "")
 
 			// 燃气告警，存redis缓存
 			redis.SetDevGasAlarmState(head.DevId, 1)
