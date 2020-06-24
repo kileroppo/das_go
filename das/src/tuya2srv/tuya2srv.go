@@ -70,10 +70,10 @@ func (t *TuyaHandle) HandlePayload(ctx context.Context, msg *pulsar.Message, pay
 	}
 
 	log.Infof("TuyaHandle.HandlePayload > recv: %s", jsonData)
-
+    devId := gjson.GetBytes(jsonData, "devId").String()
 	bizCode := gjson.GetBytes(jsonData, "bizCode").String()
 	if len(bizCode) > 0 {
-		t.sendOnOffLineMsg(jsonData)
+		t.sendOnOffLineMsg(devId, bizCode)
 	}
 
 	devStatus := gjson.GetBytes(jsonData, "status").Array()
@@ -81,23 +81,44 @@ func (t *TuyaHandle) HandlePayload(ctx context.Context, msg *pulsar.Message, pay
 	for i,_ := range devStatus {
 		switch devStatus[i].Get("code").String() {
 		case "electricity_left":
-			t.sendBattMsg(jsonData)
+			t.sendBattMsg(devId, devStatus[i])
 		case "clean_record":
 			t.sendCleanRecordMsg(jsonData)
+		case "power":
+			t.sendOfflineMsg(devId, devStatus[i])
 		}
 	}
 
 	return nil
 }
 
-func (t *TuyaHandle) sendBattMsg(jsonData []byte) {
+func (t *TuyaHandle) sendOfflineMsg(devId string, res gjson.Result) {
+	msg := entity.DeviceActive{}
+	msg.Cmd = 0x46
+	msg.DevId = devId
+	msg.Vendor = "tuya"
+	msg.DevType = "TYRobotCleaner"
+
+	if res.Get("value").Bool() {
+		return
+	}
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("TuyaHandle.sendOnOffLineMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.DevId)
+	}
+}
+
+func (t *TuyaHandle) sendBattMsg(devId string, res gjson.Result) {
     msg := entity.AlarmMsgBatt{}
     msg.Cmd = 0x2a
-    msg.DevId = gjson.GetBytes(jsonData, "devId").String()
+    msg.DevId = devId
     msg.Vendor = "tuya"
     msg.DevType = "TYRobotCleaner"
-    msg.Value = int(gjson.GetBytes(jsonData, "status").Array()[0].Get("value").Int())
-    msg.Time = int32(gjson.GetBytes(jsonData, "status").Array()[0].Get("t").Int()/1000)
+    msg.Value = int(res.Get("value").Int())
+    msg.Time = int32(res.Get("t").Int()/1000)
 
     data, err := json.Marshal(msg)
     if err != nil {
@@ -123,14 +144,14 @@ func (t *TuyaHandle) sendCleanRecordMsg(jsonData []byte) {
 	}
 }
 
-func (t *TuyaHandle) sendOnOffLineMsg(jsonData []byte) {
+func (t *TuyaHandle) sendOnOffLineMsg(devId, jsonData string) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
-	msg.DevId = gjson.GetBytes(jsonData, "devId").String()
+	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
 
-	onOff := gjson.GetBytes(jsonData, "bizCode").String()
+	onOff := jsonData
 
 	if onOff == "online" {
 		msg.Time = 1
@@ -149,7 +170,7 @@ func (t *TuyaHandle) sendOnOffLineMsg(jsonData []byte) {
 }
 
 func (t *TuyaHandle) decryptData(payload []byte) (jsonData []byte, err error) {
-	log.Infof("TuyaHandle rawData > recv: %s", payload)
+	//log.Infof("TuyaHandle rawData > recv: %s", payload)
 
 	val := gjson.GetBytes(payload, "data")
 
