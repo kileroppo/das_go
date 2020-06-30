@@ -1,8 +1,13 @@
 package procLock
 
 import (
+	"bytes"
+	"das/core/entity"
+	"das/core/util"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
+	"strings"
 
 	"das/core/constant"
 	"das/core/httpgo"
@@ -39,6 +44,31 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 		data, ok := mydata.(string)
 		if ok {
 			SendMQMsg2Device(uuid, data, cmd)
+		}
+	}
+	case constant.MQTT_PAD_PLATFORM: // WiFi平板，MQTT通道
+	{
+		data, ok := mydata.(string)
+		if ok {
+			var strToDevData string
+			var err error
+
+			// 加密数据
+			var toDevHead entity.MyHeader
+			toDevHead.ApiVersion = constant.API_VERSION
+			toDevHead.ServiceType = constant.SERVICE_TYPE
+
+			myKey := util.MD52Bytes(uuid)
+			if strToDevData, err = util.ECBEncrypt([]byte(data), myKey); err == nil {
+				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+
+				buf := new(bytes.Buffer)
+				binary.Write(buf, binary.BigEndian, toDevHead)
+				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+			}
+
+			mqtt.WlMqttPublishPad(uuid, strToDevData)
 		}
 	}
 	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
