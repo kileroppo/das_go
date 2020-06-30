@@ -236,7 +236,7 @@ func subscribeDefaultTopic(client mqtt.Client) {
 
 	// 订阅 平板智能设备
 	log.Info("mqtt Subscribe ", msgTopic_pad)
-	if token := mqttcli.Subscribe(msgTopic_pad, 0, msgCallback_test); token.WaitTimeout(time.Second*3) && token.Error() != nil {
+	if token := mqttcli.Subscribe(msgTopic_pad, 0, msgCallbackPad); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())
 	}
 
