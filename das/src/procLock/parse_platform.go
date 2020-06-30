@@ -1,20 +1,14 @@
 package procLock
 
 import (
-	"bytes"
-	"das/core/entity"
-	"das/core/util"
-	"encoding/binary"
-	"encoding/hex"
-	"errors"
-	"strings"
-
 	"das/core/constant"
 	"das/core/httpgo"
 	"das/core/log"
 	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
+	"encoding/hex"
+	"errors"
 )
 
 func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
@@ -46,30 +40,11 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 			SendMQMsg2Device(uuid, data, cmd)
 		}
 	}
-	case constant.MQTT_PAD_PLATFORM: // WiFi平板，MQTT通道
-	{
+	case constant.MQTT_PAD_PLATFORM: { // WiFi平板，MQTT通道
 		data, ok := mydata.(string)
 		if ok {
-			var strToDevData string
-			var err error
-
-			// 加密数据
-			var toDevHead entity.MyHeader
-			toDevHead.ApiVersion = constant.API_VERSION
-			toDevHead.ServiceType = constant.SERVICE_TYPE
-
-			myKey := util.MD52Bytes(uuid)
-			if strToDevData, err = util.ECBEncrypt([]byte(data), myKey); err == nil {
-				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
-
-				buf := new(bytes.Buffer)
-				binary.Write(buf, binary.BigEndian, toDevHead)
-				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
-			}
-
-			log.Debug("[", uuid, "] Cmd2Device resp to device, WlMqttPublishPad ", strToDevData)
-			mqtt.WlMqttPublishPad(uuid, strToDevData)
+			log.Debug("[", uuid, "] Cmd2Device resp to device, WlMqttPublishPad ", data)
+			mqtt.WlMqttPublishPad(uuid, data)
 		}
 	}
 	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
