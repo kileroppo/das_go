@@ -68,6 +68,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 			}
 
+			log.Debug("[", uuid, "] Cmd2Device resp to device, WlMqttPublishPad ", strToDevData)
 			mqtt.WlMqttPublishPad(uuid, strToDevData)
 		}
 	}
