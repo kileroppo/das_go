@@ -56,7 +56,7 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 
 //订阅回调函数；收到消息后会执行它
 var msgCallbackPad mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	log.Debug("Mqtt-Topic: ", msg.Topic(), ", strHexMsg: ", hex.EncodeToString(msg.Payload()))
+	log.Debug("Mqtt-Topic: ", msg.Topic(), ", strHexMsg: ", string(msg.Payload()))
 
 	//1. 检验数据是否合法
 	getData := string(msg.Payload())
