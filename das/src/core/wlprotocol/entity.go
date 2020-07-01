@@ -322,7 +322,7 @@ type UserOperUpload struct {
 	UserId uint16  	// 用户1
 	UserId2 uint16  // 用户2，单人模式用户2为0xffff
 	OpType uint8 	// 操作
-	OpUserPara uint8	// 被操作用户/参数
+	OpUserPara uint16	// 被操作用户/参数
 	OpValue uint8 	// 内容(1)，当操作不为5时有效，0-用户整体，1-密码，2-卡，3-指纹
 }
 
