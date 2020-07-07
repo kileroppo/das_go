@@ -68,7 +68,7 @@ type UserOperUpload struct {
 	UserType int    `json:"userType"` 	// 用户类型
 	UserId int  	`json:"userId"` 	// 用户1
 	UserId2 int  	`json:"userId2"` 	// 用户2，单人模式用户2为0xffff
-	OpType int 		`json:"opType"` 	// 操作
+	OpType int 		`json:"opType"` 	// 操作，0-新增用户，1-修改用户，2-删除用户，3-删除普通组，4-删除临时组，5-设置参数
 	OpUserPara int	`json:"opUserPara"` // 被操作用户/参数
 	OpValue int 	`json:"opValue"` 	// 内容(1)，当操作不为5时有效，0-用户整体，1-密码，2-卡，3-指纹
 
