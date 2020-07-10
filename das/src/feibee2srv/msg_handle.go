@@ -149,9 +149,7 @@ func (self *NormalMsgHandle) PushMsg() {
 		//发送给PMS
 		data2pms, err := json.Marshal(self.createMsg2pms())
 		if err == nil {
-			if self.msgType != RemoteOpDev {
-				rabbitmq.Publish2pms(data2pms, "")
-			}
+			rabbitmq.Publish2pms(data2pms, "")
 		}
 	}
 
@@ -178,10 +176,10 @@ func (self *ManualOpMsgHandle) PushMsg() {
 	}
 
 	//发送给PMS
-	//data2pms, err := json.Marshal(self.createMsg2pms())
-	//if err == nil {
-	//	rabbitmq.Publish2pms(data2pms, "")
-	//}
+	data2pms, err := json.Marshal(self.createMsg2pms())
+	if err == nil {
+		rabbitmq.Publish2pms(data2pms, "")
+	}
 
 	//电动窗帘作为触发条件
 	if self.data.Records[0].Deviceid == 0x0202 {
