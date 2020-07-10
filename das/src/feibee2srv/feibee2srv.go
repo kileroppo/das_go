@@ -1,7 +1,10 @@
 package feibee2srv
 
 import (
+	"context"
+	"das/core/etcd"
 	"errors"
+	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -114,6 +117,22 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 	feibeeData.push2MQ()
 
 	return nil
+}
+
+func setSceneResultCache(rawData []byte) {
+	code := gjson.GetBytes(rawData, "code").Int()
+	seqId := gjson.GetBytes(rawData, "seqId").Int()
+
+	if code == 41 || seqId <= 0 {
+		return
+	}
+
+	etcdClient := etcd.GetEtcdClient()
+	if etcdClient == nil {
+		return
+	}
+
+	etcdClient.Put(context.Background(), strconv.Itoa(int(seqId)), "1")
 }
 
 func NewFeibeeData(data []byte) (FeibeeData, error) {
