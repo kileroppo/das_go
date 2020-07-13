@@ -107,7 +107,11 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 	}
 
 	go sendFeibeeLogMsg(rawData)
-	go setSceneResultCache(rawData)
+
+	seqId := gjson.GetBytes(rawData, "seqId").Int()
+	if seqId > 0 {
+		go setSceneResultCache(rawData)
+	}
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
@@ -124,9 +128,12 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 func setSceneResultCache(rawData []byte) {
 	code := gjson.GetBytes(rawData, "code").Int()
 	seqId := gjson.GetBytes(rawData, "seqId").Int()
+	val := ""
 
-	if code == 41 || seqId <= 0 {
-		return
+	if code == 41 {
+		val = "1"
+	} else {
+		val = "2"
 	}
 
 	etcdClt := etcd.GetEtcdClient()
@@ -135,7 +142,7 @@ func setSceneResultCache(rawData []byte) {
 		return
 	}
 	grantResp, _ := etcdClt.Grant(context.TODO(), 5)
-	etcdClt.Put(context.Background(), strconv.Itoa(int(seqId)), "1", clientv3.WithLease(grantResp.ID))
+	etcdClt.Put(context.Background(), strconv.Itoa(int(seqId)), val, clientv3.WithLease(grantResp.ID))
 }
 
 func NewFeibeeData(data []byte) (FeibeeData, error) {
