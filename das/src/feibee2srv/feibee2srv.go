@@ -2,9 +2,7 @@ package feibee2srv
 
 import (
 	"context"
-	"das/core/etcd"
 	"errors"
-	"github.com/tidwall/gjson"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -12,8 +10,11 @@ import (
 	"time"
 
 	"github.com/dlintw/goconf"
+	"github.com/etcd-io/etcd/clientv3"
+	"github.com/tidwall/gjson"
 
 	"das/core/entity"
+	"das/core/etcd"
 	"das/core/jobque"
 	"das/core/log"
 	"das/core/rabbitmq"
@@ -106,6 +107,7 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 	}
 
 	go sendFeibeeLogMsg(rawData)
+	go setSceneResultCache(rawData)
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
@@ -127,12 +129,13 @@ func setSceneResultCache(rawData []byte) {
 		return
 	}
 
-	etcdClient := etcd.GetEtcdClient()
-	if etcdClient == nil {
+	etcdClt := etcd.GetEtcdClient()
+	if etcdClt == nil {
+		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed",)
 		return
 	}
-
-	etcdClient.Put(context.Background(), strconv.Itoa(int(seqId)), "1")
+	grantResp, _ := etcdClt.Grant(context.TODO(), 5)
+	etcdClt.Put(context.Background(), strconv.Itoa(int(seqId)), "1", clientv3.WithLease(grantResp.ID))
 }
 
 func NewFeibeeData(data []byte) (FeibeeData, error) {

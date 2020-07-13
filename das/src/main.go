@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	aliIot2srv "das/aliIoT2srv"
+	"das/core/etcd"
 	"das/core/log"
 	"das/core/mqtt"
 	"das/core/rabbitmq"
@@ -17,7 +18,6 @@ import (
 	"das/mqtt2srv"
 	"das/onenet2srv"
 	"das/procLock"
-	"das/tuya2srv"
 )
 
 func main() {
@@ -30,6 +30,7 @@ func main() {
 
 	//2. 初始化Redis连接池
 	redis.InitRedisPool(conf)
+	etcd.Init()
 
 	//3. 初始化rabbitmq
 	rabbitmq.Init(conf)
@@ -50,7 +51,7 @@ func main() {
 	//8. 启动雄迈告警消息接收
 	xm2srv := http2srv.OtherVendorHttp2SrvStart(conf)
 
-	go tuya2srv.Tuya2SrvStart()
+	//go tuya2srv.Tuya2SrvStart()
 
 	//9. 启动MQTT
 	mqtt.MqttInit(conf)		// 发布端
@@ -90,7 +91,7 @@ func main() {
 	//15. 停止rabbitmq连接
 	rabbitmq.Close()
 
-	tuya2srv.Close()
+	//tuya2srv.Close()
 
 	//16. 停止OneNETHTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
@@ -116,6 +117,7 @@ func main() {
 
 	//20. 关闭redis
 	redis.CloseRedisCli()
+	etcd.CloseEtcdCli()
 
 	log.Info("das_go server quit......")
 }
