@@ -127,13 +127,20 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 
 func setSceneResultCache(rawData []byte) {
 	code := gjson.GetBytes(rawData, "code").Int()
-	seqId := gjson.GetBytes(rawData, "seqId").Int()
-	val := ""
+	seq := gjson.GetBytes(rawData, "seq").String()
+	bindid, val := "", ""
 
 	if code == 41 {
 		val = "1"
-	} else {
+		bindid = gjson.GetBytes(rawData, "bindid").String()
+	} else if code == 2 {
 		val = "2"
+		bindid = gjson.GetBytes(rawData, "records").Array()[0].Get("bindid").String()
+	} else if code == 7 || code == 10 || code == 8 {
+		val = "2"
+		bindid = gjson.GetBytes(rawData, "msg").Array()[0].Get("bindid").String()
+	} else {
+		return
 	}
 
 	etcdClt := etcd.GetEtcdClient()
@@ -141,9 +148,9 @@ func setSceneResultCache(rawData []byte) {
 		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed",)
 		return
 	}
-	log.Infof("Set etcd[%d] %s", seqId, val)
+	log.Infof("Set etcd[%d] %s", seq, val)
 	grantResp, _ := etcdClt.Grant(context.TODO(), 5)
-	etcdClt.Put(context.Background(), strconv.Itoa(int(seqId)), val, clientv3.WithLease(grantResp.ID))
+	etcdClt.Put(context.Background(), bindid+"_"+seq, val, clientv3.WithLease(grantResp.ID))
 }
 
 func NewFeibeeData(data []byte) (FeibeeData, error) {
