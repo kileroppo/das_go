@@ -148,9 +148,10 @@ func setSceneResultCache(rawData []byte) {
 		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed",)
 		return
 	}
-	log.Infof("Set etcd[%d] %s", seq, val)
+	key := bindid+"_"+seq
+	log.Infof("Set etcd[%s] %s", key, val)
 	grantResp, _ := etcdClt.Grant(context.TODO(), 5)
-	etcdClt.Put(context.Background(), bindid+"_"+seq, val, clientv3.WithLease(grantResp.ID))
+	etcdClt.Put(context.Background(), key, val, clientv3.WithLease(grantResp.ID))
 }
 
 func NewFeibeeData(data []byte) (FeibeeData, error) {
