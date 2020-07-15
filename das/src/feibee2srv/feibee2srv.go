@@ -127,7 +127,7 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 
 func setSceneResultCache(rawData []byte) {
 	code := gjson.GetBytes(rawData, "code").Int()
-	seq := gjson.GetBytes(rawData, "seq").String()
+	seq := gjson.GetBytes(rawData, "seqId").String()
 	bindid, val := "", ""
 
 	if code == 41 {
