@@ -72,8 +72,13 @@ func (self *BaseSensorAlarm) PushMsg() {
 		return
 	}
 	//传感器正常消息不通知不存储 门磁除外
-	if self.msgType == DoorMagneticSensor {
+	if self.alarmType == "doorContact" {
 		self.pushMsg2mns()
+	} else if self.alarmType == "lowPower" {
+		self.pushAlarmMsg2app()
+		if (self.alarmFlag < 30) {
+			self.pushMsg2mns()
+		}
 	} else {
 		if (self.alarmFlag > 0) {
 			self.pushMsg2mns()
@@ -167,7 +172,7 @@ func (self *BaseSensorAlarm) createAlarmMsg() entity.Feibee2AlarmMsg {
 	msg.SeqId = 1
 
 	msg.AlarmType = self.alarmType
-	msg.AlarmValue = self.alarmVal
+	msg.AlarmValue = strconv.Itoa(self.alarmFlag)
 	msg.Time = self.time
 	msg.Bindid = self.bindid
 	msg.AlarmFlag = self.alarmFlag
@@ -347,12 +352,13 @@ func parseBatteryVal(val string, msgType MsgType, valType int) (removalAlarmFlag
 		return -1, -1, "", ""
 	}
 
-	if int(valInt)/2 <= 30 {
-		alarmVal = "电量过低"
-		alarmFlag = int(valInt) / 2
-	} else {
-		alarmFlag = -1
-	}
+	alarmVal = "电量过低"
+	alarmFlag = int(valInt) / 2
+	//if int(valInt)/2 <= 30 {
+	//
+	//} else {
+	//	alarmFlag = -1
+	//}
 	alarmName = varAlarmName[valType]
 	return
 }
