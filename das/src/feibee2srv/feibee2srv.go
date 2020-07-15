@@ -150,7 +150,7 @@ func NewFeibeeData(data []byte) (FeibeeData, error) {
 	var feibeeData FeibeeData
 
 	if err := json.Unmarshal(data, &feibeeData.data); err != nil {
-		log.Errorf("NewFeibeeData > json.Unmarshal > %s", err)
+		log.Errorf("NewFeibeeData > json.Unmarshal error > %s", data)
 		return feibeeData, err
 	}
 
