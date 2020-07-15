@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/dlintw/goconf"
-	"github.com/etcd-io/etcd/clientv3"
 	"github.com/tidwall/gjson"
 
 	"das/core/entity"
@@ -150,8 +149,9 @@ func setSceneResultCache(rawData []byte) {
 	}
 	key := bindid+"_"+seq
 	log.Infof("Set etcd[%s] %s", key, val)
-	grantResp, _ := etcdClt.Grant(context.TODO(), 5)
-	etcdClt.Put(context.Background(), key, val, clientv3.WithLease(grantResp.ID))
+	//grantResp, _ := etcdClt.Grant(context.TODO(), 5)
+	//etcdClt.Put(context.Background(), key, val, clientv3.WithLease(grantResp.ID))
+	etcdClt.Put(context.Background(), key, val)
 }
 
 func NewFeibeeData(data []byte) (FeibeeData, error) {
