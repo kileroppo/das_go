@@ -172,7 +172,7 @@ func (self *BaseSensorAlarm) createAlarmMsg() entity.Feibee2AlarmMsg {
 	msg.SeqId = 1
 
 	msg.AlarmType = self.alarmType
-	msg.AlarmValue = strconv.Itoa(self.alarmFlag)
+	msg.AlarmValue = self.alarmVal
 	msg.Time = self.time
 	msg.Bindid = self.bindid
 	msg.AlarmFlag = self.alarmFlag
