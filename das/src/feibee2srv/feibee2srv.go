@@ -127,22 +127,11 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 }
 
 func setSceneResultCache(rawData []byte) {
-	code := gjson.GetBytes(rawData, "code").Int()
 	seq := gjson.GetBytes(rawData, "seqId").String()
 	bindid, val := "", ""
 
-	if code == 41 {
-		val = "1"
-		bindid = gjson.GetBytes(rawData, "bindid").String()
-	} else if code == 2 {
-		val = "2"
-		bindid = gjson.GetBytes(rawData, "records").Array()[0].Get("bindid").String()
-	} else if code == 7 || code == 10 || code == 8 {
-		val = "2"
-		bindid = gjson.GetBytes(rawData, "msg").Array()[0].Get("bindid").String()
-	} else {
-		return
-	}
+	val = "1"
+	bindid = gjson.GetBytes(rawData, "bindid").String()
 
 	etcdClt := etcd.GetEtcdClient()
 	if etcdClt == nil {
