@@ -3,10 +3,12 @@ package feibee2srv
 import (
 	"context"
 	"errors"
+	"github.com/etcd-io/etcd/clientv3"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dlintw/goconf"
@@ -144,14 +146,27 @@ func setSceneResultCache(rawData []byte) {
 
 	etcdClt := etcd.GetEtcdClient()
 	if etcdClt == nil {
-		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed",)
+		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed")
 		return
 	}
 	key := bindid+"_"+seq
-	log.Infof("Set etcd[%s] %s", key, val)
-	//grantResp, _ := etcdClt.Grant(context.TODO(), 5)
-	//etcdClt.Put(context.Background(), key, val, clientv3.WithLease(grantResp.ID))
-	etcdClt.Put(context.Background(), key, val)
+	resp,err := etcdClt.Get(context.Background(), key)
+	if err != nil {
+		return
+	}
+	if len(resp.Kvs) <= 0 {
+		return
+	}
+	rawVal := resp.Kvs[0].Value
+	vals := strings.Split(string(rawVal), "_")
+	if len(vals) > 1 {
+		leaseId, err := strconv.ParseInt(vals[1], 10, 64)
+		val += "_" + vals[1]
+		if err == nil {
+			log.Infof("Set etcd[%s] %s", key, val)
+			etcdClt.Put(context.Background(), key, val, clientv3.WithLease(clientv3.LeaseID(leaseId)))
+		}
+	}
 }
 
 func NewFeibeeData(data []byte) (FeibeeData, error) {
