@@ -127,17 +127,18 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 }
 
 func setSceneResultCache(rawData []byte) {
+	etcdClt := etcd.GetEtcdClient()
+	if etcdClt == nil {
+		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed")
+		return
+	}
+
 	seq := gjson.GetBytes(rawData, "seqId").String()
 	bindid, val := "", ""
 
 	val = "1"
 	bindid = gjson.GetBytes(rawData, "bindid").String()
 
-	etcdClt := etcd.GetEtcdClient()
-	if etcdClt == nil {
-		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed")
-		return
-	}
 	key := bindid+"_"+seq
 	resp,err := etcdClt.Get(context.Background(), key)
 	if err != nil {
