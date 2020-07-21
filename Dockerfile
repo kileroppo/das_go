@@ -2,7 +2,7 @@ FROM registry.cn-hangzhou.aliyuncs.com/basicimage/golang:latest AS builder
 WORKDIR /tmp/
 COPY ./das/ /tmp/das/
 
-RUN go env -w GOPROXY=https://mirrors.aliyun.com/goproxy/ \
+RUN go env -w GOPROXY=https://goproxy.cn,direct \
     && go env -w GO111MODULE=on \
     && cd /tmp/das/src && ls -l && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-w -s" -v -o ../bin/das.bin
 

@@ -1,16 +1,21 @@
 package feibee2srv
 
 import (
+	"context"
 	"errors"
+	"github.com/etcd-io/etcd/clientv3"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dlintw/goconf"
+	"github.com/tidwall/gjson"
 
 	"das/core/entity"
+	"das/core/etcd"
 	"das/core/jobque"
 	"das/core/log"
 	"das/core/rabbitmq"
@@ -104,6 +109,11 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 
 	go sendFeibeeLogMsg(rawData)
 
+	seqId := gjson.GetBytes(rawData, "seqId").Int()
+	if seqId > 0 {
+		go setSceneResultCache(rawData)
+	}
+
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
 		log.Warningf("ProcessFeibeeMsg > %s > msg: %s", ErrMsgInvalid, rawData)
@@ -116,11 +126,43 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 	return nil
 }
 
+func setSceneResultCache(rawData []byte) {
+	seq := gjson.GetBytes(rawData, "seqId").String()
+	bindid, val := "", ""
+
+	val = "1"
+	bindid = gjson.GetBytes(rawData, "bindid").String()
+
+	etcdClt := etcd.GetEtcdClient()
+	if etcdClt == nil {
+		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed")
+		return
+	}
+	key := bindid+"_"+seq
+	resp,err := etcdClt.Get(context.Background(), key)
+	if err != nil {
+		return
+	}
+	if len(resp.Kvs) <= 0 {
+		return
+	}
+	rawVal := resp.Kvs[0].Value
+	vals := strings.Split(string(rawVal), "_")
+	if len(vals) > 1 {
+		leaseId, err := strconv.ParseInt(vals[1], 10, 64)
+		val += "_" + vals[1]
+		if err == nil {
+			log.Infof("Set etcd[%s] %s", key, val)
+			etcdClt.Put(context.Background(), key, val, clientv3.WithLease(clientv3.LeaseID(leaseId)))
+		}
+	}
+}
+
 func NewFeibeeData(data []byte) (FeibeeData, error) {
 	var feibeeData FeibeeData
 
 	if err := json.Unmarshal(data, &feibeeData.data); err != nil {
-		log.Errorf("NewFeibeeData > json.Unmarshal > %s", err)
+		log.Errorf("NewFeibeeData > json.Unmarshal error > %s", data)
 		return feibeeData, err
 	}
 
