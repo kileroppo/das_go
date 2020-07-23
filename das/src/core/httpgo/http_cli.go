@@ -2,11 +2,13 @@ package httpgo
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
 
 	"das/core/log"
+	"das/core/redis"
 )
 
 var hClient *http.Client
@@ -48,6 +50,21 @@ func DoHTTP(method, url string, data []byte) (respData []byte, err error) {
 	return DoHTTPReq(req)
 }
 
-func GetHTTP(url string) (respData []byte, err error){
-	return DoHTTP("GET", url, []byte{})
+func DoFeibeeControlReq(data []byte) (respData []byte, err error) {
+	url := ""
+	url,err = log.Conf.GetString("feibee2http", "url_control")
+	if err != nil {
+		err = fmt.Errorf("DoFeibeeControlReq > %w", err)
+		return
+	}
+
+	if redis.IsFeibeeSpSrv(data) {
+		url,err = log.Conf.GetString("feibee2http", "url_control_sp")
+		if err != nil {
+			err = fmt.Errorf("DoFeibeeControlReq > %w", err)
+			return
+		}
+	}
+
+	return DoHTTP("POST", url, data)
 }

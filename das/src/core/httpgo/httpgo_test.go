@@ -2,11 +2,13 @@ package httpgo
 
 import (
 	"das/core/log"
+	"das/core/redis"
 	"testing"
 )
 
 func init() {
 	log.Init()
+	redis.InitRedisPool(log.Conf)
 }
 
 var (

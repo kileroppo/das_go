@@ -73,10 +73,8 @@ func (self *BaseSensorAlarm) PushMsg() {
 	}
 	//传感器正常消息不通知不存储 门磁除外
 	if self.alarmType == "doorContact" {
-		self.pushMsg2pmsForSave()
 		self.pushMsg2mns()
 	} else if self.alarmType == "lowPower" {
-		self.pushMsg2pmsForSave()
 		self.pushStatusMsg2app("power")
 		if (self.alarmFlag < 30) {
 			self.pushMsg2mns()
@@ -84,9 +82,9 @@ func (self *BaseSensorAlarm) PushMsg() {
 	} else {
 		if (self.alarmFlag > 0) {
 			self.pushMsg2mns()
-			self.pushMsg2pmsForSave()
 		}
 	}
+	self.pushMsg2pmsForSave()
 	if self.alarmMsgType == sensorAlarm {
 		self.pushMsg2pmsForSceneTrigger()
 	}
