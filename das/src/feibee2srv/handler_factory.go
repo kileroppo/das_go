@@ -162,7 +162,10 @@ func getMsgTyp(data *entity.FeibeeData) (typ MsgType) {
 			typ, ok = spDevMsgTyp[getSpMsgKey(data.Records[0].Deviceid, data.Records[0].Zonetype)]
 			if ok {
 				if typ == Curtain {
-					typ = otherMsgTyp[getSpMsgKey(data.Records[0].Cid, data.Records[0].Aid)]
+					typ, ok = otherMsgTyp[getSpMsgKey(data.Records[0].Cid, data.Records[0].Aid)]
+					if !ok {
+						typ = -1
+					}
 				}
 				return
 			} else {
