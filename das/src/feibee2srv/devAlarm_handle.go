@@ -73,26 +73,28 @@ func (self *BaseSensorAlarm) PushMsg() {
 	}
 	//传感器正常消息不通知不存储 门磁除外
 	if self.alarmType == "doorContact" {
+		self.pushMsg2pmsForSave()
 		self.pushMsg2mns()
 	} else if self.alarmType == "lowPower" {
-		self.pushAlarmMsg2app()
+		self.pushMsg2pmsForSave()
+		self.pushStatusMsg2app("power")
 		if (self.alarmFlag < 30) {
 			self.pushMsg2mns()
 		}
 	} else {
 		if (self.alarmFlag > 0) {
 			self.pushMsg2mns()
+			self.pushMsg2pmsForSave()
 		}
 	}
-    self.pushMsg2pmsForSave()
 	if self.alarmMsgType == sensorAlarm {
 		self.pushMsg2pmsForSceneTrigger()
 	}
 	self.pushForcedBreakMsg()
 }
 
-func (self *BaseSensorAlarm) pushStatusMsg2app() {
-	msg := self.createStatusMsg()
+func (self *BaseSensorAlarm) pushStatusMsg2app(opType string) {
+	msg := self.createStatusMsg(opType)
 
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -144,7 +146,7 @@ func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 	return msg
 }
 
-func (self *BaseSensorAlarm) createStatusMsg() entity.Feibee2DevMsg {
+func (self *BaseSensorAlarm) createStatusMsg(opType string) entity.Feibee2DevMsg {
 	var msg entity.Feibee2DevMsg
 
 	msg.Cmd = 0xfb
@@ -154,7 +156,7 @@ func (self *BaseSensorAlarm) createStatusMsg() entity.Feibee2DevMsg {
 	msg.Vendor = "feibee"
 	msg.SeqId = 1
 
-	msg.OpType = self.alarmType
+	msg.OpType = opType
 	msg.OpValue = strconv.Itoa(self.alarmFlag)
 	msg.Time = self.time
 
@@ -233,7 +235,7 @@ func (c *ContinuousSensor) PushMsg() {
 	//todo: 其他类型暂不推送mns
 	//c.pushMsg2mns()
 	if c.msgType == FloorHeat || c.msgType == Airer {
-		c.pushStatusMsg2app()
+		c.pushStatusMsg2app(c.alarmType)
 	}
 
 	if c.msgType == TemperAndHumiditySensor || c.msgType == IlluminanceSensor || c.msgType == Airer {
