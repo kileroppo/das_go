@@ -16,14 +16,14 @@ var json = jsoniter.ConfigCompatibleWithStandardLibrary
 func Http2FeibeeWonlyLGuard(appData string) {
 	defer func() {
 		if err:=recover();err != nil {
-			log.Error("Http2FeibeeWonlyLGuard() error = ", err)
+			log.Errorf("Http2FeibeeWonlyLGuard > %s", err)
 			return
 		}
 	}()
 
 	var msg entity.WonlyGuardMsgFromApp
 	if err := json.Unmarshal([]byte(appData), &msg); err != nil {
-		log.Warning("Http2FeibeeWonlyLGuard json.Unmarshal() error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard > json.Unmarshal > %s", err)
 		return
 	}
 	log.Infof("Send WonlyGuard '%s' control to feibee", msg.DevId)
@@ -36,13 +36,13 @@ func Http2FeibeeWonlyLGuard(appData string) {
 	reqMsg.Bindid = msg.Bindid
 	reqMsg.AccessId,err = conf.GetString("feibee2http", "accessid")
 	if err != nil {
-		log.Warning("Http2FeibeeWonlyLGuard get accessId error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard > get accessId > %s", err)
 		return
 	}
 
 	reqMsg.Key, err = conf.GetString("feibee2http", "key")
 	if err != nil {
-		log.Warning("Http2FeibeeWonlyLGuard get key error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard > get key > %s", err)
 		return
 	}
 
@@ -50,7 +50,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 
 	reqMsg.Bindstr, err = WonlyAESDecrypt(msg.Bindstr, key)
 	if err != nil {
-		log.Warningf("Http2FeibeeWonlyLGuard WonlyAESDecrypt() error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard > WonlyAESDecrypt > %s", err)
 		return
 	}
 	reqMsg.Ver = "2.0"
@@ -61,17 +61,18 @@ func Http2FeibeeWonlyLGuard(appData string) {
 
 	reqData, err := json.Marshal(reqMsg)
 	if err != nil {
-		log.Warning("Http2FeibeeWonlyLGuard json.Marshal() error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard > json.Marshal > %s", err)
 		return
 	}
 
-	log.Debug("Send to Feibee: ", string(reqData))
-	respData, err := DoHTTP("POST", "https://dev.fbeecloud.com/devcontrol/", reqData)
+	log.Debugf("Send to Feibee: %s", reqData)
+	respData, err := DoFeibeeControlReq(reqData)
 	if err != nil {
-		log.Warning("Http2FeibeeWonlyLGuard DoHTTP() error = ", err)
+		log.Warningf("Http2FeibeeWonlyLGuard > %s", err)
 		return
 	}
 
+	//log.Infof("Http2FeibeeWonlyLGuard > resp: %s", respData)
 	var respMsg entity.RespFromFeibee
 	err = json.Unmarshal(respData, &respMsg)
 	if err != nil {
