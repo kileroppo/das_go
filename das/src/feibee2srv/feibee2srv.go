@@ -132,12 +132,23 @@ func setSceneResultCache(rawData []byte) {
 		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed")
 		return
 	}
-
+    code := gjson.GetBytes(rawData, "code").Int()
 	seq := gjson.GetBytes(rawData, "seqId").String()
 	bindid, val := "", ""
 
 	val = "1"
-	bindid = gjson.GetBytes(rawData, "bindid").String()
+	if code == 41 {
+		bindid = gjson.GetBytes(rawData, "bindid").String()
+	} else if code == 42 {
+		if arr := gjson.GetBytes(rawData, "msg").Array(); len(arr) > 0 {
+			bindid = arr[0].Get("bindid").String()
+			val = "-1"
+		} else {
+			return
+		}
+	} else {
+		return
+	}
 
 	key := bindid+"_"+seq
 	resp,err := etcdClt.Get(context.Background(), key)
@@ -151,10 +162,13 @@ func setSceneResultCache(rawData []byte) {
 	vals := strings.Split(string(rawVal), "_")
 	if len(vals) > 1 {
 		leaseId, err := strconv.ParseInt(vals[1], 10, 64)
-		val += "_" + vals[1]
+		val += ("_" + vals[1])
 		if err == nil {
 			log.Infof("Set etcd[%s] %s", key, val)
-			etcdClt.Put(context.Background(), key, val, clientv3.WithLease(clientv3.LeaseID(leaseId)))
+			_,err = etcdClt.Put(context.Background(), key, val, clientv3.WithLease(clientv3.LeaseID(leaseId)))
+			if err != nil {
+				log.Errorf("setSceneResultCache > etcdClt.Put > %s", err)
+			}
 		}
 	}
 }
