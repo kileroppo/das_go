@@ -784,8 +784,8 @@ func SendLockMsgForSceneTrigger(devId, devType , alarmType string, alarmFlag int
 
 	msg.Cmd = 0xf1
 	msg.Ack = 0
-	msg.DevType = devId
-	msg.DevId =devType
+	msg.DevType = devType
+	msg.DevId = devId
 
 	msg.TriggerType = 0
 	msg.Time = int(time.Now().Unix())
