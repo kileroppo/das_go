@@ -65,7 +65,7 @@ func Publish2pms(data []byte, routingKey string) {
 	if err := producer2pmsMQ.Publish(data, routingKey); err != nil {
 		log.Warning("Publish2pms error = ", err)
 	} else {
-		//log.Debug("Publish2pms msg: ", string(data))
+		log.Debug("Publish2pms msg: ", string(data))
 	}
 }
 
