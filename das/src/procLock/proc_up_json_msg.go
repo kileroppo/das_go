@@ -830,8 +830,9 @@ func HandleOpenLog(openLog *entity.UploadOpenLockLog) {
 
 func sendPadDoorUpLogMsg(devId, oriData, msgName string) {
 	var logMsg entity.SysLogMsg
-
-	logMsg.Timestamp = time.Now().Unix()
+	currT := time.Now()
+	logMsg.Timestamp = currT.Unix()
+	logMsg.NanoTimestamp = currT.UnixNano()
 	logMsg.MsgType = 4
 	logMsg.MsgName = msgName
 	logMsg.UUid = devId

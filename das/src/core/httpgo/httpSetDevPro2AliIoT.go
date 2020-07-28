@@ -233,8 +233,9 @@ func HttpSetAliPro(deviceName, data, cmd string) (int, error) {
 
 func sendAliIOTDownLogMsg(devId string, rawData []byte) {
 	var logMsg entity.SysLogMsg
-
-	logMsg.Timestamp = time.Now().Unix()
+    currT := time.Now()
+	logMsg.Timestamp = currT.Unix()
+	logMsg.NanoTimestamp = currT.UnixNano()
 	logMsg.MsgType = 4
 	logMsg.UUid = devId
 	logMsg.MsgName = "下行设备数据"

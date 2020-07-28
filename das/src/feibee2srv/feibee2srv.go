@@ -275,7 +275,9 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 func sendFeibeeLogMsg(rawData []byte) {
     var logMsg entity.SysLogMsg
 
-    logMsg.Timestamp = time.Now().Unix()
+    currT := time.Now()
+    logMsg.Timestamp = currT.Unix()
+    logMsg.NanoTimestamp = currT.UnixNano()
     logMsg.MsgType = 1
     logMsg.RawData = string(rawData)
 
