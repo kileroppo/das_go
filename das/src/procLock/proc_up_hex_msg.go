@@ -19,6 +19,11 @@ import (
 	"das/core/wlprotocol"
 )
 
+/*
+ *	处理锁上行的二进制数据（wifi锁、aliIOT锁）
+ *
+ */
+
 var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
 	DEVICETYPE = []string{"", "WlWiFiLock", "WlZigbeeLock"}

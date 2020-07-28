@@ -15,15 +15,14 @@ import (
 	"das/core/entity"
 	"das/core/httpgo"
 	"das/core/log"
-	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/util"
 )
 
 /*
-*	处理APP发送过来的命令消息
-*
+ *	处理APP下行数据
+ *
  */
 func ProcAppMsg(appMsg string) error {
 	log.Debug("ProcAppMsg process msg from app.")
@@ -350,7 +349,7 @@ func ProcAppMsg(appMsg string) error {
 					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 				}
 			}
-			mqtt.WlMqttPublishPad(head.DevId, strToDevData)
+			WlMqttPublishPad(head.DevId, strToDevData)
 		}
 	case constant.ALIIOT_PLATFORM: // 阿里云飞燕平台
 		{
@@ -393,7 +392,7 @@ func ProcAppMsg(appMsg string) error {
 				return err_
 			}
 
-			mqtt.WlMqttPublish(head.DevId, bData)
+			WlMqttPublish(head.DevId, bData)
 		}
 	case constant.FEIBEE_PLATFORM: //飞比zigbee锁
 		{
