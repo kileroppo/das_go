@@ -462,8 +462,9 @@ func pushMsgForSave(msg *entity.RangeHoodAlarm) {
 
 func sendMQTTDownLogMsg(devId, oriData string) {
 	var logMsg entity.SysLogMsg
-
-	logMsg.Timestamp = time.Now().Unix()
+	currT := time.Now()
+	logMsg.Timestamp = currT.Unix()
+	logMsg.NanoTimestamp = currT.UnixNano()
 	logMsg.MsgType = 4
 	logMsg.MsgName = "下行设备数据"
 	logMsg.UUid = devId

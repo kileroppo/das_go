@@ -52,11 +52,12 @@ type TelecomDeviceDataChanged struct {
 }
 
 type LogHeader struct {
-	MsgType   int32  `json:"msgType" bson:"msgType"`
-	Timestamp int64  `json:"timestamp" bson:"timestamp"`
-	RawData   string `json:"rawData,omitempty" bson:"rawData,omitempty"`
-	TimeStr   string `json:"timeStr,omitempty" bson:"timeStr,omitempty"`
-	MsgName   string `json:"msgName,omitempty" bson:"msgName,omitempty"`
+	MsgType       int32  `json:"msgType" bson:"msgType"`
+	Timestamp     int64  `json:"timestamp" bson:"timestamp"`
+	RawData       string `json:"rawData,omitempty" bson:"rawData,omitempty"`
+	TimeStr       string `json:"timeStr,omitempty" bson:"timeStr,omitempty"`
+	MsgName       string `json:"msgName,omitempty" bson:"msgName,omitempty"`
+	NanoTimestamp int64  `json:"nanoTimestamp" bson:"nanoTimestamp"`
 }
 
 type SysLogMsg struct {

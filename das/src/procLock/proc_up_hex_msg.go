@@ -1093,8 +1093,9 @@ func ParseData(mydata interface{}) error {
 
 func sendAliIOTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
 	var logMsg entity.SysLogMsg
-
-	logMsg.Timestamp = time.Now().Unix()
+	currT := time.Now()
+	logMsg.Timestamp = currT.Unix()
+	logMsg.NanoTimestamp = currT.UnixNano()
 	logMsg.MsgType = 4
 	logMsg.MsgName = "上行设备数据"
 	logMsg.UUid = msg.DevId.Uuid
@@ -1118,8 +1119,9 @@ func sendAliIOTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
 
 func sendMQTTUpLogMsg(msg *wlprotocol.WlMessage) {
 	var logMsg entity.SysLogMsg
-
-	logMsg.Timestamp = time.Now().Unix()
+	currT := time.Now()
+	logMsg.Timestamp = currT.Unix()
+	logMsg.NanoTimestamp = currT.UnixNano()
 	logMsg.MsgType = 4
 	logMsg.MsgName = "上行设备数据"
 	logMsg.UUid = msg.DevId.Uuid
