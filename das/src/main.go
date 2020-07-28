@@ -10,12 +10,10 @@ import (
 	aliIot2srv "das/aliIoT2srv"
 	"das/core/etcd"
 	"das/core/log"
-	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/feibee2srv"
 	"das/http2srv"
-	"das/mqtt2srv"
 	"das/onenet2srv"
 	"das/procLock"
 )
@@ -52,10 +50,6 @@ func main() {
 	xm2srv := http2srv.OtherVendorHttp2SrvStart(conf)
 
 	//go tuya2srv.Tuya2SrvStart()
-
-	//9. 启动MQTT
-	mqtt.MqttInit(conf)		// 发布端
-	mqtt2srv.MqttInit(conf)	// 订阅接收端
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -110,10 +104,6 @@ func main() {
 		log.Error("http2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
-
-	//19. 断开MQTT连接
-	mqtt2srv.MqttRelease()
-	mqtt.MqttRelease()
 
 	//20. 关闭redis
 	redis.CloseRedisCli()

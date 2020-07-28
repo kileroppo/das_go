@@ -4,7 +4,6 @@ import (
 	"das/core/constant"
 	"das/core/httpgo"
 	"das/core/log"
-	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"encoding/hex"
@@ -44,7 +43,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 		data, ok := mydata.(string)
 		if ok {
 			log.Debug("[", uuid, "] Cmd2Device resp to device, WlMqttPublishPad ", data)
-			mqtt.WlMqttPublishPad(uuid, data)
+			WlMqttPublishPad(uuid, data)
 		}
 	}
 	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
@@ -61,7 +60,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 		data, ok := mydata.([]byte)
 		if ok {
 			log.Debug("mqtt.WlMqttPublish, data: ", hex.EncodeToString(data))
-			mqtt.WlMqttPublish(uuid, data)
+			WlMqttPublish(uuid, data)
 		}
 	}
 	default: {

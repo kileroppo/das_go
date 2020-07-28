@@ -5,13 +5,14 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
-	"github.com/valyala/bytebufferpool"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/valyala/bytebufferpool"
 	"github.com/ZZMarquis/gm/sm2"
 
+	"das/core/httpgo"
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
@@ -19,6 +20,11 @@ import (
 	"das/core/redis"
 	"das/core/util"
 )
+
+/*
+ *	处理锁上行的json数据（nb锁、平板门）
+ *
+ */
 
 func ProcessJsonMsg(DValue string, devID string) error {
 	// 处理OneNET推送过来的消息
@@ -356,7 +362,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 					//3.1 封装业务数据
 					httpsParm := entity.YisumaHttpsReq{Body: sign, Signature: signature}
 					//3,2 发送https请求
-					respBody, err := GetYisumaApud(httpsParm)
+					respBody, err := httpgo.Http2YisumaActive(httpsParm)
 					if err != nil {
 						log.Error("[", head.DevId, "] cmdto cmdto.Cmd2Yisuma, err_step=", err)
 						break
