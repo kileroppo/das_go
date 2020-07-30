@@ -39,6 +39,7 @@ func NewMqttCli(cfg *MqttCfg) mqtt.Client {
 
 	cli := mqtt.NewClient(opts)
 	if token := cli.Connect(); token.Wait() && token.Error() != nil {
+		log.Errorf("mqtt.NewClient > %s", token.Error())
 		panic(token.Error())
 	}
 	return cli
