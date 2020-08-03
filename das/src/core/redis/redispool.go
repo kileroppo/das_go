@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/dlintw/goconf"
 	"github.com/go-redis/redis"
-	"github.com/tidwall/gjson"
 	"time"
 )
 
@@ -19,7 +18,7 @@ var (
 
 //初始化redis连接池
 func InitRedisPool(conf *goconf.ConfigFile) {
-	redisSrv, _ = conf.GetString("redisPool", "redis_server")
+	redisSrv, _ = conf.GetString("redisPool", "redis_uri_dev")
 	if redisSrv == "" {
 		fmt.Println("未启用redis")
 		return
@@ -60,20 +59,4 @@ func CloseRedisCli() {
 	if nil != redisCli {
 		redisCli.Close()
 	}
-}
-
-func IsFeibeeSpSrv(data []byte) (res bool) {
-	hKey := gjson.GetBytes(data, "bindid").String() + "_platform"
-	key := "from"
-	var err error
-
-	if redisCli == nil {
-		return false
-	}
-
-	res, err = redisCli.HExists(hKey, key).Result()
-	if err != nil {
-		return false
-	}
-	return res
 }
