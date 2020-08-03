@@ -78,6 +78,11 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 		if err1 != nil {
 			log.Error("WlJson2BinMsg() strconv.ParseUint: ", addDevUser.UserNote, ", error: ", err1)
 		}
+		// APP用户映射的字段
+		appUser, err2 := strconv.ParseUint(addDevUser.AppUser, 16, 32)
+		if err2 != nil {
+			log.Error("WlJson2BinMsg() strconv.ParseUint: ", addDevUser.AppUser, ", error: ", err2)
+		}
 
 		pdu := &wlprotocol.AddDevUser{
 			UserNo:   addDevUser.UserId,   // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
@@ -87,7 +92,9 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			// Passwd: addDevUser.Passwd,		// 密码(6)，密码开锁方式，目前是6个字节.如果添加的是其他验证方式,则为0xff.密码位数少于10位时,多余的填0xff
 			UserNote:  int32(nRandom),   // 用户别名-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
 			PermitNum: addDevUser.Count, // 允许开门次数
+			AppUser: int32(appUser),	// APP用户账号-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
 		}
+
 		if constant.OPEN_BLE == addDevUser.MainOpen {
 			pwd := []byte(addDevUser.Passwd)
 			for i := 0; i < len(pwd); i++ {
@@ -200,11 +207,18 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			return nil, err
 		}
 
+		// APP用户映射的字段
+		appUser, err2 := strconv.ParseUint(delDevUser.AppUser, 16, 32)
+		if err2 != nil {
+			log.Error("WlJson2BinMsg() strconv.ParseUint: ", delDevUser.AppUser, ", error: ", err2)
+		}
+
 		pdu := &wlprotocol.DelDevUser{
 			UserNo:   delDevUser.UserId,   // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
 			MainOpen: delDevUser.MainOpen, // 允许开门次数
 			SubOpen:  delDevUser.SubOpen,  // 是否胁迫，是否胁迫：0-正常，1-胁迫
 			Time:     delDevUser.Time,     // 时间戳
+			AppUser: int32(appUser),
 		}
 
 		bData, err_ := wlMsg.PkEncode(pdu)
@@ -241,9 +255,16 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			return nil, err
 		}
 
+		// APP用户映射的字段
+		appUser, err2 := strconv.ParseUint(remoteOpen.AppUser, 16, 32)
+		if err2 != nil {
+			log.Error("WlJson2BinMsg() strconv.ParseUint: ", remoteOpen.AppUser, ", error: ", err2)
+		}
+
 		pdu := &wlprotocol.RemoteOpenLock{
 			/*Passwd: (remoteOpen.Passwd),	// 密码1（6）
 			Passwd2: remoteOpen.Passwd2,	// 密码2（6）*/
+			AppUser: int32(appUser),
 		}
 
 		nTime, ok := remoteOpen.Time.(float64) // 随机数（4）
@@ -285,6 +306,13 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			log.Error("WlJson2BinMsg json.Unmarshal Header error, err=", err)
 			return nil, err
 		}
+
+		// APP用户映射的字段
+		appUser, err2 := strconv.ParseUint(setParam.AppUser, 16, 32)
+		if err2 != nil {
+			log.Error("WlJson2BinMsg() strconv.ParseUint: ", setParam.AppUser, ", error: ", err2)
+		}
+
 		if 0x0b != setParam.ParaNo && 2 != setParam.PaValue { // 红外感应设置多久时间后拍照，其他的参数设置均为0xFF
 			setParam.PaValue2 = 0xFF
 		}
@@ -293,6 +321,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			ParamValue:  setParam.PaValue,  // 参数值(1)
 			ParamValue2: setParam.PaValue2, // 参数值2(1)
 			// Time: setParam.Time,			// 时间(4)
+			AppUser: int32(appUser),
 		}
 		switch setParam.Time.(type) {
 		case string:

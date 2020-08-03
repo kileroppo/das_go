@@ -28,6 +28,30 @@ type AddDevUser struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 		 `json:"appUser"`	  // 远程用户，APP账号
+	UserId   uint16      `json:"userId"`      // 设备用户ID
+	UserNote string      `json:"userNote"`    // 设备用户别名
+	UserType uint8       `json:"userType"`    // 用户类型（0-管理员，1-普通用户，2-临时用户）
+	MainOpen uint8       `json:"mainOpen"`    // 主开锁方式（1-密码，2-刷卡，3-指纹）
+	SubOpen  uint8       `json:"subOpen"`     // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+	Passwd   string      `json:"passwd"`      // 如果是添加密码需要填写
+	Count    uint16      `json:"count"`       // 开门次数，0xffff为无限次
+	MyDate   MyDTM       `json:"date"`        // 开始有效时间
+	MyTime   [3]MyDTM    `json:"time"`        // 时段
+	TimeLen  interface{} `json:"time_length"` // 兼容捷博生产商，临时用户时长（单位：秒）
+	Bindid   string      `json:"bindid,omitempty"`      // zigbee锁网关账号
+	Bindstr  string      `json:"bindstr,omitempty"`     // zigbee锁网关密码
+}
+
+type _DelDevUser struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	AppUser string 		 `json:"appUser"`	  // 远程用户，APP账号
 	UserId   uint16      `json:"userId"`      // 设备用户ID
 	UserNote string      `json:"userNote"`    // 设备用户别名
 	UserType uint8       `json:"userType"`    // 用户类型（0-管理员，1-普通用户，2-临时用户）
@@ -102,6 +126,7 @@ type DelDevUser struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 	`json:"appUser"`  // 远程用户，APP账号
 	UserId   uint16 `json:"userId"`   // 设备用户ID
 	MainOpen uint8  `json:"mainOpen"` // 主开锁方式（1-密码，2-刷卡，3-指纹）
 	SubOpen  uint8  `json:"subOpen"`  // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
@@ -199,6 +224,7 @@ type SRemoteOpenLockReq struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 	`json:"appUser"`	// 远程用户，APP账号
 	Passwd string `json:"passwd"`
 	Time   interface{}  `json:"time"`
 
@@ -215,6 +241,7 @@ type MRemoteOpenLockReq struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string `json:"appUser"`	// 远程用户，APP账号
 	Passwd  string `json:"passwd"`
 	Passwd2 string `json:"passwd2"`
 	Time    interface{}  `json:"time"`
@@ -305,10 +332,11 @@ type SetLockParamReq struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 	`json:"appUser"`  // 远程用户，APP账号
 	ParaNo   uint8  `json:"paraNo"`   // 参数编号
 	PaValue  uint8  `json:"paValue"`  // 参数值1
 	PaValue2 uint8  `json:"paValue2"` // 参数值2，当参数编号为0x0b（人体感应报警开关）且”参数值1”为2时候，此字段有效
-	Time     interface{} `json:"time"`     // 时间戳
+	Time     interface{} `json:"time"` // 时间戳
 }
 type LockParam struct {
 	Cmd     int    `json:"cmd"`
