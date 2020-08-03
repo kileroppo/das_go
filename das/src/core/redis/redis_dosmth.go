@@ -75,6 +75,19 @@ func SetDevUserNotePool(devId string, strTime string, userNote string) error {
 	return nil
 }
 
+func SetAppUserPool(devId string, strTime string, appUser string) error {
+	ret := redisCli.HSet(devId + "_appuser", strTime, appUser)
+	if nil != ret.Err() {
+		log.Error("redis SetAppUserPool failed, key=", devId, ", err=", ret.Err())
+		return ret.Err()
+	}
+
+	// 过期时间10分钟
+	redisCli.Expire(devId + "_appuser", time.Second * 60 * 10)
+
+	return nil
+}
+
 func SetAliIoTtoken(token string, expireTime int64) error {
 	ret := redisCli.Set("ALI_IOT_TOKEN", token, time.Second * time.Duration(expireTime))
 	if nil != ret.Err() {

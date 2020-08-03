@@ -32,7 +32,7 @@ func OtherVendorHttp2SrvStart(conf *goconf.ConfigFile) *http.Server {
 	}
 
 	http.HandleFunc("/xm", XMAlarmMsgHandler)
-	http.HandleFunc("/yk", XKMsgHandler)
+	http.HandleFunc("/yk", YKMsgHandler)
 	http.HandleFunc("/rg", RGMsgHandler)
 
 	go func() {
@@ -64,14 +64,14 @@ func XMAlarmMsgHandler(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func XKMsgHandler(res http.ResponseWriter, req *http.Request) {
+func YKMsgHandler(res http.ResponseWriter, req *http.Request) {
 	rawData, err := ioutil.ReadAll(req.Body)
 	defer req.Body.Close()
 
 	if err != nil {
-		log.Errorf("XKMsgHandler > ioutil.ReadAll > %s", err)
+		log.Errorf("YKMsgHandler > ioutil.ReadAll > %s", err)
 	} else {
-		log.Infof("XKMsgHandler recv: %s", rawData)
+		log.Infof("YKMsgHandler recv: %s", rawData)
 		jobque.JobQueue <- NewYKJob(rawData)
 	}
 }
@@ -102,12 +102,12 @@ func (y YKJob) Handle() {
 }
 
 func ProcessYKMsg(rawData []byte) {
+	header := entity.Header{
+		Cmd:     0xfb,
+		DevType: "WonlyYKInfrared",
+		Vendor:  "yk",
+	}
 	msg2app := entity.Feibee2DevMsg{
-		Header: entity.Header{
-			Cmd:     0xfb,
-			DevType: "WonlyYKInfrared",
-			Vendor:  "yk",
-		},
 		Note:          "",
 		Deviceuid:     0,
 		Online:        0,
@@ -125,18 +125,31 @@ func ProcessYKMsg(rawData []byte) {
 		log.Warningf("ProcessYKMsg > json.Unmarshal > %s", err)
 		return
 	}
+	header.DevId = msg.Devid
 	msg2app.Online = msg.Online
-	msg2app.DevId = msg.Devid
 	msg2app.OpValue = strconv.Itoa(msg.Online)
 	msg2app.Time = msg.Timestamp
+	msg2app.Header = header
 
-	data2app, err := json.Marshal(msg2app)
+	data, err := json.Marshal(msg2app)
 	if err != nil {
 		log.Warningf("ProcessYKMsg > json.Marshal > %s", err)
-		return
+	} else {
+		rabbitmq.Publish2app(data, msg2app.DevId)
+		rabbitmq.Publish2mns(data, "")
 	}
-	rabbitmq.Publish2app(data2app, msg2app.DevId)
-	rabbitmq.Publish2mns(data2app, "")
+
+	header.Cmd = 0x1200
+	msg2pms := entity.OtherVendorDevMsg{
+		Header:  header,
+		OriData: string(rawData),
+	}
+	data,err = json.Marshal(msg2pms)
+	if err != nil {
+		log.Warningf("ProcessYKMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2pms(data, "")
+	}
 }
 
 func NewYKJob(rawData []byte) YKJob {

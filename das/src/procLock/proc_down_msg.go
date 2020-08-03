@@ -92,8 +92,7 @@ func ProcAppMsg(appMsg string) error {
 	//2. 数据干预处理
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
 	switch head.Cmd {
-	case constant.Remote_open:
-		{
+	case constant.Remote_open: {
 			//1. 先判断是否为亿速码加签名，查询redis，若为远程开锁流程且能查到random，则需要加签名
 			random, err0 := redis.GetDeviceYisumaRandomfromPool(head.DevId)
 			if err0 == nil {
@@ -113,6 +112,13 @@ func ProcAppMsg(appMsg string) error {
 					if err := json.Unmarshal([]byte(appMsg), &mROpenLockReq); err != nil {
 						log.Error("ProcAppMsg json.Unmarshal MRemoteOpenLockReq error, err=", err)
 					}
+
+					appUserTag := strconv.FormatInt(time.Now().Unix(), 16)
+					if uNoteErr := redis.SetAppUserPool(mROpenLockReq.DevId, appUserTag, mROpenLockReq.AppUser); uNoteErr != nil {
+						log.Error("ProcAppMsg redis.SetAppUserPool error, err=", uNoteErr)
+						return uNoteErr
+					}
+					mROpenLockReq.AppUser = appUserTag // 值跟KEY交换，下发到锁端
 
 					decryptPwdFlag := false // 密码解密
 					stringKey := strings.ToUpper(util.Md5(head.DevId))
@@ -164,6 +170,13 @@ func ProcAppMsg(appMsg string) error {
 						log.Error("ProcAppMsg json.Unmarshal SRemoteOpenLockReq error, err=", err)
 					}
 
+					appUserTag := strconv.FormatInt(time.Now().Unix(), 16)
+					if uNoteErr := redis.SetAppUserPool(sROpenLockReq.DevId, appUserTag, sROpenLockReq.AppUser); uNoteErr != nil {
+						log.Error("ProcAppMsg redis.SetAppUserPool error, err=", uNoteErr)
+						return uNoteErr
+					}
+					sROpenLockReq.AppUser = appUserTag // 值跟KEY交换，下发到锁端
+
 					if len(sROpenLockReq.Passwd) > 6 {
 						psw1, err0 := hex.DecodeString(sROpenLockReq.Passwd)
 						if err0 != nil {
@@ -188,22 +201,25 @@ func ProcAppMsg(appMsg string) error {
 				}
 			}
 		}
-	case constant.Add_dev_user:
-		{
+	case constant.Add_dev_user: {
 			// 添加锁用户，用户名
 			var addDevUser entity.AddDevUser
 			if err := json.Unmarshal([]byte(appMsg), &addDevUser); err != nil {
 				log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 			}
 
-			// if 0xFFFF == addDevUser.UserId { // TODO:jhhe remove
-			userNoteTag := strconv.FormatInt(time.Now().Unix(), 16)
-			if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userNoteTag, addDevUser.UserNote); uNoteErr != nil {
+			userTag := strconv.FormatInt(time.Now().Unix(), 16)
+			if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userTag, addDevUser.UserNote); uNoteErr != nil {
 				log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
 				return uNoteErr
 			}
-			addDevUser.UserNote = userNoteTag // 值跟KEY交换，下发到锁端
-			// }
+			addDevUser.UserNote = userTag // 值跟KEY交换，下发到锁端
+
+			if appUserErr := redis.SetAppUserPool(addDevUser.DevId, userTag, addDevUser.AppUser); appUserErr != nil {
+				log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
+				return appUserErr
+			}
+			addDevUser.AppUser = userTag // 值跟KEY交换，下发到锁端
 
 			if constant.OPEN_PWD == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
 				if len(addDevUser.Passwd) > 6 {
@@ -232,6 +248,52 @@ func ProcAppMsg(appMsg string) error {
 			appMsg = string(addDevUserStr)
 			log.Debug("ProcAppMsg , appMsg=", appMsg)
 		}
+	case constant.Del_dev_user: {
+		// 添加锁用户，用户名
+		var delDevUser entity.DelDevUser
+		if err := json.Unmarshal([]byte(appMsg), &delDevUser); err != nil {
+			log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
+		}
+
+		userTag := strconv.FormatInt(time.Now().Unix(), 16)
+		if appUserErr := redis.SetAppUserPool(delDevUser.DevId, userTag, delDevUser.AppUser); appUserErr != nil {
+			log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
+			return appUserErr
+		}
+		delDevUser.AppUser = userTag // 值跟KEY交换，下发到锁端
+
+		// json转字符串
+		delDevUserStr, err1 := json.Marshal(delDevUser)
+		if err1 != nil {
+			log.Error("ProcAppMsg delDevUserStr json.Marshal failed, err=", err1)
+			return err1
+		}
+		appMsg = string(delDevUserStr)
+		log.Debug("ProcAppMsg , appMsg=", appMsg)
+	}
+	case constant.Set_dev_para: {
+		// 添加锁用户，用户名
+		var setLockParamReq entity.SetLockParamReq
+		if err := json.Unmarshal([]byte(appMsg), &setLockParamReq); err != nil {
+		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
+		}
+
+		userTag := strconv.FormatInt(time.Now().Unix(), 16)
+		if appUserErr := redis.SetAppUserPool(setLockParamReq.DevId, userTag, setLockParamReq.AppUser); appUserErr != nil {
+		log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
+		return appUserErr
+		}
+		setLockParamReq.AppUser = userTag // 值跟KEY交换，下发到锁端
+
+		// json转字符串
+		setLockParamReqStr, err1 := json.Marshal(setLockParamReq)
+		if err1 != nil {
+		log.Error("ProcAppMsg setLockParamReqStr json.Marshal failed, err=", err1)
+		return err1
+		}
+		appMsg = string(setLockParamReqStr)
+		log.Debug("ProcAppMsg , appMsg=", appMsg)
+	}
 	case constant.Wonly_LGuard_Msg:
 		//小卫士消息
 		httpgo.Http2FeibeeWonlyLGuard(appMsg)
@@ -249,8 +311,7 @@ func ProcAppMsg(appMsg string) error {
 	}
 
 	switch ret["from"] {
-	case constant.ONENET_PLATFORM: // 移动OneNET平台
-		{
+	case constant.ONENET_PLATFORM: {	// 移动OneNET平台
 			// 加密数据
 			var toDevHead entity.MyHeader
 			toDevHead.ApiVersion = constant.API_VERSION
@@ -303,8 +364,7 @@ func ProcAppMsg(appMsg string) error {
 		}
 	case constant.TELECOM_PLATFORM: {} // 电信平台
 	case constant.ANDLINK_PLATFORM: {} // 移动AndLink平台
-	case constant.PAD_DEVICE_PLATFORM: // WiFi平板
-		{
+	case constant.PAD_DEVICE_PLATFORM: {	// WiFi平板
 			var strToDevData string
 			var err error
 			if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
@@ -351,8 +411,7 @@ func ProcAppMsg(appMsg string) error {
 			}
 			WlMqttPublishPad(head.DevId, strToDevData)
 		}
-	case constant.ALIIOT_PLATFORM: // 阿里云飞燕平台
-		{
+	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
 			bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
 			if nil != err_ {
 				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
@@ -384,8 +443,7 @@ func ProcAppMsg(appMsg string) error {
 				redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
 			}
 		}
-	case constant.MQTT_PLATFORM: // MQTT
-		{
+	case constant.MQTT_PLATFORM: {	// MQTT
 			bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
 			if nil != err_ {
 				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
