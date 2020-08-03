@@ -1050,13 +1050,21 @@ func (pdu *UserOperUpload) Decode(bBody []byte, uuid string) error {
 		log.Error("binary.Read failed:", err)
 		return err
 	}
-	if err = binary.Read(buf, binary.BigEndian, &pdu.UserId); err != nil {
-		log.Error("binary.Read failed:", err)
-		return err
-	}
-	if err = binary.Read(buf, binary.BigEndian, &pdu.UserId2); err != nil {
-		log.Error("binary.Read failed:", err)
-		return err
+
+	if 2 == pdu.UserType { // AppUser
+		if err = binary.Read(buf, binary.BigEndian, &pdu.AppUser); err != nil {
+			log.Error("binary.Read failed:", err)
+			return err
+		}
+	} else { // lock user
+		if err = binary.Read(buf, binary.BigEndian, &pdu.UserId); err != nil {
+			log.Error("binary.Read failed:", err)
+			return err
+		}
+		if err = binary.Read(buf, binary.BigEndian, &pdu.UserId2); err != nil {
+			log.Error("binary.Read failed:", err)
+			return err
+		}
 	}
 	if err = binary.Read(buf, binary.BigEndian, &pdu.OpType); err != nil {
 		log.Error("binary.Read failed:", err)

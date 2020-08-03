@@ -124,12 +124,17 @@ func ParseData(mydata interface{}) error {
 			SeqId: int(wlMsg.SeqId),
 
 			UserType: int(pdu.UserType),
-			UserId: int(pdu.UserId),
 			UserId2: int(pdu.UserId2),
 			OpType: int(pdu.OpType),
 			OpUserPara: int(pdu.OpUserPara),
 			OpValue: int(pdu.OpValue),
 			Time: int32(time.Now().Unix()),
+		}
+
+		if 2 == pdu.UserType {
+			userOperUpload.UserId = int(pdu.AppUser)
+		} else {
+			userOperUpload.UserId = int(pdu.UserId)
 		}
 
 		//3. 发送到PMS模块
