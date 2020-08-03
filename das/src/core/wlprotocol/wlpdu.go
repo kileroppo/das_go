@@ -142,6 +142,10 @@ func (pdu *DelDevUser) Encode(uuid string) ([]byte, error) {
 		log.Error("binary.Write failed:", err)
 		return nil, err
 	}
+	if err = binary.Write(buf, binary.BigEndian, pdu.AppUser); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
 
 	toDevice_byte := buf.Bytes()
 	log.Debug("[ ", uuid, " ] DelDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
@@ -215,6 +219,10 @@ func (pdu *AddDevUser) Encode(uuid string) ([]byte, error) {
 		return nil, err
 	}
 	if err = binary.Write(buf, binary.BigEndian, pdu.BlePin); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+	if err = binary.Write(buf, binary.BigEndian, pdu.AppUser); err != nil {
 		log.Error("binary.Write failed:", err)
 		return nil, err
 	}
@@ -794,6 +802,10 @@ func (pdu *RemoteOpenLock) Encode(uuid string) ([]byte, error) {
 		log.Error("binary.Write failed:", err)
 		return nil, err
 	}
+	if err = binary.Write(buf, binary.BigEndian, pdu.AppUser); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
 
 	toDevice_byte := buf.Bytes()
 	log.Debug("[ ", uuid, " ] RemoteOpenLock Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
@@ -866,6 +878,10 @@ func (pdu *SetLockParamReq) Encode(uuid string) ([]byte, error) {
 		}
 	}
 	if err = binary.Write(buf, binary.BigEndian, pdu.Time); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+	if err = binary.Write(buf, binary.BigEndian, pdu.AppUser); err != nil {
 		log.Error("binary.Write failed:", err)
 		return nil, err
 	}

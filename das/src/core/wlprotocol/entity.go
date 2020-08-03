@@ -85,6 +85,7 @@ type DelDevUser struct {
 	MainOpen uint8  // 主开锁方式，开锁方式：附表开锁方式，如果该字段是0，表示删除该用户
 	SubOpen  uint8  // 是否胁迫，是否胁迫：0-正常，1-胁迫
 	Time     int32  // 时间戳
+	AppUser int32	// app用户映射的值
 }
 
 //4. 新增用户(0x33)(服务器-->前板)
@@ -103,6 +104,7 @@ type AddDevUser struct {
 	TimeSlot2 [4]byte  // 时段2
 	TimeSlot3 [4]byte  // 时段3
 	BlePin    [10]byte // 蓝牙PIN码
+	AppUser int32	// app用户映射的值
 }
 
 //5. 新增用户报告步骤(0x34)(前板-->服务器)
@@ -244,6 +246,7 @@ type RemoteOpenLock struct {
 	Passwd  [6]byte // 密码1（6）
 	Passwd2 [6]byte // 密码2（6）
 	Time    int32   // 随机数（4）
+	AppUser int32	// app用户映射的值
 }
 
 // 用户id1（2）+用户id2（2）+时间（4）
@@ -273,6 +276,7 @@ type SetLockParamReq struct {
 	ParamValue  uint8 // 参数值(1)
 	ParamValue2 uint8 // 参数值2(1)
 	Time        int32 // 时间(4)
+	AppUser 	int32 // app用户映射的字段
 }
 
 //23. 参数更新(0x73)(前板,后板-->服务器)
