@@ -140,6 +140,7 @@ func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 
 	msg.AlarmFlag = self.alarmFlag
 	msg.AlarmType = self.alarmType
+	msg.AlarmValue = self.alarmVal
 
 	return msg
 }

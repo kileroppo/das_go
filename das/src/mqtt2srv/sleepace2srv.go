@@ -15,7 +15,7 @@ var (
 
 func InitMqtt2Srv() {
 	cfg := &dasMqtt.MqttCfg{}
-	if err := initMqttCfg(cfg); err != nil {
+	if err := initSleepaceMqttCfg(cfg); err != nil {
 		log.Errorf("InitSleepaceMqtt > %s", err)
 		panic(err)
 	}
@@ -23,7 +23,7 @@ func InitMqtt2Srv() {
 	sleepaceMqttCli = dasMqtt.NewMqttCli(cfg)
 }
 
-func initMqttCfg(cfg *dasMqtt.MqttCfg) (err error) {
+func initSleepaceMqttCfg(cfg *dasMqtt.MqttCfg) (err error) {
 	cfg.Url, err = log.Conf.GetString("sleepace", "url")
 	if err != nil {
 		err = fmt.Errorf("get-sleepaceMqtt-url > %w", err)
