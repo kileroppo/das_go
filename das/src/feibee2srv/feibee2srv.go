@@ -1,18 +1,28 @@
 package feibee2srv
 
 import (
-	"bytes"
+	"context"
 	"errors"
+	"github.com/etcd-io/etcd/clientv3"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/dlintw/goconf"
+	"github.com/tidwall/gjson"
 
 	"das/core/entity"
+	"das/core/etcd"
 	"das/core/jobque"
 	"das/core/log"
+	"das/core/rabbitmq"
+)
+
+var (
+	ErrMsgInvalid = errors.New("msg was invalid")
 )
 
 type FeibeeJob struct {
@@ -34,8 +44,10 @@ func (f FeibeeJob) Handle() {
 		}
 	}()
 
-	log.Debug("feibee2srv.Handle() get: ", bytes.NewBuffer(f.rawData).String())
-	ProcessFeibeeMsg(f.rawData)
+	err := ProcessFeibeeMsg(f.rawData)
+	if err != nil {
+		log.Warningf("FeibeeJob.Handle > %s", err)
+	}
 }
 
 func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
@@ -90,16 +102,21 @@ type FeibeeData struct {
 }
 
 func ProcessFeibeeMsg(rawData []byte) (err error) {
-
 	feibeeData, err := NewFeibeeData(rawData)
 	if err != nil {
 		return err
 	}
 
+	go sendFeibeeLogMsg(rawData)
+
+	seqId := gjson.GetBytes(rawData, "seqId").Int()
+	if seqId > 0 {
+		go setSceneResultCache(rawData)
+	}
+
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
-		err := errors.New("the feibee message's structure is invalid")
-		log.Debug(err)
+		log.Warningf("ProcessFeibeeMsg > %s > msg: %s", ErrMsgInvalid, rawData)
 		return err
 	}
 
@@ -109,11 +126,58 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 	return nil
 }
 
+func setSceneResultCache(rawData []byte) {
+	etcdClt := etcd.GetEtcdClient()
+	if etcdClt == nil {
+		log.Error("setSceneResultCache > etcd.GetEtcdClient > get etcd failed")
+		return
+	}
+    code := gjson.GetBytes(rawData, "code").Int()
+	seq := gjson.GetBytes(rawData, "seqId").String()
+	bindid, val := "", ""
+
+	val = "1"
+	if code == 41 {
+		bindid = gjson.GetBytes(rawData, "bindid").String()
+	} else if code == 42 {
+		if arr := gjson.GetBytes(rawData, "msg").Array(); len(arr) > 0 {
+			bindid = arr[0].Get("bindid").String()
+			val = "-1"
+		} else {
+			return
+		}
+	} else {
+		return
+	}
+
+	key := bindid+"_"+seq
+	resp,err := etcdClt.Get(context.Background(), key)
+	if err != nil {
+		return
+	}
+	if len(resp.Kvs) <= 0 {
+		return
+	}
+	rawVal := resp.Kvs[0].Value
+	vals := strings.Split(string(rawVal), "_")
+	if len(vals) > 1 {
+		leaseId, err := strconv.ParseInt(vals[1], 10, 64)
+		val += ("_" + vals[1])
+		if err == nil {
+			log.Infof("Set etcd[%s] %s", key, val)
+			_,err = etcdClt.Put(context.Background(), key, val, clientv3.WithLease(clientv3.LeaseID(leaseId)))
+			if err != nil {
+				log.Errorf("setSceneResultCache > etcdClt.Put > %s", err)
+			}
+		}
+	}
+}
+
 func NewFeibeeData(data []byte) (FeibeeData, error) {
 	var feibeeData FeibeeData
 
 	if err := json.Unmarshal(data, &feibeeData.data); err != nil {
-		log.Error("NewFeibeeData() unmarshal error = ", err)
+		log.Errorf("NewFeibeeData > json.Unmarshal error > %s", data)
 		return feibeeData, err
 	}
 
@@ -183,7 +247,7 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 			datas[i].Ver = data.Ver
 			datas[i].Status = data.Status
 		}
-	case 32:
+	case 15,32:
 		datas = make([]entity.FeibeeData, len(data.Gateway))
 		for i := 0; i < len(data.Gateway); i++ {
 			datas[i].Gateway = []entity.FeibeeGatewayMsg{
@@ -206,4 +270,21 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 	}
 
 	return
+}
+
+func sendFeibeeLogMsg(rawData []byte) {
+    var logMsg entity.SysLogMsg
+
+    currT := time.Now()
+    logMsg.Timestamp = currT.Unix()
+    logMsg.NanoTimestamp = currT.UnixNano()
+    logMsg.MsgType = 1
+    logMsg.RawData = string(rawData)
+
+    data,err := json.Marshal(logMsg)
+    if err != nil {
+    	log.Warningf("sendFeibeeLogMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2log(data, "")
+	}
 }

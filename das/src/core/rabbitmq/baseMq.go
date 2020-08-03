@@ -5,8 +5,8 @@ import (
 	"errors"
 	"reflect"
 	"sync"
-		"time"
-	"runtime"
+	"sync/atomic"
+	"time"
 
 	"github.com/streadway/amqp"
 
@@ -41,7 +41,7 @@ type baseMq struct {
 	currReConnNum int32
 	mu            sync.Mutex
 	isConsumer    bool
-	reconnFlag    bool
+	reconnFlag    uint32 //0-需要重连 1-不需要
 
 	ctx    context.Context
 	cancel context.CancelFunc
@@ -75,7 +75,7 @@ func (bmq *baseMq) initConsumer() (err error) {
 		nil,                       // arguments
 	)
 	if nil != err {
-		log.Errorf("%s QueueDeclare() error = %s", bmq.channelCtx.Name, err)
+		log.Errorf("initConsumer > %s QueueDeclare > %s", bmq.channelCtx.Name, err)
 		bmq.channel.Close()
 		return err
 	}
@@ -87,7 +87,7 @@ func (bmq *baseMq) initConsumer() (err error) {
 		nil,                       // arguments
 	)
 	if nil != err {
-		log.Errorf("%s QueueBind() error = %s", bmq.channelCtx.Name, err)
+		log.Errorf("initConsumer > %s QueueBind > %s", bmq.channelCtx.Name, err)
 		bmq.channel.Close()
 		return err
 	}
@@ -107,7 +107,7 @@ func (bmq *baseMq) initExchange() error {
 	)
 
 	if err != nil {
-		log.Errorf("%s initExchange() error = %s", bmq.channelCtx.Name, err)
+		log.Errorf("initExchange %s > %s", bmq.channelCtx.Name, err)
 		return err
 	}
 
@@ -135,7 +135,7 @@ func (bmq *baseMq) Publish(data []byte, routingKey string) (err error) {
 			},
 		)
 		if err != nil {
-			log.Errorf("%s Publish() error = %s", bmq.channelCtx.Name, err)
+			log.Errorf("Publish %s > %s", bmq.channelCtx.Name, err)
 			bmq.cancel()
 			go bmq.ReConn()
 			return
@@ -160,7 +160,7 @@ func (bmq *baseMq) Consumer() (ch <-chan amqp.Delivery, err error) {
 	)
 
 	if err != nil {
-		log.Errorf("%s Consumer() error = ", err)
+		log.Errorf("Consumer > %s", err)
 		return nil, err
 	}
 
@@ -168,35 +168,37 @@ func (bmq *baseMq) Consumer() (ch <-chan amqp.Delivery, err error) {
 }
 
 func (bmq *baseMq) ReConn() error {
-	//log.Info("MQ Reconnnecting...")
+	log.Info("MQ Start connecting...")
 	var err error
 	isFirst := true
 	bmq.mu.Lock()
-	if bmq.reconnFlag {
+	if !atomic.CompareAndSwapUint32(&bmq.reconnFlag, 0, 1) {
 		bmq.mu.Unlock()
-		runtime.Goexit()
+		return nil
 	}
-	bmq.reconnFlag = true
 	bmq.mu.Unlock()
 	for {
 		if isFirst {
 			isFirst = false
 		} else {
-			time.Sleep(time.Second * 20)
+			time.Sleep(time.Second * 10)
 		}
 		log.Infof("%s %dth Reconnecting...", bmq.channelCtx.Name, bmq.currReConnNum+1)
 		bmq.connection, err = amqp.Dial(bmq.mqUri)
 		if err != nil {
+			log.Errorf("baseMq.ReConn > amqp.Dial > %s", err)
 			bmq.currReConnNum++
 			continue
 		}
 		bmq.channel, err = bmq.connection.Channel()
 		if err != nil {
+			log.Errorf("baseMq.ReConn > bmq.connection.Channel > %s", err)
 			bmq.currReConnNum++
 			continue
 		}
 		if bmq.isConsumer {
 			if err = bmq.initConsumer(); err != nil {
+				log.Errorf("baseMq.ReConn > %s", err)
 				bmq.currReConnNum++
 				continue
 			}

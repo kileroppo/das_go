@@ -34,6 +34,7 @@ const (
 
 	Add_dev_user      = 0x33 // 添加设备用户
 	Set_dev_user_temp = 0x76 // 设置临时用户
+	User_oper_upload = 0x77 // 用户操作上报
 	Add_dev_user_step = 0x34 // 新增用户步骤
 	Del_dev_user      = 0x32 // 删除设备用户
 	Update_dev_user   = 0x35 // 用户更新上报
@@ -45,8 +46,8 @@ const (
 	Update_dev_para = 0x73 // 设备参数更新上报
 	Soft_reset      = 0x74 // 软件复位
 	// Factory_reset = 0x75		// 恢复出厂设置
-	Factory_reset   = 0xEA // 恢复出厂设置
-	Upload_open_log = 0x40 // 门锁开门日志上报
+	Factory_reset    = 0xEA // 恢复出厂设置
+	Upload_open_log  = 0x40 // 门锁开门日志上报
 	UpEnter_menu_log = 0x42 // 用户进入菜单上报
 
 	// 报警
@@ -54,6 +55,7 @@ const (
 	Forced_break_alarm = 0x22 // 强拆报警
 	Fakelock_alarm     = 0x24 // 假锁报警
 	Nolock_alarm       = 0x26 // 门未关报警
+	Gas_Alarm 		   = 0x27 // 燃气报警
 	Low_battery_alarm  = 0x2A // 锁体的电池，低电量报警
 	Infrared_alarm     = 0x39 // 人体感应报警（infra红外感应)
 	Lock_PIC_Upload    = 0x2F // 视频锁图片上报
@@ -62,10 +64,10 @@ const (
 	Upload_lock_active = 0x46 // 锁激活状态上报
 
 	// 视频设备
-	Real_Video = 0x36 // 实时视频
-	Set_Wifi   = 0x37 // Wifi设置
-	Notify_Set_Wifi   = 0x3A // 锁端Wifi设置成功通知
-	Door_Call  = 0x38 // 门铃呼叫
+	Real_Video      = 0x36 // 实时视频
+	Set_Wifi        = 0x37 // Wifi设置
+	Notify_Set_Wifi = 0x3A // 锁端Wifi设置成功通知
+	Door_Call       = 0x38 // 门铃呼叫
 
 	// 锁状态
 	Door_State = 0x55 // 锁状态上报
@@ -86,17 +88,30 @@ const (
 	Active_Yisuma_SE    = 0x68 //激活亿速码安全芯片
 	Random_Yisuma_State = 0x66 //亿速码随机数上报
 
-	Wonly_Guard_Msg = 0xfb
+	Wonly_LGuard_Msg = 0xfb
+
+	PadDoor_RealVideo 			= 0x1001 // 平板锁实时视频
+	PadDoor_Weather 			= 0x1002 // 平板锁当前天气
+	Set_AIPad_Reboot_Time 		= 0x1003 // 设置中控网关定时参数
+	RangeHood_Control 			= 0x1005 // 油烟机档位控制
+	RangeHood_Ctrl_Query	    = 0x1006 // 油烟机档位查询
+	Body_Fat_Scale              = 0x1008 // 体脂称数据上报
+
+	PadDoor_Num_Upload 			= 0x1100 // 平板锁人流检测上报
+	PadDoor_Num_Reset  			= 0x1101 // 平板门锁人流检测重置
+	Scene_Trigger 				= 0xf1   //爱岗场景触发（中控平板的闹钟作为触发条件）
+
 )
 
 const (
-	ONENET_PLATFORM  	= "onenet"
-	TELECOM_PLATFORM 	= "telecom"
-	ANDLINK_PLATFORM 	= "andlink"
-	PAD_DOOR_PLATFORM 	= "paddoor"
-	ALIIOT_PLATFORM 	= "aliIoT"
-	FEIBEE_PLATFORM 	= "feibee"
-	MQTT_PLATFORM 		= "mqtt"
+	ONENET_PLATFORM   = "onenet"
+	TELECOM_PLATFORM  = "telecom"
+	ANDLINK_PLATFORM  = "andlink"
+	PAD_DEVICE_PLATFORM = "paddevice"
+	ALIIOT_PLATFORM   = "aliIoT"
+	FEIBEE_PLATFORM   = "feibee"
+	MQTT_PLATFORM     = "mqtt"
+	MQTT_PAD_PLATFORM = "mqttpad"
 )
 
 // 电信平台订阅消息类型
@@ -132,14 +147,22 @@ const (
 // 协议选择
 const (
 	GENERAL_PROTOCOL = 1
-	ZIGBEE_PROTOCOL = 2
+	ZIGBEE_PROTOCOL  = 2
 )
 
 //	设备参数设置编号，需要特殊处理的字符串
 const (
-	IPC_SN_PNO 		= 0x0d	// 视频模组sn
-	WIFI_SSID_PNO 	= 0x0f	// WIFI_SSID
-	PROJECT_No_PNO 	= 0x10	// 产品序列号
+	IPC_SN_PNO     = 0x0d // 视频模组sn
+	WIFI_SSID_PNO  = 0x0f // WIFI_SSID
+	PROJECT_No_PNO = 0x10 // 产品序列号
 
+)
 
+// 开锁方式 1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙
+const (
+	OPEN_PWD = 1	// 1-密码
+	OPEN_CARD = 2	// 2-刷卡
+	OPEN_FINGER = 3	// 3-指纹
+	OPEN_FACE = 5	// 5-人脸
+	OPEN_BLE = 12	// 12-蓝牙
 )

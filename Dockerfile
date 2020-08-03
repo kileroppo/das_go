@@ -1,7 +1,6 @@
 FROM registry.cn-hangzhou.aliyuncs.com/basicimage/golang:latest AS builder
 WORKDIR /tmp/
 COPY ./das/ /tmp/das/
-COPY ./gopath/ /usr/local/gopath/
 
 RUN go env -w GOPROXY=https://goproxy.cn,direct \
     && go env -w GO111MODULE=on \

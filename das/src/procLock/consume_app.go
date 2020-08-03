@@ -5,6 +5,7 @@ import (
 
 	"das/core/jobque"
 	"das/core/log"
+	"das/core/mqtt"
 	"das/core/rabbitmq"
 )
 
@@ -41,6 +42,7 @@ func (c ConsumerJob) Handle() {
 func Run() {
 	go consume()
 	go consumePadDoor()
+	go initMqtt()
 }
 
 func consume() {
@@ -73,4 +75,5 @@ func consume() {
 
 func Close() {
 	cancel()
+	mqtt.CloseMqttCli(mqttCli)
 }

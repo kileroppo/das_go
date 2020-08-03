@@ -8,7 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -24,16 +23,12 @@ var m_FileName string
 var m_PathName string
 
 var (
-
-)
-
-var (
 	ErrArgsInvaild  = errors.New("args can be vaild")
 	ErrOpenFileFail = errors.New("open file failed")
 
 	logPath = "./logs"
 	logLevel = "DEBUG"
-	logSaveDay = 10
+	logSaveDay = 7
 
 	Conf *goconf.ConfigFile
 	log = logging.MustGetLogger("das_go")
@@ -42,6 +37,24 @@ var (
 		`%{color}%{time} %{pid} %{shortfile} %{longfunc} > %{level:.4s} %{color:reset} %{message}`,
 	)
 )
+
+var _ sort.Interface = LogFileInfo{}
+
+type LogFileInfo struct {
+	infos []os.FileInfo
+}
+
+func (l LogFileInfo) Len() int {
+    return len(l.infos)
+}
+
+func (l LogFileInfo) Less(i, j int) bool {
+	return l.infos[i].ModTime().Unix() < l.infos[j].ModTime().Unix()
+}
+
+func (l LogFileInfo) Swap(i, j int) {
+	l.infos[i], l.infos[j] = l.infos[j], l.infos[i]
+}
 
 func Init() *goconf.ConfigFile{
 	initLogger()
@@ -153,19 +166,30 @@ func autoClearLogFiles(logsDirPath string) {
 			continue
 		}
 
-		var logDir []int
-		for _, f := range logsSubFileList {
-			v, err := strconv.Atoi(f.Name())
-			if err == nil {
-				logDir = append(logDir, v)
+		var dirLogs LogFileInfo
+		var sdkLogs LogFileInfo
+		for i, _ := range logsSubFileList {
+			if logsSubFileList[i].IsDir() {
+				dirLogs.infos = append(dirLogs.infos, logsSubFileList[i])
+			} else {
+				sdkLogs.infos = append(sdkLogs.infos, logsSubFileList[i])
 			}
 		}
 
-		if len(logDir) >= logSaveDay {
-			sort.Ints(logDir)
-			for i := 0; i < len(logDir)-logSaveDay; i++ {
-				fileDirName := fmt.Sprintf("%s/%d", logsDirPath, logDir[i])
+		var fileDirName string
+		if dirLogs.Len() > logSaveDay {
+			sort.Sort(dirLogs)
+			for i:=0;i<dirLogs.Len() - logSaveDay;i++ {
+				fileDirName = fmt.Sprintf("%s/%s", logsDirPath, dirLogs.infos[i].Name())
 				os.RemoveAll(fileDirName)
+			}
+		}
+
+		if sdkLogs.Len() > logSaveDay {
+			sort.Sort(sdkLogs)
+			for i:=0;i<sdkLogs.Len() - logSaveDay;i++ {
+				fileDirName = fmt.Sprintf("%s/%s", logsDirPath, sdkLogs.infos[i].Name())
+				os.Remove(fileDirName)
 			}
 		}
 
@@ -174,6 +198,7 @@ func autoClearLogFiles(logsDirPath string) {
 }
 
 func loadConfig() *goconf.ConfigFile {
+	PrintVersion()
 	conf_file := flag.String("config", "./das.ini", "设置配置文件.")
 	flag.Parse()
 

@@ -1,17 +1,15 @@
 package feibee2srv
 
 import (
+	"das/core/redis"
 	"errors"
 	"strconv"
-	"strings"
 	"time"
 
+	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
-	"das/core/redis"
-	"das/core/constant"
-	"das/core/util"
 )
 
 
@@ -30,6 +28,13 @@ type NormalMsgHandle struct {
 	msgType MsgType
 }
 
+func (self *NormalMsgHandle) createMsgHeader() (header entity.Header) {
+	header.Vendor = "feibee"
+	header.DevId  = self.data.Msg[0].Uuid
+	header.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
+	return
+}
+
 func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
 	res.Cmd = 0xfb
 	res.Ack = 0
@@ -45,6 +50,7 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 	res.Online = self.data.Msg[0].Online
 	res.Battery = self.data.Msg[0].Battery
 	res.Bindid = self.data.Msg[0].Bindid
+	res.Snid = self.data.Msg[0].Snid
 
 	bindid = self.data.Msg[0].Bindid
 
@@ -98,14 +104,31 @@ func (self *NormalMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
 	return
 }
 
+func (self *NormalMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
+	var msg entity.Feibee2AutoSceneMsg
+
+	msg.Cmd = 0xf1
+	msg.Ack = 0
+	msg.Vendor = "feibee"
+	msg.SeqId = 1
+
+	msg.DevType = devTypeConv(self.data.Msg[0].Deviceid, self.data.Msg[0].Zonetype)
+	msg.DevId = self.data.Msg[0].Uuid
+
+	msg.TriggerType = 0
+
+	msg.AlarmFlag = self.data.Msg[0].Onoff
+	msg.AlarmType = "curtain"
+
+	return msg
+}
+
 func (self *NormalMsgHandle) PushMsg() {
 	res, routingKey, bindid := self.createMsg2App()
 
 	//发送给APP
 	data2app, err := json.Marshal(res)
-	if err != nil {
-		log.Error("One Msg push2app() error = ", err)
-	} else {
+	if err == nil {
 		if self.msgType == NewDev {
 			rabbitmq.Publish2app(data2app, bindid)
 		} else {
@@ -121,15 +144,20 @@ func (self *NormalMsgHandle) PushMsg() {
 	}
 
 	if self.msgType == NewDev && res.Online < 1 {
-		log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
+		//log.Warningf("设备'%s'在网关'%s'下入网，但该设备已绑定其他网关", res.DevId, bindid)
 	} else {
 		//发送给PMS
 		data2pms, err := json.Marshal(self.createMsg2pms())
-		if err != nil {
-			log.Error("One Msg push2pms() error = ", err)
-		} else {
-			//producer.SendMQMsg2PMS(string(data2pms))
+		if err == nil {
 			rabbitmq.Publish2pms(data2pms, "")
+		}
+	}
+
+	//电动窗帘作为触发条件
+	if self.msgType == RemoteOpDev && self.data.Msg[0].Deviceid == 0x0202 {
+		data,err := json.Marshal(self.createMsg2pmsForSence())
+		if err == nil {
+			rabbitmq.Publish2pms(data, "")
 		}
 	}
 }
@@ -142,19 +170,23 @@ func (self *ManualOpMsgHandle) PushMsg() {
 	res, routingKey, _ := self.createMsg2App()
 	//发送给APP
 	data2app, err := json.Marshal(res)
-	if err != nil {
-		log.Error("One Msg push2app() error = ", err)
-	} else {
+	if err == nil {
 		rabbitmq.Publish2app(data2app, routingKey)
 		rabbitmq.Publish2mns(data2app, "")
 	}
 
 	//发送给PMS
 	data2pms, err := json.Marshal(self.createMsg2pms())
-	if err != nil {
-		log.Error("One Msg push2pms() error = ", err)
-	} else {
+	if err == nil {
 		rabbitmq.Publish2pms(data2pms, "")
+	}
+
+	//电动窗帘作为触发条件
+	if self.data.Records[0].Deviceid == 0x0202 {
+		data,err := json.Marshal(self.createMsg2pmsForSence())
+		if err == nil {
+			rabbitmq.Publish2pms(data, "")
+		}
 	}
 }
 
@@ -196,8 +228,45 @@ func (self *ManualOpMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routin
 	return
 }
 
+func (self *ManualOpMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
+	var msg entity.Feibee2AutoSceneMsg
+    var err error
+	alarmFlag := 0
+
+	if alarmFlag,err = strconv.Atoi(self.data.Records[0].Value);err != nil  {
+	    log.Warningf("ManualOpMsgHandle.createMsg2pmsForSence > strconv.Atoi > %s",err)
+	    return msg
+	}
+
+	msg.Cmd = 0xf1
+	msg.Ack = 0
+	msg.Vendor = "feibee"
+	msg.SeqId = 1
+
+	msg.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+	msg.DevId = self.data.Records[0].Uuid
+
+	msg.TriggerType = 0
+
+	msg.AlarmFlag = alarmFlag
+	msg.AlarmType = "curtain"
+
+	return msg
+}
+
 type GtwMsgHandle struct {
 	data    *entity.FeibeeData
+}
+
+func (self *GtwMsgHandle) createMsg2mns() (res entity.Feibee2DevMsg) {
+	res.Cmd = 0xfb
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Bindid = self.data.Gateway[0].Bindid
+	res.DevId = res.Bindid
+	res.OpType = "gtwVer"
+	res.OpValue = self.data.Gateway[0].Version
+	return
 }
 
 func (self *GtwMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
@@ -214,34 +283,17 @@ func (self *GtwMsgHandle) PushMsg() {
 	//发送给PMS
 	data2pms, err := json.Marshal(self.createMsg2pms())
 	if err != nil {
-		log.Error("One Msg push2pms() error = ", err)
+		log.Errorf("GtwMsgHandle.PushMsg > json.Marshal > pms > %s", err)
 	} else {
-		//producer.SendMQMsg2PMS(string(data2pms))
 		rabbitmq.Publish2pms(data2pms, "")
 	}
 
-	//发送给app
-	//msg, routingKey, bindid := createMsg2App(self.data, self.msgType)
-	//data2app, err := json.Marshal(msg)
-	//if err != nil {
-	//	log.Error("One Msg push2app(0 error = ", err)
-	//} else {
-	//	//producer.SendMQMsg2APP(bindId, string(data2app))
-	//	rabbitmq.Publish2app(data2app, routingKey)
-	//}
-
-	//发送给mns
-	//data2mns, err := json.Marshal(entity.Feibee2MnsMsg{
-	//	msg,
-	//	bindid,
-	//})
-	//if err != nil {
-	//	log.Error("One Msg push2db() error = ", err)
-	//} else {
-	//	//producer.SendMQMsg2Db(string(data2db))
-	//	rabbitmq.Publish2mns(data2mns, "")
-	//}
-
+	data2mns,err := json.Marshal(self.createMsg2mns())
+	if err != nil {
+		log.Errorf("GtwMsgHandle.PushMsg > json.Marshal > mns > %s", err)
+	} else {
+		rabbitmq.Publish2mns(data2mns, "")
+	}
 }
 
 type InfraredTreasureHandle struct {
@@ -292,19 +344,19 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 
 	default:
 		if len(self.data.Records[0].Value) < 24 {
-			log.Warning("InfraredTreasureHandle.pushMsgByType() error = msg type parse error")
+			//log.Warning("InfraredTreasureHandle.pushMsgByType() error = msg type parse error")
 			return
 		}
 
 		funcCode, err := strconv.ParseInt(self.data.Records[0].Value[20:24], 16, 64)
 		if err != nil {
-			log.Warning("InfraredTreasureHandle.pushMsgByType() error = ", err)
+			log.Warning("InfraredTreasureHandle.pushMsgByType > strconv.ParseInt > %s", err)
 			return
 		}
 
 		switch funcCode {
 		case 0x8100: //匹配上报
-			log.Debug("红外宝 匹配上报")
+			//log.Debug("红外宝 匹配上报")
 			data.OpType = "devMatch"
 			data.OpValue = self.getMatchResult()
 			if err := self.push2app(data, routingKey); err != nil {
@@ -312,9 +364,9 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 			}
 			return
 		case 0x8200: //控制上报
-			log.Debug("红外宝 控制上报: ", self.getControlResult())
+			//log.Debug("红外宝 控制上报: ", self.getControlResult())
 		case 0x8300: //学习上报
-			log.Debug("红外宝 学习上报")
+			//log.Debug("红外宝 学习上报")
 			data.OpType = "devTrain"
 			data.OpValue = self.getTrainResult()
 			if err := self.push2app(data, routingKey); err != nil {
@@ -322,9 +374,9 @@ func (self *InfraredTreasureHandle) pushMsgByType() {
 			}
 			return
 		case 0x8700: //码库更新通知上报
-			log.Debug("红外宝 码库更新通知上报")
+			//log.Debug("红外宝 码库更新通知上报")
 		case 0x8800: //码库保存上报
-			log.Debug("红外宝 码库保存上报")
+			//log.Debug("红外宝 码库保存上报")
 		}
 	}
 	return
@@ -441,10 +493,8 @@ func (self *WonlyLGuardHandle) PushMsg() {
 }
 
 func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
-	//todo: parse lguard value
 	_, val, err := self.parseValue(self.data.Records[0].Value)
 	if err != nil {
-		//log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
 		return
 	}
 
@@ -458,24 +508,24 @@ func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
 	}
 }
 
-func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string, err error){
+func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val int, err error){
     if len(rawVal) < 10 {
-    	return typ, "", ErrLGuardVal
+    	return typ, 0, ErrLGuardVal
 	}
 
     rawValLens,err := strconv.ParseInt(rawVal[0:2], 16, 32)
     if err != nil || rawValLens != int64(len(rawVal[2:]))/2 {
-		return  typ,"", ErrLGuardVal
+		return  typ,0, ErrLGuardVal
 	}
 
 	lens, err := strconv.ParseInt(rawVal[4:6], 16, 64)
 	if err != nil || int64(len(rawVal[6:])/2) < lens+3 {
-		return typ,"", ErrLGuardVal
+		return typ,0, ErrLGuardVal
 	}
 
 	typ, err = strconv.ParseInt(rawVal[6:8], 16, 64)
 	if err != nil {
-		return typ,"", ErrLGuardVal
+		return typ,0, ErrLGuardVal
 	}
 
 	funcData := rawVal[8:8+2*lens]
@@ -483,12 +533,12 @@ func (self *WonlyLGuardHandle) parseValue(rawVal string) (typ int64, val string,
 	switch typ {
 	case 0x23:
 		if funcData == "00" {
-			val = "撤防"
+			val = 0
 		} else if funcData == "01" {
-			val = "布防"
+			val = 1
 		}
 	default:
-		return typ, "", ErrLGuardVal
+		return typ, 0, ErrLGuardVal
 	}
 	return
 }
@@ -513,6 +563,7 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2DevMsg, r
 
 	res.Bindid = self.data.Records[0].Bindid
 	res.DevType = devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype)
+	res.Snid = self.data.Records[0].Snid
 
 	routingKey = self.data.Records[0].Uuid
 	return
@@ -536,7 +587,7 @@ func (self *SceneSwitchHandle) PushMsg() {
 
 func (self *SceneSwitchHandle) createSceneMsg2pms() (res entity.Feibee2AutoSceneMsg) {
 	//情景开关作为无触发值的触发设备
-	res = createSceneMsg2pms(self.data, "", "sceneSwitch")
+	res = createSceneMsg2pms(self.data, 1, "sceneSwitch")
 	return
 }
 
@@ -550,17 +601,20 @@ func (self *ZigbeeLockHandle) PushMsg() {
 	mymap["uuid"] = self.data.Records[0].Uuid
 	mymap["uid"] = self.data.Records[0].Deviceuid
 	mymap["from"] = constant.FEIBEE_PLATFORM
-	retUuid := make([]string, 4)
-	if "" != self.data.Records[0].Uuid { // uuid不能为空
-		retUuid = strings.FieldsFunc(self.data.Records[0].Uuid, util.Split) // 去掉下划线后边，如：_01
-		redis.SetDevicePlatformPool(retUuid[0], mymap)
-	} else {
-		return
-	}
+	redis.SetDevicePlatformPool(self.data.Records[0].Uuid, mymap)
 
 	//TODO: parse data and handle, 去掉飞比加上的长度1个字节（16进制字符串2位）
-    if err := ParseZlockData(self.data.Records[0].Value[2:], "WlZigbeeLock", retUuid[0]); err != nil {
-    	log.Warning("ZigbeeLockHandle PushMsg() error = ", err)
+	if 22 < len(self.data.Records[0].Value) {	// 包头长度为11字节
+		nStart, err := strconv.ParseInt(self.data.Records[0].Value[2:4], 16, 64) // 去掉飞比的两位长度，再取两位[2:4)为王力数据包开始位0xA5
+		if err != nil {
+			log.Errorf("strconv.Atoi err: ", err)
+			return
+		}
+		if 0xA5 == nStart { // 透传的zigbee常在线锁数据
+			if err := ParseZlockData(self.data.Records[0].Value[2:], "WlZigbeeLock", self.data.Records[0].Uuid); err != nil {
+				log.Warning("ZigbeeLockHandle PushMsg() error = ", err)
+			}
+		}
 	}
 }
 
@@ -596,7 +650,51 @@ func (self *FeibeeSceneHandle) createMsg2mns() (res entity.Feibee2DevMsg){
 	return
 }
 
-func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (res entity.Feibee2AutoSceneMsg) {
+type CurtainDevgreeHandle struct {
+	data *entity.FeibeeData
+}
+
+func (self *CurtainDevgreeHandle) PushMsg() {
+	self.publish2app()
+}
+
+func (self *CurtainDevgreeHandle) publish2app() {
+	i,err := strconv.ParseInt(self.data.Records[0].Value, 16, 64)
+	if err != nil {
+		log.Warningf("CurtainDevgreeHandle.publish2app > strconv.ParseInt > %s", err)
+		return
+	}
+
+	msg := entity.Feibee2DevMsg{
+		Header:        entity.Header{
+			Cmd:     0xfb,
+			Ack:     0,
+			DevType: devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype),
+			DevId:  self.data.Records[0].Uuid,
+			Vendor:  "feibee",
+			SeqId:   0,
+		},
+		Note:          "",
+		Deviceuid:     self.data.Records[0].Deviceuid,
+		Online:        0,
+		Battery:       0,
+		OpType:        "devDegree",
+		OpValue:       strconv.FormatInt(i, 10),
+		Time:          int(time.Now().Unix()),
+		Bindid:        self.data.Records[0].Bindid,
+		Snid:          self.data.Records[0].Snid,
+		SceneMessages: nil,
+	}
+
+	data,err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("CurtainDevgreeHandle.publish2app > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.Header.DevId)
+	}
+}
+
+func createSceneMsg2pms(data *entity.FeibeeData, alarmFlag int, alarmType string) (res entity.Feibee2AutoSceneMsg) {
 	res.Cmd = 0xf1
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -606,7 +704,7 @@ func createSceneMsg2pms(data *entity.FeibeeData, alarmValue, alarmType string) (
 	res.TriggerType = 0
 	res.Time = int(time.Now().Unix())
 
-	res.AlarmValue = alarmValue
+	res.AlarmFlag = alarmFlag
 	res.AlarmType = alarmType
 
 	return

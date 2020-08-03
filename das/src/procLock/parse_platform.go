@@ -1,15 +1,13 @@
 package procLock
 
 import (
-	"encoding/hex"
-	"errors"
-
 	"das/core/constant"
 	"das/core/httpgo"
 	"das/core/log"
-	"das/core/mqtt"
 	"das/core/rabbitmq"
 	"das/core/redis"
+	"encoding/hex"
+	"errors"
 )
 
 func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
@@ -35,10 +33,17 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	//		httpgo.HttpCmd2DeviceTelecom(uuid, data)
 	//	}
 	case constant.ANDLINK_PLATFORM: {}
-	case constant.PAD_DOOR_PLATFORM: {
+	case constant.PAD_DEVICE_PLATFORM: {
 		data, ok := mydata.(string)
 		if ok {
 			SendMQMsg2Device(uuid, data, cmd)
+		}
+	}
+	case constant.MQTT_PAD_PLATFORM: { // WiFi平板，MQTT通道
+		data, ok := mydata.(string)
+		if ok {
+			log.Debug("[", uuid, "] Cmd2Device resp to device, WlMqttPublishPad ", data)
+			WlMqttPublishPad(uuid, data)
 		}
 	}
 	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
@@ -55,7 +60,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 		data, ok := mydata.([]byte)
 		if ok {
 			log.Debug("mqtt.WlMqttPublish, data: ", hex.EncodeToString(data))
-			mqtt.WlMqttPublish(uuid, data)
+			WlMqttPublish(uuid, data)
 		}
 	}
 	default: {

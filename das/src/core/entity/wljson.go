@@ -28,6 +28,7 @@ type AddDevUser struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 		 `json:"appUser"`	  // 远程用户，APP账号
 	UserId   uint16      `json:"userId"`      // 设备用户ID
 	UserNote string      `json:"userNote"`    // 设备用户别名
 	UserType uint8       `json:"userType"`    // 用户类型（0-管理员，1-普通用户，2-临时用户）
@@ -38,8 +39,31 @@ type AddDevUser struct {
 	MyDate   MyDTM       `json:"date"`        // 开始有效时间
 	MyTime   [3]MyDTM    `json:"time"`        // 时段
 	TimeLen  interface{} `json:"time_length"` // 兼容捷博生产商，临时用户时长（单位：秒）
-	Bindid   string      `json:"bindid"`      // zigbee锁网关账号
-	Bindstr  string      `json:"bindstr"`     // zigbee锁网关密码
+	Bindid   string      `json:"bindid,omitempty"`      // zigbee锁网关账号
+	Bindstr  string      `json:"bindstr,omitempty"`     // zigbee锁网关密码
+}
+
+type _DelDevUser struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	AppUser string 		 `json:"appUser"`	  // 远程用户，APP账号
+	UserId   uint16      `json:"userId"`      // 设备用户ID
+	UserNote string      `json:"userNote"`    // 设备用户别名
+	UserType uint8       `json:"userType"`    // 用户类型（0-管理员，1-普通用户，2-临时用户）
+	MainOpen uint8       `json:"mainOpen"`    // 主开锁方式（1-密码，2-刷卡，3-指纹）
+	SubOpen  uint8       `json:"subOpen"`     // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
+	Passwd   string      `json:"passwd"`      // 如果是添加密码需要填写
+	Count    uint16      `json:"count"`       // 开门次数，0xffff为无限次
+	MyDate   MyDTM       `json:"date"`        // 开始有效时间
+	MyTime   [3]MyDTM    `json:"time"`        // 时段
+	TimeLen  interface{} `json:"time_length"` // 兼容捷博生产商，临时用户时长（单位：秒）
+	Bindid   string      `json:"bindid,omitempty"`      // zigbee锁网关账号
+	Bindstr  string      `json:"bindstr,omitempty"`     // zigbee锁网关密码
 }
 
 //2. 设置临时用户
@@ -55,6 +79,24 @@ type SetTmpDevUser struct {
 	Count  uint16   `json:"count"`  // 开门次数，0xffff为无限次
 	MyDate MyDTM    `json:"date"`   // 开始有效时间
 	MyTime [3]MyDTM `json:"time"`   // 时段
+}
+
+type UserOperUpload struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	UserType int    `json:"userType"` 	// 用户类型
+	UserId int  	`json:"userId"` 	// 用户1
+	UserId2 int  	`json:"userId2"` 	// 用户2，单人模式用户2为0xffff
+	OpType int 		`json:"opType"` 	// 操作，0-新增用户，1-修改用户，2-删除用户，3-删除普通组，4-删除临时组，5-设置参数
+	OpUserPara int	`json:"opUserPara"` // 被操作用户/参数
+	OpValue int 	`json:"opValue"` 	// 内容(1)，当操作不为5时有效，0-用户整体，1-密码，2-卡，3-指纹
+
+	Time int32 		`json:"time"`		// 时间戳，整型（单位：秒）
 }
 
 //3. 新增用户步骤（锁-->后台-->APP，锁主动上报，指纹，卡）
@@ -84,12 +126,13 @@ type DelDevUser struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 	`json:"appUser"`  // 远程用户，APP账号
 	UserId   uint16 `json:"userId"`   // 设备用户ID
 	MainOpen uint8  `json:"mainOpen"` // 主开锁方式（1-密码，2-刷卡，3-指纹）
 	SubOpen  uint8  `json:"subOpen"`  // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
 	Time     int32  `json:"time"`
-	Bindid   string `json:"bindid"`  // zigbee锁网关账号
-	Bindstr  string `json:"bindstr"` // zigbee锁网关密码
+	Bindid   string `json:"bindid,omitempty"`  // zigbee锁网关账号
+	Bindstr  string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 
 //5. 用户更新上报
@@ -181,11 +224,12 @@ type SRemoteOpenLockReq struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 	`json:"appUser"`	// 远程用户，APP账号
 	Passwd string `json:"passwd"`
-	Time   int32  `json:"time"`
+	Time   interface{}  `json:"time"`
 
-	Bindid  string `json:"bindid"`  // zigbee锁网关账号
-	Bindstr string `json:"bindstr"` // zigbee锁网关密码
+	Bindid  string `json:"bindid,omitempty"`  // zigbee锁网关账号
+	Bindstr string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 
 // 双人
@@ -197,12 +241,13 @@ type MRemoteOpenLockReq struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string `json:"appUser"`	// 远程用户，APP账号
 	Passwd  string `json:"passwd"`
 	Passwd2 string `json:"passwd2"`
-	Time    int32  `json:"time"`
+	Time    interface{}  `json:"time"`
 
-	Bindid  string `json:"bindid"`  // zigbee锁网关账号
-	Bindstr string `json:"bindstr"` // zigbee锁网关密码
+	Bindid  string `json:"bindid,omitempty"`  // zigbee锁网关账号
+	Bindstr string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 
 type RemoteOpenLockResp struct {
@@ -215,7 +260,7 @@ type RemoteOpenLockResp struct {
 
 	UserId  uint16 `json:"userId"`
 	UserId2 uint16 `json:"userId2"`
-	Time    int32  `json:"time"`
+	Time    interface{}  `json:"time"`
 }
 
 //8. 上传设备信息
@@ -248,6 +293,7 @@ type UploadDevInfo struct {
 	AlarmSwitch    uint8  `json:"alarm_switch"`    // 报警类型开关，0：关闭，1：拍照+录像，2：拍照
 	WifiSsid       string `json:"wifi_ssid"`       // wifi的ssid
 	BellSwitch     uint8  `json:"bell_switch"`     // 门铃开关 0：关闭，1：开启
+	FBreakSwitch   uint8  `json:"fbreak_switch"`    // 防拆报警开关：0关闭，1开启
 	ProductID      string `json:"productID"`       // 产品序列号
 	Capability     uint32 `json:"capability"`      // 能力集
 
@@ -286,10 +332,11 @@ type SetLockParamReq struct {
 	Vendor  string `json:"vendor"`
 	SeqId   int    `json:"seqId"`
 
+	AppUser string 	`json:"appUser"`  // 远程用户，APP账号
 	ParaNo   uint8  `json:"paraNo"`   // 参数编号
 	PaValue  uint8  `json:"paValue"`  // 参数值1
 	PaValue2 uint8  `json:"paValue2"` // 参数值2，当参数编号为0x0b（人体感应报警开关）且”参数值1”为2时候，此字段有效
-	Time     string `json:"time"`     // 时间戳
+	Time     interface{} `json:"time"` // 时间戳
 }
 type LockParam struct {
 	Cmd     int    `json:"cmd"`
@@ -496,4 +543,10 @@ type ZigbeeLockHead struct {
 
 	Bindid  string `json:"bindid"`
 	Bindstr string `json:"bindstr"`
+}
+
+type RangeHoodAlarm struct {
+	Header
+
+	Time int `json:"time"`
 }

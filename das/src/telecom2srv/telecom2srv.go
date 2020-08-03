@@ -11,11 +11,9 @@ import (
 	"github.com/dlintw/goconf"
 	"github.com/json-iterator/go"
 
-	"das/core/constant"
 	"das/core/entity"
 	"das/core/jobque"
 	"das/core/log"
-	"das/core/redis"
 )
 
 var (
@@ -98,7 +96,7 @@ func TelecomHandler(res http.ResponseWriter, req *http.Request) {
 			}
 
 			//1. 锁对接的平台，存入redis
-			redis.SetDevicePlatformPool(data.DeviceId, constant.TELECOM_PLATFORM)
+			//redis.SetDevicePlatformPool(data.DeviceId, constant.TELECOM_PLATFORM)
 
 			// fetch job
 			//work := httpJob.Job{Serload: httpJob.Serload{DValue: data.Service.Data, Imei: data.DeviceId, MsgFrom: constant.NBIOT_MSG}}

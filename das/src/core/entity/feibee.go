@@ -12,9 +12,9 @@ type FeibeeData struct {
 	Code          int                `josn:"code"`
 	Status        string             `json:"status"`
 	Ver           string             `json:"ver"`
-	Msg           []FeibeeDevMsg     `json:"msg"`
-	Gateway       []FeibeeGatewayMsg `json:"gateway"`
-	Records       []FeibeeRecordsMsg `json:"records"`
+	Msg           []FeibeeDevMsg     `json:"msg,omitempty"`
+	Gateway       []FeibeeGatewayMsg `json:"gateway,omitempty"`
+	Records       []FeibeeRecordsMsg `json:"records,omitempty"`
 	SceneMessages []FeibeeSceneMsg   `json:"sceneMessages,omitempty"`
 }
 
@@ -67,7 +67,7 @@ type FeibeeRecordsMsg struct {
 	Orgdata    string `json:"orgdata,omitempty"`
 	Uptime     int    `json:"uptime,omitempty"`
 	Pushstring string `json:"pushstring,omitempty"`
-	Snid       string `json:"snid"`
+	Snid       string `json:"snid,omitempty"`
 }
 
 //feibee设备消息通知(推送给app)
@@ -82,6 +82,7 @@ type Feibee2DevMsg struct {
 	OpValue   string `json:"opValue,omitempty"`
 	Time      int    `json:"time,omitempty"`
 	Bindid    string `json:"bindid,omitempty"`
+	Snid      string `json:"snid,omitempty"`
 
 	SceneMessages []FeibeeSceneMsg `json:"sceneMessages,omitempty"`
 }
@@ -106,8 +107,9 @@ type Feibee2AutoSceneMsg struct {
 	Time int `json:"time"`
 
 	TriggerType int    `json:"triggerT"`
-	AlarmValue  string `json:"alarmValue"`
+	AlarmFlag   int    `json:"alarmFlag"`
 	AlarmType   string `json:"alarmType"`
+	AlarmValue  string `json:"alarmValue"`
 	SceneId     string `json:"sceneId"`
 	Zone        string `json:"zone"`
 }
@@ -170,12 +172,12 @@ type InfraredTreasureControlResult struct {
 }
 
 type FeibeeSceneMsg struct {
-	Bindid string            `json:"bindid"`
-	Scenes []FeibeeSceneInfo `json:"scenes"`
+	Bindid string            `json:"bindid,omitempty"`
+	Scenes []FeibeeSceneInfo `json:"scenes,omitempty"`
 }
 
 type FeibeeSceneInfo struct {
-	SceneName    string              `json:"sceneName"`
+	SceneName    string              `json:"sceneName,omitempty"`
 	SceneID      int                 `json:"sceneID"`
 	SceneMembers []FeibeeSceneMember `json:"sceneMembers,omitempty"`
 }
@@ -190,5 +192,41 @@ type FeibeeSceneMember struct {
 	IRID            int    `json:"IRID"`
 	Delaytime       int    `json:"delaytime"`
 	SceneFunctionID int    `json:"sceneFunctionID"`
-	Uuid            string `json:"uuid"`
+	Uuid            string `json:"uuid,omitempty"`
+}
+
+type YKInfraredStatus struct {
+	Devid     string `json:"mac"`
+	Online    int    `json:"state"`
+	Timestamp int    `json:"timestamp"`
+}
+
+type FeibeeLockAlarmMsg struct {
+	Header
+	Timestamp int `json:"time"`
+}
+
+type FeibeeLockBattMsg struct {
+	Header
+	Value     int `json:"value"`
+	Timestamp int `json:"time"`
+}
+
+type FeibeeLockRemoteOn struct {
+	Header
+	UserId    int `json:"userId"`
+	UserId2   int `json:"userId2"`
+	Timestamp int `json:"time"`
+}
+
+type FeibeeLockOpen struct {
+	Uuid         string `json:"uuid"`
+	VendorName   string `json:"vendor_name"`
+	Timestamp    int    `json:"timestamp"`
+	DeviceUserId int    `json:"device_user_id"`
+	UnlockMode   string `json:"unlock_mode"`
+	AuthMode     string `json:"auth_mode"`
+	StressStatus string `json:"stress_status"`
+	OpType       string `json:"op_type"`
+	MsgType      string `json:"unlock_message_type"`
 }

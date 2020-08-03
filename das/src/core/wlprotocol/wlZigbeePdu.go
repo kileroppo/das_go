@@ -8,6 +8,64 @@ import (
 	"encoding/hex"
 )
 
+//8. Wifi设置(0x37)(服务器-->前板)
+// Ssid（32）+密码（16）
+func (pdu *WiFiSet_Zigbee) Encode(uuid string) ([]byte, error) {
+	buf := new(bytes.Buffer) // 定义一个buffer，给了打包数据使用
+
+	// 组body
+	var err error
+	if err = binary.Write(buf, binary.BigEndian, pdu.Ssid); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+	if err = binary.Write(buf, binary.BigEndian, pdu.Passwd); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+
+	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] WiFiSet_Zigbee Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+
+	var toDevData []byte
+	myKey := util.MD52Bytes(uuid)
+	if toDevData, err = util.ECBEncryptByte(toDevice_byte, myKey); err != nil {
+		log.Error("ECBEncryptByte failed, err=", err)
+		return nil, err
+	}
+
+	return toDevData, nil
+}
+
+func (pdu *WiFiSet_Zigbee) Decode(bBody []byte, uuid string) error {
+	var err error
+	var DValue []byte
+
+	//1. 生成密钥
+	myKey := util.MD52Bytes(uuid)
+
+	//2. 解密
+	DValue, err = util.ECBDecryptByte(bBody, myKey)
+	if nil != err {
+		log.Error("ECBDecryptByte failed, err=", err)
+		return err
+	}
+	log.Debug("[ ", uuid, " ] WiFiSet_Zigbee Decode [ ", hex.EncodeToString(DValue), " ]")
+
+	//3. 解包体
+	buf := bytes.NewBuffer(DValue)
+	if err = binary.Read(buf, binary.BigEndian, &pdu.Ssid); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.Passwd); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+
+	return err
+}
+
 //27. zigbee锁 发送设备信息(0x70)(前板，后板-->服务器)
 /*
 前板信息：
@@ -116,6 +174,10 @@ func (pdu *UploadZigbeeDevInfo) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 	if err = binary.Read(buf, binary.BigEndian, &pdu.ActiveMode); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.FBreakSwitch); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
 	}

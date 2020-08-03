@@ -1,22 +1,21 @@
 package main
 
 import (
-	aliIot2srv "das/aliIoT2srv"
-	"das/core/mqtt"
-	"das/mqtt2srv"
-	"das/procLock"
-	xm2srv2 "das/xm2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
 
+	aliIot2srv "das/aliIoT2srv"
+	"das/core/etcd"
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/feibee2srv"
+	"das/http2srv"
 	"das/onenet2srv"
+	"das/procLock"
 )
 
 func main() {
@@ -29,6 +28,7 @@ func main() {
 
 	//2. 初始化Redis连接池
 	redis.InitRedisPool(conf)
+	etcd.Init()
 
 	//3. 初始化rabbitmq
 	rabbitmq.Init(conf)
@@ -47,11 +47,9 @@ func main() {
 	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	//8. 启动雄迈告警消息接收
-	xm2srv := xm2srv2.XM2HttpSrvStart(conf)
+	xm2srv := http2srv.OtherVendorHttp2SrvStart(conf)
 
-	//9. 启动MQTT
-	mqtt2srv.MqttInit(conf)	// 订阅接收端
-	mqtt.MqttInit(conf)		// 发布端
+	//go tuya2srv.Tuya2SrvStart()
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -87,6 +85,8 @@ func main() {
 	//15. 停止rabbitmq连接
 	rabbitmq.Close()
 
+	//tuya2srv.Close()
+
 	//16. 停止OneNETHTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
@@ -101,16 +101,13 @@ func main() {
 
 	//18. 停止雄迈HTTP服务器
 	if err := xm2srv.Shutdown(nil); err != nil {
-		log.Error("xm2srv.Shutdown failed, err=", err)
+		log.Error("http2srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
 
-	//19. 断开MQTT连接
-	mqtt2srv.MqttRelease()
-	mqtt.MqttRelease()
-
 	//20. 关闭redis
 	redis.CloseRedisCli()
+	etcd.CloseEtcdCli()
 
 	log.Info("das_go server quit......")
 }
