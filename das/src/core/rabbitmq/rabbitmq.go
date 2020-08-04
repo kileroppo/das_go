@@ -1,60 +1,179 @@
 package rabbitmq
 
 import (
+	"das/core/redis"
+	"github.com/streadway/amqp"
 	"sync"
-
-	"github.com/dlintw/goconf"
 
 	"das/core/log"
 )
 
 var (
-	producer2devMQ      *baseMq
-	producer2appMQ      *baseMq
-	producer2mnsMQ      *baseMq
-	producer2pmsMQ      *baseMq
-	producer2logMQ      *baseMq
-	Consumer2devMQ      *baseMq
-	Consumer2appMQ      *baseMq
-	Consumer2aliMQ      *baseMq
-	producer2wonlymsMQ  *baseMq
+	producerMQ *baseMq
+	consumerMQ *baseMq
 
 	OnceInitMQ sync.Once
+
+	exSli  []string
 )
 
-func Init(conf *goconf.ConfigFile) {
+const (
+	ExApp2Dev_Index     = 0
+	ExDev2App_Index     = 1
+	Ex2Mns_Index        = 2
+	Ex2Pms_Index        = 3
+	ExDev2Srv_Index     = 4
+	ExSrv2Dev_Index     = 5
+	ExAli2Srv_Index     = 6
+	Ex2Log_Index        = 7
+	ExSrv2Wonlyms_Index = 8
+	Ex2PmsBeta_Index    = 9
+)
+
+func Init() {
 	OnceInitMQ.Do(func() {
-		initConsumer2aliMQ(conf)
-		initConsumer2appMQ(conf)
-		initConsumer2devMQ(conf)
-		initProducer2appMQ(conf)
-		initProducer2devMQ(conf)
-		initProducer2pmsMQ(conf)
-		initProducer2mnsMQ(conf)
-		initProducer2logMQ(conf)
-		initProduct2wonlymsMQ(conf)
+		initProducerMQ()
+		initConsumerMQ()
 		log.Info("RabbitMQ init")
 	})
 }
 
-func Publish2app(data []byte, routingKey string) {
-	if err := producer2appMQ.Publish(data, routingKey); err != nil {
-		log.Warningf("Publish2app > %s", err)
-	} else {
-		//log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
+func initProducerMQ() {
+	uri, err := log.Conf.GetString("rabbitmq", "rabbitmq_uri")
+	if err != nil {
+		log.Errorf("initProducerMQ > get rabbitmq_uri > %s", err)
+		panic(err)
+	}
+
+	producerMQ = &baseMq{
+		mqUri: uri,
+	}
+
+	if err = producerMQ.initConn(); err != nil {
+		panic(err)
+	}
+
+	if err = producerMQ.initChannels(publishNum, 0); err != nil {
+		panic(err)
+	}
+
+	initMQCfg()
+}
+
+func initConsumerMQ() {
+	uri, err := log.Conf.GetString("rabbitmq", "rabbitmq_uri")
+	if err != nil {
+		log.Errorf("initProducerMQ > get rabbitmq_uri > %s", err)
+		panic(err)
+	}
+
+	consumerMQ = &baseMq{
+		mqUri: uri,
+	}
+
+	if err = consumerMQ.initConn(); err != nil {
+		panic(err)
+	}
+
+	if err = consumerMQ.initChannels(0, consumerNum); err != nil {
+		panic(err)
 	}
 }
 
+func initMQCfg() {
+	var err error
+	exApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_ex")
+	exDev2App, err := log.Conf.GetString("rabbitmq", "device2app_ex")
+	ex2Mns, err := log.Conf.GetString("rabbitmq", "device2mns_ex")
+	ex2Pms, err := log.Conf.GetString("rabbitmq", "das2pms_ex")
+	exDev2Srv, err := log.Conf.GetString("rabbitmq", "device2srv_ex")
+	exSrv2Dev, err := log.Conf.GetString("rabbitmq", "srv2device_ex")
+	exAli2Srv, err := log.Conf.GetString("rabbitmq", "ali2srv_ex")
+	ex2Log, err := log.Conf.GetString("rabbitmq", "logSave_ex")
+	exSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_ex")
+	ex2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex")
+
+	exTypeApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_ex_type")
+	exTypeDev2App, err := log.Conf.GetString("rabbitmq", "device2app_ex_type")
+	exType2Mns, err := log.Conf.GetString("rabbitmq", "device2mns_ex_type")
+	exType2Pms, err := log.Conf.GetString("rabbitmq", "das2pms_ex_type")
+	exTypeDev2Srv, err := log.Conf.GetString("rabbitmq", "device2srv_ex_type")
+	exTypeSrv2Dev, err := log.Conf.GetString("rabbitmq", "srv2device_ex_type")
+	exTypeAli2Srv, err := log.Conf.GetString("rabbitmq", "ali2srv_ex_type")
+	exType2Log, err := log.Conf.GetString("rabbitmq", "logSave_ex_type")
+	exTypeSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_ex_type")
+	exType2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex_type")
+
+	queApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_que")
+	que2Mns, err := log.Conf.GetString("rabbitmq", "device2mns_que")
+	que2Pms, err := log.Conf.GetString("rabbitmq", "das2pms_que")
+	queDev2Srv, err := log.Conf.GetString("rabbitmq", "device2srv_que")
+	queAli2Srv, err := log.Conf.GetString("rabbitmq", "ali2srv_que")
+	que2Log, err := log.Conf.GetString("rabbitmq", "logSave_que")
+	queSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_que")
+	que2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_que")
+
+	exSli = []string{exApp2dev, exDev2App, ex2Mns, ex2Pms, exDev2Srv, exSrv2Dev, exAli2Srv, ex2Log, exSrv2Wonlyms, ex2PmsBeta}
+	exTypeSli := []string{exTypeApp2dev, exTypeDev2App, exType2Mns, exType2Pms, exTypeDev2Srv, exTypeSrv2Dev, exTypeAli2Srv, exType2Log, exTypeSrv2Wonlyms, exType2PmsBeta}
+	queSli := []string{queApp2dev, "", que2Mns, que2Pms, queDev2Srv, "", queAli2Srv, que2Log, queSrv2Wonlyms, que2PmsBeta}
+
+	exCfg := exchangeCfg{
+		name:       "",
+		kind:       "",
+		durable:    true,
+		autoDelete: false,
+		internal:   false,
+		noWait:     false,
+	}
+
+	queCfg := queueCfg{
+		name:       "consumerQueue",
+		key:        "",
+		exchange:   "",
+		durable:    true,
+		autoDelete: false,
+		exclusive:  false,
+		noWait:     false,
+	}
+
+	for i, _ := range exSli {
+		exCfg.name = exSli[i]
+		exCfg.kind = exTypeSli[i]
+		if err = producerMQ.initExchange(producerMQ.publishCh[0], &exCfg); err != nil {
+			panic(err)
+		}
+		if len(queSli[i]) > 0 {
+			queCfg.name = queSli[i]
+			queCfg.exchange = exSli[i]
+			if err = producerMQ.initQueue(producerMQ.publishCh[0], &queCfg); err != nil {
+				panic(err)
+			}
+		}
+	}
+}
+
+func publishDirect(index int, mq *baseMq, ex, routingKey string, data []byte) error {
+	return mq.publishSafe(index, ex, routingKey, data)
+}
+
 func Publish2dev(data []byte, routingKey string) {
-	if err := producer2devMQ.Publish(data, routingKey); err != nil {
+	if err := publishDirect(0, producerMQ, exSli[ExSrv2Dev_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2dev > %s", err)
 	} else {
 		//log.Debugf("RoutingKey = '%s', Publish2dev msg: %s", routingKey, string(data))
 	}
 }
 
+func Publish2app(data []byte, routingKey string) {
+	if err := publishDirect(1, producerMQ, exSli[ExDev2App_Index], routingKey, data); err != nil {
+		log.Warningf("Publish2app > %s", err)
+	} else {
+		//log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
+	}
+}
+
 func Publish2mns(data []byte, routingKey string) {
-	if err := producer2mnsMQ.Publish(data, routingKey); err != nil {
+	if err := publishDirect(2, producerMQ, exSli[Ex2Mns_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2mns > %s", err)
 	} else {
 		//log.Debugf("Publish2mns msg: %s", data)
@@ -62,7 +181,14 @@ func Publish2mns(data []byte, routingKey string) {
 }
 
 func Publish2pms(data []byte, routingKey string) {
-	if err := producer2pmsMQ.Publish(data, routingKey); err != nil {
+	var err error
+	if redis.IsDevBeta(data) {
+		err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
+	} else {
+		err = publishDirect(3, producerMQ, exSli[Ex2Pms_Index], routingKey, data)
+	}
+
+	if err != nil {
 		log.Warningf("Publish2pms > %s", err)
 	} else {
 		//log.Debugf("Publish2pms msg: %s", data)
@@ -70,374 +196,61 @@ func Publish2pms(data []byte, routingKey string) {
 }
 
 func Publish2log(data []byte, routingKey string) {
-	if err := producer2logMQ.Publish(data, routingKey); err != nil {
+	if err := publishDirect(4, producerMQ, exSli[Ex2Log_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2log > %s", err)
 	}
 }
 
 func Publish2wonlyms(data []byte, routingKey string) {
-	if err := producer2wonlymsMQ.Publish(data, routingKey); err != nil {
+	if err := publishDirect(5, producerMQ, exSli[ExSrv2Wonlyms_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2wonlyms > %s", err)
 	}
 }
 
-func initConsumer2aliMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
+func ConsumeApp() (ch <-chan amqp.Delivery, err error){
+	queName, _ := log.Conf.GetString("rabbitmq", "app2device_que")
+	ch, err = consumerMQ.consume(0, queName, "")
 	if err != nil {
-		panic("initConsumer2aliMQ load uri conf error")
+		err = consumerMQ.reConn()
+		if err != nil {
+			return
+		} else {
+			return consumerMQ.consume(0, queName, "")
+		}
 	}
-	exchange, err := conf.GetString("rabbitmq", "ali2srv_ex")
-	if err != nil {
-		panic("initConsumer2aliMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "ali2srv_ex_type")
-	if err != nil {
-		panic("initConsumer2aliMQ load exchangeType conf error")
-	}
-	queueName, err := conf.GetString("rabbitmq", "ali2srv_que")
-	if err != nil {
-		panic("initConsumer2aliMQ load routingKey conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		RoutingKey:   "",
-		QueueName:    queueName,
-		Durable:      true,
-		AutoDelete:   false,
-		Name:         "Consumer2aliMQ",
-	}
-	Consumer2aliMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-		isConsumer: true,
-	}
-
-	if err := Consumer2aliMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := Consumer2aliMQ.initExchange(); err != nil {
-		panic(err)
-	}
-
-	if err := Consumer2aliMQ.initConsumer(); err != nil {
-		panic(err)
-	}
+	return
 }
 
-func initConsumer2appMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
+func ConsumeDev() (ch <-chan amqp.Delivery, err error){
+	queName, _ := log.Conf.GetString("rabbitmq", "device2srv_que")
+	ch, err = consumerMQ.consume(1, queName, "")
 	if err != nil {
-		panic("initConsumer2appMQ load uri conf error")
+		err = consumerMQ.reConn()
+		if err != nil {
+			return
+		} else {
+			return consumerMQ.consume(1, queName, "")
+		}
 	}
-	exchange, err := conf.GetString("rabbitmq", "app2device_ex")
-	if err != nil {
-		panic("initConsumer2appMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "app2device_ex_type")
-	if err != nil {
-		panic("initConsumer2appMQ load exchangeType conf error")
-	}
-	queueName, err := conf.GetString("rabbitmq", "app2device_que")
-	if err != nil {
-		panic("initConsumer2appMQ load routingKey conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		RoutingKey:   "",
-		QueueName:    queueName,
-		Durable:      true,
-		AutoDelete:   false,
-		Name:         "Consumer2appMQ",
-	}
-	Consumer2appMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-		isConsumer: true,
-	}
-
-	if err := Consumer2appMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := Consumer2appMQ.initExchange(); err != nil {
-		panic(err)
-	}
-
-	if err := Consumer2appMQ.initConsumer(); err != nil {
-		panic(err)
-	}
+	return
 }
 
-func initProducer2appMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
+func ConsumeAli() (ch <-chan amqp.Delivery, err error){
+	queName, _ := log.Conf.GetString("rabbitmq", "ali2srv_que")
+	ch, err = consumerMQ.consume(2, queName, "")
 	if err != nil {
-		panic("initProducer2appMQ load uri conf error")
+		err = consumerMQ.reConn()
+		if err != nil {
+			return
+		} else {
+			return consumerMQ.consume(2, queName, "")
+		}
 	}
-	exchange, err := conf.GetString("rabbitmq", "device2app_ex")
-	if err != nil {
-		panic("initProducer2appMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "device2app_ex_type")
-	if err != nil {
-		panic("initProducer2appMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-		Name:         "Producer2appMQ",
-	}
-	producer2appMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producer2appMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producer2appMQ.initExchange(); err != nil {
-		panic(err)
-	}
-}
-
-func initProducer2mnsMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initProducer2mnsMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "device2mns_ex")
-	if err != nil {
-		panic("initProducer2mnsMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "device2mns_ex_type")
-	if err != nil {
-		panic("initProducer2mnsMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-		Name:         "Producer2mnsMQ",
-	}
-	producer2mnsMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producer2mnsMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producer2mnsMQ.initExchange(); err != nil {
-		panic(err)
-	}
-}
-
-func initProducer2pmsMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initProducer2pmsMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "das2pms_ex")
-	if err != nil {
-		panic("initProducer2pmsMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "das2pms_ex_type")
-	if err != nil {
-		panic("initProducer2pmsMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-		Name:         "Producer2pmsMQ",
-	}
-	producer2pmsMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producer2pmsMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producer2pmsMQ.initExchange(); err != nil {
-		panic(err)
-	}
-}
-
-func initConsumer2devMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initConsumer2devMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "device2srv_ex")
-	if err != nil {
-		panic("initConsumer2devMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "device2srv_ex_type")
-	if err != nil {
-		panic("initConsumer2devMQ load exchangeType conf error")
-	}
-	queueName, err := conf.GetString("rabbitmq", "device2srv_que")
-	if err != nil {
-		panic("initConsumer2devMQ load queue conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		RoutingKey:   "",
-		QueueName:    queueName,
-		Durable:      true,
-		AutoDelete:   false,
-		Name:         "Consumer2devMQ",
-	}
-	Consumer2devMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-		isConsumer: true,
-	}
-
-	if err := Consumer2devMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := Consumer2devMQ.initExchange(); err != nil {
-		panic(err)
-	}
-
-	if err := Consumer2devMQ.initConsumer(); err != nil {
-		panic(err)
-	}
-}
-
-func initProducer2devMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initProducer2devMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "srv2device_ex")
-	if err != nil {
-		panic("initProducer2devMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "srv2device_ex_type")
-	if err != nil {
-		panic("initProducer2devMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-		Name:         "Producer2devMQ",
-	}
-	producer2devMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producer2devMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producer2devMQ.initExchange(); err != nil {
-		panic(err)
-	}
-}
-
-func initProducer2logMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initProducer2logMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "logSave_ex")
-	if err != nil {
-		panic("initProducer2logMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "logSave_ex_type")
-	if err != nil {
-		panic("initProducer2logMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-		Name:         "Producer2logMQ",
-	}
-	producer2logMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producer2logMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producer2logMQ.initExchange(); err != nil {
-		panic(err)
-	}
-}
-
-func initProduct2wonlymsMQ(conf *goconf.ConfigFile) {
-	uri, err := conf.GetString("rabbitmq", "rabbitmq_uri")
-	if err != nil {
-		panic("initProduct2wonlymsMQ load uri conf error")
-	}
-	exchange, err := conf.GetString("rabbitmq", "srv2wonlyms_ex")
-	if err != nil {
-		panic("initProduct2wonlymsMQ load exchange conf error")
-	}
-	exchangeType, err := conf.GetString("rabbitmq", "srv2wonlyms_ex_type")
-	if err != nil {
-		panic("initProduct2wonlymsMQ load exchangeType conf error")
-	}
-
-	channelCtx := ChannelContext{
-		Exchange:     exchange,
-		ExchangeType: exchangeType,
-		Durable:      false,
-		AutoDelete:   false,
-		Name:         "Producer2WonlymsMQ",
-	}
-	producer2wonlymsMQ = &baseMq{
-		mqUri:      uri,
-		channelCtx: channelCtx,
-	}
-
-	if err := producer2wonlymsMQ.init(); err != nil {
-		panic(err)
-	}
-
-	if err := producer2wonlymsMQ.initExchange(); err != nil {
-		panic(err)
-	}
+	return
 }
 
 func Close() {
-	producer2appMQ.Close()
-	producer2pmsMQ.Close()
-	producer2mnsMQ.Close()
-	producer2devMQ.Close()
-	producer2logMQ.Close()
-	Consumer2devMQ.Close()
-	Consumer2appMQ.Close()
-	Consumer2aliMQ.Close()
-	producer2wonlymsMQ.Close()
+	producerMQ.Close()
+	consumerMQ.Close()
 	log.Info("RabbitMQ close")
 }
