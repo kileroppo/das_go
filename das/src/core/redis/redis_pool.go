@@ -325,3 +325,7 @@ func isNil(i interface{}) bool {
 	vi := reflect.ValueOf(i)
 	return vi.IsNil()
 }
+
+func Close() {
+	RedisDevPool.Close()
+}

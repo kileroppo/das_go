@@ -5,8 +5,6 @@ import (
 	"github.com/streadway/amqp"
 	"sync"
 
-	"github.com/dlintw/goconf"
-
 	"das/core/log"
 )
 
@@ -32,7 +30,7 @@ const (
 	Ex2PmsBeta_Index    = 9
 )
 
-func Init(conf *goconf.ConfigFile) {
+func Init() {
 	OnceInitMQ.Do(func() {
 		initProducerMQ()
 		initConsumerMQ()
