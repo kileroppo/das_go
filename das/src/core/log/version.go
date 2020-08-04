@@ -10,7 +10,7 @@ const (
 
 var (
 	sysName = "DAS"
-	version = "0.0.1"
+	version = "0.2.1"
 	sysType = Beta
 )
 
