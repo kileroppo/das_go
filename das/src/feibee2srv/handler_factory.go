@@ -73,7 +73,7 @@ var (
 	}
 
 	spDevMsgTyp = map[int]MsgType{
-		//get key by feibee: deviceuid,zonetype
+		//get key by feibee: deviceid,zonetype
 		0x030b0001: WonlyLGuard,      //小卫士
 		0x01630001: InfraredTreasure, //红外宝
 		0x02040001: Airer,            //晾衣架
