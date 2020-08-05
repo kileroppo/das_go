@@ -9,13 +9,20 @@ type Feibee2PMS struct {
 
 //feibee推送的消息体
 type FeibeeData struct {
-	Code          int                `josn:"code"`
-	Status        string             `json:"status"`
-	Ver           string             `json:"ver"`
-	Msg           []FeibeeDevMsg     `json:"msg,omitempty"`
-	Gateway       []FeibeeGatewayMsg `json:"gateway,omitempty"`
-	Records       []FeibeeRecordsMsg `json:"records,omitempty"`
-	SceneMessages []FeibeeSceneMsg   `json:"sceneMessages,omitempty"`
+	Code            int                `josn:"code"`
+	Status          string             `json:"status"`
+	Ver             string             `json:"ver"`
+	Msg             []FeibeeDevMsg     `json:"msg,omitempty"`
+	Gateway         []FeibeeGatewayMsg `json:"gateway,omitempty"`
+	Records         []FeibeeRecordsMsg `json:"records,omitempty"`
+	SceneMessages   []FeibeeSceneMsg   `json:"sceneMessages,omitempty"`
+	UpGradeMessages []FeibeeUpgradeMsg `json:"upGradeMessages,omitempty"`
+}
+
+type FeibeeUpgradeMsg struct {
+	Bindid          string `json:"bindid,omitempty"`
+	UpgradeType     int    `json:"upgradeType"`
+	UpgradeFeedback int    `json:"upgradeFeedback"`
 }
 
 //feibee推送的设备信息
@@ -74,15 +81,16 @@ type FeibeeRecordsMsg struct {
 type Feibee2DevMsg struct {
 	Header
 
-	Note      string `json:"note,omitempty"` //设备别名
-	Deviceuid int    `json:"deviceuid,omitempty"`
-	Online    int    `json:"online"`
-	Battery   int    `json:"battery,omitempty"`
-	OpType    string `json:"opType,omitempty"`
-	OpValue   string `json:"opValue,omitempty"`
-	Time      int    `json:"time,omitempty"`
-	Bindid    string `json:"bindid,omitempty"`
-	Snid      string `json:"snid,omitempty"`
+	Note        string `json:"note,omitempty"` //设备别名
+	Deviceuid   int    `json:"deviceuid,omitempty"`
+	Online      int    `json:"online"`
+	Battery     int    `json:"battery,omitempty"`
+	OpType      string `json:"opType,omitempty"`
+	OpValue     string `json:"opValue,omitempty"`
+	UpgradeType string `json:"upgradeType,omitempty"`
+	Time        int    `json:"time,omitempty"`
+	Bindid      string `json:"bindid,omitempty"`
+	Snid        string `json:"snid,omitempty"`
 
 	SceneMessages []FeibeeSceneMsg `json:"sceneMessages,omitempty"`
 }
