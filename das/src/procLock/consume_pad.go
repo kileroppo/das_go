@@ -41,15 +41,11 @@ func (w WifiPlatJob) Handle() {
 
 func consumePadDoor() {
 	log.Info("start ReceiveMQMsgFromPadDoor......")
-	msgs, err := rabbitmq.Consumer2devMQ.Consumer()
+	msgs, err := rabbitmq.ConsumeDev()
 	if err != nil {
-		log.Error("Consumer2devMQ.Consumer() error = ", err)
-		if err = rabbitmq.Consumer2devMQ.ReConn(); err != nil {
-			log.Warningf("Consumer2devMQ Reconnection Failed")
-			return
-		}
-		log.Debug("Consumer2devMQ Reconnection Successful")
-		msgs, err = rabbitmq.Consumer2devMQ.Consumer()
+		log.Errorf("consumePadDoor > %s", err)
+	} else {
+		log.Info("consumePadDoor consume start...")
 	}
 
 	for d := range msgs {

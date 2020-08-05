@@ -266,6 +266,7 @@ func (self *GtwMsgHandle) createMsg2mns() (res entity.Feibee2DevMsg) {
 	res.DevId = res.Bindid
 	res.OpType = "gtwVer"
 	res.OpValue = self.data.Gateway[0].Version
+	res.Online = 1
 	return
 }
 
@@ -294,6 +295,33 @@ func (self *GtwMsgHandle) PushMsg() {
 	} else {
 		rabbitmq.Publish2mns(data2mns, "")
 	}
+}
+
+type GtwUpgradeHandle struct {
+	data *entity.FeibeeData
+}
+
+func (self *GtwUpgradeHandle) PushMsg() {
+    msg := self.createMsg2app()
+    data,err := json.Marshal(msg)
+    if err != nil {
+    	log.Warningf("GtwUpgradeHandle.PushMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.Bindid)
+	}
+}
+
+func (self *GtwUpgradeHandle) createMsg2app() (res entity.Feibee2DevMsg) {
+	res.Cmd = 0xfb
+	res.Vendor = "feibee"
+	res.SeqId = 1
+	res.Bindid = self.data.UpGradeMessages[0].Bindid
+	res.DevId = res.Bindid
+	res.OpType = "gtwUpgrade"
+	res.OpValue = strconv.Itoa(self.data.UpGradeMessages[0].UpgradeFeedback)
+	res.UpgradeType = strconv.Itoa(self.data.UpGradeMessages[0].UpgradeType)
+	res.Online = 1
+	return
 }
 
 type InfraredTreasureHandle struct {

@@ -323,6 +323,7 @@ type SetTmpDevUser struct {
 */
 type UserOperUpload struct {
 	UserType uint8  // 用户类型
+	AppUser int32 // APP用户-redis映射的时间戳
 	UserId uint16  	// 用户1
 	UserId2 uint16  // 用户2，单人模式用户2为0xffff
 	OpType uint8 	// 操作

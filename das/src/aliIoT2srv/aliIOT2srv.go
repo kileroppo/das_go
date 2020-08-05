@@ -37,15 +37,11 @@ func Run() {
 
 	httpgo.InitAliIoTConfig(appKey, appSecret)
 
-	msgs, err := rabbitmq.Consumer2aliMQ.Consumer()
+	msgs, err := rabbitmq.ConsumeAli()
 	if err != nil {
-		log.Error("Consumer2aliMQ.Consumer() error = ", err)
-		if err = rabbitmq.Consumer2aliMQ.ReConn(); err != nil {
-			log.Warningf("Consumer2aliMQ Reconnection Failed")
-			return
-		}
-		log.Debug("Consumer2aliMQ Reconnection Successful")
-		msgs, err = rabbitmq.Consumer2aliMQ.Consumer()
+		log.Errorf("ConsumeAli > %s", err)
+	} else {
+		log.Info("ConsumeAli start...")
 	}
 
 	for msg := range msgs {

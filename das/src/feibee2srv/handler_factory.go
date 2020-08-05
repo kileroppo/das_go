@@ -15,6 +15,7 @@ const (
 	DevRename                //设备重命名
 	GtwOnline                //网关离上线
 	GtwInfo                  //网关信息
+	GtwUpgrade               //网关升级
 
 	//设备操作消息
 	ManualOpDev //手动操作设备
@@ -65,6 +66,7 @@ var (
 		7:  RemoteOpDev,
 		10: DevDegree,
 		12: DevRename,
+		14: GtwUpgrade,
 		15: GtwInfo,
 		32: GtwOnline,
 		21: FeibeeScene,
@@ -73,7 +75,7 @@ var (
 	}
 
 	spDevMsgTyp = map[int]MsgType{
-		//get key by feibee: deviceuid,zonetype
+		//get key by feibee: deviceid,zonetype
 		0x030b0001: WonlyLGuard,      //小卫士
 		0x01630001: InfraredTreasure, //红外宝
 		0x02040001: Airer,            //晾衣架
@@ -119,6 +121,8 @@ func msgHandleFactory(data *entity.FeibeeData) (msgHandle MsgHandler) {
 		msgHandle = &ManualOpMsgHandle{data: data}
 	case GtwOnline, GtwInfo:
 		msgHandle = &GtwMsgHandle{data: data}
+	case GtwUpgrade:
+        msgHandle = &GtwUpgradeHandle{data: data}
 	case InfraredTreasure:
 		msgHandle = &InfraredTreasureHandle{data: data, msgType: typ}
 	case WonlyLGuard:

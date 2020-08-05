@@ -6,7 +6,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	
+
+	"das/core/etcd"
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
@@ -26,10 +27,11 @@ func main() {
 	conf := log.Init()
 
 	//2. 初始化Redis连接池
-	redis.InitRedisPool(conf)
+	redis.InitRedis()
+	etcd.Init()
 
 	//3. 初始化rabbitmq
-	rabbitmq.Init(conf)
+	rabbitmq.Init()
 
 	//4. 接收app消息
 	go procLock.Run()
@@ -104,7 +106,8 @@ func main() {
 	}
 
 	//20. 关闭redis
-	redis.CloseRedisCli()
+	redis.Close()
+	etcd.CloseEtcdCli()
 
 	log.Info("das_go server quit......")
 }
