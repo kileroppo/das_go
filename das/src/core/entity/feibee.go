@@ -7,6 +7,22 @@ type Feibee2PMS struct {
 	FeibeeData `json:"fb_data"`
 }
 
+type FeibeeGtwMsg2App struct {
+	Header
+
+	Bindid   string `json:"bindid,omitempty"`
+	Bindstr  string `json:"bindstr,omitempty"`
+	Version  string `json:"version,omitempty"`
+	Snid     string `json:"snid,omitempty"`
+	Devnum   int    `json:"devNum"`
+	Areanum  int    `json:"areaNum"`
+	Timernum int    `json:"timerNum"`
+	Scenenum int    `json:"sceneNum"`
+	Tasknum  int    `json:"taskNum"`
+	Uptime   int    `json:"upTime"`
+	Online   int    `json:"online"`
+}
+
 //feibee推送的消息体
 type FeibeeData struct {
 	Code            int                `josn:"code"`
