@@ -280,6 +280,23 @@ func (self *GtwMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
 	return
 }
 
+func (self *GtwMsgHandle) createMsg2app() (res entity.FeibeeGtwMsg2App) {
+    res.Cmd = 0xf5
+    res.Vendor = "feibee"
+    res.Bindid = self.data.Gateway[0].Bindid
+    res.Bindstr = self.data.Gateway[0].Bindstr
+    res.Version = self.data.Gateway[0].Version
+    res.Snid = self.data.Gateway[0].Snid
+    res.Devnum = self.data.Gateway[0].Devnum
+    res.Areanum = self.data.Gateway[0].Areanum
+    res.Timernum = self.data.Gateway[0].Timernum
+    res.Scenenum = self.data.Gateway[0].Scenenum
+    res.Tasknum = self.data.Gateway[0].Tasknum
+    res.Online = self.data.Gateway[0].Online
+    res.Uptime = self.data.Gateway[0].Uptime
+	return
+}
+
 func (self *GtwMsgHandle) PushMsg() {
 	//发送给PMS
 	data2pms, err := json.Marshal(self.createMsg2pms())
@@ -294,6 +311,13 @@ func (self *GtwMsgHandle) PushMsg() {
 		log.Errorf("GtwMsgHandle.PushMsg > json.Marshal > mns > %s", err)
 	} else {
 		rabbitmq.Publish2mns(data2mns, "")
+	}
+
+	data2app,err := json.Marshal(self.createMsg2app())
+	if err != nil {
+		log.Errorf("GtwMsgHandle.PushMsg > json.Marshal > app > %s", err)
+	} else {
+		rabbitmq.Publish2app(data2app, self.data.Gateway[0].Bindid)
 	}
 }
 
