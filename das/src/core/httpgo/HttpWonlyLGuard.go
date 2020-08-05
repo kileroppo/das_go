@@ -88,6 +88,10 @@ func Http2FeibeeWonlyLGuard(appData string) {
 }
 
 func WonlyAESDecrypt(cipher, key string) (res string ,err error) {
+	if len(cipher) < 16 {
+		return cipher, nil
+	}
+
 	cipherByte,err := hex.DecodeString(cipher)
 	if err != nil {
 		return "", err
