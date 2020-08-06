@@ -271,6 +271,7 @@ var disCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 	if toApp_str, err := json.Marshal(devAct); err == nil {
 		log.Info("[", disEvent.Clientid, "] mqtt.MessageHandler disCallback device disconnected, resp to APP, ", string(toApp_str))
 		rabbitmq.Publish2app(toApp_str, devAct.DevId)
+		rabbitmq.Publish2mns(toApp_str, "")
 	} else {
 		log.Error("[", disEvent.Clientid, "] mqtt.MessageHandler disCallback device disconnected, resp to APP, json.Marshal, err=", err)
 	}

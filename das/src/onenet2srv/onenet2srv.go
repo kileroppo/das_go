@@ -115,8 +115,8 @@ func (o OnenetJob) Handle() {
 
 			if toApp_str, err := json.Marshal(toApp); err == nil {
 				//2. 回复到APP
-				//producer.SendMQMsg2APP(data.Msg.Imei, string(toApp_str))
 				rabbitmq.Publish2app(toApp_str, data.Msg.Imei)
+				rabbitmq.Publish2mns(toApp_str, "")
 			} else {
 				log.Error("toApp json.Marshal, err=", err)
 			}

@@ -841,6 +841,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		if to_byte, err1 := json.Marshal(deviceActive); err1 == nil {
 			// 回复到APP
 			rabbitmq.Publish2app(to_byte, uuid)
+			rabbitmq.Publish2mns(to_byte, "")
 
 			// 到PMS模块
 			rabbitmq.Publish2pms(to_byte, uuid)
