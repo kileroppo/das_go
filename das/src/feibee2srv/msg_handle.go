@@ -266,7 +266,7 @@ func (self *GtwMsgHandle) createMsg2mns() (res entity.Feibee2DevMsg) {
 	res.DevId = res.Bindid
 	res.OpType = "gtwVer"
 	res.OpValue = self.data.Gateway[0].Version
-	res.Online = 1
+	res.Online = self.data.Gateway[0].Online
 	return
 }
 
