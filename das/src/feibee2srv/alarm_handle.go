@@ -33,6 +33,7 @@ type BaseSensorAlarm struct {
 	devType string
 	devid   string
 	time    int
+	milliTimestamp int
 	bindid  string
 
 	alarmFlag   int
@@ -43,6 +44,7 @@ func (self *BaseSensorAlarm) initData() {
 	self.devType = devTypeConv(self.feibeeMsg.Records[0].Deviceid, self.feibeeMsg.Records[0].Zonetype)
 	self.devid = self.feibeeMsg.Records[0].Uuid
 	self.time = int(time.Now().Unix())
+	self.milliTimestamp = self.feibeeMsg.Records[0].Uptime
 	self.bindid = self.feibeeMsg.Records[0].Bindid
 	self.alarmMsgType = getSpMsgKey(self.feibeeMsg.Records[0].Cid, self.feibeeMsg.Records[0].Aid)
 }
@@ -71,15 +73,16 @@ func (self *BaseSensorAlarm) PushMsg() {
 		//log.Warning("BaseSensorAlarm PushMsg > %s", err)
 		return
 	}
-	//传感器正常消息不通知不存储 门磁除外
-	if self.alarmType == "doorContact" {
+
+	switch self.alarmType {
+	case "doorContact": //传感器正常消息不通知不存储 门磁除外
 		self.pushMsg2mns()
-	} else if self.alarmType == "lowPower" {
+	case "lowPower":    //电量通知
 		self.pushStatusMsg2app("power")
 		if (self.alarmFlag < 30) {
 			self.pushMsg2mns()
 		}
-	} else {
+	default:            //其他报警消息只有异常时才通知
 		if (self.alarmFlag > 0) {
 			self.pushMsg2mns()
 		}
@@ -175,6 +178,7 @@ func (self *BaseSensorAlarm) createAlarmMsg() entity.Feibee2AlarmMsg {
 	msg.AlarmType = self.alarmType
 	msg.AlarmValue = self.alarmVal
 	msg.Time = self.time
+	msg.MilliTimestamp = self.milliTimestamp
 	msg.Bindid = self.bindid
 	msg.AlarmFlag = self.alarmFlag
 
