@@ -222,6 +222,10 @@ func (pdu *AddDevUser) Encode(uuid string) ([]byte, error) {
 		log.Error("binary.Write failed:", err)
 		return nil, err
 	}
+	if err = binary.Write(buf, binary.BigEndian, pdu.Reserve); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
 	if err = binary.Write(buf, binary.BigEndian, pdu.AppUser); err != nil {
 		log.Error("binary.Write failed:", err)
 		return nil, err
