@@ -166,3 +166,8 @@ const (
 	OPEN_FACE = 5	// 5-人脸
 	OPEN_BLE = 12	// 12-蓝牙
 )
+
+const (
+	VENDOR_WONLY = "general"
+	VENDOR_FEIBEE = "feibee"
+)

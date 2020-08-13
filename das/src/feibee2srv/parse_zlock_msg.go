@@ -58,7 +58,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 				Ack: int(wlMsg.Ack),
 				DevType: devType,
 				DevId: uuid,
-				Vendor: "feibee",
+				Vendor: constant.VENDOR_WONLY,
 				SeqId: int(wlMsg.SeqId),
 			}
 			if to_byte, err1 := json.Marshal(addDevUser); err1 == nil {
@@ -77,7 +77,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 		}
 
@@ -103,7 +103,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			UserVer: pdu.DevUserVer,
@@ -129,7 +129,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 				Ack: int(wlMsg.Ack),
 				DevType: devType,
 				DevId: uuid,
-				Vendor: "feibee",
+				Vendor: constant.VENDOR_WONLY,
 				SeqId: int(wlMsg.SeqId),
 			}
 			if to_byte, err1 := json.Marshal(delDevUser); err1 == nil {
@@ -153,7 +153,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		devUserUpload.Ack = int(wlMsg.Ack)
 		devUserUpload.DevType = devType
 		devUserUpload.DevId = uuid
-		devUserUpload.Vendor = "feibee"
+		devUserUpload.Vendor = constant.VENDOR_WONLY
 		devUserUpload.SeqId = int(wlMsg.SeqId)
 
 		devUserUpload.OpType = int(pdu.OperType)
@@ -266,7 +266,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		syncDevUser.Ack = int(wlMsg.Cmd)
 		syncDevUser.DevType = devType
 		syncDevUser.DevId = uuid
-		syncDevUser.Vendor = "feibee"
+		syncDevUser.Vendor = constant.VENDOR_WONLY
 		syncDevUser.SeqId = int(wlMsg.SeqId)
 		syncDevUser.UserVer = pdu.DevUserVer
 		syncDevUser.Num = int(pdu.DevUserNum)
@@ -381,7 +381,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			UserId: pdu.UserNo,
@@ -431,7 +431,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 		}
 
@@ -492,7 +492,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			ParaNo: pdu.ParamNo,
@@ -528,7 +528,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			ParaNo: pdu.ParamNo,
@@ -599,7 +599,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 		}
 
@@ -619,7 +619,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 		}
 
@@ -648,7 +648,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			UserVer: pdu.DevUserVer,
@@ -696,7 +696,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			UserVer: pdu.DevUserVer,
@@ -740,7 +740,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			Time: pdu.Time,
@@ -768,7 +768,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			Value: int(pdu.Battery),
@@ -797,7 +797,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			CmdType: int(pdu.CmdType),
@@ -825,7 +825,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 		}
 		if 1 == pdu.OnOff {
@@ -863,7 +863,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			Act: pdu.Act,
@@ -888,7 +888,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			//WifiSsid: string(pdu.Ssid[:]),
@@ -939,7 +939,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 		}
 		if to_byte, err1 := json.Marshal(notifyHead); err1 == nil {
@@ -963,7 +963,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			Time: pdu.Time,
@@ -993,7 +993,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			Ack: int(wlMsg.Ack),
 			DevType: devType,
 			DevId: uuid,
-			Vendor: "feibee",
+			Vendor: constant.VENDOR_WONLY,
 			SeqId: int(wlMsg.SeqId),
 
 			State: pdu.State,
