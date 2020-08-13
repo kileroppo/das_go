@@ -337,6 +337,9 @@ type SetLockParamReq struct {
 	PaValue  uint8  `json:"paValue"`  // 参数值1
 	PaValue2 uint8  `json:"paValue2"` // 参数值2，当参数编号为0x0b（人体感应报警开关）且”参数值1”为2时候，此字段有效
 	Time     interface{} `json:"time"` // 时间戳
+
+	Bindid  string `json:"bindid,omitempty"`  // zigbee锁网关账号
+	Bindstr string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 type LockParam struct {
 	Cmd     int    `json:"cmd"`

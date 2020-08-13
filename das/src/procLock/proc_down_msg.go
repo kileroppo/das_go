@@ -311,12 +311,12 @@ func ProcAppMsg(appMsg string) error {
 	}
 
 	switch ret["from"] {
-	case constant.ONENET_PLATFORM: {	// 移动OneNET平台
-			// 加密数据
+	case constant.ONENET_PLATFORM: { // 移动OneNET平台
 			var toDevHead entity.MyHeader
 			toDevHead.ApiVersion = constant.API_VERSION
 			toDevHead.ServiceType = constant.SERVICE_TYPE
 
+			// 解密数据
 			myKey := util.MD52Bytes(head.DevId)
 			var strToDevData string
 			var err error
@@ -387,8 +387,7 @@ func ProcAppMsg(appMsg string) error {
 			}
 			SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
 		}
-	case constant.MQTT_PAD_PLATFORM: // WiFi平板，MQTT通道
-		{
+	case constant.MQTT_PAD_PLATFORM: {// WiFi平板，MQTT通道
 			var strToDevData string
 			var err error
 			if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
@@ -452,8 +451,7 @@ func ProcAppMsg(appMsg string) error {
 
 			WlMqttPublish(head.DevId, bData)
 		}
-	case constant.FEIBEE_PLATFORM: //飞比zigbee锁
-		{
+	case constant.FEIBEE_PLATFORM: {//飞比zigbee锁
 			var msgHead entity.ZigbeeLockHead
 			if err := json.Unmarshal([]byte(appMsg), &msgHead); err != nil {
 				log.Error("ProcAppMsg json.Unmarshal() error = ", err)
@@ -473,8 +471,7 @@ func ProcAppMsg(appMsg string) error {
 			strLen := hex.EncodeToString(bLen)
 			httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:] + "00" +hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 		}
-	default:
-		{
+	default: {
 			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", ret)
 		}
 	}

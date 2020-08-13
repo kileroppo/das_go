@@ -96,7 +96,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 		}
 
 		if constant.OPEN_BLE == addDevUser.MainOpen {
-			blePin, err2 := strconv.ParseInt(addDevUser.Passwd, 10, 64)
+			blePin, err2 := strconv.ParseInt(addDevUser.Passwd, 16, 64)
 			if err2 != nil {
 				log.Error("WlJson2BinMsg() strconv.ParseInt: ", blePin, ", error: ", err2)
 			} else {
