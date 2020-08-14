@@ -109,6 +109,22 @@ type AddDevUser struct {
 	AppUser int32	// app用户映射的值
 }
 
+type AddDevUserZigbee struct {
+	UserNo    uint16   // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
+	MainOpen  uint8    // 主开锁方式，开锁方式：附表开锁方式，如果该字段是0，表示删除该用户
+	SubOpen   uint8    // 是否胁迫，是否胁迫：0-正常，1-胁迫
+	UserType  uint8    // 用户类型(1)，用户类型:  0 - 管理员，1 - 普通用户，2 - 临时用户
+	Passwd    [6]byte  // 密码(6)，密码开锁方式，目前是6个字节.如果添加的是其他验证方式,则为0xff.密码位数少于10位时,多余的填0xff
+	UserNote  int32    // 时间戳作为随机数
+	PermitNum uint16   // 允许开门次数
+	StartDate [3]byte  // 开始日期
+	EndDate   [3]byte  // 结束日期
+	TimeSlot1 [4]byte  // 时段1
+	TimeSlot2 [4]byte  // 时段2
+	TimeSlot3 [4]byte  // 时段3
+	AppUser int32	// app用户映射的值
+}
+
 //5. 新增用户报告步骤(0x34)(前板-->服务器)
 // 用户列表版本号(4)+用户编号(2)+开锁方式(1)+是否胁迫(1)+步骤序号(1)+步骤状态(1)+时间(4)
 type AddDevUserStep struct {
@@ -157,9 +173,14 @@ type WiFiSet struct {
 
 //8. zigbee Wifi设置(0x37)(服务器-->前板)
 // Ssid（16）+密码（16）
-type WiFiSet_Zigbee struct {
-	Ssid   [16]byte // Ssid（16）
-	Passwd [16]byte // 密码（16）
+type WiFiSetZigbeeSsid struct {
+	DType uint8	// 类型（1）：1：ssid；2：密码
+	Ssid   [32]byte // Ssid（16）
+}
+
+type WiFiSetZigbeePwd struct {
+	DType uint8	// 类型（1）：1：ssid；2：密码
+	Passwd [32]byte // 密码（16）
 }
 
 //9. 门铃呼叫(0x38)(前板-->服务器)
@@ -325,7 +346,7 @@ type SetTmpDevUser struct {
 */
 type UserOperUpload struct {
 	UserType uint8  // 用户类型
-	AppUser int32 // APP用户-redis映射的时间戳
+	AppUser int32 	// APP用户-redis映射的时间戳
 	UserId uint16  	// 用户1
 	UserId2 uint16  // 用户2，单人模式用户2为0xffff
 	OpType uint8 	// 操作

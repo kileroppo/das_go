@@ -876,61 +876,48 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		}
 	case constant.Set_Wifi:				// Wifi设置(0x37)(服务器-->前板)
 		log.Info("[", uuid, "] ParseZlockData constant.Set_Wifi Zigbee")
-		pdu := &wlprotocol.WiFiSet_Zigbee{}
+		pdu := &wlprotocol.WiFiSetZigbeeSsid{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
 			log.Error("ParseZlockData Set_Wifi Zigbee pdu.Decode, err=", err)
 			return err
 		}
 
-		setLockWiFi := entity.SetLockWiFi{
-			Cmd: int(wlMsg.Cmd),
-			Ack: int(wlMsg.Ack),
-			DevType: devType,
-			DevId: uuid,
-			Vendor: constant.VENDOR_WONLY,
-			SeqId: int(wlMsg.SeqId),
+		if 1 == pdu.DType {
+			setLockWiFi := entity.SetLockWiFi{
+				Cmd:     int(wlMsg.Cmd),
+				Ack:     int(wlMsg.Ack),
+				DevType: devType,
+				DevId:   uuid,
+				Vendor:  constant.VENDOR_WONLY,
+				SeqId:   int(wlMsg.SeqId),
 
-			//WifiSsid: string(pdu.Ssid[:]),
-			//WifiPwd: string(pdu.Passwd[:]),
-		}
-
-		var byteData []byte
-		rbyf_pn := make([]byte, 16, 16)    //make语法声明 ，len为16，cap为32
-		for m:=0;m<len(pdu.Ssid);m++{
-			if m >= 16 {
-				break
+				//WifiSsid: string(pdu.Ssid[:]),
+				//WifiPwd: string(pdu.Passwd[:]),
 			}
-			byteData =  append(byteData, pdu.Ssid[m])
-		}
-		index := bytes.IndexByte(byteData, 0)
-		if -1 == index {
-			rbyf_pn = byteData[0:len(byteData)]
-		} else {
-			rbyf_pn = byteData[0:index]
-		}
-		setLockWiFi.WifiSsid = string(rbyf_pn[:])
 
-		byteData = byteData[0:0]
-		for m:=0;m<len(pdu.Passwd);m++{
-			if m >= 16 {
-				break
+			var byteData []byte
+			rbyf_pn := make([]byte, 32, 32) //make语法声明 ，len为32，cap为32
+			for m := 0; m < len(pdu.Ssid); m++ {
+				if m >= 32 {
+					break
+				}
+				byteData = append(byteData, pdu.Ssid[m])
 			}
-			byteData = append(byteData, pdu.Passwd[m])
-		}
-		index = bytes.IndexByte(byteData, 0)
-		if -1 == index {
-			rbyf_pn = byteData[0:len(byteData)]
-		} else {
-			rbyf_pn = byteData[0:index]
-		}
-		setLockWiFi.WifiPwd = string(rbyf_pn[:])
+			index := bytes.IndexByte(byteData, 0)
+			if -1 == index {
+				rbyf_pn = byteData[0:len(byteData)]
+			} else {
+				rbyf_pn = byteData[0:index]
+			}
+			setLockWiFi.WifiSsid = string(rbyf_pn[:])
 
-		if _, err1 := json.Marshal(setLockWiFi); err1 == nil {
-			//rabbitmq.Publish2app(to_byte, uuid)
-		} else {
-			log.Error("[", uuid, "] constant.Set_Wifi to_byte json.Marshal, err=", err1)
-			return err1
+			if _, err1 := json.Marshal(setLockWiFi); err1 == nil {
+				//rabbitmq.Publish2app(to_byte, uuid)
+			} else {
+				log.Error("[", uuid, "] constant.Set_Wifi to_byte json.Marshal, err=", err1)
+				return err1
+			}
 		}
 	case constant.Notify_Set_Wifi:
 		log.Info("[", uuid, "] ParseZlockData constant.Notify_Set_Wifi")
