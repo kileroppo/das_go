@@ -139,6 +139,7 @@ func ParseData(mydata interface{}) error {
 
 		//3. 发送到PMS模块
 		if to_byte, err1 := json.Marshal(userOperUpload); err1 == nil {
+			log.Debug("[", wlMsg.DevId.Uuid, "] constant.User_oper_upload, msg=", string(to_byte))
 			rabbitmq.Publish2pms(to_byte, wlMsg.DevId.Uuid)
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.User_oper_upload, err=", err1)
