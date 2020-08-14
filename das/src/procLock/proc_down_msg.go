@@ -458,18 +458,30 @@ func ProcAppMsg(appMsg string) error {
 				return err
 			}
 
-			appData, err_ := WlJson2BinMsg(appMsg, constant.ZIGBEE_PROTOCOL)
-			if nil != err_ {
-				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
-				return err_
+			var i uint8 = 1
+			var nCount uint8 = 1
+			if constant.Set_Wifi == msgHead.Cmd { // zigbee常在线锁设置wifi拆分两条命令下行
+				nCount = 2
 			}
-			if "" == ret["uuid"] || "" == ret["uid"] {
-				return errors.New("下发给飞比zigbee锁的uuid, uid为空")
+			for ; i <= nCount; i++ {
+				appData, err_ := WlJson2BinMsgZigbee(appMsg, i)
+				if nil != err_ {
+					log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
+					return err_
+				}
+				if "" == ret["uuid"] || "" == ret["uid"] {
+					return errors.New("下发给飞比zigbee锁的uuid, uid为空")
+				}
+				// TODO:JHHE 包体前面增加长度
+				bLen := IntToBytes(len(appData))
+				strLen := hex.EncodeToString(bLen)
+				httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:]+"00"+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
+
+				// 连续两条命令间隔100毫秒
+				if constant.Set_Wifi == msgHead.Cmd {
+					time.Sleep(time.Millisecond * 100)
+				}
 			}
-			// TODO:JHHE 包体前面增加长度
-			bLen := IntToBytes(len(appData))
-			strLen := hex.EncodeToString(bLen)
-			httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:] + "00" +hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 		}
 	default: {
 			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", ret)

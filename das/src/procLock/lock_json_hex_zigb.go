@@ -14,8 +14,7 @@ import (
 	"das/core/wlprotocol"
 )
 
-
-func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
+func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 	// 1、解析消息
 	var head entity.Header
 	if err := json.Unmarshal([]byte(jsonMsg), &head); err != nil {
@@ -24,44 +23,25 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 	}
 	sendMQTTDownLogMsg(head.DevId, jsonMsg)
 
-	var wlMsg wlprotocol.IPKG
-	switch wlProtocol {
-	case constant.GENERAL_PROTOCOL:
-		wlMsg = &wlprotocol.WlMessage{
-			Started: wlprotocol.Started, // 开始标志
-			Version: wlprotocol.Version, // 协议版本号
-			SeqId:   uint16(head.SeqId), // 包序列号
-			Cmd:     uint8(head.Cmd),    // 命令
-			Ack:     uint8(head.Ack),    // 回应标志
-			Type:    1,                  // 设备类型
-			DevId: wlprotocol.DeviceId{ // 设备编号
-				Len:  uint8(len(head.DevId)),
-				Uuid: head.DevId,
-			},
-			Ended: wlprotocol.Ended, // 结束标志
-		}
-	case constant.ZIGBEE_PROTOCOL:
-		//1、飞比设备编号去掉下划线
-		retUuid := make([]string, 4)
-		if "" != head.DevId { // uuid不能为空
-			retUuid = strings.FieldsFunc(head.DevId, util.Split) // 去掉下划线后边，如：_01
-		} else {
-			return nil, errors.New("feibee device uuid is nil.")
-		}
-
-		wlMsg = &wlprotocol.WlZigbeeMsg{
-			Started: wlprotocol.ZbStarted, // 开始标志
-			Version: wlprotocol.Version, // 协议版本号
-			SeqId:   uint16(head.SeqId), // 包序列号
-			Cmd:     uint8(head.Cmd),    // 命令
-			Ack:     uint8(head.Ack),    // 回应标志
-			Type:    1,                  // 设备类型
-			Uuid:	retUuid[0],			// 飞比zigbee设备编号
-			Ended: wlprotocol.ZbEnded, // 结束标志
-		}
-	default:
-		return nil, errors.New("协议选择错误")
+	//1、飞比设备编号去掉下划线
+	retUuid := make([]string, 4)
+	if "" != head.DevId { // uuid不能为空
+		retUuid = strings.FieldsFunc(head.DevId, util.Split) // 去掉下划线后边，如：_01
+	} else {
+		return nil, errors.New("feibee device uuid is nil.")
 	}
+
+	wlMsg := &wlprotocol.WlZigbeeMsg{
+		Started: wlprotocol.ZbStarted, // 开始标志
+		Version: wlprotocol.Version, // 协议版本号
+		SeqId:   uint16(head.SeqId), // 包序列号
+		Cmd:     uint8(head.Cmd),    // 命令
+		Ack:     uint8(head.Ack),    // 回应标志
+		Type:    1,                  // 设备类型
+		Uuid:	retUuid[0],			// 飞比zigbee设备编号
+		Ended: wlprotocol.ZbEnded, // 结束标志
+	}
+
 	fmt.Println(wlMsg)
 
 	switch head.Cmd {
@@ -84,7 +64,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			log.Error("WlJson2BinMsg() strconv.ParseUint: ", addDevUser.AppUser, ", error: ", err2)
 		}
 
-		pdu := &wlprotocol.AddDevUser{
+		pdu := &wlprotocol.AddDevUserZigbee {
 			UserNo:   addDevUser.UserId,   // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
 			MainOpen: addDevUser.MainOpen, // 主开锁方式，开锁方式：附表开锁方式，如果该字段是0，表示删除该用户
 			SubOpen:  addDevUser.SubOpen,  // 是否胁迫，是否胁迫：0-正常，1-胁迫
@@ -95,25 +75,11 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			AppUser: int32(appUser),	// APP用户账号-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
 		}
 
-		if constant.OPEN_BLE == addDevUser.MainOpen {
-			blePin, err2 := strconv.ParseInt(addDevUser.Passwd, 16, 64)
-			if err2 != nil {
-				log.Error("WlJson2BinMsg() strconv.ParseInt: ", blePin, ", error: ", err2)
-			} else {
-				pdu.BlePin = blePin
-			}
-			/*pwd := []byte(addDevUser.Passwd)
-			for i := 0; i < len(pwd); i++ {
-				if i < 8 {
-					pdu.BlePin[i] = pwd[i]
-				}
-			}*/
-		} else {
-			pwd := []byte(addDevUser.Passwd)
-			for i := 0; i < len(pwd); i++ {
-				if i < 6 {
-					pdu.Passwd[i] = pwd[i]
-				}
+		// 密码
+		pwd := []byte(addDevUser.Passwd)
+		for i := 0; i < len(pwd); i++ {
+			if i < 6 {
+				pdu.Passwd[i] = pwd[i]
 			}
 		}
 
@@ -392,24 +358,37 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 
 		var setWifi entity.SetLockWiFi
 		if err := json.Unmarshal([]byte(jsonMsg), &setWifi); err != nil {
-			log.Error("WlJson2BinMsg json.Unmarshal Header error, err=", err)
+			log.Error("WlJson2BinMsgZigbee json.Unmarshal Header error, err=", err)
 			return nil, err
 		}
 
-		pdu := &wlprotocol.WiFiSet{
-			// Ssid: setWifi.WifiSsid,		// Ssid（32）
-			// Passwd: setWifi.WifiPwd,		// 密码（16）
-		}
-		wifiSsid := []byte(setWifi.WifiSsid)
-		for i := 0; i < len(wifiSsid); i++ {
-			if i < 32 {
-				pdu.Ssid[i] = wifiSsid[i]
+		// 类型（1）：1：ssid；2：密码
+		var pdu wlprotocol.IPdu
+		if 1 == wifiData {
+			var ssid [32]byte
+			wifiSsid := []byte(setWifi.WifiSsid)
+			for i := 0; i < len(wifiSsid); i++ {
+				if i < 32 {
+					ssid[i] = wifiSsid[i]
+				}
 			}
-		}
-		wifiPwd := []byte(setWifi.WifiPwd)
-		for i := 0; i < len(wifiPwd); i++ {
-			if i < 16 {
-				pdu.Passwd[i] = wifiPwd[i]
+
+			pdu = &wlprotocol.WiFiSetZigbeeSsid {
+				DType: wifiData,
+				Ssid: ssid,	// Ssid（32）
+			}
+		} else if 2 == wifiData {
+			var pwd [32]byte
+			wifiPwd := []byte(setWifi.WifiPwd)
+			for i := 0; i < len(wifiPwd); i++ {
+				if i < 32 {
+					pwd[i] = wifiPwd[i]
+				}
+			}
+
+			pdu = &wlprotocol.WiFiSetZigbeePwd{
+				DType: wifiData,
+				Passwd: pwd, // Passwd（32）
 			}
 		}
 
@@ -434,12 +413,3 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 	return nil, nil
 }
 
-func convertHexDateTime(data int32) int32 {
-	dDateTime, err := strconv.ParseUint(strconv.FormatInt(int64(data), 16), 10, 32)
-	if err != nil {
-		log.Error("convertHexDateTime, err: ", err)
-	}
-
-	return int32(dDateTime)
-
-}
