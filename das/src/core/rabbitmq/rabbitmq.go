@@ -1,11 +1,17 @@
 package rabbitmq
 
 import (
-	"das/core/redis"
-	"github.com/streadway/amqp"
+	"encoding/json"
 	"sync"
+	"time"
 
+	"github.com/streadway/amqp"
+	"github.com/tidwall/gjson"
+	"github.com/valyala/bytebufferpool"
+
+	"das/core/entity"
 	"das/core/log"
+	"das/core/redis"
 )
 
 var (
@@ -168,6 +174,7 @@ func Publish2app(data []byte, routingKey string) {
 	if err := publishDirect(1, producerMQ, exSli[ExDev2App_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2app > %s", err)
 	} else {
+		sendRabbitMQUpDataLog(data)
 		//log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
 	}
 }
@@ -253,4 +260,34 @@ func Close() {
 	producerMQ.Close()
 	consumerMQ.Close()
 	log.Info("RabbitMQ close")
+}
+
+func sendRabbitMQUpDataLog(byteData []byte) {
+	devId := gjson.GetBytes(byteData, "devId").String()
+	if len(devId) == 0 {
+		return
+	}
+
+	var logMsg entity.SysLogMsg
+	currT := time.Now()
+	logMsg.Timestamp = currT.Unix()
+	logMsg.NanoTimestamp = currT.UnixNano()
+	logMsg.MsgType = 4
+	logMsg.MsgName = "上行设备数据"
+	logMsg.UUid = devId
+	logMsg.VendorName = "RabbitMQ"
+
+	buf := bytebufferpool.Get()
+	defer bytebufferpool.Put(buf)
+
+	buf.WriteString("Json数据：")
+	buf.Write(byteData)
+
+	logMsg.RawData = buf.String()
+	rawData,err := json.Marshal(logMsg)
+	if err != nil {
+		log.Warningf("sendRabbitMQUpDataLog > json.Marshal > %s", err)
+	} else {
+		Publish2log(rawData, "")
+	}
 }
