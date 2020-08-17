@@ -72,7 +72,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			log.Info("[", devID, "] After ECBDecrypt, data.Msg.Value: ", DValue)
 		}
 	}
-	sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
+	//sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
 	DValue = strings.Replace(DValue, "#", ",", -1)
 	log.Debug("[", devID, "] ProcessJsonMsg() DValue after: ", DValue)
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
