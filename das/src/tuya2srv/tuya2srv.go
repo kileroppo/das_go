@@ -86,6 +86,8 @@ func (t *TuyaHandle) HandlePayload(ctx context.Context, msg *pulsar.Message, pay
 			t.sendCleanRecordMsg(jsonData)
 		case "power":
 			t.sendOfflineMsg(devId, devStatus[i])
+		case "status":
+			t.sendNotifyAct(devId, devStatus[i])
 		}
 	}
 
@@ -164,6 +166,24 @@ func (t *TuyaHandle) sendOnOffLineMsg(devId, jsonData string) {
 	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Warningf("TuyaHandle.sendOnOffLineMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.DevId)
+	}
+}
+
+func (t *TuyaHandle) sendNotifyAct(devId string, res gjson.Result) {
+    msg := entity.Feibee2DevMsg{}
+    msg.Cmd = 0xfb
+    msg.DevId = devId
+	msg.Vendor = "tuya"
+	msg.DevType = "TYRobotCleaner"
+
+	msg.OpType = res.Get("code").String()
+	msg.OpValue = res.Get("value").String()
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("TuyaHandle.sendNotifyAct > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
