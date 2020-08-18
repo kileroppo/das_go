@@ -634,6 +634,7 @@ func (self *SceneSwitchHandle) PushMsg() {
 	} else {
 		//producer.SendMQMsg2PMS(string(sceneData2pms))
 		rabbitmq.Publish2pms(sceneData2pms, "")
+		rabbitmq.Publish2mns(sceneData2pms, "")
 	}
 }
 
