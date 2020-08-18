@@ -319,7 +319,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			log.Error("WlJson2BinMsg() strconv.ParseUint: ", setParam.AppUser, ", error: ", err2)
 		}
 
-		if 0x0b != setParam.ParaNo || 2 != setParam.PaValue { // 红外感应设置多久时间后拍照，其他的参数设置均为0xFF
+		if 0x0b != setParam.ParaNo { // 红外感应设置多久时间后拍照，其他的参数设置均为0xFF
 			setParam.PaValue2 = 0xFF
 		}
 		pdu := &wlprotocol.SetLockParamReq{
