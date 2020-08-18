@@ -283,8 +283,8 @@ func ProcAppMsg(appMsg string) error {
 		// json转字符串
 		setLockParamReqStr, err1 := json.Marshal(setLockParamReq)
 		if err1 != nil {
-		log.Error("ProcAppMsg setLockParamReqStr json.Marshal failed, err=", err1)
-		return err1
+			log.Error("ProcAppMsg setLockParamReqStr json.Marshal failed, err=", err1)
+			return err1
 		}
 		appMsg = string(setLockParamReqStr)
 		log.Debug("ProcAppMsg , appMsg=", appMsg)
