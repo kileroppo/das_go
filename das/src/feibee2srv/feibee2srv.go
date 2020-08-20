@@ -92,6 +92,7 @@ func FeibeeHandler(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("get feibee http Body failed")
 	} else {
+		log.SendGraylog("DAS receive from feibeeServer: %s", rawData)
 		jobque.JobQueue <- NewFeibeeJob(rawData)
 	}
 }
@@ -106,7 +107,7 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 		return err
 	}
 
-	go sendFeibeeLogMsg(rawData)
+	//go sendFeibeeLogMsg(rawData)
 
 	seqId := gjson.GetBytes(rawData, "seqId").Int()
 	if seqId > 0 {

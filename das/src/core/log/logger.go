@@ -12,7 +12,9 @@ import (
 	"time"
 
 	"github.com/dlintw/goconf"
+	"github.com/json-iterator/go"
 	"github.com/op/go-logging"
+	gelf "github.com/robertkowalski/graylog-golang"
 
 	"das/core/file"
 )
@@ -23,6 +25,10 @@ var m_FileName string
 var m_PathName string
 
 var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
+
+	grayCli *gelf.Gelf
+
 	ErrArgsInvaild  = errors.New("args can be vaild")
 	ErrOpenFileFail = errors.New("open file failed")
 
@@ -59,7 +65,25 @@ func (l LogFileInfo) Swap(i, j int) {
 func Init() *goconf.ConfigFile{
 	initLogger()
 	Conf = loadConfig()
+	initGraylogConn()
 	return Conf
+}
+
+func initGraylogConn() {
+	url,err := Conf.GetString("graylog", "url")
+	if err != nil {
+		panic(err)
+	}
+	port,err := Conf.GetInt("graylog", "port")
+	if err != nil {
+		panic(err)
+	}
+
+	cfg := gelf.Config{
+		GraylogPort:     port,
+		GraylogHostname: url,
+	}
+	grayCli = gelf.New(cfg)
 }
 
 func initLogger() {
@@ -220,4 +244,24 @@ func loadConfig() *goconf.ConfigFile {
 
 	Info("Load config file:", confPath)
 	return conf
+}
+
+func SendGraylog(format string, args ...interface{}) {
+	lmsg := ""
+	if len(format) == 0 {
+		lmsg = fmt.Sprint(args...)
+	} else {
+		lmsg = fmt.Sprintf(format, args...)
+	}
+
+	msg := GrayLog{
+		Version:  "2.1",
+		Host:     "das",
+		Facility: SysName,
+		Message:  lmsg,
+	}
+	b, err := json.Marshal(msg)
+	if err == nil {
+		grayCli.Log(Bytes2Str(b))
+	}
 }

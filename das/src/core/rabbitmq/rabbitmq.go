@@ -1,11 +1,10 @@
 package rabbitmq
 
 import (
+	"encoding/json"
 	"sync"
 	"time"
 
-	"github.com/json-iterator/go"
-	"github.com/robertkowalski/graylog-golang"
 	"github.com/streadway/amqp"
 	"github.com/tidwall/gjson"
 	"github.com/valyala/bytebufferpool"
@@ -17,11 +16,8 @@ import (
 )
 
 var (
-	json = jsoniter.ConfigCompatibleWithStandardLibrary
-
 	producerMQ *baseMq
 	consumerMQ *baseMq
-	grayCli    *gelf.Gelf
 
 	OnceInitMQ sync.Once
 
@@ -52,28 +48,8 @@ func Init() {
 	OnceInitMQ.Do(func() {
 		initProducerMQ()
 		initConsumerMQ()
-		initGraylogConn()
 		log.Info("RabbitMQ init")
 	})
-}
-
-func initGraylogConn() {
-	url,err := log.Conf.GetString("graylog", "url")
-	if err != nil {
-		panic(err)
-	}
-	port,err := log.Conf.GetInt("graylog", "port")
-	if err != nil {
-		panic(err)
-	}
-
-
-	cfg := gelf.Config{
-		GraylogPort:     port,
-		GraylogHostname: url,
-	}
-    grayCli = gelf.New(cfg)
-    log.Info("Graylog init")
 }
 
 func initProducerMQ() {
@@ -221,6 +197,7 @@ func Publish2mns(data []byte, routingKey string) {
 
 func Publish2pms(data []byte, routingKey string) {
 	var err error
+	go log.SendGraylog("DAS send to PMS: %s", data)
 	if redis.IsDevBeta(data) {
 		err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
 	} else {
@@ -238,15 +215,7 @@ func Publish2log(data []byte, routingKey string) {
 	if err := publishDirect(4, producerMQ, exSli[Ex2Log_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2log > %s", err)
 	}
-	msg := entity.GrayLog{
-		Version: "3.0",
-		Host:    "das",
-		Message: util.Bytes2Str(data),
-	}
-	b,err := json.Marshal(msg)
-	if err == nil {
-		grayCli.Log(util.Bytes2Str(b))
-	}
+	go log.SendGraylog(util.Bytes2Str(data))
 }
 
 func Publish2wonlyms(data []byte, routingKey string) {

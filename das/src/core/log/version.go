@@ -1,5 +1,7 @@
 package log
 
+import "fmt"
+
 type VerType int
 
 const (
@@ -12,7 +14,20 @@ var (
 	sysName = "DAS"
 	version = "0.2.1"
 	sysType = Beta
+
+	SysName = getSysName()
 )
+
+func getSysName() string {
+	bt := ""
+	switch sysType {
+	case Beta:
+		bt = "_beta"
+	case Official:
+	}
+
+	return fmt.Sprintf("%s%s %s", sysName, bt, version)
+}
 
 func Version() string {
 	return version
