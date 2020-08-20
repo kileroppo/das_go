@@ -12,6 +12,7 @@ import (
 	"das/core/entity"
 	"das/core/log"
 	"das/core/redis"
+	"das/core/util"
 )
 
 var (
@@ -21,6 +22,13 @@ var (
 	OnceInitMQ sync.Once
 
 	exSli  []string
+	formatLog = `
+{
+      "version": "3.0",
+      "host": "das",
+      "full_message": "%s"
+}
+`
 )
 
 const (
@@ -189,6 +197,7 @@ func Publish2mns(data []byte, routingKey string) {
 
 func Publish2pms(data []byte, routingKey string) {
 	var err error
+	go log.SendGraylog("DAS send to PMS: %s", data)
 	if redis.IsDevBeta(data) {
 		err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
 	} else {
@@ -206,6 +215,7 @@ func Publish2log(data []byte, routingKey string) {
 	if err := publishDirect(4, producerMQ, exSli[Ex2Log_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2log > %s", err)
 	}
+	go log.SendGraylog(util.Bytes2Str(data))
 }
 
 func Publish2wonlyms(data []byte, routingKey string) {
