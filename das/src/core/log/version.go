@@ -5,15 +5,15 @@ import "fmt"
 type VerType int
 
 const (
-	alpha    VerType = 0
-	Beta     VerType = 1
-	Official VerType = 2
+	Test   VerType = 0
+	Beta   VerType = 1
+	Stable VerType = 2
 )
 
 var (
-	sysName = "DAS"
+	sysName = "das"
 	version = "0.2.1"
-	sysType = Beta
+	sysType = Test
 
 	SysName = getSysName()
 )
@@ -21,12 +21,15 @@ var (
 func getSysName() string {
 	bt := ""
 	switch sysType {
+	case Test:
+		bt = "_test"
 	case Beta:
 		bt = "_beta"
-	case Official:
+	case Stable:
+		bt = "_stable"
 	}
 
-	return fmt.Sprintf("%s%s %s", sysName, bt, version)
+	return fmt.Sprintf("%s%s", sysName, bt)
 }
 
 func Version() string {

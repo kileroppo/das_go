@@ -256,8 +256,8 @@ func SendGraylog(format string, args ...interface{}) {
 
 	msg := GrayLog{
 		Version:  "2.1",
-		Host:     "das",
-		Facility: SysName,
+		Host:     SysName,
+		Facility: "das",
 		Message:  lmsg,
 	}
 	b, err := json.Marshal(msg)
