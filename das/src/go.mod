@@ -3,6 +3,8 @@ module das
 go 1.13
 
 require (
+	github.com/Devatoria/go-graylog v0.0.0-20171023211614-c16c35c9383b
+	github.com/Jeffail/gabs v1.4.0 // indirect
 	github.com/TuyaInc/tuya_pulsar_sdk_go v0.0.0-20200320080207-7fafafeb6dbc
 	github.com/ZZMarquis/gm v1.0.0
 	github.com/coreos/etcd v3.3.22+incompatible // indirect
@@ -22,6 +24,7 @@ require (
 	github.com/onsi/ginkgo v1.11.0 // indirect
 	github.com/onsi/gomega v1.8.1 // indirect
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
+	github.com/robertkowalski/graylog-golang v0.0.0-20151121031040-e5295cfa2827
 	github.com/sirupsen/logrus v1.6.0
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/tidwall/gjson v1.6.0

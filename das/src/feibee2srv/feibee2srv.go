@@ -3,15 +3,14 @@ package feibee2srv
 import (
 	"context"
 	"errors"
-	"github.com/etcd-io/etcd/clientv3"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/dlintw/goconf"
+	"github.com/etcd-io/etcd/clientv3"
 	"github.com/tidwall/gjson"
 
 	"das/core/entity"
@@ -287,18 +286,19 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 }
 
 func sendFeibeeLogMsg(rawData []byte) {
-    var logMsg entity.SysLogMsg
-
-    currT := time.Now()
-    logMsg.Timestamp = currT.Unix()
-    logMsg.NanoTimestamp = currT.UnixNano()
-    logMsg.MsgType = 1
-    logMsg.RawData = string(rawData)
-
-    data,err := json.Marshal(logMsg)
-    if err != nil {
-    	log.Warningf("sendFeibeeLogMsg > json.Marshal > %s", err)
-	} else {
-		rabbitmq.Publish2log(data, "")
-	}
+	rabbitmq.Publish2log(rawData, "")
+    //var logMsg entity.SysLogMsg
+	//
+    //currT := time.Now()
+    //logMsg.Timestamp = currT.Unix()
+    //logMsg.NanoTimestamp = currT.UnixNano()
+    //logMsg.MsgType = 1
+    //logMsg.RawData = string(rawData)
+	//
+    //data,err := json.Marshal(logMsg)
+    //if err != nil {
+    //	log.Warningf("sendFeibeeLogMsg > json.Marshal > %s", err)
+	//} else {
+	//	rabbitmq.Publish2log(rawData, "")
+	//}
 }

@@ -1,10 +1,11 @@
 package rabbitmq
 
 import (
-	"encoding/json"
 	"sync"
 	"time"
 
+	"github.com/json-iterator/go"
+	"github.com/robertkowalski/graylog-golang"
 	"github.com/streadway/amqp"
 	"github.com/tidwall/gjson"
 	"github.com/valyala/bytebufferpool"
@@ -12,15 +13,26 @@ import (
 	"das/core/entity"
 	"das/core/log"
 	"das/core/redis"
+	"das/core/util"
 )
 
 var (
+	json = jsoniter.ConfigCompatibleWithStandardLibrary
+
 	producerMQ *baseMq
 	consumerMQ *baseMq
+	grayCli    *gelf.Gelf
 
 	OnceInitMQ sync.Once
 
 	exSli  []string
+	formatLog = `
+{
+      "version": "3.0",
+      "host": "das",
+      "full_message": "%s"
+}
+`
 )
 
 const (
@@ -40,8 +52,28 @@ func Init() {
 	OnceInitMQ.Do(func() {
 		initProducerMQ()
 		initConsumerMQ()
+		initGraylogConn()
 		log.Info("RabbitMQ init")
 	})
+}
+
+func initGraylogConn() {
+	url,err := log.Conf.GetString("graylog", "url")
+	if err != nil {
+		panic(err)
+	}
+	port,err := log.Conf.GetInt("graylog", "port")
+	if err != nil {
+		panic(err)
+	}
+
+
+	cfg := gelf.Config{
+		GraylogPort:     port,
+		GraylogHostname: url,
+	}
+    grayCli = gelf.New(cfg)
+    log.Info("Graylog init")
 }
 
 func initProducerMQ() {
@@ -205,6 +237,15 @@ func Publish2pms(data []byte, routingKey string) {
 func Publish2log(data []byte, routingKey string) {
 	if err := publishDirect(4, producerMQ, exSli[Ex2Log_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2log > %s", err)
+	}
+	msg := entity.GrayLog{
+		Version: "3.0",
+		Host:    "das",
+		Message: util.Bytes2Str(data),
+	}
+	b,err := json.Marshal(msg)
+	if err == nil {
+		grayCli.Log(util.Bytes2Str(b))
 	}
 }
 
