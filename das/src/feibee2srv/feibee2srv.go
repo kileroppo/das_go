@@ -92,7 +92,7 @@ func FeibeeHandler(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Error("get feibee http Body failed")
 	} else {
-		log.SendGraylog("DAS receive from feibeeServer: %s", rawData)
+		rabbitmq.SendGraylog("DAS receive from feibeeServer: %s", rawData)
 		jobque.JobQueue <- NewFeibeeJob(rawData)
 	}
 }

@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -42,6 +43,7 @@ const (
 	Ex2Log_Index        = 7
 	ExSrv2Wonlyms_Index = 8
 	Ex2PmsBeta_Index    = 9
+	Ex2Graylog_Index    = 10
 )
 
 func Init() {
@@ -106,6 +108,7 @@ func initMQCfg() {
 	ex2Log, err := log.Conf.GetString("rabbitmq", "logSave_ex")
 	exSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_ex")
 	ex2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex")
+	ex2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_ex")
 
 	exTypeApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_ex_type")
 	exTypeDev2App, err := log.Conf.GetString("rabbitmq", "device2app_ex_type")
@@ -117,6 +120,8 @@ func initMQCfg() {
 	exType2Log, err := log.Conf.GetString("rabbitmq", "logSave_ex_type")
 	exTypeSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_ex_type")
 	exType2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex_type")
+	exType2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_ex_type")
+
 
 	queApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_que")
 	que2Mns, err := log.Conf.GetString("rabbitmq", "device2mns_que")
@@ -126,10 +131,11 @@ func initMQCfg() {
 	que2Log, err := log.Conf.GetString("rabbitmq", "logSave_que")
 	queSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_que")
 	que2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_que")
+	que2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_que")
 
-	exSli = []string{exApp2dev, exDev2App, ex2Mns, ex2Pms, exDev2Srv, exSrv2Dev, exAli2Srv, ex2Log, exSrv2Wonlyms, ex2PmsBeta}
-	exTypeSli := []string{exTypeApp2dev, exTypeDev2App, exType2Mns, exType2Pms, exTypeDev2Srv, exTypeSrv2Dev, exTypeAli2Srv, exType2Log, exTypeSrv2Wonlyms, exType2PmsBeta}
-	queSli := []string{queApp2dev, "", que2Mns, que2Pms, queDev2Srv, "", queAli2Srv, que2Log, queSrv2Wonlyms, que2PmsBeta}
+	exSli = []string{exApp2dev, exDev2App, ex2Mns, ex2Pms, exDev2Srv, exSrv2Dev, exAli2Srv, ex2Log, exSrv2Wonlyms, ex2PmsBeta, ex2Graylog}
+	exTypeSli := []string{exTypeApp2dev, exTypeDev2App, exType2Mns, exType2Pms, exTypeDev2Srv, exTypeSrv2Dev, exTypeAli2Srv, exType2Log, exTypeSrv2Wonlyms, exType2PmsBeta, exType2Graylog}
+	queSli := []string{queApp2dev, "", que2Mns, que2Pms, queDev2Srv, "", queAli2Srv, que2Log, queSrv2Wonlyms, que2PmsBeta, que2Graylog}
 
 	exCfg := exchangeCfg{
 		name:       "",
@@ -197,7 +203,7 @@ func Publish2mns(data []byte, routingKey string) {
 
 func Publish2pms(data []byte, routingKey string) {
 	var err error
-	go log.SendGraylog("DAS send to PMS: %s", data)
+	SendGraylog("DAS send to PMS: %s", data)
 	if redis.IsDevBeta(data) {
 		err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
 	} else {
@@ -215,12 +221,18 @@ func Publish2log(data []byte, routingKey string) {
 	if err := publishDirect(4, producerMQ, exSli[Ex2Log_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2log > %s", err)
 	}
-	go log.SendGraylog(util.Bytes2Str(data))
+	SendGraylog(util.Bytes2Str(data))
 }
 
 func Publish2wonlyms(data []byte, routingKey string) {
 	if err := publishDirect(5, producerMQ, exSli[ExSrv2Wonlyms_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2wonlyms > %s", err)
+	}
+}
+
+func Publish2Graylog(data []byte, routingKey string) {
+	if err := publishDirect(6, producerMQ, exSli[Ex2Graylog_Index], routingKey, data); err != nil {
+		log.Warningf("Publish2Graylog > %s", err)
 	}
 }
 
@@ -299,5 +311,26 @@ func sendRabbitMQUpDataLog(byteData []byte) {
 		log.Warningf("sendRabbitMQUpDataLog > json.Marshal > %s", err)
 	} else {
 		Publish2log(rawData, "")
+	}
+}
+
+func SendGraylog(format string, args ...interface{}) {
+	lmsg := ""
+	if len(format) == 0 {
+		lmsg = fmt.Sprint(args...)
+	} else {
+		lmsg = fmt.Sprintf(format, args...)
+	}
+
+	msg := entity.GrayLog{
+		Version:  "2.1",
+		Host:     log.SysName,
+		Facility: "das",
+		Message:  lmsg,
+	}
+	b, err := json.Marshal(msg)
+	if err == nil {
+		//grayCli.Log(Bytes2Str(b))
+		Publish2Graylog(b, "")
 	}
 }

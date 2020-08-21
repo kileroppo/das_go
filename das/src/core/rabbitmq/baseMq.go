@@ -22,7 +22,7 @@ var (
 	cacheKey  = "pmsMqCache%d_%d"
 
 	consumerNum = 3
-	publishNum  = 6
+	publishNum  = 7
 )
 
 type exchangeCfg struct {
