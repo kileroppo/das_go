@@ -20,7 +20,7 @@ var (
 	ErrAlarmMsg = errors.New("Feibee alarm message was invalid")
 )
 
-type parseFunc func(string, MsgType, int) (int, int, string, string)
+type parseFunc func(string, MsgType, int) (int, int, int, string, string)
 
 type BaseSensorAlarm struct {
 	feibeeMsg    *entity.FeibeeData
@@ -37,6 +37,7 @@ type BaseSensorAlarm struct {
 	bindid  string
 
 	alarmFlag   int
+	cycleFlag   int
 	removalFlag int
 }
 
@@ -58,7 +59,7 @@ func (self *BaseSensorAlarm) parseAlarmMsg() error {
 		return ErrAlarmMsg
 	}
 
-	self.removalFlag, self.alarmFlag, self.alarmVal, self.alarmType = parse(self.feibeeMsg.Records[0].Value, self.msgType, self.alarmMsgType)
+	self.removalFlag, self.alarmFlag, self.cycleFlag, self.alarmVal, self.alarmType = parse(self.feibeeMsg.Records[0].Value, self.msgType, self.alarmMsgType)
 
 	if self.alarmFlag < 0 {
 		return ErrAlarmMsg
@@ -89,7 +90,11 @@ func (self *BaseSensorAlarm) PushMsg() {
 	}
 	self.pushMsg2pmsForSave()
 	if self.alarmMsgType == sensorAlarm {
-		self.pushMsg2pmsForSceneTrigger()
+		if self.alarmType == "doorContact" && self.alarmFlag == 1 && self.cycleFlag > 0 { //门磁周期消息不触发
+
+		} else {
+			self.pushMsg2pmsForSceneTrigger()
+		}
 	}
 	self.pushForcedBreakMsg()
 }
@@ -260,14 +265,14 @@ func (c *ContinuousSensor) PushMsg() {
 	//}
 }
 
-func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag, cycle int, alarmVal, alarmName string) {
 	alarmVal = Little2BigEndianString(val)
 	if len(alarmVal) == 0 {
-		return -1, -1, "", ""
+		return -1, -1, 0,"", ""
 	}
 	v64, err := strconv.ParseUint(alarmVal, 16, 64)
 	if err != nil {
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 
 	alarmVal = strconv.FormatFloat(float64(v64)/100, 'f', 2, 64)
@@ -277,14 +282,14 @@ func parseTempAndHuminityVal(val string, msgType MsgType, valType int) (removalA
 	return
 }
 
-func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag, cycleFlag int, alarmVal, alarmName string) {
 	alarmVal = Little2BigEndianString(val)
 	if len(alarmVal) == 0 {
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 	v64, err := strconv.ParseUint(alarmVal, 16, 64)
 	if err != nil {
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 	if valType == illuminance {
 		if v64 > 1000 {
@@ -300,14 +305,14 @@ func parseContinuousVal(val string, msgType MsgType, valType int) (removalAlarmF
 	return
 }
 
-func parseFixVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+func parseFixVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag, cycleFlag int, alarmVal, alarmName string) {
 	alarmVal = Little2BigEndianString(val)
 	if len(alarmVal) == 0 {
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 	v64, err := strconv.ParseUint(alarmVal, 16, 64)
 	if err != nil {
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 	if valType == illuminance {
 		if v64 > 1000 {
@@ -326,11 +331,11 @@ func parseFixVal(val string, msgType MsgType, valType int) (removalAlarmFlag, al
 	}
 }
 
-func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag, cycleFlag int, alarmVal, alarmName string) {
 	bitFlagInt, err := strconv.ParseInt(val[0:2], 16, 64)
 	if err != nil {
 		log.Error("strconv.ParseInt() error = ", err)
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 
 	if msgType == SosBtnSensor {
@@ -339,10 +344,7 @@ func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag,
 		alarmFlag = int(bitFlagInt) & 0b0000_0001
 	}
 
-	//todo:周期上报数据不透传（暂定）
-	//if cycleFlag := (bitFlagInt & 0b0001_0000); cycleFlag > 0 {
-	//	alarmFlag = -1
-	//}
+	cycleFlag = int(bitFlagInt & 0b1_0000)
 
 	alarmVal = getAlarmValName(msgType, valType, alarmFlag)
 	removalAlarmFlag = int(bitFlagInt) & 4
@@ -350,11 +352,11 @@ func parseSensorVal(val string, msgType MsgType, valType int) (removalAlarmFlag,
 	return
 }
 
-func parseBatteryVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+func parseBatteryVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag, cycleFlag int, alarmVal, alarmName string) {
 	valInt, err := strconv.ParseInt(val, 16, 64)
 	if err != nil {
 		log.Error("strconv.ParseInt() error = ", err)
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 
 	alarmVal = "电量过低"
@@ -368,11 +370,11 @@ func parseBatteryVal(val string, msgType MsgType, valType int) (removalAlarmFlag
 	return
 }
 
-func parseVoltageVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag int, alarmVal, alarmName string) {
+func parseVoltageVal(val string, msgType MsgType, valType int) (removalAlarmFlag, alarmFlag, cycleFlag int, alarmVal, alarmName string) {
 	valInt, err := strconv.ParseInt(val, 16, 64)
 	if err != nil {
 		log.Error("strconv.ParseInt() error = ", err)
-		return -1, -1, "", ""
+		return -1, -1, 0, "", ""
 	}
 
 	alarmVal = strconv.Itoa(int(valInt) / 10)
