@@ -80,3 +80,10 @@ type OtherVendorDevMsg struct {
 
 	OriData string `json:"oriData,omitempty"`
 }
+
+type GrayLog struct {
+	Version  string `json:"version"`
+	Host     string `json:"host"`
+	Facility string `json:"facility"`
+	Message  string `json:"short_message"`
+}
