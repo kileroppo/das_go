@@ -1,91 +1,102 @@
 package http2srv
 
 import (
-	"das/core/util"
+	"crypto/tls"
+
 	"encoding/json"
-	"io/ioutil"
-	"net/http"
-	"os"
 	"strconv"
 
-	"github.com/dlintw/goconf"
+	"github.com/gofiber/fiber"
 	"github.com/tidwall/gjson"
 
 	"das/core/entity"
 	"das/core/jobque"
 	"das/core/log"
 	"das/core/rabbitmq"
+	"das/core/util"
+	"das/feibee2srv"
 )
 
-func OtherVendorHttp2SrvStart(conf *goconf.ConfigFile) *http.Server {
-	isHttps, err := conf.GetBool("xm2http", "is_https")
+func Http2SrvStart() {
+    app := fiber.New()
+    app.Post("/xm", XMAlarmMsgHandler)
+    app.Post("/yk", YKMsgHandler)
+    app.Post("/rg", RGMsgHandler)
+    app.All("/feibee", feibee2srv.FeibeeHandler)
 
-	if err != nil {
-		log.Errorf("读取https配置失败, %s\n", err)
-		os.Exit(1)
-	}
-
-	httpPort, _ := conf.GetInt("xm2http", "xm2http_port")
-
-	srv := &http.Server{
-		Addr: ":" + strconv.Itoa(httpPort),
-	}
-
-	http.HandleFunc("/xm", XMAlarmMsgHandler)
-	http.HandleFunc("/yk", YKMsgHandler)
-	http.HandleFunc("/rg", RGMsgHandler)
-
-	go func() {
-		if isHttps {
-			log.Info("OtherVendorHttp2SrvStart ListenAndServeTLS() start...")
-			serverCrt, _ := conf.GetString("https", "https_server_crt")
-			serverKey, _ := conf.GetString("https", "https_server_key")
-			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
-				log.Error("OtherVendorHttp2SrvStart ListenAndServeTLS() error = ", err_https)
-			}
-		} else {
-			log.Info("OtherVendorHttp2SrvStart ListenAndServer() start...")
-			if err_http := srv.ListenAndServe(); err_http != nil {
-				log.Error("OtherVendorHttp2SrvStart ListenAndServer() error = ", err_http)
-			}
+    isTLS, _ := log.Conf.GetBool("https", "is_https")
+	httpPort, _ := log.Conf.GetInt("https", "https_port")
+    if isTLS {
+		certFile, _ := log.Conf.GetString("https", "https_server_crt")
+		keyFile, _ := log.Conf.GetString("https", "https_server_key")
+		cert,err := tls.LoadX509KeyPair(certFile, keyFile)
+		if err != nil {
+			panic(err)
 		}
-	}()
 
-	return srv
-}
+		tlsCfg := &tls.Config{
+			Certificates:                []tls.Certificate{cert},
+		}
 
-func XMAlarmMsgHandler(res http.ResponseWriter, req *http.Request) {
-	rawData, err := ioutil.ReadAll(req.Body)
-	defer req.Body.Close()
-	if err != nil {
-		log.Errorf("XMAlarmMsgHandler > ioutil.ReadAll > %s", err)
+		app.Listen(httpPort, tlsCfg)
 	} else {
-		log.Infof("XMAlarmMsgHandler recv: %s", rawData)
+		app.Listen(httpPort)
 	}
 }
 
-func YKMsgHandler(res http.ResponseWriter, req *http.Request) {
-	rawData, err := ioutil.ReadAll(req.Body)
-	defer req.Body.Close()
+func Close() {
 
-	if err != nil {
-		log.Errorf("YKMsgHandler > ioutil.ReadAll > %s", err)
-	} else {
-		log.Infof("YKMsgHandler recv: %s", rawData)
-		jobque.JobQueue <- NewYKJob(rawData)
-	}
 }
 
-func RGMsgHandler(res http.ResponseWriter, req *http.Request) {
-	rawData, err := ioutil.ReadAll(req.Body)
-	defer req.Body.Close()
+//func OtherVendorHttp2SrvStart(conf *goconf.ConfigFile) *http.Server {
+//	isHttps, err := conf.GetBool("xm2http", "is_https")
+//
+//	if err != nil {
+//		log.Errorf("读取https配置失败, %s\n", err)
+//		os.Exit(1)
+//	}
+//
+//	httpPort, _ := conf.GetInt("xm2http", "xm2http_port")
+//
+//	srv := &http.Server{
+//		Addr: ":" + strconv.Itoa(httpPort),
+//	}
+//
+//	http.HandleFunc("/xm", XMAlarmMsgHandler)
+//	http.HandleFunc("/yk", YKMsgHandler)
+//	http.HandleFunc("/rg", RGMsgHandler)
+//
+//	go func() {
+//		if isHttps {
+//			log.Info("OtherVendorHttp2SrvStart ListenAndServeTLS() start...")
+//			serverCrt, _ := conf.GetString("https", "https_server_crt")
+//			serverKey, _ := conf.GetString("https", "https_server_key")
+//			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
+//				log.Error("OtherVendorHttp2SrvStart ListenAndServeTLS() error = ", err_https)
+//			}
+//		} else {
+//			log.Info("OtherVendorHttp2SrvStart ListenAndServer() start...")
+//			if err_http := srv.ListenAndServe(); err_http != nil {
+//				log.Error("OtherVendorHttp2SrvStart ListenAndServer() error = ", err_http)
+//			}
+//		}
+//	}()
+//
+//	return srv
+//}
 
-	if err != nil {
-		log.Errorf("RGMsgHandler > ioutil.ReadAll > %s", err)
-	} else {
-		log.Infof("RGMsgHandler recv: %s", rawData)
-		jobque.JobQueue <- RGJob{rawData: rawData}
-	}
+func XMAlarmMsgHandler(c *fiber.Ctx) {
+	log.Infof("XMAlarmMsgHandler recv: %s", c.Body())
+}
+
+func YKMsgHandler(c *fiber.Ctx) {
+	log.Infof("YKMsgHandler recv: %s", c.Body())
+	jobque.JobQueue <- NewYKJob(util.Str2Bytes(c.Body()))
+}
+
+func RGMsgHandler(c *fiber.Ctx) {
+	log.Infof("RGMsgHandler recv: %s", c.Body())
+	jobque.JobQueue <- RGJob{rawData: c.Body()}
 }
 
 type YKJob struct {
@@ -157,7 +168,7 @@ func NewYKJob(rawData []byte) YKJob {
 }
 
 type RGJob struct {
-	rawData []byte
+	rawData string
 }
 
 func (r RGJob) Handle() {
@@ -166,7 +177,7 @@ func (r RGJob) Handle() {
 			log.Error(err)
 		}
 	}()
-	devId := gjson.GetBytes(r.rawData, "mid").String()
+	devId := gjson.Get(r.rawData, "mid").String()
 	if len(devId) == 0 {
 		return
 	}
@@ -178,7 +189,7 @@ func (r RGJob) Handle() {
 			Vendor:  "rg",
 			DevType: "",
 		},
-		OriData: util.Bytes2Str(r.rawData),
+		OriData: r.rawData,
 	}
 
 	data, err := json.Marshal(msg)

@@ -86,4 +86,5 @@ type GrayLog struct {
 	Host     string `json:"host"`
 	Facility string `json:"facility"`
 	Message  string `json:"short_message"`
+	Timestamp int64 `json:"timestamp"`
 }

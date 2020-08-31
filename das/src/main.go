@@ -11,7 +11,6 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
-	"das/feibee2srv"
 	"das/http2srv"
 	"das/onenet2srv"
 	"das/procLock"
@@ -44,10 +43,10 @@ func main() {
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 
 	//8. 启动http/https服务
-	feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
+	//feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	//8. 启动雄迈告警消息接收
-	xm2srv := http2srv.OtherVendorHttp2SrvStart(conf)
+	http2srv.Http2SrvStart()
 
 	go tuya2srv.Tuya2SrvStart()
 
@@ -94,16 +93,16 @@ func main() {
 	}
 
 	//17. 停止飞比HTTP服务器
-	if err := feibee2srv.Shutdown(nil); err != nil {
-		log.Error("feibee2srv.Shutdown failed, err=", err)
-		// panic(err) // failure/timeout shutting down the server gracefully
-	}
+	//if err := feibee2srv.Shutdown(nil); err != nil {
+	//	log.Error("feibee2srv.Shutdown failed, err=", err)
+	//	// panic(err) // failure/timeout shutting down the server gracefully
+	//}
 
-	//18. 停止雄迈HTTP服务器
-	if err := xm2srv.Shutdown(nil); err != nil {
-		log.Error("http2srv.Shutdown failed, err=", err)
-		// panic(err) // failure/timeout shutting down the server gracefully
-	}
+	////18. 停止雄迈HTTP服务器
+	//if err := xm2srv.Shutdown(nil); err != nil {
+	//	log.Error("http2srv.Shutdown failed, err=", err)
+	//	// panic(err) // failure/timeout shutting down the server gracefully
+	//}
 
 	//20. 关闭redis
 	redis.Close()

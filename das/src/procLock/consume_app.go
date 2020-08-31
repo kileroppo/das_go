@@ -50,8 +50,6 @@ func consume() {
 	msgs, err := rabbitmq.ConsumeApp()
 	if err != nil {
 		log.Errorf("consumeApp > %s", err)
-	} else {
-		log.Info("consumeApp start...")
 	}
 
 	for msg := range msgs {

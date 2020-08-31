@@ -2,20 +2,18 @@ package feibee2srv
 
 import (
 	"context"
+	"das/core/jobque"
+	"das/core/util"
 	"errors"
-	"io/ioutil"
-	"net/http"
-	"os"
+	"github.com/gofiber/fiber"
 	"strconv"
 	"strings"
 
-	"github.com/dlintw/goconf"
 	"github.com/etcd-io/etcd/clientv3"
 	"github.com/tidwall/gjson"
 
 	"das/core/entity"
 	"das/core/etcd"
-	"das/core/jobque"
 	"das/core/log"
 	"das/core/rabbitmq"
 )
@@ -49,52 +47,45 @@ func (f FeibeeJob) Handle() {
 	}
 }
 
-func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
-	isHttps, err := conf.GetBool("feibee2http", "is_https")
+//func Feibee2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
+//	isHttps, err := conf.GetBool("feibee2http", "is_https")
+//
+//	if err != nil {
+//		log.Errorf("读取https配置失败, %s\n", err)
+//		os.Exit(1)
+//	}
+//
+//	httpPort, _ := conf.GetInt("feibee2http", "feibee2http_port")
+//
+//	srv := &http.Server{
+//		Addr: ":" + strconv.Itoa(httpPort),
+//	}
+//
+//	http.HandleFunc("/feibee", FeibeeHandler)
+//
+//	go func() {
+//		if isHttps {
+//			log.Info("Feibee2HttpSrvStart ListenAndServeTLS() start...")
+//			serverCrt, _ := conf.GetString("https", "https_server_crt")
+//			serverKey, _ := conf.GetString("https", "https_server_key")
+//			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
+//				log.Error("Feibee2HttpSrvStart ListenAndServeTLS() error = ", err_https)
+//			}
+//		} else {
+//			log.Info("Feibee2HttpSrvStart ListenAndServer() start...")
+//			if err_http := srv.ListenAndServe(); err_http != nil {
+//				log.Error("Feibee2HttpSrvStart ListenAndServer() error = ", err_http)
+//			}
+//		}
+//	}()
+//
+//	return srv
+//
+//}
 
-	if err != nil {
-		log.Errorf("读取https配置失败, %s\n", err)
-		os.Exit(1)
-	}
-
-	httpPort, _ := conf.GetInt("feibee2http", "feibee2http_port")
-
-	srv := &http.Server{
-		Addr: ":" + strconv.Itoa(httpPort),
-	}
-
-	http.HandleFunc("/feibee", FeibeeHandler)
-
-	go func() {
-		if isHttps {
-			log.Info("Feibee2HttpSrvStart ListenAndServeTLS() start...")
-			serverCrt, _ := conf.GetString("https", "https_server_crt")
-			serverKey, _ := conf.GetString("https", "https_server_key")
-			if err_https := srv.ListenAndServeTLS(serverCrt, serverKey); err_https != nil {
-				log.Error("Feibee2HttpSrvStart ListenAndServeTLS() error = ", err_https)
-			}
-		} else {
-			log.Info("Feibee2HttpSrvStart ListenAndServer() start...")
-			if err_http := srv.ListenAndServe(); err_http != nil {
-				log.Error("Feibee2HttpSrvStart ListenAndServer() error = ", err_http)
-			}
-		}
-	}()
-
-	return srv
-
-}
-
-func FeibeeHandler(res http.ResponseWriter, req *http.Request) {
-	rawData, err := ioutil.ReadAll(req.Body)
-	defer req.Body.Close()
-
-	if err != nil {
-		log.Error("get feibee http Body failed")
-	} else {
-		rabbitmq.SendGraylog("DAS receive from feibeeServer: %s", rawData)
-		jobque.JobQueue <- NewFeibeeJob(rawData)
-	}
+func FeibeeHandler(c *fiber.Ctx) {
+	rabbitmq.SendGraylogByMQ("DAS receive from feibeeServer: %s", c.Body())
+	jobque.JobQueue <- NewFeibeeJob(util.Str2Bytes(c.Body()))
 }
 
 type FeibeeData struct {
