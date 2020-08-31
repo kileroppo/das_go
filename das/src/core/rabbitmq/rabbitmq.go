@@ -242,10 +242,13 @@ func ConsumeApp() (ch <-chan amqp.Delivery, err error){
 	queName, _ := log.Conf.GetString("rabbitmq", "app2device_que")
 	ch, err = consumerMQ.consume(0, queName, "")
 	if err != nil {
+		log.Info("ConsumeApp reconn start...")
 		err = consumerMQ.reConn()
 		if err != nil {
+			log.Errorf("ConsumeApp reconn > %s", err)
 			return
 		} else {
+			log.Info("ConsumeApp reconn success")
 			return consumerMQ.consume(0, queName, "")
 		}
 	}
@@ -256,10 +259,13 @@ func ConsumeDev() (ch <-chan amqp.Delivery, err error){
 	queName, _ := log.Conf.GetString("rabbitmq", "device2srv_que")
 	ch, err = consumerMQ.consume(1, queName, "")
 	if err != nil {
+		log.Info("ConsumeDev reconn start...")
 		err = consumerMQ.reConn()
 		if err != nil {
+			log.Errorf("ConsumeDev reconn > %s", err)
 			return
 		} else {
+			log.Info("ConsumeDev reconn success")
 			return consumerMQ.consume(1, queName, "")
 		}
 	}

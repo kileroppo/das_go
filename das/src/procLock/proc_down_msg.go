@@ -25,7 +25,6 @@ import (
  *
  */
 func ProcAppMsg(appMsg string) error {
-	log.Debug("ProcAppMsg process msg from app.")
 	var strAppMsg string = appMsg
 	if !strings.ContainsAny(appMsg, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
 		/*log.Error("ProcAppMsg() error msg : ", appMsg)
