@@ -202,26 +202,28 @@ func Publish2mns(data []byte, routingKey string) {
 }
 
 func Publish2pms(data []byte, routingKey string) {
-	var err error
-	SendGraylog("DAS send to PMS: %s", data)
-	if redis.IsDevBeta(data) {
-		err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
-	} else {
-		err = publishDirect(3, producerMQ, exSli[Ex2Pms_Index], routingKey, data)
-	}
+	go func() {
+		var err error
+		SendGraylogByMQ("DAS send to PMS: %s", data)
+		if redis.IsDevBeta(data) {
+			err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
+		} else {
+			err = publishDirect(3, producerMQ, exSli[Ex2Pms_Index], routingKey, data)
+		}
 
-	if err != nil {
-		log.Warningf("Publish2pms > %s", err)
-	} else {
-		//log.Debugf("Publish2pms msg: %s", data)
-	}
+		if err != nil {
+			log.Warningf("Publish2pms > %s", err)
+		} else {
+			//log.Debugf("Publish2pms msg: %s", data)
+		}
+	}()
 }
 
 func Publish2log(data []byte, routingKey string) {
 	if err := publishDirect(4, producerMQ, exSli[Ex2Log_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2log > %s", err)
 	}
-	SendGraylog(util.Bytes2Str(data))
+	SendGraylogByMQ(util.Bytes2Str(data))
 }
 
 func Publish2wonlyms(data []byte, routingKey string) {
@@ -314,7 +316,7 @@ func sendRabbitMQUpDataLog(byteData []byte) {
 	}
 }
 
-func SendGraylog(format string, args ...interface{}) {
+func SendGraylogByMQ(format string, args ...interface{}) {
 	lmsg := ""
 	if len(format) == 0 {
 		lmsg = fmt.Sprint(args...)
@@ -327,6 +329,7 @@ func SendGraylog(format string, args ...interface{}) {
 		Host:     log.SysName,
 		Facility: "das",
 		Message:  lmsg,
+		Timestamp: time.Now().Unix(),
 	}
 	b, err := json.Marshal(msg)
 	if err == nil {

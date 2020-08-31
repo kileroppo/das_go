@@ -246,7 +246,7 @@ func loadConfig() *goconf.ConfigFile {
 	return conf
 }
 
-func SendGraylog(format string, args ...interface{}) {
+func SendGraylogByUDP(format string, args ...interface{}) {
 	lmsg := ""
 	if len(format) == 0 {
 		lmsg = fmt.Sprint(args...)
@@ -259,6 +259,7 @@ func SendGraylog(format string, args ...interface{}) {
 		Host:     SysName,
 		Facility: "das",
 		Message:  lmsg,
+		Timestamp: time.Now().Unix(),
 	}
 	b, err := json.Marshal(msg)
 	if err == nil {

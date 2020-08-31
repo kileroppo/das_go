@@ -44,8 +44,6 @@ func consumePadDoor() {
 	msgs, err := rabbitmq.ConsumeDev()
 	if err != nil {
 		log.Errorf("consumePadDoor > %s", err)
-	} else {
-		log.Info("consumePadDoor consume start...")
 	}
 
 	for d := range msgs {
