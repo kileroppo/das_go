@@ -57,6 +57,9 @@ type baseMq struct {
 
 	ctx    context.Context
 	cancel context.CancelFunc
+
+	ctxReconn context.Context
+	cancelReconn context.CancelFunc
 }
 
 func (bmq *baseMq) initConn() (err error) {
@@ -284,11 +287,12 @@ func (bmq *baseMq) reConn() error {
 	var err error
 	bmq.mu.Lock()
 	if !atomic.CompareAndSwapUint32(&bmq.reconnFlag, 0, 1) {
-		log.Info("reconn already start")
 		bmq.mu.Unlock()
+		<- bmq.ctxReconn.Done()
 		return nil
 	}
 	bmq.cancel()
+	bmq.ctxReconn, bmq.cancelReconn = context.WithCancel(context.Background())
 	bmq.mu.Unlock()
 	for {
 		log.Infof("MQ %dth Reconnecting...", bmq.currReConnNum+1)
@@ -310,8 +314,9 @@ func (bmq *baseMq) reConn() error {
 			time.Sleep(time.Second * 10)
 			continue
 		}
-
+		bmq.cancelReconn()
 		bmq.currReConnNum = 0
+		atomic.StoreUint32(&bmq.reconnFlag, 0)
 		log.Info("MQ Reconnected Successfully")
 		bmq.ctx, bmq.cancel = context.WithCancel(context.Background())
 		return nil
