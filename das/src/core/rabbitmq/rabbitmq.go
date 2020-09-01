@@ -147,7 +147,7 @@ func initMQCfg() {
 	}
 
 	queCfg := queueCfg{
-		name:       "consumerQueue",
+		name:       "",
 		key:        "",
 		exchange:   "",
 		durable:    true,
@@ -240,7 +240,7 @@ func Publish2Graylog(data []byte, routingKey string) {
 
 func ConsumeApp() (ch <-chan amqp.Delivery, err error){
 	queName, _ := log.Conf.GetString("rabbitmq", "app2device_que")
-	ch, err = consumerMQ.consume(0, queName, "")
+	ch, err = consumerMQ.consume(0, 200, queName, "")
 	if err != nil {
 		log.Info("ConsumeApp reconn start...")
 		err = consumerMQ.reConn()
@@ -249,7 +249,7 @@ func ConsumeApp() (ch <-chan amqp.Delivery, err error){
 			return
 		} else {
 			log.Info("ConsumeApp reconn success")
-			return consumerMQ.consume(0, queName, "")
+			return consumerMQ.consume(0, 200, queName, "")
 		}
 	}
 	return
@@ -257,7 +257,7 @@ func ConsumeApp() (ch <-chan amqp.Delivery, err error){
 
 func ConsumeDev() (ch <-chan amqp.Delivery, err error){
 	queName, _ := log.Conf.GetString("rabbitmq", "device2srv_que")
-	ch, err = consumerMQ.consume(1, queName, "")
+	ch, err = consumerMQ.consume(1, 200, queName, "")
 	if err != nil {
 		log.Info("ConsumeDev reconn start...")
 		err = consumerMQ.reConn()
@@ -266,7 +266,7 @@ func ConsumeDev() (ch <-chan amqp.Delivery, err error){
 			return
 		} else {
 			log.Info("ConsumeDev reconn success")
-			return consumerMQ.consume(1, queName, "")
+			return consumerMQ.consume(1, 200, queName, "")
 		}
 	}
 	return
@@ -274,13 +274,13 @@ func ConsumeDev() (ch <-chan amqp.Delivery, err error){
 
 func ConsumeAli() (ch <-chan amqp.Delivery, err error){
 	queName, _ := log.Conf.GetString("rabbitmq", "ali2srv_que")
-	ch, err = consumerMQ.consume(2, queName, "")
+	ch, err = consumerMQ.consume(2, 200, queName, "")
 	if err != nil {
 		err = consumerMQ.reConn()
 		if err != nil {
 			return
 		} else {
-			return consumerMQ.consume(2, queName, "")
+			return consumerMQ.consume(2, 200, queName, "")
 		}
 	}
 	return

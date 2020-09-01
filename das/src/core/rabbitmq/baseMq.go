@@ -202,7 +202,6 @@ func (bmq *baseMq) publishSafe(index int, exchange, routingKey string, data []by
 			},
 		)
 		if err != nil {
-			log.Errorf("baseMq.publishSafe > %s", err)
 			go bmq.reConn()
 			return
 		}
@@ -262,8 +261,12 @@ func (bmq *baseMq) publishSafe(index int, exchange, routingKey string, data []by
 //	}
 //}
 
-func (bmq *baseMq) consume(index int, queueName, consumerName string) (ch <-chan amqp.Delivery, err error) {
+func (bmq *baseMq) consume(index, prefetchCount int, queueName, consumerName string) (ch <-chan amqp.Delivery, err error) {
 	channel := bmq.consumeCh[index]
+	err = channel.Qos(prefetchCount, 0, false)
+	if err != nil {
+		log.Errorf("channel.Qos > %s", err)
+	}
 	ch, err = channel.Consume(
 		queueName,    // queue
 		consumerName, // consumer
