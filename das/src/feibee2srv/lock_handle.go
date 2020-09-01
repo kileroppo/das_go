@@ -156,12 +156,10 @@ func (fh *FbLockHandle) FbLockAlarmDecode() (err error) {
 
 func (fh *FbLockHandle) FbLockOnoffDecode() {
 	if len(fh.Protocal.Value) < 16 {
-		log.Errorf("FbLockHandle.FbLockOnoffDecode > %s", ErrFbProtocalLen)
 		return
 	}
 
 	if int(fh.Protocal.Value[3]) != len(fh.Protocal.Value[4:]) {
-		log.Errorf("FbLockHandle.FbLockOnoffDecode > %s", ErrFbProtocalLen)
 		return
 	}
 
