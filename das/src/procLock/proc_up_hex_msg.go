@@ -917,7 +917,7 @@ func ParseData(mydata interface{}) error {
 		}
 
 		//2. 锁唤醒，存入redis
-		redis.SetActTimePool(wlMsg.DevId.Uuid, int64(deviceActive.Time))
+		go redis.SetActTimePool(wlMsg.DevId.Uuid, int64(deviceActive.Time))
 
 		//3. 发送
 		if to_byte, err1 := json.Marshal(deviceActive); err1 == nil {

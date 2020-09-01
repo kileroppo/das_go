@@ -93,7 +93,7 @@ func AndlinkHandler(res http.ResponseWriter, req *http.Request) {
 			}*/
 
 			//1. 锁对接的平台，存入redis
-			redis.SetDevicePlatformPool("1111", constant.ANDLINK_PLATFORM)
+			go redis.SetDevicePlatformPool("1111", constant.ANDLINK_PLATFORM)
 
 			// fetch job
 			//work := httpJob.Job{Serload: httpJob.Serload{DValue: bytes.NewBuffer(result).String(), Imei: "111", MsgFrom: constant.NBIOT_MSG}}

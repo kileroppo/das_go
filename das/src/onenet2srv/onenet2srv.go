@@ -84,7 +84,7 @@ func (o OnenetJob) Handle() {
 	//1. 锁对接的平台，存入redis
 	mymap := make(map[string]interface{})
 	mymap["from"] = constant.ONENET_PLATFORM
-	redis.SetDevicePlatformPool(data.Msg.Imei, mymap)
+	go redis.SetDevicePlatformPool(data.Msg.Imei, mymap)
 
 	switch data.Msg.Msgtype {
 	case 2: // 设备上下线消息(type=2)
@@ -100,7 +100,7 @@ func (o OnenetJob) Handle() {
 			}
 
 			//1. 锁状态，存入redis
-			redis.SetActTimePool(data.Msg.Imei, nTime)
+			go redis.SetActTimePool(data.Msg.Imei, nTime)
 
 			//struct 到json str
 			var toApp entity.DeviceActive

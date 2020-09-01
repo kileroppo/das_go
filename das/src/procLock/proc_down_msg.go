@@ -113,10 +113,11 @@ func ProcAppMsg(appMsg string) error {
 				}
 
 				appUserTag := strconv.FormatInt(time.Now().Unix(), 16)
-				if uNoteErr := redis.SetAppUserPool(mROpenLockReq.DevId, appUserTag, mROpenLockReq.AppUser); uNoteErr != nil {
-					log.Error("ProcAppMsg redis.SetAppUserPool error, err=", uNoteErr)
-					return uNoteErr
-				}
+				//if uNoteErr := redis.SetAppUserPool(mROpenLockReq.DevId, appUserTag, mROpenLockReq.AppUser); uNoteErr != nil {
+				//	log.Error("ProcAppMsg redis.SetAppUserPool error, err=", uNoteErr)
+				//	return uNoteErr
+				//}
+				go redis.SetAppUserPool(mROpenLockReq.DevId, appUserTag, mROpenLockReq.AppUser)
 				mROpenLockReq.AppUser = appUserTag // 值跟KEY交换，下发到锁端
 
 				stringKey := strings.ToUpper(util.Md5(head.DevId))
@@ -164,10 +165,11 @@ func ProcAppMsg(appMsg string) error {
 				}
 
 				appUserTag := strconv.FormatInt(time.Now().Unix(), 16)
-				if uNoteErr := redis.SetAppUserPool(sROpenLockReq.DevId, appUserTag, sROpenLockReq.AppUser); uNoteErr != nil {
-					log.Error("ProcAppMsg redis.SetAppUserPool error, err=", uNoteErr)
-					return uNoteErr
-				}
+				//if uNoteErr := redis.SetAppUserPool(sROpenLockReq.DevId, appUserTag, sROpenLockReq.AppUser); uNoteErr != nil {
+				//	log.Error("ProcAppMsg redis.SetAppUserPool error, err=", uNoteErr)
+				//	return uNoteErr
+				//}
+				go redis.SetAppUserPool(sROpenLockReq.DevId, appUserTag, sROpenLockReq.AppUser)
 				sROpenLockReq.AppUser = appUserTag // 值跟KEY交换，下发到锁端
 
 				if len(sROpenLockReq.Passwd) > 6 {
@@ -203,16 +205,18 @@ func ProcAppMsg(appMsg string) error {
 		}
 
 		userTag := strconv.FormatInt(time.Now().Unix(), 16)
-		if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userTag, addDevUser.UserNote); uNoteErr != nil {
-			log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
-			return uNoteErr
-		}
+		//if uNoteErr := redis.SetDevUserNotePool(addDevUser.DevId, userTag, addDevUser.UserNote); uNoteErr != nil {
+		//	log.Error("ProcAppMsg redis.SetDevUserNotePool error, err=", uNoteErr)
+		//	return uNoteErr
+		//}
+		go redis.SetDevUserNotePool(addDevUser.DevId, userTag, addDevUser.UserNote)
 		addDevUser.UserNote = userTag // 值跟KEY交换，下发到锁端
 
-		if appUserErr := redis.SetAppUserPool(addDevUser.DevId, userTag, addDevUser.AppUser); appUserErr != nil {
-			log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
-			return appUserErr
-		}
+		//if appUserErr := redis.SetAppUserPool(addDevUser.DevId, userTag, addDevUser.AppUser); appUserErr != nil {
+		//	log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
+		//	return appUserErr
+		//}
+		go redis.SetAppUserPool(addDevUser.DevId, userTag, addDevUser.AppUser)
 		addDevUser.AppUser = userTag // 值跟KEY交换，下发到锁端
 
 		if constant.OPEN_PWD == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
@@ -250,10 +254,11 @@ func ProcAppMsg(appMsg string) error {
 		}
 
 		userTag := strconv.FormatInt(time.Now().Unix(), 16)
-		if appUserErr := redis.SetAppUserPool(delDevUser.DevId, userTag, delDevUser.AppUser); appUserErr != nil {
-			log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
-			return appUserErr
-		}
+		//if appUserErr := redis.SetAppUserPool(delDevUser.DevId, userTag, delDevUser.AppUser); appUserErr != nil {
+		//	log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
+		//	return appUserErr
+		//}
+		go redis.SetAppUserPool(delDevUser.DevId, userTag, delDevUser.AppUser)
 		delDevUser.AppUser = userTag // 值跟KEY交换，下发到锁端
 
 		// json转字符串
@@ -273,10 +278,11 @@ func ProcAppMsg(appMsg string) error {
 		}
 
 		userTag := strconv.FormatInt(time.Now().Unix(), 16)
-		if appUserErr := redis.SetAppUserPool(setLockParamReq.DevId, userTag, setLockParamReq.AppUser); appUserErr != nil {
-		log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
-		return appUserErr
-		}
+		//if appUserErr := redis.SetAppUserPool(setLockParamReq.DevId, userTag, setLockParamReq.AppUser); appUserErr != nil {
+		//log.Error("ProcAppMsg redis.SetAppUserPool error, err=", appUserErr)
+		//return appUserErr
+		//}
+		go redis.SetAppUserPool(setLockParamReq.DevId, userTag, setLockParamReq.AppUser)
 		setLockParamReq.AppUser = userTag // 值跟KEY交换，下发到锁端
 
 		// json转字符串
@@ -290,7 +296,7 @@ func ProcAppMsg(appMsg string) error {
 	}
 	case constant.Wonly_LGuard_Msg:
 		//小卫士消息
-		httpgo.Http2FeibeeWonlyLGuard(appMsg)
+		go httpgo.Http2FeibeeWonlyLGuard(appMsg)
 		return nil // TODO:JHHE after HTTP request, no other processes, otherwise return
 	case constant.Body_Fat_Scale:
 		rabbitmq.Publish2pms([]byte(appMsg), "")
@@ -352,7 +358,7 @@ func ProcAppMsg(appMsg string) error {
 					}
 
 					//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
-					redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
+					go redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
 				}
 			}
 		}
@@ -433,7 +439,7 @@ func ProcAppMsg(appMsg string) error {
 				}
 
 				//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
-				redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
+				go redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
 			}
 		}
 	case constant.MQTT_PLATFORM: {	// MQTT
@@ -469,7 +475,7 @@ func ProcAppMsg(appMsg string) error {
 				// TODO:JHHE 包体前面增加长度
 				bLen := IntToBytes(len(appData))
 				strLen := hex.EncodeToString(bLen)
-				httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:]+"00"+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
+				go httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:]+"00"+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 
 				// 连续两条命令间隔100毫秒
 				if constant.Set_Wifi == msgHead.Cmd {

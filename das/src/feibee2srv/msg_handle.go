@@ -654,7 +654,7 @@ func (self *ZigbeeLockHandle) PushMsg() {
 	mymap["uuid"] = self.data.Records[0].Uuid
 	mymap["uid"] = self.data.Records[0].Deviceuid
 	mymap["from"] = constant.FEIBEE_PLATFORM
-	redis.SetDevicePlatformPool(self.data.Records[0].Uuid, mymap)
+	go redis.SetDevicePlatformPool(self.data.Records[0].Uuid, mymap)
 
 	//TODO: parse data and handle, 去掉飞比加上的长度1个字节（16进制字符串2位）
 	if 22 < len(self.data.Records[0].Value) {	// 包头长度为11字节

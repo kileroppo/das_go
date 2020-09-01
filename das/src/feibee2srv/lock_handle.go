@@ -68,7 +68,7 @@ func (fh *FbLockHandle) decodeOrg() (err error) {
 	case Fb_Lock_Batt:
 		err = fh.FbLockBattDecode()
 	case Fb_Lock_Onoff:
-		err = fh.FbLockOnoffDecode()
+		fh.FbLockOnoffDecode()
 	}
 
 	if err != nil {
@@ -154,14 +154,14 @@ func (fh *FbLockHandle) FbLockAlarmDecode() (err error) {
 	return nil
 }
 
-func (fh *FbLockHandle) FbLockOnoffDecode() (err error) {
+func (fh *FbLockHandle) FbLockOnoffDecode() {
 	if len(fh.Protocal.Value) < 16 {
-		err = fmt.Errorf("FbLockHandle.FbLockOnoffDecode > %w", ErrFbProtocalLen)
+		log.Errorf("FbLockHandle.FbLockOnoffDecode > %s", ErrFbProtocalLen)
 		return
 	}
 
 	if int(fh.Protocal.Value[3]) != len(fh.Protocal.Value[4:]) {
-		err = fmt.Errorf("FbLockHandle.FbLockOnoffDecode > %w", ErrFbProtocalLen)
+		log.Errorf("FbLockHandle.FbLockOnoffDecode > %s", ErrFbProtocalLen)
 		return
 	}
 
@@ -175,15 +175,15 @@ func (fh *FbLockHandle) FbLockOnoffDecode() (err error) {
 
 	switch unlockType {
 	case 0x04:
-		err = fh.remoteUnlock(userId)
+		go fh.remoteUnlock(userId)
 	case 0x00, 0x01, 0x02, 03:
-		err = fh.otherUnlock(userId)
+		fh.otherUnlock(userId)
 	}
 
 	return
 }
 
-func (fh *FbLockHandle) remoteUnlock(userId int) (err error) {
+func (fh *FbLockHandle) remoteUnlock(userId int) {
 	stateFlag := fh.Protocal.Value[15]
 
 	msg := entity.FeibeeLockRemoteOn{
@@ -206,7 +206,7 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error) {
 				log.Warningf("FbLockHandle.remoteUnlock > %s", err)
 				sendFlag = true
 			} else {
-				return nil
+				return
 			}
 		} else {
 			sendFlag = true
@@ -218,7 +218,7 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error) {
 
 	bs, err := json.Marshal(msg)
 	if err != nil {
-		err = fmt.Errorf("FbLockHandle.remoteUnlock > json.Marshal > %w", err)
+		log.Errorf("FbLockHandle.remoteUnlock > json.Marshal > %s", err)
 		return
 	}
 
@@ -227,10 +227,10 @@ func (fh *FbLockHandle) remoteUnlock(userId int) (err error) {
 		rabbitmq.Publish2app(bs, msg.DevId)
 		rabbitmq.Publish2mns(bs, "")
 	}
-	return nil
+	return
 }
 
-func (fh *FbLockHandle) otherUnlock(userId int) (err error) {
+func (fh *FbLockHandle) otherUnlock(userId int) {
 	msg := entity.UploadOpenLockLog{
 		Cmd:     0x40,
 		Ack:     1,
@@ -269,13 +269,13 @@ func (fh *FbLockHandle) otherUnlock(userId int) (err error) {
 
 	bs, err := json.Marshal(msg)
 	if err != nil {
-		err = fmt.Errorf("FbLockHandle.FbLockBattDecode > json.Marshal > %w", err)
+		log.Errorf("FbLockHandle.FbLockBattDecode > json.Marshal > %s", err)
 		return
 	}
 	rabbitmq.Publish2pms(bs, "")
 	rabbitmq.Publish2mns(bs, "")
 	rabbitmq.Publish2app(bs, fh.data.Records[0].Uuid)
-	return nil
+	return
 }
 
 func (fh *FbLockHandle) FbLockStateDecode(data []byte) (err error) {

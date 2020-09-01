@@ -415,7 +415,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				break
 			}
 			//2. 存入redis
-			redis.SetDeviceYisumaRandomfromPool(head.DevId, yisumaStateRandom.Random)
+			go redis.SetDeviceYisumaRandomfromPool(head.DevId, yisumaStateRandom.Random)
 			random, _ := redis.GetDeviceYisumaRandomfromPool(head.DevId)
 			log.Info("redis.SetDeviceYisumaRandomfromPool=============" + random)
 
@@ -524,7 +524,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			rabbitmq.Publish2mns([]byte(DValue), "")
 
 			// 燃气告警，存redis缓存
-			redis.SetDevGasAlarmState(head.DevId, 1)
+			go redis.SetDevGasAlarmState(head.DevId, 1)
 		}
 	case constant.Low_battery_alarm: // 锁体的电池，低电量报警
 		{
@@ -589,7 +589,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			}
 
 			//3. 锁唤醒，存入redis
-			redis.SetActTimePool(lockActive.DevId, int64(lockTime))
+			go redis.SetActTimePool(lockActive.DevId, int64(lockTime))
 
 			//4. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
@@ -704,7 +704,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			}
 
 			// 获取升级包信息
-			GetUpgradeFileInfo(head.DevId, head.DevType, head.SeqId, upQuery.Part)
+			go GetUpgradeFileInfo(head.DevId, head.DevType, head.SeqId, upQuery.Part)
 		}
 	case constant.Download_Upgrade_File: // 锁下载固件升级包（锁—>后台，分包传输）
 		{

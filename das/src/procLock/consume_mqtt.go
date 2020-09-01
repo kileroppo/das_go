@@ -164,7 +164,7 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 	//2. 锁对接的平台，存入redis
 	mymap := make(map[string]interface{})
 	mymap["from"] = constant.MQTT_PLATFORM
-	redis.SetDevicePlatformPool(wlMsg.DevId.Uuid, mymap)
+	go redis.SetDevicePlatformPool(wlMsg.DevId.Uuid, mymap)
 
 	//3. fetch job
 	jobque.JobQueue <- NewMqttJob(msg.Payload())
@@ -191,7 +191,7 @@ var msgCallbackPad mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Messa
 	//3. 锁对接的平台，存入redis
 	mymap := make(map[string]interface{})
 	mymap["from"] = constant.MQTT_PAD_PLATFORM
-	redis.SetDevicePlatformPool(devID, mymap)
+	go redis.SetDevicePlatformPool(devID, mymap)
 
 	//4. fetch job
 	jobque.JobQueue <- NewSmartPadJob(devData, devID)
@@ -256,7 +256,7 @@ var disCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 	}
 
 	//1. 锁状态，存入redis
-	redis.SetActTimePool(disEvent.Clientid, 0)
+	go redis.SetActTimePool(disEvent.Clientid, 0)
 
 	//2. 通知APP
 	var devAct entity.DeviceActive
