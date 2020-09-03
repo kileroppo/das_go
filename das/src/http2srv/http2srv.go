@@ -17,8 +17,12 @@ import (
 	"das/feibee2srv"
 )
 
+var (
+	app *fiber.App
+)
+
 func Http2SrvStart() {
-    app := fiber.New()
+    app = fiber.New()
     app.Post("/xm", XMAlarmMsgHandler)
     app.Post("/yk", YKMsgHandler)
     app.Post("/rg", RGMsgHandler)
@@ -45,7 +49,7 @@ func Http2SrvStart() {
 }
 
 func Close() {
-
+    app.Shutdown()
 }
 
 //func OtherVendorHttp2SrvStart(conf *goconf.ConfigFile) *http.Server {

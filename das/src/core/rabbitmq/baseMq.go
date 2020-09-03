@@ -20,9 +20,6 @@ var (
 var (
 	seqSli    []uint64
 	cacheKey  = "pmsMqCache%d_%d"
-
-	consumerNum = 3
-	publishNum  = 7
 )
 
 type exchangeCfg struct {

@@ -44,6 +44,9 @@ const (
 	ExSrv2Wonlyms_Index = 8
 	Ex2PmsBeta_Index    = 9
 	Ex2Graylog_Index    = 10
+
+	consumerNum = 4
+	publishNum  = 7
 )
 
 func Init() {
@@ -109,6 +112,7 @@ func initMQCfg() {
 	exSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_ex")
 	ex2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex")
 	ex2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_ex")
+	exFb2Srv, err := log.Conf.GetString("rabbitmq", "feibee2srv_ex")
 
 	exTypeApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_ex_type")
 	exTypeDev2App, err := log.Conf.GetString("rabbitmq", "device2app_ex_type")
@@ -121,6 +125,7 @@ func initMQCfg() {
 	exTypeSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_ex_type")
 	exType2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex_type")
 	exType2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_ex_type")
+	exTypeFb2Srv, err := log.Conf.GetString("rabbitmq", "feibee2srv_ex_type")
 
 
 	queApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_que")
@@ -131,11 +136,12 @@ func initMQCfg() {
 	que2Log, err := log.Conf.GetString("rabbitmq", "logSave_que")
 	queSrv2Wonlyms, err := log.Conf.GetString("rabbitmq", "srv2wonlyms_que")
 	que2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_que")
-	que2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_que")
+	//que2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_que")
+	que2Fb2Srv, err := log.Conf.GetString("rabbitmq", "feibee2srv_que")
 
-	exSli = []string{exApp2dev, exDev2App, ex2Mns, ex2Pms, exDev2Srv, exSrv2Dev, exAli2Srv, ex2Log, exSrv2Wonlyms, ex2PmsBeta, ex2Graylog}
-	exTypeSli := []string{exTypeApp2dev, exTypeDev2App, exType2Mns, exType2Pms, exTypeDev2Srv, exTypeSrv2Dev, exTypeAli2Srv, exType2Log, exTypeSrv2Wonlyms, exType2PmsBeta, exType2Graylog}
-	queSli := []string{queApp2dev, "", que2Mns, que2Pms, queDev2Srv, "", queAli2Srv, que2Log, queSrv2Wonlyms, que2PmsBeta, que2Graylog}
+	exSli = []string{exApp2dev, exDev2App, ex2Mns, ex2Pms, exDev2Srv, exSrv2Dev, exAli2Srv, ex2Log, exSrv2Wonlyms, ex2PmsBeta, ex2Graylog, exFb2Srv}
+	exTypeSli := []string{exTypeApp2dev, exTypeDev2App, exType2Mns, exType2Pms, exTypeDev2Srv, exTypeSrv2Dev, exTypeAli2Srv, exType2Log, exTypeSrv2Wonlyms, exType2PmsBeta, exType2Graylog, exTypeFb2Srv}
+	queSli := []string{queApp2dev, "", que2Mns, que2Pms, queDev2Srv, "", queAli2Srv, que2Log, queSrv2Wonlyms, que2PmsBeta, "", que2Fb2Srv}
 
 	exCfg := exchangeCfg{
 		name:       "",
@@ -281,6 +287,20 @@ func ConsumeAli() (ch <-chan amqp.Delivery, err error){
 			return
 		} else {
 			return consumerMQ.consume(2, 200, queName, "")
+		}
+	}
+	return
+}
+
+func ConsumeFb() (ch <-chan amqp.Delivery, err error) {
+	queName, _ := log.Conf.GetString("rabbitmq", "feibee2srv_que")
+	ch, err = consumerMQ.consume(3, 200, queName, "")
+	if err != nil {
+		err = consumerMQ.reConn()
+		if err != nil {
+			return
+		} else {
+			return consumerMQ.consume(3, 200, queName, "")
 		}
 	}
 	return
