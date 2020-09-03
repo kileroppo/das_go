@@ -773,6 +773,9 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				rabbitmq.Publish2app([]byte(DValue), head.DevId)
 			}
 		}
+	case constant.RangeHood_Lock_Query:
+		log.Info("[", head.DevId, "] constant.RangeHood_Lock_Query")
+		rabbitmq.Publish2mns(util.Str2Bytes(DValue), "")
 	case constant.Scene_Trigger: //中控闹钟触发爱岗场景
 	    {
 			log.Info("[", head.DevId, "] constant.Scene_Trigger")
