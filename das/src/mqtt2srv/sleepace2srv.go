@@ -1,16 +1,25 @@
 package mqtt2srv
 
 import (
+	"encoding/json"
 	"fmt"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"time"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/tidwall/gjson"
 
 	"das/core/log"
 	dasMqtt "das/core/mqtt"
+	"das/core/entity"
+	"das/core/rabbitmq"
 )
 
 var (
 	sleepaceMqttCli mqtt.Client
+)
+
+const (
+	Sleepace_Event_SleepStage = "sleepStageEvent"
 )
 
 func InitMqtt2Srv() {
@@ -62,7 +71,40 @@ func subscribeSleepaceTopic(cli mqtt.Client) {
 
 func sleepaceCallback(client mqtt.Client, msg mqtt.Message) {
 	oriData := msg.Payload()
-	log.Info("Receive from sleepace: ", oriData)
+	rabbitmq.SendGraylogByMQ("Receive from sleepace: %s", oriData)
+	msgTyp := gjson.GetBytes(oriData, "dataKey").String()
+
+	switch msgTyp {
+	case Sleepace_Event_SleepStage:
+		sendSleepStageForSceneTrigger(oriData)
+	}
+}
+
+func sendSleepStageForSceneTrigger(oriData []byte) {
+	msg2pms := entity.Feibee2AutoSceneMsg{
+		Header:      entity.Header{
+			Cmd:     241,
+			Ack:     0,
+			DevType: "",
+			DevId:   gjson.GetBytes(oriData, "deviceId").String(),
+			Vendor:  "sleepace",
+			SeqId:   0,
+		},
+		Time:        int(gjson.GetBytes(oriData, "timeStamp").Int()),
+		TriggerType: 0,
+		AlarmFlag:   int(gjson.GetBytes(oriData, "data").Get("sleepStage").Int()),
+		AlarmType:   "sleepStage",
+		AlarmValue:  "",
+		SceneId:     "",
+		Zone:        "",
+	}
+
+	data,err := json.Marshal(msg2pms)
+	if err != nil {
+		log.Errorf("sendSleepStageForSceneTrigger > %s", err)
+	} else {
+		rabbitmq.Publish2pms(data, "")
+	}
 }
 
 func CloseMqtt2Srv() {
