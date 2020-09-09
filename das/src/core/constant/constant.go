@@ -95,6 +95,7 @@ const (
 	Set_AIPad_Reboot_Time 		= 0x1003 // 设置中控网关定时参数
 	RangeHood_Control 			= 0x1005 // 油烟机档位控制
 	RangeHood_Ctrl_Query	    = 0x1006 // 油烟机档位查询
+	RangeHood_Lock_Query        = 0x1007 // 油烟机绑定门锁查询
 	Body_Fat_Scale              = 0x1008 // 体脂称数据上报
 
 	PadDoor_Num_Upload 			= 0x1100 // 平板锁人流检测上报

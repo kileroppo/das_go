@@ -2,6 +2,7 @@ package httpgo
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -14,8 +15,12 @@ import (
 var hClient *http.Client
 
 func init() {
+	tlsCfg := &tls.Config{
+		InsecureSkipVerify: true,
+	}
 	transport := &http.Transport{
 		TLSHandshakeTimeout: time.Second * 3,
+		TLSClientConfig: tlsCfg,
 	}
 	hClient = &http.Client{
 		Transport: transport,

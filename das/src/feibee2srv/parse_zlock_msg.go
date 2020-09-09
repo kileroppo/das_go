@@ -835,7 +835,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		}
 
 		//2. 锁唤醒，存入redis
-		redis.SetActTimePool(uuid, int64(deviceActive.Time))
+		go redis.SetActTimePool(uuid, int64(deviceActive.Time))
 
 		//3. 发送
 		if to_byte, err1 := json.Marshal(deviceActive); err1 == nil {

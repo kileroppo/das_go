@@ -1,6 +1,7 @@
 package main
 
 import (
+	"das/feibee2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -12,6 +13,7 @@ import (
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/http2srv"
+	"das/mqtt2srv"
 	"das/onenet2srv"
 	"das/procLock"
 	"das/tuya2srv"
@@ -34,6 +36,8 @@ func main() {
 
 	//4. 接收app消息
 	go procLock.Run()
+
+	mqtt2srv.Init()
 
 	//6. 启动ali IOT推送接收服务
 	// aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
@@ -78,6 +82,8 @@ func main() {
 	//12. 关闭阿里云IOT推送接收服务
 	// aliSrv.Close()
 
+	mqtt2srv.Close()
+
 	//14. 停止接收app消息
 	procLock.Close()
 
@@ -86,23 +92,15 @@ func main() {
 
 	tuya2srv.Close()
 
+	http2srv.Close()
+
+	feibee2srv.Close()
+
 	//16. 停止OneNETHTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}
-
-	//17. 停止飞比HTTP服务器
-	//if err := feibee2srv.Shutdown(nil); err != nil {
-	//	log.Error("feibee2srv.Shutdown failed, err=", err)
-	//	// panic(err) // failure/timeout shutting down the server gracefully
-	//}
-
-	////18. 停止雄迈HTTP服务器
-	//if err := xm2srv.Shutdown(nil); err != nil {
-	//	log.Error("http2srv.Shutdown failed, err=", err)
-	//	// panic(err) // failure/timeout shutting down the server gracefully
-	//}
 
 	//20. 关闭redis
 	redis.Close()

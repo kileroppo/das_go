@@ -66,7 +66,7 @@ func consumePadDoor() {
 		//3. 锁对接的平台，存入redis
 		mymap := make(map[string]interface{})
 		mymap["from"] = constant.PAD_DEVICE_PLATFORM
-		redis.SetDevicePlatformPool(devID, mymap)
+		go redis.SetDevicePlatformPool(devID, mymap)
 
 		//4. fetch job
 		// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
