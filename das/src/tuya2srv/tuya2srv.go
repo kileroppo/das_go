@@ -69,7 +69,7 @@ func (t *TuyaHandle) HandlePayload(ctx context.Context, msg *pulsar.Message, pay
 		return err
 	}
 
-	log.Infof("TuyaHandle.HandlePayload > recv: %s", jsonData)
+	rabbitmq.SendGraylogByMQ("DAS receive from tuyaServer: %s", jsonData)
     devId := gjson.GetBytes(jsonData, "devId").String()
 	bizCode := gjson.GetBytes(jsonData, "bizCode").String()
 	if len(bizCode) > 0 {
