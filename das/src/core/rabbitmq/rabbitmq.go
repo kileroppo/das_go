@@ -203,6 +203,7 @@ func Publish2mns(data []byte, routingKey string) {
 	if err := publishDirect(2, producerMQ, exSli[Ex2Mns_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2mns > %s", err)
 	} else {
+		SendGraylogByMQ("DAS send to MNS: %s", data)
 		//log.Debugf("Publish2mns msg: %s", data)
 	}
 }
