@@ -89,12 +89,17 @@ func (self *BaseSensorAlarm) PushMsg() {
 		}
 	}
 	self.pushMsg2pmsForSave()
+	//todo: 设备周期上报数据能否触发场景
 	if self.alarmMsgType == sensorAlarm {
-		if self.alarmType == "doorContact" && self.alarmFlag == 1 && self.cycleFlag > 0 { //门磁周期消息不触发
+		//周期上报能触发场景
+		self.pushMsg2pmsForSceneTrigger()
 
-		} else {
-			self.pushMsg2pmsForSceneTrigger()
-		}
+		//周期上报不触发场景
+		//if self.alarmType == "doorContact" && self.alarmFlag == 1 && self.cycleFlag > 0 { //门磁周期消息不触发
+		//
+		//} else {
+		//	self.pushMsg2pmsForSceneTrigger()
+		//}
 	}
 	self.pushForcedBreakMsg()
 }
