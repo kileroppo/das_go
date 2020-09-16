@@ -8,6 +8,7 @@ import (
 
 	"das/core/entity"
 	"das/core/log"
+	"das/core/rabbitmq"
 	"das/core/util"
 )
 
@@ -26,7 +27,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		log.Warningf("Http2FeibeeWonlyLGuard > json.Unmarshal > %s", err)
 		return
 	}
-	log.Infof("Send WonlyGuard '%s' control to feibee", msg.DevId)
+	//log.Infof("Send WonlyGuard '%s' control to feibee", msg.DevId)
 	var err error
 	var reqMsg entity.Req2Feibee
 	var conf = log.Conf
@@ -65,12 +66,14 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		return
 	}
 
-	log.Debugf("Send to Feibee: %s", reqData)
+	//log.Debugf("Send to Feibee: %s", reqData)
 	respData, err := DoFeibeeControlReq(reqData)
 	if err != nil {
 		log.Warningf("Http2FeibeeWonlyLGuard > %s", err)
 		return
 	}
+
+	rabbitmq.SendGraylogByMQ("Send WonlyLGuard control to feibee: %s, response: %s", reqData, respData)
 
 	//log.Infof("Http2FeibeeWonlyLGuard > resp: %s", respData)
 	var respMsg entity.RespFromFeibee
@@ -82,8 +85,6 @@ func Http2FeibeeWonlyLGuard(appData string) {
 
 	if respMsg.Code != 1 {
 		log.Warning("Control WonlyLGuard failed")
-	} else {
-		log.Info("Control WonlyLGuard successfully")
 	}
 }
 
