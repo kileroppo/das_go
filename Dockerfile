@@ -16,7 +16,9 @@ RUN echo "http://mirrors.aliyun.com/alpine/v3.7/main/" > /etc/apk/repositories \
     && apk add tzdata && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone \
     && apk add supervisor \
-    && apk del tzdata
+    && apk del tzdata \
+    && chmod 775 -R /www/wonly/DAS_go \
+    && mkdir /www/wonly/DAS_go/logs
 
 VOLUME ["/www/wonly/DAS_go/logs"]
 
