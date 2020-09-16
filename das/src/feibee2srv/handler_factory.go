@@ -97,7 +97,7 @@ var (
 
 	otherMsgTyp = map[int]MsgType{
 		//get key by feibee: cid,aid
-		//0x00080000: CurtainDegree, //窗帘开关程度
+		0x00080000: CurtainDegree, //窗帘开关程度
 		0xf0f0f0f0: SceneSwitch,
 		0x00060000: ManualOpDev,
 		0x05000080: BaseSensor, //传感器

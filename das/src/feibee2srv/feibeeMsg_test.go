@@ -3,6 +3,7 @@ package feibee2srv
 import (
 	"das/core/log"
 	"das/core/rabbitmq"
+	"das/core/redis"
 	"testing"
 )
 
@@ -389,8 +390,9 @@ var (
 )
 
 func init() {
-	conf := log.Init()
-	rabbitmq.Init(conf)
+	log.Init()
+	rabbitmq.Init()
+	redis.InitRedis()
 }
 
 func TestProcessFeibeeMsg(t *testing.T) {

@@ -1,6 +1,7 @@
 package feibee2srv
 
 import (
+	"das/core/rabbitmq"
 	"testing"
 )
 
@@ -83,8 +84,6 @@ func TestOneAlarm(t *testing.T) {
 
 func BenchmarkProcessFeibeeMsg(b *testing.B) {
 	for i:=0;i<b.N;i++ {
-		for _, ts := range tests {
-			ProcessFeibeeMsg([]byte(ts.msgValue))
-		}
+		rabbitmq.Publish2Graylog([]byte(door), "")
 	}
 }

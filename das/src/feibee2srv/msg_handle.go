@@ -132,7 +132,9 @@ func (self *NormalMsgHandle) PushMsg() {
 		if self.msgType == NewDev {
 			rabbitmq.Publish2app(data2app, bindid)
 		} else {
-			rabbitmq.Publish2app(data2app, routingKey)
+			if self.msgType != DevDegree {
+				rabbitmq.Publish2app(data2app, routingKey)
+			}
 		}
 		rabbitmq.Publish2mns(data2app, "")
 	}
