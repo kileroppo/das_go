@@ -17,8 +17,8 @@ RUN echo "http://mirrors.aliyun.com/alpine/v3.7/main/" > /etc/apk/repositories \
     && echo "Asia/Shanghai" > /etc/timezone \
     && apk add supervisor \
     && apk del tzdata \
-    && chmod 775 -R /www/wonly/DAS_go \
-    && mkdir /www/wonly/DAS_go/logs
+    && mkdir /www/wonly/DAS_go/logs \
+    && chmod 775 -R /www/wonly/DAS_go
 
 VOLUME ["/www/wonly/DAS_go/logs"]
 
