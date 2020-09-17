@@ -19,8 +19,11 @@ var (
 )
 
 const (
-	Sleepace_Event_Sleep_Stage  = "sleepStageEvent"
-	Sleepace_Event_Inbed_Status = "inbedStatus"
+	Sleepace_Data_Key_Sleep_Stage  = "sleepStageEvent"
+	Sleepace_Data_Key_Inbed_Status = "inbedStatus"
+
+	Sleepace_Data_Field_Sleep_Stage  = "sleepStage"
+	Sleepace_Data_Field_Inbed_Status = "inbedStatus"
 )
 
 func Init() {
@@ -71,25 +74,36 @@ func subscribeSleepaceTopic(cli mqtt.Client) {
 }
 
 func sleepaceCallback(client mqtt.Client, msg mqtt.Message) {
-	oriData := msg.Payload()
-	rabbitmq.SendGraylogByMQ("Receive from sleepace: %s", oriData)
-	msgTyp := gjson.GetBytes(oriData, "dataKey").String()
+	SleepaceHandler(msg.Payload())
+}
 
-	switch msgTyp {
-	case Sleepace_Event_Sleep_Stage, Sleepace_Event_Inbed_Status:
-		sendSleepStageForSceneTrigger(msgTyp, oriData)
+func SleepaceHandler(rawData []byte) {
+	//rabbitmq.SendGraylogByMQ("Receive from sleepace: %s", rawData)
+
+	if !gjson.ValidBytes(rawData) {
+		log.Error("sleepaceMsg invalid json")
+		return
+	}
+
+	msgs := gjson.ParseBytes(rawData).Array()
+	for i := range msgs {
+		msgTyp := msgs[i].Get("dataKey").String()
+		switch msgTyp {
+		case Sleepace_Data_Key_Sleep_Stage, Sleepace_Data_Key_Inbed_Status:
+			sendSleepStageForSceneTrigger(msgTyp, msgs[i])
+		}
 	}
 }
 
-func sendSleepStageForSceneTrigger(msgTyp string, oriData []byte) {
+func sendSleepStageForSceneTrigger(msgTyp string, oriData gjson.Result) {
 	alarmType := "sleepStatus"
-	devId := gjson.GetBytes(oriData, "deviceId").String()
+	devId := oriData.Get("deviceId").String()
 	switch msgTyp {
-	case Sleepace_Event_Sleep_Stage:
-		alarmFlag := int(gjson.GetBytes(oriData, "data").Get(Sleepace_Event_Sleep_Stage).Int())
+	case Sleepace_Data_Key_Sleep_Stage:
+		alarmFlag := int(oriData.Get("data").Get(Sleepace_Data_Field_Sleep_Stage).Int())
 		sendSceneTrigger(devId, alarmType, alarmFlag)
-	case Sleepace_Event_Inbed_Status:
-		alarmFlag := int(gjson.GetBytes(oriData, "data").Get(Sleepace_Event_Inbed_Status).Int())
+	case Sleepace_Data_Key_Inbed_Status:
+		alarmFlag := int(oriData.Get("data").Get(Sleepace_Data_Field_Inbed_Status).Int())
 		sendSceneTrigger(devId, alarmType, alarmFlag+5)
 	}
 }
