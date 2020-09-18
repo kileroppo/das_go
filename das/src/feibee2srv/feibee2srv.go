@@ -20,6 +20,7 @@ import (
 
 var (
 	ErrMsgInvalid = errors.New("msg was invalid")
+	ErrInvalidCurtainDegree = errors.New("the curtain degree value was invalid")
 )
 
 type FeibeeJob struct {
