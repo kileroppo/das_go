@@ -35,7 +35,7 @@ func (self *NormalMsgHandle) createMsgHeader() (header entity.Header) {
 	return
 }
 
-func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
+func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string, err error) {
 	res.Cmd = 0xfb
 	res.Ack = 0
 	res.Vendor = "feibee"
@@ -69,7 +69,12 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 		res.OpType = "devNewName"
 	case DevDegree:
 		res.OpType = "devDegree"
-		res.OpValue = strconv.Itoa(self.data.Msg[0].DevDegree)
+		if self.data.Msg[0].DevDegree == 255 && self.data.Msg[0].Deviceid == 512 { //过滤进度为255
+			err = ErrInvalidCurtainDegree
+			return
+		} else {
+			res.OpValue = strconv.Itoa(self.data.Msg[0].DevDegree)
+		}
 	case RemoteOpDev:
 		if self.data.Msg[0].Onoff == 1 {
 			res.OpType = "devRemoteOn"
@@ -124,7 +129,10 @@ func (self *NormalMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 }
 
 func (self *NormalMsgHandle) PushMsg() {
-	res, routingKey, bindid := self.createMsg2App()
+	res, routingKey, bindid, err := self.createMsg2App()
+	if err != nil {
+		return
+	}
 
 	//发送给APP
 	data2app, err := json.Marshal(res)
@@ -132,9 +140,11 @@ func (self *NormalMsgHandle) PushMsg() {
 		if self.msgType == NewDev {
 			rabbitmq.Publish2app(data2app, bindid)
 		} else {
-			if self.msgType != DevDegree {
-				rabbitmq.Publish2app(data2app, routingKey)
-			}
+			//过滤code=10的窗帘进度通知
+			//if self.msgType != DevDegree {
+			//	rabbitmq.Publish2app(data2app, routingKey)
+			//}
+			rabbitmq.Publish2app(data2app, routingKey)
 		}
 		rabbitmq.Publish2mns(data2app, "")
 	}
@@ -717,6 +727,9 @@ func (self *CurtainDevgreeHandle) publish2app() {
 	i,err := strconv.ParseInt(self.data.Records[0].Value, 16, 64)
 	if err != nil {
 		log.Warningf("CurtainDevgreeHandle.publish2app > strconv.ParseInt > %s", err)
+		return
+	}
+	if i == 255 {
 		return
 	}
 
