@@ -18,6 +18,10 @@ import (
 
 var consumer pulsar.Consumer
 
+func Init() {
+	go Tuya2SrvStart()
+}
+
 func Tuya2SrvStart() {
 	defer func() {
 		if err := recover(); err != nil {

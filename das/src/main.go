@@ -55,7 +55,7 @@ func main() {
 	//8. 启动雄迈告警消息接收
 	http2srv.Http2SrvStart()
 
-	go tuya2srv.Tuya2SrvStart()
+	tuya2srv.Init()
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
