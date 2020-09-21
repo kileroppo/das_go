@@ -33,7 +33,7 @@ func Tuya2SrvStart() {
 
 	pulsar.SetInternalLogLevel(logrus.DebugLevel)
 	opt := tylog.WithMaxSizeOption(10)
-	tylog.SetGlobalLog("tuyaSDK", true, opt)
+	tylog.SetGlobalLog("tuyaSDK", false, opt)
 
 	accessId, err := log.Conf.GetString("tuya", "accessID")
 	if err != nil {
