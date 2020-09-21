@@ -1,7 +1,6 @@
 package main
 
 import (
-	"das/mqtt2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -17,6 +16,8 @@ import (
 	"das/onenet2srv"
 	"das/procLock"
 	"das/feibee2srv"
+	"das/mqtt2srv"
+	"das/tuya2srv"
 )
 
 func main() {
@@ -54,7 +55,7 @@ func main() {
 	//8. 启动雄迈告警消息接收
 	http2srv.Http2SrvStart()
 
-	//go tuya2srv.Tuya2SrvStart()
+	go tuya2srv.Tuya2SrvStart()
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -96,7 +97,7 @@ func main() {
 
 	feibee2srv.Close()
 
-	//tuya2srv.Close()
+	tuya2srv.Close()
 
 	//16. 停止OneNETHTTP服务器
 	if err := oneNet2Srv.Shutdown(nil); err != nil {
