@@ -84,6 +84,7 @@ func main() {
 
 	//14. 停止接收app消息
 	procLock.Close()
+	feibee2srv.Close()
 
 	//15. 停止rabbitmq连接
 	rabbitmq.Close()
