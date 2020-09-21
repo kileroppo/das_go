@@ -1,7 +1,6 @@
 package main
 
 import (
-	"das/feibee2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -15,7 +14,7 @@ import (
 	"das/http2srv"
 	"das/onenet2srv"
 	"das/procLock"
-	"das/tuya2srv"
+	"das/feibee2srv"
 )
 
 func main() {
@@ -51,7 +50,7 @@ func main() {
 	//8. 启动雄迈告警消息接收
 	http2srv.Http2SrvStart()
 
-	go tuya2srv.Tuya2SrvStart()
+	//go tuya2srv.Tuya2SrvStart()
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -89,7 +88,7 @@ func main() {
 	//15. 停止rabbitmq连接
 	rabbitmq.Close()
 
-	tuya2srv.Close()
+	//tuya2srv.Close()
 
 	http2srv.Close()
 
