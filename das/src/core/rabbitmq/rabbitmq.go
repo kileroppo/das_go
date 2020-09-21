@@ -195,7 +195,7 @@ func Publish2app(data []byte, routingKey string) {
 		log.Warningf("Publish2app > %s", err)
 	} else {
 		sendRabbitMQUpDataLog(data)
-		//log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
+		log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
 	}
 }
 
