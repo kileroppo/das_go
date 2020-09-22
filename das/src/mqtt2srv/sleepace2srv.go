@@ -78,7 +78,7 @@ func sleepaceCallback(client mqtt.Client, msg mqtt.Message) {
 }
 
 func SleepaceHandler(rawData []byte) {
-	//rabbitmq.SendGraylogByMQ("Receive from sleepace: %s", rawData)
+	rabbitmq.SendGraylogByMQ("Receive from sleepace: %s", rawData)
 
 	if !gjson.ValidBytes(rawData) {
 		log.Error("sleepaceMsg invalid json")
