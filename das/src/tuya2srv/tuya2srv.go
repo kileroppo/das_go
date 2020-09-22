@@ -28,12 +28,9 @@ func Tuya2SrvStart() {
 			log.Warningf("Tuya2SrvStart > %s", err)
 		}
 	}()
-
 	log.Info("Tuya2SrvStart...")
-
 	pulsar.SetInternalLogLevel(logrus.DebugLevel)
-	opt := tylog.WithMaxSizeOption(10)
-	tylog.SetGlobalLog("tuyaSDK", false, opt)
+	tylog.SetGlobalLog("tuyaSDK", true)
 
 	accessId, err := log.Conf.GetString("tuya", "accessID")
 	if err != nil {

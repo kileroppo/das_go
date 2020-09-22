@@ -53,7 +53,7 @@ func main() {
 	//feibee2srv := feibee2srv.Feibee2HttpSrvStart(conf)
 
 	//8. 启动雄迈告警消息接收
-	http2srv.Http2SrvStart()
+	http2srv.Init()
 
 	tuya2srv.Init()
 
@@ -99,7 +99,7 @@ func main() {
 	tuya2srv.Close()
 
 	//16. 停止OneNETHTTP服务器
-	if err := oneNet2Srv.Shutdown(nil); err != nil {
+	if err := oneNet2Srv.Close(); err != nil {
 		log.Error("oneNet2Srv.Shutdown failed, err=", err)
 		// panic(err) // failure/timeout shutting down the server gracefully
 	}

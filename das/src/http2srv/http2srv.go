@@ -21,6 +21,10 @@ var (
 	app *fiber.App
 )
 
+func Init() {
+	go Http2SrvStart()
+}
+
 func Http2SrvStart() {
     app = fiber.New()
     app.Post("/xm", XMAlarmMsgHandler)
