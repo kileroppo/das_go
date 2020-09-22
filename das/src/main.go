@@ -1,7 +1,6 @@
 package main
 
 import (
-	"das/mqtt2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -15,7 +14,7 @@ import (
 	"das/http2srv"
 	"das/onenet2srv"
 	"das/procLock"
-	"das/feibee2srv"
+	"das/mqtt2srv"
 )
 
 func main() {
@@ -37,6 +36,8 @@ func main() {
 	go procLock.Run()
 
 	mqtt2srv.Init()
+
+	//feibee2srv.Init()
 
 	//6. 启动ali IOT推送接收服务
 	// aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
@@ -79,11 +80,8 @@ func main() {
 	//12. 关闭阿里云IOT推送接收服务
 	// aliSrv.Close()
 
-	//mqtt2srv.Close()
-
 	//14. 停止接收app消息
 	procLock.Close()
-	feibee2srv.Close()
 
 	//15. 停止rabbitmq连接
 	rabbitmq.Close()
@@ -92,7 +90,7 @@ func main() {
 
 	http2srv.Close()
 
-	feibee2srv.Close()
+	//feibee2srv.Close()
 
 	mqtt2srv.Close()
 
