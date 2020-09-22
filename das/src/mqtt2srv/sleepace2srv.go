@@ -19,8 +19,8 @@ var (
 )
 
 const (
-	Sleepace_Data_Key_Sleep_Stage  = "sleepStageEvent"
-	Sleepace_Data_Key_Inbed_Status = "inbedStatus"
+	Sleepace_Data_Key_Sleep_Stage  = "sleepStage"
+	Sleepace_Data_Key_Inbed_Status = "inBedStatus"
 
 	Sleepace_Data_Field_Sleep_Stage  = "sleepStage"
 	Sleepace_Data_Field_Inbed_Status = "inbedStatus"
