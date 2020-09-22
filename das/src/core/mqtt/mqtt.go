@@ -17,6 +17,7 @@ type MqttCfg struct {
 	CleanSession   bool
 	ResumeSubs     bool
 	ConnectHandler mqtt.OnConnectHandler
+	ConnectLostHandler mqtt.ConnectionLostHandler
 }
 
 func GetUuid(cid string) string {
@@ -36,6 +37,8 @@ func NewMqttCli(cfg *MqttCfg) mqtt.Client {
 	opts.SetCleanSession(cfg.CleanSession)
 	opts.SetResumeSubs(cfg.ResumeSubs)
 	opts.SetOnConnectHandler(cfg.ConnectHandler)
+	opts.SetAutoReconnect(true)
+	opts.SetConnectionLostHandler(cfg.ConnectLostHandler)
 
 	cli := mqtt.NewClient(opts)
 	if token := cli.Connect(); token.Wait() && token.Error() != nil {

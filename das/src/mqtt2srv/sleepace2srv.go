@@ -52,11 +52,12 @@ func initSleepaceMqttCfg(cfg *dasMqtt.MqttCfg) (err error) {
 		err = fmt.Errorf("get-sleepaceMqtt-pwd > %w", err)
 		return
 	}
+	cfg.ClientId, err = log.Conf.GetString("sleepace", "clientId")
 
 	cfg.ConnectHandler = subscribeSleepaceTopic
+	cfg.ConnectLostHandler = sleepaceConnLostHandle
 	cfg.ResumeSubs = true
-	cfg.CleanSession = false
-
+	cfg.CleanSession = true
 	return nil
 }
 
@@ -71,6 +72,10 @@ func subscribeSleepaceTopic(cli mqtt.Client) {
 	} else {
 		log.Infof("sleepaceMqtt Subscribe Topic: %s", topic)
 	}
+}
+
+func sleepaceConnLostHandle(cli mqtt.Client, err error) {
+	log.Errorf("sleepace connection lost > %s", err)
 }
 
 func sleepaceCallback(client mqtt.Client, msg mqtt.Message) {
