@@ -19,8 +19,8 @@ var (
 )
 
 const (
-	Sleepace_Data_Key_Sleep_Stage  = "sleepStageEvent"
-	Sleepace_Data_Key_Inbed_Status = "inbedStatus"
+	Sleepace_Data_Key_Sleep_Stage  = "sleepStage"
+	Sleepace_Data_Key_Inbed_Status = "inBedStatus"
 
 	Sleepace_Data_Field_Sleep_Stage  = "sleepStage"
 	Sleepace_Data_Field_Inbed_Status = "inbedStatus"
@@ -52,11 +52,12 @@ func initSleepaceMqttCfg(cfg *dasMqtt.MqttCfg) (err error) {
 		err = fmt.Errorf("get-sleepaceMqtt-pwd > %w", err)
 		return
 	}
+	cfg.ClientId, err = log.Conf.GetString("sleepace", "clientId")
 
 	cfg.ConnectHandler = subscribeSleepaceTopic
+	cfg.ConnectLostHandler = sleepaceConnLostHandle
 	cfg.ResumeSubs = true
-	cfg.CleanSession = false
-
+	cfg.CleanSession = true
 	return nil
 }
 
@@ -73,12 +74,16 @@ func subscribeSleepaceTopic(cli mqtt.Client) {
 	}
 }
 
+func sleepaceConnLostHandle(cli mqtt.Client, err error) {
+	log.Errorf("sleepace connection lost > %s", err)
+}
+
 func sleepaceCallback(client mqtt.Client, msg mqtt.Message) {
 	SleepaceHandler(msg.Payload())
 }
 
 func SleepaceHandler(rawData []byte) {
-	//rabbitmq.SendGraylogByMQ("Receive from sleepace: %s", rawData)
+	rabbitmq.SendGraylogByMQ("Receive from sleepaceServer: %s", rawData)
 
 	if !gjson.ValidBytes(rawData) {
 		log.Error("sleepaceMsg invalid json")
