@@ -12,11 +12,10 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
+	"das/feibee2srv"
 	"das/http2srv"
 	"das/onenet2srv"
 	"das/procLock"
-	"das/feibee2srv"
-	"das/mqtt2srv"
 	"das/tuya2srv"
 )
 
@@ -40,7 +39,7 @@ func main() {
 
 	feibee2srv.Init()
 
-	mqtt2srv.Init()
+	//mqtt2srv.Init()
 
 	//6. 启动ali IOT推送接收服务
 	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
@@ -85,7 +84,7 @@ func main() {
 	//12. 关闭阿里云IOT推送接收服务
 	aliSrv.Close()
 
-	mqtt2srv.Close()
+	//mqtt2srv.Close()
 
 	//14. 停止接收app消息
 	procLock.Close()
