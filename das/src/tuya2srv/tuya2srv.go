@@ -18,18 +18,19 @@ import (
 
 var consumer pulsar.Consumer
 
+func Init() {
+	go Tuya2SrvStart()
+}
+
 func Tuya2SrvStart() {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Warningf("Tuya2SrvStart > %s", err)
 		}
 	}()
-
 	log.Info("Tuya2SrvStart...")
-
 	pulsar.SetInternalLogLevel(logrus.DebugLevel)
-	opt := tylog.WithMaxSizeOption(10)
-	tylog.SetGlobalLog("sdk", true, opt)
+	tylog.SetGlobalLog("tuyaSDK", true)
 
 	accessId, err := log.Conf.GetString("tuya", "accessID")
 	if err != nil {
@@ -56,46 +57,72 @@ func Tuya2SrvStart() {
 		return
 	}
 
-	consumer.ReceiveAndHandle(context.Background(), &TuyaHandle{secret: accessKey[8:24]})
+	consumer.ReceiveAndHandle(context.Background(), &TuyaCallback{secret: accessKey[8:24]})
 }
 
-type TuyaHandle struct {
+type TuyaCallback struct {
 	secret string
 }
 
-func (t *TuyaHandle) HandlePayload(ctx context.Context, msg *pulsar.Message, payload []byte) error {
+func (t *TuyaCallback) HandlePayload(ctx context.Context, msg *pulsar.Message, payload []byte) error {
 	jsonData, err := t.decryptData(payload)
 	if err != nil {
 		return err
 	}
 
-	rabbitmq.SendGraylogByMQ("DAS receive from tuyaServer: %s", jsonData)
-    devId := gjson.GetBytes(jsonData, "devId").String()
-    rabbitmq.Publish2app(payload, devId)
-	bizCode := gjson.GetBytes(jsonData, "bizCode").String()
+	handle := TuyaMsgHandle{
+		data: jsonData,
+	}
+
+	handle.MsgHandle()
+	return nil
+}
+
+func (t *TuyaCallback) decryptData(payload []byte) (jsonData []byte, err error) {
+	//log.Infof("TuyaCallback rawData > recv: %s", payload)
+
+	val := gjson.GetBytes(payload, "data")
+
+	jsonData, err = base64.StdEncoding.DecodeString(val.String())
+	if err != nil {
+		log.Warningf("TuyaCallback.decryptData > base64.StdEncoding.DecodeString > %s", err)
+		return
+	}
+
+	jsonData = tyutils.EcbDecrypt(jsonData, []byte(t.secret))
+	return
+}
+
+type TuyaMsgHandle struct {
+	data []byte
+}
+
+func (t *TuyaMsgHandle) MsgHandle() {
+	rabbitmq.SendGraylogByMQ("DAS receive from tuyaServer: %s", t.data)
+	devId := gjson.GetBytes(t.data, "devId").String()
+	rabbitmq.Publish2app(t.data, devId)
+	bizCode := gjson.GetBytes(t.data, "bizCode").String()
 	if len(bizCode) > 0 {
 		t.sendOnOffLineMsg(devId, bizCode)
 	}
 
-	devStatus := gjson.GetBytes(jsonData, "status").Array()
+	devStatus := gjson.GetBytes(t.data, "status").Array()
 
 	for i,_ := range devStatus {
 		switch devStatus[i].Get("code").String() {
 		case "electricity_left":
 			t.sendBattMsg(devId, devStatus[i])
 		case "clean_record":
-			t.sendCleanRecordMsg(jsonData)
+			t.sendCleanRecordMsg(t.data)
 		case "power":
 			t.sendOfflineMsg(devId, devStatus[i])
 		case "status":
 			t.sendNotifyAct(devId, devStatus[i])
 		}
 	}
-
-	return nil
 }
 
-func (t *TuyaHandle) sendOfflineMsg(devId string, res gjson.Result) {
+func (t *TuyaMsgHandle) sendOfflineMsg(devId string, res gjson.Result) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
 	msg.DevId = devId
@@ -108,13 +135,13 @@ func (t *TuyaHandle) sendOfflineMsg(devId string, res gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaHandle.sendOnOffLineMsg > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.sendOnOffLineMsg > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func (t *TuyaHandle) sendBattMsg(devId string, res gjson.Result) {
+func (t *TuyaMsgHandle) sendBattMsg(devId string, res gjson.Result) {
     msg := entity.AlarmMsgBatt{}
     msg.Cmd = 0x2a
     msg.DevId = devId
@@ -125,13 +152,13 @@ func (t *TuyaHandle) sendBattMsg(devId string, res gjson.Result) {
 
     data, err := json.Marshal(msg)
     if err != nil {
-    	log.Warningf("TuyaHandle.sendBattMsg > json.Marshal > %s", err)
+    	log.Warningf("TuyaCallback.sendBattMsg > json.Marshal > %s", err)
     } else {
     	rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func (t *TuyaHandle) sendCleanRecordMsg(jsonData []byte) {
+func (t *TuyaMsgHandle) sendCleanRecordMsg(jsonData []byte) {
     msg := entity.OtherVendorDevMsg{}
     msg.Cmd = 0x1200
     msg.DevId = gjson.GetBytes(jsonData, "devId").String()
@@ -141,13 +168,13 @@ func (t *TuyaHandle) sendCleanRecordMsg(jsonData []byte) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaHandle.sendCleanRecordMsg > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.sendCleanRecordMsg > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2pms(data, "")
 	}
 }
 
-func (t *TuyaHandle) sendOnOffLineMsg(devId, jsonData string) {
+func (t *TuyaMsgHandle) sendOnOffLineMsg(devId, jsonData string) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
 	msg.DevId = devId
@@ -166,13 +193,13 @@ func (t *TuyaHandle) sendOnOffLineMsg(devId, jsonData string) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaHandle.sendOnOffLineMsg > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.sendOnOffLineMsg > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func (t *TuyaHandle) sendNotifyAct(devId string, res gjson.Result) {
+func (t *TuyaMsgHandle) sendNotifyAct(devId string, res gjson.Result) {
     msg := entity.Feibee2DevMsg{}
     msg.Cmd = 0xfb
     msg.DevId = devId
@@ -184,25 +211,10 @@ func (t *TuyaHandle) sendNotifyAct(devId string, res gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaHandle.sendNotifyAct > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.sendNotifyAct > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
-}
-
-func (t *TuyaHandle) decryptData(payload []byte) (jsonData []byte, err error) {
-	//log.Infof("TuyaHandle rawData > recv: %s", payload)
-
-	val := gjson.GetBytes(payload, "data")
-
-	jsonData, err = base64.StdEncoding.DecodeString(val.String())
-	if err != nil {
-		log.Warningf("TuyaHandle.decryptData > base64.StdEncoding.DecodeString > %s", err)
-		return
-	}
-
-	jsonData = tyutils.EcbDecrypt(jsonData, []byte(t.secret))
-	return
 }
 
 func Close() {
@@ -211,74 +223,3 @@ func Close() {
 	}
     log.Info("Tuya2Srv close")
 }
-
-//type tuyaClientImpl struct {
-//	pool *manage.ClientPool
-//	Addr string
-//}
-//
-//func (c *tuyaClientImpl) NewConsumer(config manage.ConsumerConfig) (pulsar.Consumer, error) {
-//	tylog.Info("start creating consumer",
-//		tylog.String("pulsar", c.Addr),
-//		tylog.String("topic", config.Topic),
-//	)
-//
-//	errs := make(chan error, 10)
-//	go func() {
-//		for err := range errs {
-//			tylog.Error("async errors", tylog.ErrorField(err))
-//		}
-//	}()
-//	cfg := manage.ConsumerConfig{
-//		ClientConfig: manage.ClientConfig{
-//			Addr:       c.Addr,
-//			AuthData:   config.Auth.AuthData(),
-//			AuthMethod: config.Auth.AuthMethod(),
-//			TLSConfig: &tls.Config{
-//				InsecureSkipVerify: true,
-//			},
-//			Errs: errs,
-//		},
-//		Topic:              config.Topic,
-//		SubMode:            manage.SubscriptionModeFailover,
-//		Name:               subscriptionName(config.Topic),
-//		NewConsumerTimeout: time.Minute,
-//	}
-//	p := c.GetPartition(config.Topic, cfg.ClientConfig)
-//
-//	// partitioned topic
-//	if p > 0 {
-//		list := make([]*consumerImpl, 0, p)
-//		originTopic := cfg.Topic
-//		for i := 0; i < p; i++ {
-//			cfg.Topic = fmt.Sprintf("%s-partition-%d", originTopic, i)
-//			mc := manage.NewManagedConsumer(c.pool, cfg)
-//			list = append(list, &consumerImpl{
-//				csm:     mc,
-//				topic:   cfg.Topic,
-//				stopped: make(chan struct{}),
-//			})
-//		}
-//		consumerList := &ConsumerList{
-//			list:             list,
-//			FlowPeriodSecond: DefaultFlowPeriodSecond,
-//			FlowPermit:       DefaultFlowPermit,
-//			Topic:            config.Topic,
-//			Stopped:          make(chan struct{}),
-//		}
-//		return consumerList, nil
-//	}
-//
-//	// single topic
-//	mc := manage.NewManagedConsumer(c.pool, config)
-//	tylog.Info("create consumer success",
-//		tylog.String("pulsar", c.Addr),
-//		tylog.String("topic", config.Topic),
-//	)
-//	return &consumerImpl{
-//		csm:     mc,
-//		topic:   cfg.Topic,
-//		stopped: make(chan struct{}),
-//	}, nil
-//
-//}

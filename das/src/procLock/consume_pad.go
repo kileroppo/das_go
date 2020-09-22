@@ -47,7 +47,8 @@ func consumePadDoor() {
 	}
 
 	for d := range msgs {
-		log.Info("Consumer ReceiveMQMsgFromDevice: ", string(d.Body))
+		log.SendGraylogByUDP("Consumer ReceiveMQMsgFromDevice: %s", d.Body)
+		//log.Info("Consumer ReceiveMQMsgFromDevice: ", string(d.Body))
 
 		//1. 检验数据是否合法
 		getData := string(d.Body)
