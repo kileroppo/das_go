@@ -57,7 +57,7 @@ func ProcAppMsg(appMsg string) error {
 		myHead.ServiceType = util.BytesToInt16(byteHead[2:4])
 		myHead.MsgLen = util.BytesToInt16(byteHead[4:6])
 		myHead.CheckSum = util.BytesToInt16(byteHead[6:8])
-		log.Info("[", devID, "] ProcAppMsg() ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
+		//log.Info("[", devID, "] ProcAppMsg() ApiVersion: ", myHead.ApiVersion, ", ServiceType: ", myHead.ServiceType, ", MsgLen: ", myHead.MsgLen, ", CheckSum: ", myHead.CheckSum)
 
 		var checkSum uint16
 		var strData string
