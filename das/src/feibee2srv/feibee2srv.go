@@ -108,8 +108,8 @@ func ProcessFeibeeMsg(rawData []byte) (err error) {
 
 	//feibee数据合法性检查
 	if !feibeeData.isDataValid() {
-		log.Warningf("ProcessFeibeeMsg > %s > msg: %s", ErrMsgInvalid, rawData)
-		return err
+		//log.Warningf("ProcessFeibeeMsg > %s > msg: %s", ErrMsgInvalid, rawData)
+		return nil
 	}
 
 	//feibee数据推送到MQ
