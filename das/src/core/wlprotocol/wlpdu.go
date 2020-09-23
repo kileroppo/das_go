@@ -2,11 +2,9 @@ package wlprotocol
 
 import (
 	"bytes"
-	"encoding/binary"
-	"encoding/hex"
-
-	"das/core/util"
 	"das/core/log"
+	"das/core/util"
+	"encoding/binary"
 )
 
 //2. 请求同步用户列表(0x31)(服务器-->前板)
@@ -26,7 +24,7 @@ func (pdu *SyncDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] SyncDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] SyncDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -57,7 +55,7 @@ func (pdu *SyncDevUserResp) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 
-	log.Debug("[ ", uuid, " ] SyncDevUserResp Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] SyncDevUserResp Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -148,7 +146,7 @@ func (pdu *DelDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] DelDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] DelDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -232,7 +230,7 @@ func (pdu *AddDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] AddDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] AddDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -262,7 +260,7 @@ func (pdu *AddDevUserStep) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] AddDevUserStep Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] AddDevUserStep Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -313,7 +311,7 @@ func (pdu *UserUpdateLoad) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] UserUpdateLoad Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] UserUpdateLoad Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -385,7 +383,7 @@ func (pdu *RealVideo) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] RealVideo Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] RealVideo Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -411,7 +409,7 @@ func (pdu *RealVideo) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 
-	log.Debug("[ ", uuid, " ] RealVideo Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] RealVideo Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -440,7 +438,7 @@ func (pdu *WiFiSet) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] WiFiSet Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] WiFiSet Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -465,7 +463,7 @@ func (pdu *WiFiSet) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] WiFiSet Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] WiFiSet Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -495,7 +493,7 @@ func (pdu *DoorbellCall) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] DoorbellCall Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] DoorbellCall Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -521,7 +519,7 @@ func (pdu *Alarms) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] Alarms Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] Alarms Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -547,7 +545,7 @@ func (pdu *LowBattAlarm) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] LowBattAlarm Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] LowBattAlarm Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -578,7 +576,7 @@ func (pdu *PicUpload) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] PicUpload Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] PicUpload Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -621,7 +619,7 @@ func (pdu *OpenLockMsg) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] OpenLockMsg Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] OpenLockMsg Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -704,7 +702,7 @@ func (pdu *EnterMenuMsg) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] EnterMenuMsg Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] EnterMenuMsg Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -770,7 +768,7 @@ func (pdu *OnOffLine) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] OnOffLine Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] OnOffLine Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -812,7 +810,7 @@ func (pdu *RemoteOpenLock) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] RemoteOpenLock Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] RemoteOpenLock Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -840,7 +838,7 @@ func (pdu *RemoteOpenLockResp) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] RemoteOpenLockResp Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] RemoteOpenLockResp Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -891,7 +889,7 @@ func (pdu *SetLockParamReq) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] SetLockParamReq Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] SetLockParamReq Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -920,7 +918,7 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] ParamUpdate Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] ParamUpdate Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体
 	buf := bytes.NewBuffer(DValue)
@@ -964,7 +962,7 @@ func (pdu *RebootLock) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] RebootLock Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] RebootLock Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -1013,7 +1011,7 @@ func (pdu *SetTmpDevUser) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] SetTmpDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] SetTmpDevUser Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -1046,7 +1044,7 @@ func (pdu *UserOperUpload) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] UserOperUpload Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] UserOperUpload Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体 FLen
 	buf := bytes.NewBuffer(DValue)
@@ -1124,7 +1122,7 @@ func (pdu *UploadDevInfo) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] UploadDevInfo Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] UploadDevInfo Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体 FLen
 	buf := bytes.NewBuffer(DValue)
@@ -1259,7 +1257,7 @@ func (pdu *UploadDevInfoResp) Encode(uuid string) ([]byte, error) {
 	}
 
 	toDevice_byte := buf.Bytes()
-	log.Debug("[ ", uuid, " ] UploadDevInfoResp Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+	//log.Debug("[ ", uuid, " ] UploadDevInfoResp Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
 
 	var toDevData []byte
 	myKey := util.MD52Bytes(uuid)
@@ -1288,7 +1286,7 @@ func (pdu *DoorStateUpload) Decode(bBody []byte, uuid string) error {
 		log.Error("ECBDecryptByte failed, err=", err)
 		return err
 	}
-	log.Debug("[ ", uuid, " ] DoorStateUpload Decode [ ", hex.EncodeToString(DValue), " ]")
+	//log.Debug("[ ", uuid, " ] DoorStateUpload Decode [ ", hex.EncodeToString(DValue), " ]")
 
 	//3. 解包体 FLen
 	buf := bytes.NewBuffer(DValue)
