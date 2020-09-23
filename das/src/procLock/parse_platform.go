@@ -6,7 +6,6 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
-	"encoding/hex"
 	"errors"
 )
 
@@ -59,7 +58,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	case constant.MQTT_PLATFORM: {		// MQTT
 		data, ok := mydata.([]byte)
 		if ok {
-			log.Debug("mqtt.WlMqttPublish, data: ", hex.EncodeToString(data))
+			//log.Debug("mqtt.WlMqttPublish, data: ", hex.EncodeToString(data))
 			WlMqttPublish(uuid, data)
 		}
 	}

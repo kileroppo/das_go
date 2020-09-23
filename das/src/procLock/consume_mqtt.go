@@ -202,7 +202,7 @@ var msgCallbackPad mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Messa
 //TODO:JHHE 测试 订阅回调函数；收到消息后会执行它
 var msgCallback_test mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
 	strMsg := string(msg.Payload())
-	log.Debug("msgCallback_test Mqtt-Topic: ", msg.Topic(), ", strMsg: ", strMsg)
+	//log.Debug("msgCallback_test Mqtt-Topic: ", msg.Topic(), ", strMsg: ", strMsg)
 	if strings.Contains(strMsg, "\"") {
 		nStart := strings.IndexAny(strMsg, "\"")
 		nEnd := strings.LastIndexAny(strMsg, "\"")
@@ -217,7 +217,7 @@ var msgCallback_test mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Mes
 
 //订阅回调函数；设备上线消息 connected
 var conCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	log.Debug("conCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
+	//log.Debug("conCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
 	// TODO:JHHE WiFi锁去掉在线侦测
 	/*var conMsg = msg.Payload()
 	var conEvent ConDisEvent
@@ -249,7 +249,7 @@ var conCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 
 //订阅回调函数；设备下线消息 disconnected
 var disCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	log.Debug("disCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
+	//log.Debug("disCallback Mqtt-Topic: ", msg.Topic(), ", strMsg: ", string(msg.Payload()))
 	var disMsg = msg.Payload()
 	var disEvent ConDisEvent
 	if err := json.Unmarshal(disMsg, &disEvent); err != nil {
@@ -271,7 +271,7 @@ var disCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 	devAct.Signal = 0
 	devAct.Time = 0
 	if toApp_str, err := json.Marshal(devAct); err == nil {
-		log.Info("[", disEvent.Clientid, "] mqtt.MessageHandler disCallback device disconnected, resp to APP, ", string(toApp_str))
+		//log.Info("[", disEvent.Clientid, "] mqtt.MessageHandler disCallback device disconnected, resp to APP, ", string(toApp_str))
 		rabbitmq.Publish2app(toApp_str, devAct.DevId)
 		rabbitmq.Publish2mns(toApp_str, "")
 	} else {
