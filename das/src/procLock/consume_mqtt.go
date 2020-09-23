@@ -151,7 +151,7 @@ type ConDisEvent struct {
 
 //订阅回调函数；收到消息后会执行它
 var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {
-	log.Debug("Mqtt-Topic: ", msg.Topic(), ", strHexMsg: ", hex.EncodeToString(msg.Payload()))
+	//log.Debug("Mqtt-Topic: ", msg.Topic(), ", strHexMsg: ", hex.EncodeToString(msg.Payload()))
 
 	//1. 解析包头
 	var wlMsg wlprotocol.WlMessage
@@ -160,6 +160,8 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 		log.Error("mqtt.MessageHandler wlMsg.PkDecode, err0=", err0)
 		return
 	}
+
+	rabbitmq.SendGraylogByMQ("Mqtt-Topic: %s, strHexMsg: %s", msg.Topic(), hex.EncodeToString(msg.Payload()))
 
 	//2. 锁对接的平台，存入redis
 	mymap := make(map[string]interface{})

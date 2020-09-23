@@ -94,13 +94,13 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 	}
 
 	part := strings.Split(data.Pus.Body.Part, ",")
-	log.Debug("len:", len(part), ", part[0]:", part[0], ", part[1]:", part[1])
+	//log.Debug("len:", len(part), ", part[0]:", part[0], ", part[1]:", part[1])
 
 	md5 := strings.Split(data.Pus.Body.Md5, ",")
-	log.Debug("len:", len(md5), ", md5[0]:", md5[0], ", md5[1]:", md5[1])
+	//log.Debug("len:", len(md5), ", md5[0]:", md5[0], ", md5[1]:", md5[1])
 
 	fileUrl := strings.Split(data.Pus.Body.Url, ",")
-	log.Debug("len:", len(fileUrl), ", url[0]:", fileUrl[0], ", url[1]:", fileUrl[1])
+	//log.Debug("len:", len(fileUrl), ", url[0]:", fileUrl[0], ", url[1]:", fileUrl[1])
 
 	var pkgUrl string
 	var pkgMd5 string
@@ -115,7 +115,7 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 		}
 	}
 
-	log.Debug("pkgMd5:", pkgMd5, ", pkgUrl:", pkgUrl)
+	//log.Debug("pkgMd5:", pkgMd5, ", pkgUrl:", pkgUrl)
 	if "" == pkgUrl && "" == pkgMd5 {
 		log.Error("GetUpgradeFileInfo pkgUrl pkgMd5 is null, check the partId, ", partId)
 		return
@@ -137,7 +137,7 @@ func GetUpgradeFileInfo(devId string, devType string, seqId int, partId int) {
 	fileInfo.FileSize = fileSize
 	fileInfo.MD5 = pkgMd5
 	if toDevice_fileInfo, err := json.Marshal(fileInfo); err == nil {
-		log.Info("constant.Get_Upgrade_FileInfo, resp to device, ", string(toDevice_fileInfo))
+		//log.Info("constant.Get_Upgrade_FileInfo, resp to device, ", string(toDevice_fileInfo))
 
 		// myKey := util.MD52Bytes(fileInfo.DevId)
 
@@ -185,16 +185,16 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 		return "", 0, err1
 	}
 	if exist {
-		log.Debug("has dir: ", "logs/")
+		//log.Debug("has dir: ", "logs/")
 	} else {
-		log.Debug("no dir: ", "logs/")
+		//log.Debug("no dir: ", "logs/")
 		// 创建文件夹
 		err2 := os.Mkdir("logs/", os.ModePerm)
 		if err != nil {
 			log.Error("mkdir failed, ", err2)
 			return "", 0, err2
 		} else {
-			log.Debug("mkdir success!")
+			//log.Debug("mkdir success!")
 		}
 	}
 
@@ -214,7 +214,7 @@ func Download(fileUrl string) (fileName string, fileSize int64, err error) {
 		log.Error("http get upgrade file failed, ", filename, ", err:", err4.Error())
 		return "", 0, err4
 	}
-	log.Debug("fileName", filename, ", fileSize:", resp.ContentLength)
+	//log.Debug("fileName", filename, ", fileSize:", resp.ContentLength)
 
 	defer resp.Body.Close()
 

@@ -51,7 +51,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 	}
 	switch wlMsg.Cmd {
 	case constant.Add_dev_user:			// 新增用户(0x33)(服务器-->前板)
-		log.Info("[", uuid, "] ParseZlockData constant.Add_dev_user")
+		//log.Info("[", uuid, "] ParseZlockData constant.Add_dev_user")
 		if wlMsg.Ack > 1 {
 			addDevUser := entity.Header{
 				Cmd: int(wlMsg.Cmd),
@@ -69,7 +69,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			}
 		}
 	case constant.Set_dev_user_temp:	// 设置临时用户时段(0x76)(服务器-->前板)
-		log.Info("[", uuid, "] ParseZlockData constant.Set_dev_user_temp")
+		//log.Info("[", uuid, "] ParseZlockData constant.Set_dev_user_temp")
 
 		// 组包
 		factoryReset := entity.Header{
@@ -90,7 +90,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Add_dev_user_step:	// 新增用户报告步骤(0x34)(前板-->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Add_dev_user_step")
+		//log.Info("[", uuid, "] ParseZlockData constant.Add_dev_user_step")
 		pdu := &wlprotocol.AddDevUserStep{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -122,7 +122,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Del_dev_user:			// 删除用户(0x32)(服务器-->前板)
-		log.Info("[", uuid, "] ParseZlockData constant.Del_dev_user")
+		//log.Info("[", uuid, "] ParseZlockData constant.Del_dev_user")
 		if wlMsg.Ack > 1 {
 			delDevUser := entity.Header{
 				Cmd: int(wlMsg.Cmd),
@@ -140,7 +140,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			}
 		}
 	case constant.Update_dev_user:		// 用户更新上报(0x35)(前板-->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Update_dev_user")
+		//log.Info("[", uuid, "] ParseZlockData constant.Update_dev_user")
 		pdu := &wlprotocol.UserUpdateLoad{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -253,7 +253,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Sync_dev_user:		// 请求同步用户列表(0x31)(服务器-->前板-->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Sync_dev_user")
+		//log.Info("[", uuid, "] ParseZlockData constant.Sync_dev_user")
 		pdu := &wlprotocol.SyncDevUserResp{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -367,7 +367,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Remote_open:			// 远程开锁命令(0x52)(服务器->前板)
-		log.Info("[", uuid, "] ParseZlockData constant.Remote_open")
+		//log.Info("[", uuid, "] ParseZlockData constant.Remote_open")
 		pdu := &wlprotocol.RemoteOpenLockResp{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -404,7 +404,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Upload_dev_info:		// 发送设备信息(0x70)(前板，后板-->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Upload_dev_info")
+		//log.Info("[", uuid, "] ParseZlockData constant.Upload_dev_info")
 		//1. 回复锁
 		tPdu := &wlprotocol.UploadDevInfoResp{
 			Time: int32(time.Now().Unix()),
@@ -478,7 +478,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Set_dev_para:			// 设置参数(0x72)(服务器-->前板，后板)
-		log.Info("[", uuid, "] ParseZlockData constant.Set_dev_para")
+		//log.Info("[", uuid, "] ParseZlockData constant.Set_dev_para")
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -514,7 +514,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Update_dev_para:		// 参数更新(0x73)(前板,后板-->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Update_dev_para")
+		//log.Info("[", uuid, "] ParseZlockData constant.Update_dev_para")
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -591,7 +591,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Soft_reset:			// 软件重启命令(0x74)(服务器-->前、后板)
-		log.Info("[", uuid, "] ParseZlockData constant.Soft_reset")
+		//log.Info("[", uuid, "] ParseZlockData constant.Soft_reset")
 
 		// 组包
 		softReset := entity.Header{
@@ -611,7 +611,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Factory_reset:		// 恢复出厂化(0xEA)( 服务器-->前、后板)
-		log.Info("[", uuid, "] ParseZlockData constant.Factory_reset")
+		//log.Info("[", uuid, "] ParseZlockData constant.Factory_reset")
 
 		// 组包
 		factoryReset := entity.Header{
@@ -634,7 +634,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Upload_open_log:	// 用户开锁消息上报(0x40)(前板--->服务器)
-		log.Info("[", uuid, "] ParseZlockData Upload_open_log")
+		//log.Info("[", uuid, "] ParseZlockData Upload_open_log")
 		pdu := &wlprotocol.OpenLockMsg{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -682,7 +682,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.UpEnter_menu_log:	// 用户进入菜单上报(0x42)(前板--->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.UpEnter_menu_log")
+		//log.Info("[", uuid, "] ParseZlockData constant.UpEnter_menu_log")
 		pdu := &wlprotocol.EnterMenuMsg{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -726,7 +726,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 		}
 	case constant.Infrared_alarm, constant.Noatmpt_alarm, constant.Forced_break_alarm, constant.Fakelock_alarm, constant.Nolock_alarm:
 		// 人体感应报警(0x39)(前板-->服务器) // 非法操作报警(0x20)(前板--->服务器) // 强拆报警(0x22)(前板--->服务器) // 假锁报警(0x24)(前板--->服务器) // 门未关报警(0x26)(前板--->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm")
+		//log.Info("[", uuid, "] ParseZlockData constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm")
 		pdu := &wlprotocol.Alarms{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -754,7 +754,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Low_battery_alarm:	// 低压报警(0x2A)(前板--->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Low_battery_alarm")
+		//log.Info("[", uuid, "] ParseZlockData constant.Low_battery_alarm")
 		pdu := &wlprotocol.LowBattAlarm{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -783,7 +783,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Lock_PIC_Upload:		// 图片上传(0x2F)(前板--->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Lock_PIC_Upload")
+		//log.Info("[", uuid, "] ParseZlockData constant.Lock_PIC_Upload")
 		pdu := &wlprotocol.PicUpload{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -811,7 +811,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Upload_lock_active:	// 在线离线(0x46)(后板-->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Upload_lock_active")
+		//log.Info("[", uuid, "] ParseZlockData constant.Upload_lock_active")
 		pdu := &wlprotocol.OnOffLine{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -850,7 +850,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Real_Video:			// 实时视频(0x36)(服务器-->前板)
-		log.Info("[", uuid, "] ParseZlockData constant.Real_Video")
+		//log.Info("[", uuid, "] ParseZlockData constant.Real_Video")
 		pdu := &wlprotocol.RealVideo{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -875,7 +875,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Set_Wifi:				// Wifi设置(0x37)(服务器-->前板)
-		log.Info("[", uuid, "] ParseZlockData constant.Set_Wifi Zigbee")
+		//log.Info("[", uuid, "] ParseZlockData constant.Set_Wifi Zigbee")
 		pdu := &wlprotocol.WiFiSetZigbeeSsid{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -920,7 +920,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			}
 		}
 	case constant.Notify_Set_Wifi:
-		log.Info("[", uuid, "] ParseZlockData constant.Notify_Set_Wifi")
+		//log.Info("[", uuid, "] ParseZlockData constant.Notify_Set_Wifi")
 		notifyHead := entity.Header {
 			Cmd: int(wlMsg.Cmd),
 			Ack: int(wlMsg.Ack),
@@ -936,7 +936,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Door_Call:			// 门铃呼叫(0x38)(前板-->服务器)
-		log.Info("[", uuid, "] ParseZlockData constant.Door_Call")
+		//log.Info("[", uuid, "] ParseZlockData constant.Door_Call")
 		pdu := &wlprotocol.DoorbellCall{}
 		err = pdu.Decode(bBody, retUuid[0])
 		if nil != err {
@@ -965,7 +965,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 			return err1
 		}
 	case constant.Door_State: // 锁状态上报
-		log.Info("[", uuid, "] ParseZlockData constant.Door_State")
+		//log.Info("[", uuid, "] ParseZlockData constant.Door_State")
 
 		pdu := &wlprotocol.DoorStateUpload{}
 		err = pdu.Decode(bBody, retUuid[0])

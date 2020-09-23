@@ -53,7 +53,6 @@ func consume() {
 	}
 
 	for msg := range msgs {
-		log.SendGraylogByUDP("Consumer ReceiveMQMsgFromAPP: %s", msg.Body)
 		//log.Info("Consumer ReceiveMQMsgFromAPP: ", string(msg.Body))
 		jobque.JobQueue <- NewConsumerJob(string(msg.Body))
 	}

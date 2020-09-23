@@ -42,7 +42,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	case constant.MQTT_PAD_PLATFORM: { // WiFi平板，MQTT通道
 		data, ok := mydata.(string)
 		if ok {
-			log.Debug("[", uuid, "] Cmd2Device resp to device, WlMqttPublishPad ", data)
+			//log.Debug("[", uuid, "] Cmd2Device resp to device, WlMqttPublishPad ", data)
 			WlMqttPublishPad(uuid, data)
 		}
 	}
@@ -54,7 +54,7 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 	}
 	case constant.FEIBEE_PLATFORM: {	//飞比zigbee锁
 		//TODO:JHHE 不回复设备
-		log.Debug("Cmd2Platform::constant.FEIBEE_PLATFORM not reply to device")
+		//log.Debug("Cmd2Platform::constant.FEIBEE_PLATFORM not reply to device")
 	}
 	case constant.MQTT_PLATFORM: {		// MQTT
 		data, ok := mydata.([]byte)
