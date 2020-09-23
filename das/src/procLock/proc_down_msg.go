@@ -75,7 +75,8 @@ func ProcAppMsg(appMsg string) error {
 			log.Error("[", devID, "] util.ECBDecrypt failed, strData:", strData, ", key: ", myKey, ", error: ", err_aes)
 			return err_aes
 		}
-		log.Info("[", devID, "] After ECBDecrypt, data.Msg.Value: ", appMsg)
+		//rabbitmq.SendGraylogByMQ("[%s] After ECBDecrypt, data.Msg.Value: %s", devID, appMsg)
+		//log.Info("[", devID, "] After ECBDecrypt, data.Msg.Value: ", appMsg)
 	}
 
 	// 1、解析消息
@@ -86,7 +87,8 @@ func ProcAppMsg(appMsg string) error {
 	}
 
 	// 记录APP下行日志
-	sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
+	rabbitmq.SendGraylogByMQ("下行设备数据：dev[%s] %s >>> %s", head.DevId, strAppMsg, appMsg)
+	//sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 
 	//2. 数据干预处理
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
@@ -244,7 +246,7 @@ func ProcAppMsg(appMsg string) error {
 			return err1
 		}
 		appMsg = string(addDevUserStr)
-		log.Debug("ProcAppMsg , appMsg=", appMsg)
+		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Del_dev_user: {
 		// 添加锁用户，用户名
@@ -268,7 +270,7 @@ func ProcAppMsg(appMsg string) error {
 			return err1
 		}
 		appMsg = string(delDevUserStr)
-		log.Debug("ProcAppMsg , appMsg=", appMsg)
+		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Set_dev_para: {
 		// 添加锁用户，用户名
@@ -292,7 +294,7 @@ func ProcAppMsg(appMsg string) error {
 			return err1
 		}
 		appMsg = string(setLockParamReqStr)
-		log.Debug("ProcAppMsg , appMsg=", appMsg)
+		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Wonly_LGuard_Msg:
 		//小卫士消息
@@ -302,7 +304,7 @@ func ProcAppMsg(appMsg string) error {
 		rabbitmq.Publish2pms([]byte(appMsg), "")
 		return nil
 	}
-	log.Debug("ProcAppMsg after, ", appMsg)
+	//log.Debug("ProcAppMsg after, ", appMsg)
 
 	ret, errPlat := redis.GetDevicePlatformPool(head.DevId)
 	if errPlat != nil {
@@ -350,7 +352,7 @@ func ProcAppMsg(appMsg string) error {
 
 					//1. 回复APP，设备离线状态
 					if toApp_str, err := json.Marshal(devAct); err == nil {
-						log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
+						//log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
 						//producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
 						rabbitmq.Publish2app(toApp_str, devAct.DevId)
 					} else {
@@ -431,7 +433,7 @@ func ProcAppMsg(appMsg string) error {
 
 				//1. 回复APP，设备离线状态
 				if toApp_str, err := json.Marshal(devAct); err == nil {
-					log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
+					//log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
 					//producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
 					rabbitmq.Publish2app(toApp_str, devAct.DevId)
 				} else {

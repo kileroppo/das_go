@@ -46,7 +46,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 
 	switch head.Cmd {
 	case constant.Add_dev_user: // 添加设备用户
-		log.Info("[", head.DevId, "] constant.Add_dev_user")
+		//log.Info("[", head.DevId, "] constant.Add_dev_user")
 
 		var addDevUser entity.AddDevUser
 		if err := json.Unmarshal([]byte(jsonMsg), &addDevUser); err != nil {
@@ -121,7 +121,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Set_dev_user_temp: // 设置临时用户
-		log.Info("[", head.DevId, "] constant.Set_dev_user_temp")
+		//log.Info("[", head.DevId, "] constant.Set_dev_user_temp")
 		var setTmpDevUser entity.SetTmpDevUser
 		if err := json.Unmarshal([]byte(jsonMsg), &setTmpDevUser); err != nil {
 			log.Error("WlJson2BinMsg json.Unmarshal Header error, err=", err)
@@ -171,7 +171,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Del_dev_user: // 删除设备用户
-		log.Info("[", head.DevId, "] constant.Del_dev_user")
+		//log.Info("[", head.DevId, "] constant.Del_dev_user")
 
 		var delDevUser entity.DelDevUser
 		if err := json.Unmarshal([]byte(jsonMsg), &delDevUser); err != nil {
@@ -201,7 +201,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		return bData, nil
 	case constant.Sync_dev_user: // 同步设备用户列表
 		//1. 设备用户同步
-		log.Info("[", head.DevId, "] constant.Sync_dev_user")
+		//log.Info("[", head.DevId, "] constant.Sync_dev_user")
 		var syncDevUser entity.SyncDevUserReq
 		if err := json.Unmarshal([]byte(jsonMsg), &syncDevUser); err != nil {
 			log.Error("WlJson2BinMsg json.Unmarshal Header error, err=", err)
@@ -219,7 +219,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Remote_open: // 远程开锁
-		log.Info("[", head.DevId, "] constant.Remote_open")
+		//log.Info("[", head.DevId, "] constant.Remote_open")
 
 		var remoteOpen entity.MRemoteOpenLockReq
 		if err := json.Unmarshal([]byte(jsonMsg), &remoteOpen); err != nil {
@@ -271,7 +271,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Set_dev_para: // 设置设备参数
-		log.Info("[", head.DevId, "] constant.Set_dev_para")
+		//log.Info("[", head.DevId, "] constant.Set_dev_para")
 
 		var setParam entity.SetLockParamReq
 		if err := json.Unmarshal([]byte(jsonMsg), &setParam); err != nil {
@@ -317,7 +317,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Soft_reset: // 软件复位
-		log.Info("[", head.DevId, "] constant.Soft_reset")
+		//log.Info("[", head.DevId, "] constant.Soft_reset")
 
 		bData, err_ := wlMsg.PkEncode(nil)
 		if nil != err_ {
@@ -326,7 +326,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Factory_reset: // 恢复出厂设置
-		log.Info("[", head.DevId, "] constant.Factory_reset")
+		//log.Info("[", head.DevId, "] constant.Factory_reset")
 
 		bData, err_ := wlMsg.PkEncode(nil)
 		if nil != err_ {
@@ -335,7 +335,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Real_Video: // 实时视频
-		log.Info("[", head.DevId, "] constant.Real_Video")
+		//log.Info("[", head.DevId, "] constant.Real_Video")
 
 		var realVideo entity.RealVideoLock
 		if err := json.Unmarshal([]byte(jsonMsg), &realVideo); err != nil {
@@ -354,7 +354,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		}
 		return bData, nil
 	case constant.Set_Wifi: // Wifi设置
-		log.Info("[", head.DevId, "] constant.Set_Wifi")
+		//log.Info("[", head.DevId, "] constant.Set_Wifi")
 
 		var setWifi entity.SetLockWiFi
 		if err := json.Unmarshal([]byte(jsonMsg), &setWifi); err != nil {
@@ -400,11 +400,11 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		return bData, nil
 	case constant.Notify_F_Upgrade: // 通知前板升级（APP—后台—>锁）
 		{
-			log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
+			//log.Info("[", head.DevId, "] constant.Notify_F_Upgrade")
 		}
 	case constant.Notify_B_Upgrade: // 通知后板升级（APP—后台—>锁）
 		{
-			log.Info("[", head.DevId, "] constant.Notify_B_Upgrade")
+			//log.Info("[", head.DevId, "] constant.Notify_B_Upgrade")
 		}
 	default:
 		log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
