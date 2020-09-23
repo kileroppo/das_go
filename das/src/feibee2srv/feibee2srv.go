@@ -156,7 +156,7 @@ func setSceneResultCache(rawData []byte) {
 		leaseId, err := strconv.ParseInt(vals[1], 10, 64)
 		val += ("_" + vals[1])
 		if err == nil {
-			log.Infof("Set etcd[%s] %s", key, val)
+			//log.Infof("Set etcd[%s] %s", key, val)
 			_,err = etcdClt.Put(context.Background(), key, val, clientv3.WithLease(clientv3.LeaseID(leaseId)))
 			if err != nil {
 				log.Errorf("setSceneResultCache > etcdClt.Put > %s", err)
