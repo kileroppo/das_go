@@ -74,6 +74,6 @@ func Cmd2Device(uuid string, mydata interface{}, cmd string) error {
 func SendMQMsg2Device(uuid string, message string, cmd string) {
 	var rkey string
 	rkey = uuid + "_robot"
-	log.Info("[ ", rkey, " ] "+cmd+" rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
+	//log.Info("[ ", rkey, " ] "+cmd+" rabbitmq.ProducerRabbitMq2Device.Publish2Device: ", message)
 	rabbitmq.Publish2dev([]byte(message), rkey)
 }
