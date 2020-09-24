@@ -9,12 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/valyala/bytebufferpool"
 	"github.com/ZZMarquis/gm/sm2"
 
-	"das/core/httpgo"
 	"das/core/constant"
 	"das/core/entity"
+	"das/core/httpgo"
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
@@ -75,7 +74,8 @@ func ProcessJsonMsg(DValue string, devID string) error {
 	//sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
 	DValue = strings.Replace(DValue, "#", ",", -1)
 	//log.Debug("[", devID, "] ProcessJsonMsg() DValue after: ", DValue)
-	rabbitmq.SendGraylogByMQ("[%s] ProcessJsonMsg DValue after: %s", devID, DValue)
+	rabbitmq.SendGraylogByMQ("上行数据(dev -> DAS): dev[%s]; %s", devID, DValue)
+	//rabbitmq.SendGraylogByMQ("[%s] ProcessJsonMsg DValue after: %s", devID, DValue)
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
 		log.Error("[", devID, "] ProcessJsonMsg() error msg : ", DValue)
 		return errors.New("error msg.")
@@ -829,31 +829,6 @@ func HandleOpenLog(openLog *entity.UploadOpenLockLog) {
 		} else {
 			SendLockMsgForSceneTrigger(openLog.DevId, openLog.DevType, "lockOpen", 1)
 		}
-	}
-}
-
-func sendPadDoorUpLogMsg(devId, oriData, msgName string) {
-	var logMsg entity.SysLogMsg
-	currT := time.Now()
-	logMsg.Timestamp = currT.Unix()
-	logMsg.NanoTimestamp = currT.UnixNano()
-	logMsg.MsgType = 4
-	logMsg.MsgName = msgName
-	logMsg.UUid = devId
-	logMsg.VendorName = "RabbitMQ"
-
-	buf := bytebufferpool.Get()
-	defer bytebufferpool.Put(buf)
-
-	buf.WriteString("Json数据：")
-	buf.WriteString(oriData)
-
-	logMsg.RawData = buf.String()
-	data,err := json.Marshal(logMsg)
-	if err != nil {
-		log.Warningf("sendPadDoorUpLogMsg > json.Marshal > %s", err)
-	} else {
-		rabbitmq.Publish2log(data, "")
 	}
 }
 

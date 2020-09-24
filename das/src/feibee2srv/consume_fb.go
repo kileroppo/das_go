@@ -28,7 +28,7 @@ func consumeFb() {
 	}
 
 	for msg := range msgs {
-		rabbitmq.SendGraylogByMQ("DAS receive from feibeeServerMQ: %s", msg.Body)
+		rabbitmq.SendGraylogByMQ("feibeeServerMQ -> DAS: %s", msg.Body)
 		jobque.JobQueue <- NewFeibeeJob(msg.Body)
 	}
 

@@ -85,7 +85,7 @@ func (f FeibeeJob) Handle() {
 //}
 
 func FeibeeHandler(c *fiber.Ctx) {
-	rabbitmq.SendGraylogByMQ("DAS receive from feibeeServer: %s", c.Body())
+	rabbitmq.SendGraylogByMQ("feibeeServer -> DAS: %s", c.Body())
 	jobque.JobQueue <- NewFeibeeJob(util.Str2Bytes(c.Body()))
 }
 
@@ -276,22 +276,4 @@ func splitFeibeeMsg(data *entity.FeibeeData) (datas []entity.FeibeeData) {
 	}
 
 	return
-}
-
-func sendFeibeeLogMsg(rawData []byte) {
-	rabbitmq.Publish2log(rawData, "")
-    //var logMsg entity.SysLogMsg
-	//
-    //currT := time.Now()
-    //logMsg.Timestamp = currT.Unix()
-    //logMsg.NanoTimestamp = currT.UnixNano()
-    //logMsg.MsgType = 1
-    //logMsg.RawData = string(rawData)
-	//
-    //data,err := json.Marshal(logMsg)
-    //if err != nil {
-    //	log.Warningf("sendFeibeeLogMsg > json.Marshal > %s", err)
-	//} else {
-	//	rabbitmq.Publish2log(rawData, "")
-	//}
 }

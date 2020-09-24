@@ -8,15 +8,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/json-iterator/go"
-	"github.com/valyala/bytebufferpool"
-
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/core/wlprotocol"
+	"github.com/json-iterator/go"
 )
 
 /*
@@ -56,7 +54,8 @@ func ParseData(mydata interface{}) error {
 
 	var wlMsg wlprotocol.WlMessage
 	bBody, err0 := wlMsg.PkDecode(data)
-	sendMQTTUpLogMsg(&wlMsg, data)
+	//sendMQTTUpLogMsg(&wlMsg, data)
+	rabbitmq.SendGraylogByMQ("上行数据(dev -> DAS): dev[%s]; %s >>> %s", wlMsg.DevId, data, bBody)
 	//todo
 	if err0 != nil {
 		log.Error("ParseData wlMsg.PkDecode, err0=", err0)
@@ -1123,36 +1122,36 @@ func ParseData(mydata interface{}) error {
 //		rabbitmq.Publish2log(data, "")
 //	}
 //}
-
-func sendMQTTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
-	var logMsg entity.SysLogMsg
-	currT := time.Now()
-	logMsg.Timestamp = currT.Unix()
-	logMsg.NanoTimestamp = currT.UnixNano()
-	logMsg.MsgType = 4
-	logMsg.MsgName = "上行设备数据"
-	logMsg.UUid = msg.DevId.Uuid
-	logMsg.VendorName = "王力MQTT"
-
-	buf := bytebufferpool.Get()
-	defer bytebufferpool.Put(buf)
-
-	buf.WriteString("原始数据: ")
-	buf.Write(rawData)
-	buf.WriteString(" => ")
-	buf.WriteString("Json数据：")
-	oriData,err := json.Marshal(&msg)
-	if err != nil {
-		log.Warningf("sendMQTTUpLogMsg > json.Marshal > %s", err)
-		return
-	}
-	buf.Write(oriData)
-
-	logMsg.RawData = buf.String()
-	data,err := json.Marshal(logMsg)
-	if err != nil {
-		log.Warningf("sendMQTTUpLogMsg > json.Marshal > %s", err)
-	} else {
-		rabbitmq.Publish2log(data, "")
-	}
-}
+//
+//func sendMQTTUpLogMsg(msg *wlprotocol.WlMessage, rawData []byte) {
+//	var logMsg entity.SysLogMsg
+//	currT := time.Now()
+//	logMsg.Timestamp = currT.Unix()
+//	logMsg.NanoTimestamp = currT.UnixNano()
+//	logMsg.MsgType = 4
+//	logMsg.MsgName = "上行设备数据"
+//	logMsg.UUid = msg.DevId.Uuid
+//	logMsg.VendorName = "王力MQTT"
+//
+//	buf := bytebufferpool.Get()
+//	defer bytebufferpool.Put(buf)
+//
+//	buf.WriteString("原始数据: ")
+//	buf.Write(rawData)
+//	buf.WriteString(" => ")
+//	buf.WriteString("Json数据：")
+//	oriData,err := json.Marshal(&msg)
+//	if err != nil {
+//		log.Warningf("sendMQTTUpLogMsg > json.Marshal > %s", err)
+//		return
+//	}
+//	buf.Write(oriData)
+//
+//	logMsg.RawData = buf.String()
+//	data,err := json.Marshal(logMsg)
+//	if err != nil {
+//		log.Warningf("sendMQTTUpLogMsg > json.Marshal > %s", err)
+//	} else {
+//		rabbitmq.Publish2log(data, "")
+//	}
+//}

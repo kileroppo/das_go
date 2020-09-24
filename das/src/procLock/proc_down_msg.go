@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/valyala/bytebufferpool"
-
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/httpgo"
@@ -87,7 +85,7 @@ func ProcAppMsg(appMsg string) error {
 	}
 
 	// 记录APP下行日志
-	rabbitmq.SendGraylogByMQ("下行设备数据：dev[%s] %s >>> %s", head.DevId, strAppMsg, appMsg)
+	rabbitmq.SendGraylogByMQ("下行数据(APP -> DAS)：dev[%s]; %s >>> %s", head.DevId, strAppMsg, appMsg)
 	//sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 
 	//2. 数据干预处理
@@ -529,30 +527,30 @@ func pushMsgForSave(msg *entity.RangeHoodAlarm) {
 	rabbitmq.Publish2pms(data2pms, "")
 }
 
-func sendMQTTDownLogMsg(devId, oriData string) {
-	var logMsg entity.SysLogMsg
-	currT := time.Now()
-	logMsg.Timestamp = currT.Unix()
-	logMsg.NanoTimestamp = currT.UnixNano()
-	logMsg.MsgType = 4
-	logMsg.MsgName = "下行设备数据"
-	logMsg.UUid = devId
-	logMsg.VendorName = "王力MQTT"
-
-	buf := bytebufferpool.Get()
-	defer bytebufferpool.Put(buf)
-
-	buf.WriteString("Json数据：")
-	buf.WriteString(oriData)
-
-	logMsg.RawData = buf.String()
-	data,err := json.Marshal(logMsg)
-	if err != nil {
-		log.Warningf("sendMQTTDownLogMsg > json.Marshal > %s", err)
-	} else {
-		rabbitmq.Publish2log(data, "")
-	}
-}
+//func sendMQTTDownLogMsg(devId, oriData string) {
+//	var logMsg entity.SysLogMsg
+//	currT := time.Now()
+//	logMsg.Timestamp = currT.Unix()
+//	logMsg.NanoTimestamp = currT.UnixNano()
+//	logMsg.MsgType = 4
+//	logMsg.MsgName = "下行设备数据"
+//	logMsg.UUid = devId
+//	logMsg.VendorName = "王力MQTT"
+//
+//	buf := bytebufferpool.Get()
+//	defer bytebufferpool.Put(buf)
+//
+//	buf.WriteString("Json数据：")
+//	buf.WriteString(oriData)
+//
+//	logMsg.RawData = buf.String()
+//	data,err := json.Marshal(logMsg)
+//	if err != nil {
+//		log.Warningf("sendMQTTDownLogMsg > json.Marshal > %s", err)
+//	} else {
+//		rabbitmq.Publish2log(data, "")
+//	}
+//}
 
 func IntToBytes(n int) []byte {
 	data := int64(n)

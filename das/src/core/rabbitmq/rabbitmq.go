@@ -6,14 +6,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/streadway/amqp"
-	"github.com/tidwall/gjson"
-	"github.com/valyala/bytebufferpool"
-
 	"das/core/entity"
 	"das/core/log"
 	"das/core/redis"
-	"das/core/util"
+	"github.com/streadway/amqp"
 )
 
 var (
@@ -186,7 +182,7 @@ func Publish2dev(data []byte, routingKey string) {
 	if err := publishDirect(0, producerMQ, exSli[ExSrv2Dev_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2dev > %s", err)
 	} else {
-		SendGraylogByMQ("DAS send to dev: %s", data)
+		SendGraylogByMQ("DAS -> dev: %s", data)
 		//log.Debugf("RoutingKey = '%s', Publish2dev msg: %s", routingKey, string(data))
 	}
 }
@@ -195,7 +191,8 @@ func Publish2app(data []byte, routingKey string) {
 	if err := publishDirect(1, producerMQ, exSli[ExDev2App_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2app > %s", err)
 	} else {
-		sendRabbitMQUpDataLog(data)
+		SendGraylogByMQ("DAS -> APP: %s", data)
+		//sendRabbitMQUpDataLog(data)
 		//log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
 	}
 }
@@ -204,7 +201,7 @@ func Publish2mns(data []byte, routingKey string) {
 	if err := publishDirect(2, producerMQ, exSli[Ex2Mns_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2mns > %s", err)
 	} else {
-		SendGraylogByMQ("DAS send to MNS: %s", data)
+		SendGraylogByMQ("DAS -> MNS: %s", data)
 		//log.Debugf("Publish2mns msg: %s", data)
 	}
 }
@@ -212,7 +209,7 @@ func Publish2mns(data []byte, routingKey string) {
 func Publish2pms(data []byte, routingKey string) {
 	go func() {
 		var err error
-		SendGraylogByMQ("DAS send to PMS: %s", data)
+		SendGraylogByMQ("DAS -> PMS: %s", data)
 		if redis.IsDevBeta(data) {
 			err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
 		} else {
@@ -231,7 +228,7 @@ func Publish2log(data []byte, routingKey string) {
 	if err := publishDirect(4, producerMQ, exSli[Ex2Log_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2log > %s", err)
 	}
-	SendGraylogByMQ(util.Bytes2Str(data))
+	//SendGraylogByMQ(util.Bytes2Str(data))
 }
 
 func Publish2wonlyms(data []byte, routingKey string) {
@@ -314,35 +311,35 @@ func Close() {
 	log.Info("RabbitMQ close")
 }
 
-func sendRabbitMQUpDataLog(byteData []byte) {
-	devId := gjson.GetBytes(byteData, "devId").String()
-	if len(devId) == 0 {
-		return
-	}
-
-	var logMsg entity.SysLogMsg
-	currT := time.Now()
-	logMsg.Timestamp = currT.Unix()
-	logMsg.NanoTimestamp = currT.UnixNano()
-	logMsg.MsgType = 4
-	logMsg.MsgName = "上行设备数据"
-	logMsg.UUid = devId
-	logMsg.VendorName = "RabbitMQ"
-
-	buf := bytebufferpool.Get()
-	defer bytebufferpool.Put(buf)
-
-	buf.WriteString("Json数据：")
-	buf.Write(byteData)
-
-	logMsg.RawData = buf.String()
-	rawData,err := json.Marshal(logMsg)
-	if err != nil {
-		log.Warningf("sendRabbitMQUpDataLog > json.Marshal > %s", err)
-	} else {
-		Publish2log(rawData, "")
-	}
-}
+//func sendRabbitMQUpDataLog(byteData []byte) {
+//	devId := gjson.GetBytes(byteData, "devId").String()
+//	if len(devId) == 0 {
+//		return
+//	}
+//
+//	var logMsg entity.SysLogMsg
+//	currT := time.Now()
+//	logMsg.Timestamp = currT.Unix()
+//	logMsg.NanoTimestamp = currT.UnixNano()
+//	logMsg.MsgType = 4
+//	logMsg.MsgName = "上行设备数据"
+//	logMsg.UUid = devId
+//	logMsg.VendorName = "RabbitMQ"
+//
+//	buf := bytebufferpool.Get()
+//	defer bytebufferpool.Put(buf)
+//
+//	buf.WriteString("Json数据：")
+//	buf.Write(byteData)
+//
+//	logMsg.RawData = buf.String()
+//	rawData,err := json.Marshal(logMsg)
+//	if err != nil {
+//		log.Warningf("sendRabbitMQUpDataLog > json.Marshal > %s", err)
+//	} else {
+//		Publish2log(rawData, "")
+//	}
+//}
 
 func SendGraylogByMQ(format string, args ...interface{}) {
 	lmsg := ""
