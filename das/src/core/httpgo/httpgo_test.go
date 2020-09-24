@@ -8,7 +8,7 @@ import (
 
 func init() {
 	log.Init()
-	redis.InitRedisPool(log.Conf)
+	redis.InitRedis()
 }
 
 var (
