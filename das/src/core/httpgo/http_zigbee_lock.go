@@ -43,7 +43,7 @@ func Http2FeibeeZigbeeLock(appData, bindid, bindstr, uuid, uid string) {
 	}
 
 	log.Debug("Send to Feibee: ", string(reqData))
-	respData, err := DoFeibeeControlReq(reqData)
+	_, respData, err := DoFeibeeControlReq(reqData)
 	if err != nil {
 		log.Warning("Http2FeibeeZigbeeLock DoHTTP() error = ", err)
 		return

@@ -67,13 +67,13 @@ func Http2FeibeeWonlyLGuard(appData string) {
 	}
 
 	//log.Debugf("Send to Feibee: %s", reqData)
-	respData, err := DoFeibeeControlReq(reqData)
+	url, respData, err := DoFeibeeControlReq(reqData)
 	if err != nil {
 		log.Warningf("Http2FeibeeWonlyLGuard > %s", err)
 		return
 	}
 
-	rabbitmq.SendGraylogByMQ("Send WonlyLGuard control to feibee: %s, response: %s", reqData, respData)
+	rabbitmq.SendGraylogByMQ("Send WonlyLGuard control to feibee, url: %s; request: %s; response: %s", url, reqData, respData)
 
 	//log.Infof("Http2FeibeeWonlyLGuard > resp: %s", respData)
 	var respMsg entity.RespFromFeibee
