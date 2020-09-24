@@ -153,7 +153,7 @@ func IsFeibeeSpSrv(data []byte) (res bool) {
 	key := "from"
 	var err error
 
-	if redisCli == nil {
+	if RedisDevPool == nil {
 		return false
 	}
 
