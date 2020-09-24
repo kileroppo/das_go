@@ -55,8 +55,8 @@ func DoHTTP(method, url string, data []byte) (respData []byte, err error) {
 	return DoHTTPReq(req)
 }
 
-func DoFeibeeControlReq(data []byte) (respData []byte, err error) {
-	url := ""
+func DoFeibeeControlReq(data []byte) (url string, respData []byte, err error) {
+	url = ""
 	url,err = log.Conf.GetString("feibee2http", "url_control")
 	if err != nil {
 		err = fmt.Errorf("DoFeibeeControlReq > %w", err)
@@ -71,5 +71,6 @@ func DoFeibeeControlReq(data []byte) (respData []byte, err error) {
 		}
 	}
 
-	return DoHTTP("POST", url, data)
+	respData,err = DoHTTP("POST", url, data)
+	return
 }
