@@ -191,6 +191,9 @@ func (self *BaseSensorAlarm) createAlarmMsg() entity.Feibee2AlarmMsg {
 	msg.MilliTimestamp = self.milliTimestamp
 	msg.Bindid = self.bindid
 	msg.AlarmFlag = self.alarmFlag
+	if self.cycleFlag > 0 {
+		msg.CycleFlag = true
+	}
 
 	return msg
 }

@@ -123,6 +123,7 @@ type Feibee2AlarmMsg struct {
 
 	AlarmFlag int    `json:"alarmFlag,omitempty"`
 	Bindid    string `json:"bindid,omitempty"`
+	CycleFlag bool   `json:"cycleFlag"`
 }
 
 //feibee传感器报警消息 作为自动场景触发消息(推送给pms)
