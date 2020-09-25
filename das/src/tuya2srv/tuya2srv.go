@@ -98,7 +98,7 @@ type TuyaMsgHandle struct {
 }
 
 func (t *TuyaMsgHandle) MsgHandle() {
-	rabbitmq.SendGraylogByMQ("DAS receive from tuyaServer: %s", t.data)
+	rabbitmq.SendGraylogByMQ("tuyaServer -> DAS: %s", t.data)
 	devId := gjson.GetBytes(t.data, "devId").String()
 	rabbitmq.Publish2app(t.data, devId)
 	bizCode := gjson.GetBytes(t.data, "bizCode").String()
