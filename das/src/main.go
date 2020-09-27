@@ -7,7 +7,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	aliIot2srv "das/aliIoT2srv"
 	"das/core/etcd"
 	"das/core/log"
 	"das/core/rabbitmq"
@@ -31,8 +30,8 @@ func main() {
 	rabbitmq.Init()
 	procLock.Run()
 	feibee2srv.Init()
-	aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
-	aliSrv.Run()
+	//aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
+	//aliSrv.Run()
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 	http2srv.Init()
 	mqtt2srv.Init()
@@ -57,7 +56,7 @@ func main() {
 		log.Error("default: get signal: ", s)
 	}
 
-	aliSrv.Close()
+	//aliSrv.Close()
 	procLock.Close()
 	feibee2srv.Close()
 	rabbitmq.Close()
