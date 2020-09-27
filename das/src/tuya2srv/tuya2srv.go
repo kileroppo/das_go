@@ -2,6 +2,7 @@ package tuya2srv
 
 import (
 	"context"
+	"das/core/util"
 	"encoding/base64"
 	"encoding/json"
 
@@ -16,10 +17,15 @@ import (
 	"das/core/rabbitmq"
 )
 
-var consumer pulsar.Consumer
+var (
+	consumer       pulsar.Consumer
+	tuyaMsgHandler TuyaMsgHandle
+)
 
 func Init() {
 	go Tuya2SrvStart()
+	tuyaMsgHandler = TuyaMsgHandle{}
+	tuyaMsgHandler.InitHeader()
 }
 
 func Tuya2SrvStart() {
@@ -70,11 +76,8 @@ func (t *TuyaCallback) HandlePayload(ctx context.Context, msg *pulsar.Message, p
 		return err
 	}
 
-	handle := TuyaMsgHandle{
-		data: jsonData,
-	}
-
-	handle.MsgHandle()
+	tuyaMsgHandler.UpdateData(jsonData)
+	tuyaMsgHandler.MsgHandle()
 	return nil
 }
 
@@ -94,13 +97,34 @@ func (t *TuyaCallback) decryptData(payload []byte) (jsonData []byte, err error) 
 }
 
 type TuyaMsgHandle struct {
-	data []byte
+	data    []byte
+	msg2msn entity.OtherVendorDevMsg
+}
+
+func (t *TuyaMsgHandle) UpdateData(data []byte) {
+	t.data = data
+}
+
+func (t *TuyaMsgHandle) InitHeader() {
+	t.msg2msn = entity.OtherVendorDevMsg{
+		Header: entity.Header{
+			Cmd:     0x1200,
+			Ack:     0,
+			DevType: "",
+			DevId:   "",
+			Vendor:  "tuya",
+			SeqId:   0,
+		},
+		OriData: "",
+	}
 }
 
 func (t *TuyaMsgHandle) MsgHandle() {
 	rabbitmq.SendGraylogByMQ("tuyaServer -> DAS: %s", t.data)
 	devId := gjson.GetBytes(t.data, "devId").String()
 	rabbitmq.Publish2app(t.data, devId)
+	t.send2MNS(devId, t.data)
+
 	bizCode := gjson.GetBytes(t.data, "bizCode").String()
 	if len(bizCode) > 0 {
 		t.sendOnOffLineMsg(devId, bizCode)
@@ -108,7 +132,7 @@ func (t *TuyaMsgHandle) MsgHandle() {
 
 	devStatus := gjson.GetBytes(t.data, "status").Array()
 
-	for i,_ := range devStatus {
+	for i, _ := range devStatus {
 		switch devStatus[i].Get("code").String() {
 		case "electricity_left":
 			t.sendBattMsg(devId, devStatus[i])
@@ -119,6 +143,16 @@ func (t *TuyaMsgHandle) MsgHandle() {
 		case "status":
 			t.sendNotifyAct(devId, devStatus[i])
 		}
+	}
+}
+
+func (t *TuyaMsgHandle) send2MNS(devId string, oriData []byte) {
+	t.msg2msn.DevId = devId
+	t.msg2msn.OriData = util.Bytes2Str(oriData)
+
+	data, err := json.Marshal(t.msg2msn)
+	if err == nil {
+		rabbitmq.Publish2mns(data, "")
 	}
 }
 
@@ -142,29 +176,29 @@ func (t *TuyaMsgHandle) sendOfflineMsg(devId string, res gjson.Result) {
 }
 
 func (t *TuyaMsgHandle) sendBattMsg(devId string, res gjson.Result) {
-    msg := entity.AlarmMsgBatt{}
-    msg.Cmd = 0x2a
-    msg.DevId = devId
-    msg.Vendor = "tuya"
-    msg.DevType = "TYRobotCleaner"
-    msg.Value = int(res.Get("value").Int())
-    msg.Time = int32(res.Get("t").Int()/1000)
+	msg := entity.AlarmMsgBatt{}
+	msg.Cmd = 0x2a
+	msg.DevId = devId
+	msg.Vendor = "tuya"
+	msg.DevType = "TYRobotCleaner"
+	msg.Value = int(res.Get("value").Int())
+	msg.Time = int32(res.Get("t").Int() / 1000)
 
-    data, err := json.Marshal(msg)
-    if err != nil {
-    	log.Warningf("TuyaCallback.sendBattMsg > json.Marshal > %s", err)
-    } else {
-    	rabbitmq.Publish2app(data, msg.DevId)
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("TuyaCallback.sendBattMsg > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
 func (t *TuyaMsgHandle) sendCleanRecordMsg(jsonData []byte) {
-    msg := entity.OtherVendorDevMsg{}
-    msg.Cmd = 0x1200
-    msg.DevId = gjson.GetBytes(jsonData, "devId").String()
+	msg := entity.OtherVendorDevMsg{}
+	msg.Cmd = 0x1200
+	msg.DevId = gjson.GetBytes(jsonData, "devId").String()
 	msg.DevType = "TYRobotCleaner"
-    msg.Vendor = "tuya"
-    msg.OriData = string(jsonData)
+	msg.Vendor = "tuya"
+	msg.OriData = string(jsonData)
 
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -200,9 +234,9 @@ func (t *TuyaMsgHandle) sendOnOffLineMsg(devId, jsonData string) {
 }
 
 func (t *TuyaMsgHandle) sendNotifyAct(devId string, res gjson.Result) {
-    msg := entity.Feibee2DevMsg{}
-    msg.Cmd = 0xfb
-    msg.DevId = devId
+	msg := entity.Feibee2DevMsg{}
+	msg.Cmd = 0xfb
+	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
 
@@ -221,5 +255,5 @@ func Close() {
 	if consumer != nil {
 		consumer.Stop()
 	}
-    log.Info("Tuya2Srv close")
+	log.Info("Tuya2Srv close")
 }
