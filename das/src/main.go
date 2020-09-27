@@ -16,6 +16,7 @@ import (
 	"das/http2srv"
 	"das/onenet2srv"
 	"das/procLock"
+	"das/tuya2srv"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
 	http2srv.Init()
 	//mqtt2srv.Init()
-	//tuya2srv.Init()
+	tuya2srv.Init()
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
@@ -61,7 +62,7 @@ func main() {
 	rabbitmq.Close()
 	http2srv.Close()
 	//mqtt2srv.Close()
-	//tuya2srv.Close()
+	tuya2srv.Close()
 	oneNet2Srv.Close()
 	redis.Close()
 	etcd.CloseEtcdCli()
