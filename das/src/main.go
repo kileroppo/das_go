@@ -1,6 +1,7 @@
 package main
 
 import (
+	"das/tuya2srv"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
@@ -36,6 +37,8 @@ func main() {
 	go procLock.Run()
 
 	mqtt2srv.Init()
+
+	tuya2srv.Init()
 
 	//feibee2srv.Init()
 
@@ -86,7 +89,7 @@ func main() {
 	//15. 停止rabbitmq连接
 	rabbitmq.Close()
 
-	//tuya2srv.Close()
+	tuya2srv.Close()
 
 	http2srv.Close()
 
