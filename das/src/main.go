@@ -93,9 +93,9 @@ func main() {
 
 	http2srv.Close()
 
-	//feibee2srv.Close()
-
 	mqtt2srv.Close()
+
+	tuya2srv.Close()
 
 	//16. 停止OneNETHTTP服务器
 	if err := oneNet2Srv.Close(); err != nil {
