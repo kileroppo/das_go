@@ -16,7 +16,6 @@ import (
 	"das/http2srv"
 	"das/onenet2srv"
 	"das/procLock"
-	"das/tuya2srv"
 )
 
 func main() {
@@ -54,7 +53,7 @@ func main() {
 	//8. 启动雄迈告警消息接收
 	http2srv.Init()
 
-	tuya2srv.Init()
+	//tuya2srv.Init()
 
 	//10. Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
@@ -95,7 +94,7 @@ func main() {
 
 	http2srv.Close()
 
-	tuya2srv.Close()
+	//tuya2srv.Close()
 
 	//16. 停止OneNETHTTP服务器
 	if err := oneNet2Srv.Close(); err != nil {
