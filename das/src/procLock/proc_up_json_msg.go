@@ -565,9 +565,6 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				break
 			}
 
-			var lockTime int32
-			lockTime = int32(lockActive.Time)
-
 			//2. 回复设备
 			lockActive.Ack = 1
 			/*t := time.Now()
@@ -590,7 +587,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			}
 
 			//3. 锁唤醒，存入redis
-			go redis.SetActTimePool(lockActive.DevId, int64(lockTime))
+			go redis.SetActTimePool(lockActive.DevId, int64(1))
 
 			//4. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)
