@@ -107,7 +107,7 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro http.NewRequest()，error=", err0)
 		return "", err0
 	}
-	rabbitmq.SendGraylogByMQ("下行数据(APP -> DAS)：dev[%s]; %s", deviceName, req_body.Bytes())
+	rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s", deviceName, req_body.Bytes())
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")

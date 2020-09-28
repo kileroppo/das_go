@@ -85,7 +85,7 @@ func ProcAppMsg(appMsg string) error {
 	}
 
 	// 记录APP下行日志
-	rabbitmq.SendGraylogByMQ("下行数据(APP -> DAS)：dev[%s]; %s >>> %s", head.DevId, strAppMsg, appMsg)
+	rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s >>> %s", head.DevId, strAppMsg, appMsg)
 	//sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 
 	//2. 数据干预处理

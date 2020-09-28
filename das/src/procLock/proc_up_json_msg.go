@@ -74,7 +74,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 	//sendPadDoorUpLogMsg(devID, DValue, "上行设备数据")
 	DValue = strings.Replace(DValue, "#", ",", -1)
 	//log.Debug("[", devID, "] ProcessJsonMsg() DValue after: ", DValue)
-	rabbitmq.SendGraylogByMQ("上行数据(dev -> DAS): dev[%s]; %s", devID, DValue)
+	rabbitmq.SendGraylogByMQ("上行数据(dev-mq->DAS): dev[%s]; %s", devID, DValue)
 	//rabbitmq.SendGraylogByMQ("[%s] ProcessJsonMsg DValue after: %s", devID, DValue)
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
 		log.Error("[", devID, "] ProcessJsonMsg() error msg : ", DValue)
@@ -565,9 +565,6 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				break
 			}
 
-			var lockTime int32
-			lockTime = int32(lockActive.Time)
-
 			//2. 回复设备
 			lockActive.Ack = 1
 			/*t := time.Now()
@@ -590,7 +587,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			}
 
 			//3. 锁唤醒，存入redis
-			go redis.SetActTimePool(lockActive.DevId, int64(lockTime))
+			go redis.SetActTimePool(lockActive.DevId, int64(1))
 
 			//4. 回复到APP
 			//producer.SendMQMsg2APP(head.DevId, DValue)

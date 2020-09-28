@@ -98,12 +98,12 @@ func XMAlarmMsgHandler(c *fiber.Ctx) {
 }
 
 func YKMsgHandler(c *fiber.Ctx) {
-	rabbitmq.SendGraylogByMQ("YKServer -> DAS: %s", c.Body())
+	rabbitmq.SendGraylogByMQ("YKServer-http->DAS: %s", c.Body())
 	jobque.JobQueue <- NewYKJob(util.Str2Bytes(c.Body()))
 }
 
 func RGMsgHandler(c *fiber.Ctx) {
-	rabbitmq.SendGraylogByMQ("RGServer -> DAS: %s", c.Body())
+	rabbitmq.SendGraylogByMQ("RGServer-http->DAS: %s", c.Body())
 	jobque.JobQueue <- RGJob{rawData: c.Body()}
 }
 

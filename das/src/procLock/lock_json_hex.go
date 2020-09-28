@@ -23,7 +23,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		return nil, err
 	}
-	rabbitmq.SendGraylogByMQ("下行数据(APP -> DAS)：dev[%s]; %s", head.DevId, jsonMsg)
+	rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s", head.DevId, jsonMsg)
 	//sendMQTTDownLogMsg(, jsonMsg)
 
 	var wlMsg wlprotocol.IPKG
