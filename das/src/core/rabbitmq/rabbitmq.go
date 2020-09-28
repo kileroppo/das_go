@@ -182,7 +182,7 @@ func Publish2dev(data []byte, routingKey string) {
 	if err := publishDirect(0, producerMQ, exSli[ExSrv2Dev_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2dev > %s", err)
 	} else {
-		SendGraylogByMQ("DAS -> dev: %s", data)
+		SendGraylogByMQ("DAS-mq->dev: %s", data)
 		//log.Debugf("RoutingKey = '%s', Publish2dev msg: %s", routingKey, string(data))
 	}
 }
@@ -191,7 +191,7 @@ func Publish2app(data []byte, routingKey string) {
 	if err := publishDirect(1, producerMQ, exSli[ExDev2App_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2app > %s", err)
 	} else {
-		SendGraylogByMQ("DAS -> APP: %s", data)
+		SendGraylogByMQ("DAS-mq->APP: %s", data)
 		//sendRabbitMQUpDataLog(data)
 		//log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
 	}
@@ -201,7 +201,7 @@ func Publish2mns(data []byte, routingKey string) {
 	if err := publishDirect(2, producerMQ, exSli[Ex2Mns_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2mns > %s", err)
 	} else {
-		SendGraylogByMQ("DAS -> MNS: %s", data)
+		SendGraylogByMQ("DAS-mq->MNS: %s", data)
 		//log.Debugf("Publish2mns msg: %s", data)
 	}
 }
@@ -209,7 +209,7 @@ func Publish2mns(data []byte, routingKey string) {
 func Publish2pms(data []byte, routingKey string) {
 	go func() {
 		var err error
-		SendGraylogByMQ("DAS -> PMS: %s", data)
+		SendGraylogByMQ("DAS-mq->PMS: %s", data)
 		if redis.IsDevBeta(data) {
 			err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
 		} else {

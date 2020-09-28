@@ -85,7 +85,7 @@ func (f FeibeeJob) Handle() {
 //}
 
 func FeibeeHandler(c *fiber.Ctx) {
-	rabbitmq.SendGraylogByMQ("feibeeServer -> DAS: %s", c.Body())
+	rabbitmq.SendGraylogByMQ("feibeeServer-http->DAS: %s", c.Body())
 	jobque.JobQueue <- NewFeibeeJob(util.Str2Bytes(c.Body()))
 }
 
