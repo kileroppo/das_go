@@ -18,14 +18,11 @@ import (
 )
 
 var (
-	consumer       pulsar.Consumer
-	tuyaMsgHandler TuyaMsgHandle
+	consumer pulsar.Consumer
 )
 
 func Init() {
 	go Tuya2SrvStart()
-	tuyaMsgHandler = TuyaMsgHandle{}
-	tuyaMsgHandler.InitHeader()
 }
 
 func Tuya2SrvStart() {
@@ -76,8 +73,21 @@ func (t *TuyaCallback) HandlePayload(ctx context.Context, msg *pulsar.Message, p
 		return err
 	}
 
-	tuyaMsgHandler.UpdateData(jsonData)
-	tuyaMsgHandler.MsgHandle()
+	handler := TuyaMsgHandle{
+		data: jsonData,
+		msg2msn: entity.OtherVendorDevMsg{
+			Header: entity.Header{
+				Cmd:     0x1200,
+				Ack:     0,
+				DevType: "",
+				DevId:   "",
+				Vendor:  "tuya",
+				SeqId:   0,
+			},
+			OriData: "",
+		},
+	}
+	handler.MsgHandle()
 	return nil
 }
 
