@@ -821,7 +821,7 @@ func ParseOpenLog(rawData string) {
 
 func HandleOpenLog(openLog *entity.UploadOpenLockLog) {
 	for i,_ := range openLog.LogList {
-		if openLog.LogList[i].MainOpen == 0 { //手动开门-室内开门
+		if openLog.LogList[i].MainOpen == 13 { //手动开门-室内开门
 			SendLockMsgForSceneTrigger(openLog.DevId, openLog.DevType, "lockOpen", 0)
 		} else {
 			SendLockMsgForSceneTrigger(openLog.DevId, openLog.DevType, "lockOpen", 1)
