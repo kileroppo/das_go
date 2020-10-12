@@ -245,7 +245,7 @@ type ContinuousSensor struct {
 func (c *ContinuousSensor) PushMsg() {
 	c.initData()
 	if err := c.parseAlarmMsg(); err != nil {
-		log.Warning("ContinuousSensor.PushMsg > %s", err)
+		log.Warningf("ContinuousSensor.PushMsg > %s", err)
 		return
 	}
 	//todo: 其他类型暂不推送mns
