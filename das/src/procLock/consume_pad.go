@@ -47,13 +47,13 @@ func consumePadDoor() {
 	}
 
 	for d := range msgs {
-		log.SendGraylogByUDP("Consumer ReceiveMQMsgFromDevice: %s", d.Body)
+		log.SendGraylogByUDP("Pad设备-mq->DAS: %s", d.Body)
 		//log.Info("Consumer ReceiveMQMsgFromDevice: ", string(d.Body))
 
 		//1. 检验数据是否合法
 		getData := string(d.Body)
 		if !strings.Contains(getData, "#") {
-			log.Error("ReceiveMQMsgFromDevice: rabbitmq.ConsumerRabbitMq error msg: ", getData)
+			log.Error("Pad设备-mq->DAS: rabbitmq.ConsumerRabbitMq error msg: ", getData)
 			continue
 		}
 
