@@ -130,7 +130,7 @@ func (t *TuyaMsgHandle) InitHeader() {
 }
 
 func (t *TuyaMsgHandle) MsgHandle() {
-	rabbitmq.SendGraylogByMQ("tuyaServer-pulsar->DAS: %s", t.data)
+	rabbitmq.SendGraylogByMQ("涂鸦Server-pulsar->DAS: %s", t.data)
 	devId := gjson.GetBytes(t.data, "devId").String()
 	rabbitmq.Publish2app(t.data, devId)
 	t.send2MNS(devId, t.data)
