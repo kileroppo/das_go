@@ -22,7 +22,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
 		return nil, err
 	}
-	rabbitmq.SendGraylogByMQ("下行数据(APP -> DAS)：dev[%s]; %s", head.DevId, jsonMsg)
+	rabbitmq.SendGraylogByMQ("下行数据(APP -mq-> DAS)：dev[%s]; %s", head.DevId, jsonMsg)
 
 	//1、飞比设备编号去掉下划线
 	retUuid := make([]string, 4)

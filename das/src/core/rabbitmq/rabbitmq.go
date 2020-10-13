@@ -182,7 +182,7 @@ func Publish2dev(data []byte, routingKey string) {
 	if err := publishDirect(0, producerMQ, exSli[ExSrv2Dev_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2dev > %s", err)
 	} else {
-		SendGraylogByMQ("DAS-mq->dev: %s", data)
+		SendGraylogByMQ("DAS-mq->device: %s", data)
 		//log.Debugf("RoutingKey = '%s', Publish2dev msg: %s", routingKey, string(data))
 	}
 }

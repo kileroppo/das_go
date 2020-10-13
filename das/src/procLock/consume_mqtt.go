@@ -161,7 +161,7 @@ var msgCallback mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message)
 		return
 	}
 
-	rabbitmq.SendGraylogByMQ("Mqtt-Topic: %s, strHexMsg: %s", msg.Topic(), hex.EncodeToString(msg.Payload()))
+	rabbitmq.SendGraylogByMQ("王力IoT-mqtt->DAS: Mqtt-Topic: %s, strHexMsg: %s", msg.Topic(), hex.EncodeToString(msg.Payload()))
 
 	//2. 锁对接的平台，存入redis
 	mymap := make(map[string]interface{})

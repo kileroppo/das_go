@@ -73,7 +73,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		return
 	}
 
-	rabbitmq.SendGraylogByMQ("Send WonlyLGuard control to feibee, url: %s; request: %s; response: %s", url, reqData, respData)
+	rabbitmq.SendGraylogByMQ("DAS-http->飞比Server: Send WonlyLGuard control to feibee, url: %s; request: %s; response: %s", url, reqData, respData)
 
 	//log.Infof("Http2FeibeeWonlyLGuard > resp: %s", respData)
 	var respMsg entity.RespFromFeibee
