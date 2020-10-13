@@ -60,7 +60,7 @@ func ParseData(mydata interface{}) error {
 		log.Error("ParseData wlMsg.PkDecode, err0=", err0)
 		return err0
 	}
-	rabbitmq.SendGraylogByMQ("上行数据(device-mqtt|http2-> DAS): dev[%s]; cmd[%d] >> %s", wlMsg.DevId.Uuid, wlMsg.Cmd, hex.EncodeToString(bBody))
+	rabbitmq.SendGraylogByMQ("上行数据(device-mqtt|http2->DAS): dev[%s], cmd[%d], seqId[%d] >> %s", wlMsg.DevId.Uuid, wlMsg.Cmd, wlMsg.SeqId, hex.EncodeToString(bBody))
 
 	//sendAliIOTUpLogMsg(&wlMsg, data)
 	switch wlMsg.Cmd {
