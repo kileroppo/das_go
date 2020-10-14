@@ -5,6 +5,11 @@ import (
 	"das/core/log"
 	"das/core/util"
 	"encoding/binary"
+	"errors"
+)
+
+var (
+	ErrBufOutRange = errors.New("buf's len out of range")
 )
 
 //2. 请求同步用户列表(0x31)(服务器-->前板)
@@ -595,6 +600,11 @@ func (pdu *PicUpload) Decode(bBody []byte, uuid string) error {
 
 	var bPicPath []byte
 	bPicPath = buf.Next(int(pdu.PicLen))
+	if len(bPicPath) < int(pdu.PicLen) {
+		log.Errorf("dev[%s] PicUpload lens error", uuid)
+		return ErrBufOutRange
+	}
+
 	pdu.PicPath = string(bPicPath[:pdu.PicLen])
 
 	return err
