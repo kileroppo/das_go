@@ -109,7 +109,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.UserOperUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData User_oper_upload pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData User_oper_upload pdu.Decode, err=", err)
 			return err
 		}
 
@@ -149,7 +149,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.AddDevUserStep{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Add_dev_user_step pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Add_dev_user_step pdu.Decode, err=", err)
 			return err
 		}
 
@@ -199,7 +199,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.UserUpdateLoad{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Update_dev_user pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Update_dev_user pdu.Decode, err=", err)
 			return err
 		}
 
@@ -311,7 +311,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.SyncDevUserResp{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Sync_dev_user pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Sync_dev_user pdu.Decode, err=", err)
 			return err
 		}
 
@@ -343,7 +343,7 @@ func ParseData(mydata interface{}) error {
 			strSDate := strconv.FormatInt(int64(mSDate), 10) // 转10进制字符串
 			nSDate, err2 := strconv.ParseInt(strSDate, 16, 32) // 转16进制值
 			if nil != err2 {
-				log.Error("ParseData strconv.ParseInt, err2: ", err2)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err2: ", err2)
 			}
 			devUser.MyDate.Start = int32(nSDate)
 
@@ -353,7 +353,7 @@ func ParseData(mydata interface{}) error {
 			strEDate := strconv.FormatInt(int64(mEDate), 10) // 转10进制字符串
 			nEDate, err3 := strconv.ParseInt(strEDate, 16, 32) // 转16进制值
 			if nil != err3 {
-				log.Error("ParseData strconv.ParseInt, err3: ", err3)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err3: ", err3)
 			}
 			devUser.MyDate.End = int32(nEDate)
 
@@ -362,7 +362,7 @@ func ParseData(mydata interface{}) error {
 			strTimeSlot1_s := strconv.FormatInt(int64(mTimeSlot1_s), 10) // 转10进制字符串
 			nTimeSlot1_s, err4 := strconv.ParseInt(strTimeSlot1_s, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("ParseData strconv.ParseInt, err4: ", err4)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[0].Start = int32(nTimeSlot1_s)
 
@@ -371,7 +371,7 @@ func ParseData(mydata interface{}) error {
 			strTimeSlot1_e := strconv.FormatInt(int64(mTimeSlot1_e), 10) // 转10进制字符串
 			nTimeSlot1_e, err4 := strconv.ParseInt(strTimeSlot1_e, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("ParseData strconv.ParseInt, err4: ", err4)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[0].End = int32(nTimeSlot1_e)
 
@@ -380,7 +380,7 @@ func ParseData(mydata interface{}) error {
 			strTimeSlot2_s := strconv.FormatInt(int64(mTimeSlot2_s), 10) // 转10进制字符串
 			nTimeSlot2_s, err4 := strconv.ParseInt(strTimeSlot2_s, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("ParseData strconv.ParseInt, err4: ", err4)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[1].Start = int32(nTimeSlot2_s)
 
@@ -389,7 +389,7 @@ func ParseData(mydata interface{}) error {
 			strTimeSlot2_e := strconv.FormatInt(int64(mTimeSlot2_e), 10) // 转10进制字符串
 			nTimeSlot2_e, err4 := strconv.ParseInt(strTimeSlot2_e, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("ParseData strconv.ParseInt, err4: ", err4)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[1].End = int32(nTimeSlot2_e)
 
@@ -398,7 +398,7 @@ func ParseData(mydata interface{}) error {
 			strTimeSlot3_s := strconv.FormatInt(int64(mTimeSlot3_s), 10) // 转10进制字符串
 			nTimeSlot3_s, err4 := strconv.ParseInt(strTimeSlot3_s, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("ParseData strconv.ParseInt, err4: ", err4)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[2].Start = int32(nTimeSlot3_s)
 
@@ -407,7 +407,7 @@ func ParseData(mydata interface{}) error {
 			strTimeSlot3_e := strconv.FormatInt(int64(mTimeSlot3_e), 10) // 转10进制字符串
 			nTimeSlot3_e, err4 := strconv.ParseInt(strTimeSlot3_e, 16, 32) // 转16进制值
 			if nil != err4 {
-				log.Error("ParseData strconv.ParseInt, err4: ", err4)
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData strconv.ParseInt, err4: ", err4)
 			}
 			devUser.MyTime[2].End = int32(nTimeSlot3_e)
 
@@ -425,7 +425,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.RemoteOpenLockResp{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Remote_open pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Remote_open pdu.Decode, err=", err)
 			return err
 		}
 
@@ -479,7 +479,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.UploadDevInfo{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Upload_dev_info pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Upload_dev_info pdu.Decode, err=", err)
 			return err
 		}
 
@@ -588,7 +588,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Set_dev_para pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Set_dev_para pdu.Decode, err=", err)
 			return err
 		}
 
@@ -622,7 +622,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Update_dev_para pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Update_dev_para pdu.Decode, err=", err)
 			return err
 		}
 
@@ -719,7 +719,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.OpenLockMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Upload_open_log pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Upload_open_log pdu.Decode, err=", err)
 			return err
 		}
 
@@ -767,7 +767,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.EnterMenuMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData UpEnter_menu_log pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData UpEnter_menu_log pdu.Decode, err=", err)
 			return err
 		}
 
@@ -811,7 +811,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.Alarms{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Infrared_alarm pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Infrared_alarm pdu.Decode, err=", err)
 			return err
 		}
 
@@ -839,7 +839,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.LowBattAlarm{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Low_battery_alarm pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Low_battery_alarm pdu.Decode, err=", err)
 			return err
 		}
 
@@ -868,7 +868,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.PicUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Lock_PIC_Upload pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Lock_PIC_Upload pdu.Decode, err=", err)
 			return err
 		}
 
@@ -896,7 +896,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.OnOffLine{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Upload_lock_active pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Upload_lock_active pdu.Decode, err=", err)
 			return err
 		}
 
@@ -935,7 +935,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.RealVideo{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Real_Video pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Real_Video pdu.Decode, err=", err)
 			return err
 		}
 
@@ -960,7 +960,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.WiFiSet{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Set_Wifi pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Set_Wifi pdu.Decode, err=", err)
 			return err
 		}
 
@@ -1034,7 +1034,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.DoorbellCall{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Door_Call pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Door_Call pdu.Decode, err=", err)
 			return err
 		}
 
@@ -1064,7 +1064,7 @@ func ParseData(mydata interface{}) error {
 		pdu := &wlprotocol.DoorStateUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
-			log.Error("ParseData Door_State pdu.Decode, err=", err)
+			log.Error("[", wlMsg.DevId.Uuid, "] ParseData Door_State pdu.Decode, err=", err)
 			return err
 		}
 
