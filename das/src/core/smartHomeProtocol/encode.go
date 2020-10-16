@@ -25,8 +25,8 @@ func (s *SmartHomeProtocol) Encode() ([]byte,error) {
 	sumData = append(sumData, s.EndFlag)
 
 	s.checkSum(sumData)
-	//return sumData
 	return s.encrypt(sumData, s.DevId)
+	//return sumData, nil
 }
 
 func (s *SmartHomeProtocol) encodeHeader() []byte {

@@ -5,6 +5,7 @@ import (
 	"das/core/util"
 	"encoding/base64"
 	"encoding/json"
+	"strconv"
 
 	pulsar "github.com/TuyaInc/tuya_pulsar_sdk_go"
 	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tylog"
@@ -75,7 +76,7 @@ func (t *TuyaCallback) HandlePayload(ctx context.Context, msg *pulsar.Message, p
 
 	handler := TuyaMsgHandle{
 		data: jsonData,
-		msg2msn: entity.OtherVendorDevMsg{
+		msg2Others: entity.OtherVendorDevMsg{
 			Header: entity.Header{
 				Cmd:     0x1200,
 				Ack:     0,
@@ -107,8 +108,8 @@ func (t *TuyaCallback) decryptData(payload []byte) (jsonData []byte, err error) 
 }
 
 type TuyaMsgHandle struct {
-	data    []byte
-	msg2msn entity.OtherVendorDevMsg
+	data       []byte
+	msg2Others entity.OtherVendorDevMsg
 }
 
 func (t *TuyaMsgHandle) UpdateData(data []byte) {
@@ -116,7 +117,7 @@ func (t *TuyaMsgHandle) UpdateData(data []byte) {
 }
 
 func (t *TuyaMsgHandle) InitHeader() {
-	t.msg2msn = entity.OtherVendorDevMsg{
+	t.msg2Others = entity.OtherVendorDevMsg{
 		Header: entity.Header{
 			Cmd:     0x1200,
 			Ack:     0,
@@ -132,41 +133,36 @@ func (t *TuyaMsgHandle) InitHeader() {
 func (t *TuyaMsgHandle) MsgHandle() {
 	rabbitmq.SendGraylogByMQ("涂鸦Server-pulsar->DAS: %s", t.data)
 	devId := gjson.GetBytes(t.data, "devId").String()
+
 	rabbitmq.Publish2app(t.data, devId)
-	t.send2MNS(devId, t.data)
+	t.send2Others(devId, t.data)
 
 	bizCode := gjson.GetBytes(t.data, "bizCode").String()
-	if len(bizCode) > 0 {
-		t.sendOnOffLineMsg(devId, bizCode)
+	switch bizCode {
+	case Ty_Event_Online, Ty_Event_Offline:
+		tyDevOnOffHandle(devId, bizCode)
 	}
 
 	devStatus := gjson.GetBytes(t.data, "status").Array()
-
 	for i, _ := range devStatus {
-		switch devStatus[i].Get("code").String() {
-		case "electricity_left":
-			t.sendBattMsg(devId, devStatus[i])
-		case "clean_record":
-			t.sendCleanRecordMsg(t.data)
-		case "power":
-			t.sendOfflineMsg(devId, devStatus[i])
-		case "status":
-			t.sendNotifyAct(devId, devStatus[i])
+		if handle, ok := TyHandleMap[devStatus[i].Get("code").String()]; ok {
+			handle(devId, devStatus[i])
 		}
 	}
 }
 
-func (t *TuyaMsgHandle) send2MNS(devId string, oriData []byte) {
-	t.msg2msn.DevId = devId
-	t.msg2msn.OriData = util.Bytes2Str(oriData)
+func (t *TuyaMsgHandle) send2Others(devId string, oriData []byte) {
+	t.msg2Others.DevId = devId
+	t.msg2Others.OriData = util.Bytes2Str(oriData)
 
-	data, err := json.Marshal(t.msg2msn)
+	data, err := json.Marshal(t.msg2Others)
 	if err == nil {
 		rabbitmq.Publish2mns(data, "")
+		rabbitmq.Publish2pms(data, "")
 	}
 }
 
-func (t *TuyaMsgHandle) sendOfflineMsg(devId string, res gjson.Result) {
+func tyDevOnlineHandle(devId string, res gjson.Result) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
 	msg.DevId = devId
@@ -179,13 +175,13 @@ func (t *TuyaMsgHandle) sendOfflineMsg(devId string, res gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.sendOnOffLineMsg > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.tyDevOnOffHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func (t *TuyaMsgHandle) sendBattMsg(devId string, res gjson.Result) {
+func tyDevBattHandle(devId string, res gjson.Result) {
 	msg := entity.AlarmMsgBatt{}
 	msg.Cmd = 0x2a
 	msg.DevId = devId
@@ -196,29 +192,13 @@ func (t *TuyaMsgHandle) sendBattMsg(devId string, res gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.sendBattMsg > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.tyDevBattHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func (t *TuyaMsgHandle) sendCleanRecordMsg(jsonData []byte) {
-	msg := entity.OtherVendorDevMsg{}
-	msg.Cmd = 0x1200
-	msg.DevId = gjson.GetBytes(jsonData, "devId").String()
-	msg.DevType = "TYRobotCleaner"
-	msg.Vendor = "tuya"
-	msg.OriData = string(jsonData)
-
-	data, err := json.Marshal(msg)
-	if err != nil {
-		log.Warningf("TuyaCallback.sendCleanRecordMsg > json.Marshal > %s", err)
-	} else {
-		rabbitmq.Publish2pms(data, "")
-	}
-}
-
-func (t *TuyaMsgHandle) sendOnOffLineMsg(devId, jsonData string) {
+func tyDevOnOffHandle(devId, jsonData string) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
 	msg.DevId = devId
@@ -227,23 +207,21 @@ func (t *TuyaMsgHandle) sendOnOffLineMsg(devId, jsonData string) {
 
 	onOff := jsonData
 
-	if onOff == "online" {
+	if onOff == Ty_Event_Online {
 		msg.Time = 1
-	} else if onOff == "offline" {
+	} else  {
 		msg.Time = 0
-	} else {
-		return
 	}
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.sendOnOffLineMsg > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.tyDevOnOffHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func (t *TuyaMsgHandle) sendNotifyAct(devId string, res gjson.Result) {
+func tyDevStatusHandle(devId string, res gjson.Result) {
 	msg := entity.Feibee2DevMsg{}
 	msg.Cmd = 0xfb
 	msg.DevId = devId
@@ -255,9 +233,54 @@ func (t *TuyaMsgHandle) sendNotifyAct(devId string, res gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.sendNotifyAct > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.tyDevStatusHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
+	}
+}
+
+func tyAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
+	tyAlarmType := rawJsonData.Get("code").String()
+	alarmFlag := 0
+	rawAlarmVal := rawJsonData.Get("value").String()
+	if rawAlarmVal == "alarm" || rawAlarmVal == "presence" || rawAlarmVal == "true" {
+		alarmFlag = 1
+	}
+	if alarmFlag == 0 && tyAlarmType != Ty_Status_Doorcontact_State {
+		return
+	}
+	timestamp := rawJsonData.Get("t").Int()
+	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
+}
+
+func tyEnvSensorHandle(devId string, rawJsonData gjson.Result) {
+	tyAlarmType := rawJsonData.Get("code").String()
+	timestamp := rawJsonData.Get("t").Int()
+	alarmFlag := rawJsonData.Get("value").Int()
+
+	tySensorDataNotify(devId, tyAlarmType, int(alarmFlag), timestamp)
+}
+
+func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
+	var msg entity.Feibee2AlarmMsg
+	msg.Cmd = 0xfc
+	msg.Vendor = "tuya"
+	msg.Time = int(timestamp) / 1000
+	msg.MilliTimestamp = int(timestamp)
+	msg.DevId = devId
+
+	msg.AlarmType = TySensor2WonlySensor[tyAlarmType]
+	msg.AlarmFlag = alarmFlag
+	alarmVal,ok := SensorVal2Str[msg.AlarmType]
+	if ok {
+		msg.AlarmValue = alarmVal[msg.AlarmFlag]
+	} else {
+		msg.AlarmValue = strconv.Itoa(alarmFlag)
+	}
+
+	data,err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2mns(data, "")
 	}
 }
 
