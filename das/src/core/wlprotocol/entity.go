@@ -159,6 +159,14 @@ type UserUpdateLoad struct {
 	TimeSlot3 [4]byte // 时段3
 }
 
+// 用户参数设置（0x3B）
+// 用户编号（2）+ 用户参数类型（1）+ 参数内容（n）
+type SetDevUserParam struct {
+	UserNo     uint16 		// 设备用户编号
+	ParamType   uint8  		// 用户参数类型（1）
+	ParamValue  uint8  		// 参数内容（n）
+}
+
 //7. 实时视频(0x36)(服务器-->前板)
 type RealVideo struct {
 	Act uint8 // 视频打开/关闭：1打开视频，0关闭视频

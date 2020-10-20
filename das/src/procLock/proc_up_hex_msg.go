@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"das/core/constant"
+	constant "das/core/constant"
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
@@ -305,6 +305,34 @@ func ParseData(mydata interface{}) error {
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] ParseData constant.Update_dev_user toPms_byte json.Marshal, err=", err1)
 			return err1
+		}
+	case constant.Set_dev_user_para: { // 用户参数设置（0x3B） 
+			log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_user_para")
+			pdu := &wlprotocol.SetDevUserParam{}
+			err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
+			if nil != err {
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData Set_dev_user_para pdu.Decode, err=", err)
+				return err
+			}
+			
+			setDevUserPara := entity.SetDevUserParam {
+				Cmd:        int(wlMsg.Cmd),
+				Ack:        int(wlMsg.Ack),
+				DevType:    DEVICETYPE[wlMsg.Type],
+				DevId:      wlMsg.DevId.Uuid,
+				Vendor:     "general",
+				SeqId:      int(wlMsg.SeqId),
+				UserId:     pdu.UserNo,
+				ParamType:  pdu.ParamType,
+				ParamValue: pdu.ParamValue,
+			}
+
+			if to_byte, err1 := json.Marshal(setDevUserPara); err1 == nil {
+				rabbitmq.Publish2app(to_byte, wlMsg.DevId.Uuid) // 通知APP
+			} else {
+				log.Error("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_user_para to_byte json.Marshal, err=", err1)
+				return err1
+			}
 		}
 	case constant.Sync_dev_user:		// 请求同步用户列表(0x31)(服务器-->前板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Sync_dev_user")

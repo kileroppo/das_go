@@ -274,7 +274,8 @@ func ProcAppMsg(appMsg string) error {
 		// 添加锁用户，用户名
 		var setLockParamReq entity.SetLockParamReq
 		if err := json.Unmarshal([]byte(appMsg), &setLockParamReq); err != nil {
-		log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
+			log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
+			return err
 		}
 
 		userTag := strconv.FormatInt(time.Now().Unix(), 16)

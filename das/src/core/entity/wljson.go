@@ -250,6 +250,20 @@ type MRemoteOpenLockReq struct {
 	Bindstr string `json:"bindstr,omitempty"` // zigbee锁网关密码
 }
 
+// 设置锁用户参数
+type SetDevUserParam struct {
+	Cmd     int    `json:"cmd"`
+	Ack     int    `json:"ack"`
+	DevType string `json:"devType"`
+	DevId   string `json:"devId"`
+	Vendor  string `json:"vendor"`
+	SeqId   int    `json:"seqId"`
+
+	UserId  uint16 `json:"userId"`
+	ParamType  uint8 `json:"paramType"`
+	ParamValue  uint8 `json:"paramValue"`
+}
+
 type RemoteOpenLockResp struct {
 	Cmd     int    `json:"cmd"`
 	Ack     int    `json:"ack"`

@@ -5,6 +5,7 @@ import (
 	"das/core/log"
 	"das/core/util"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 )
 
@@ -369,6 +370,73 @@ func (pdu *UserUpdateLoad) Decode(bBody []byte, uuid string) error {
 		return err
 	}
 	if err = binary.Read(buf, binary.BigEndian, &pdu.TimeSlot3); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+
+	return err
+}
+
+// 用户参数设置（0x3B）
+// 用户编号（2）+ 用户参数类型（1）+ 参数内容（n）
+func (pdu *SetDevUserParam) Encode(uuid string) ([]byte, error) {
+	buf := new(bytes.Buffer) // 定义一个buffer，给了打包数据使用
+
+	// 组body
+	var err error
+	if err = binary.Write(buf, binary.BigEndian, pdu.UserNo); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+
+	if err = binary.Write(buf, binary.BigEndian, pdu.ParamType); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+
+	if err = binary.Write(buf, binary.BigEndian, pdu.ParamValue); err != nil {
+		log.Error("binary.Write failed:", err)
+		return nil, err
+	}
+
+	toDevice_byte := buf.Bytes()
+	log.Debug("[ ", uuid, " ] RealVideo Encode [ ", hex.EncodeToString(toDevice_byte), " ]")
+
+	var toDevData []byte
+	myKey := util.MD52Bytes(uuid)
+	if toDevData, err = util.ECBEncryptByte(toDevice_byte, myKey); err != nil {
+		log.Error("ECBEncryptByte failed, err=", err)
+		return nil, err
+	}
+
+	return toDevData, nil
+}
+func (pdu *SetDevUserParam) Decode(bBody []byte, uuid string) error {
+	var err error
+	var DValue []byte
+
+	//1. 生成密钥
+	myKey := util.MD52Bytes(uuid)
+
+	//2. 解密
+	DValue, err = util.ECBDecryptByte(bBody, myKey)
+	if nil != err {
+		log.Error("ECBDecryptByte failed, err=", err)
+		return err
+	}
+	log.Debug("[ ", uuid, " ] UserUpdateLoad Decode [ ", hex.EncodeToString(DValue), " ]")
+
+	//3. 解包体
+	buf := bytes.NewBuffer(DValue)
+	if err = binary.Read(buf, binary.BigEndian, &pdu.UserNo); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.ParamType); err != nil {
+		log.Error("binary.Read failed:", err)
+		return err
+	}
+	if err = binary.Read(buf, binary.BigEndian, &pdu.ParamValue); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
 	}

@@ -254,6 +254,25 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			return nil, err_
 		}
 		return bData, nil
+	case constant.Set_dev_user_para: { // 设置锁用户参数
+		var setDevUserParam entity.SetDevUserParam
+		if err := json.Unmarshal([]byte(jsonMsg), &setDevUserParam); err != nil {
+			log.Error("WlJson2BinMsg json.Unmarshal Header error, err=", err)
+			return nil, err
+		}
+
+		pdu := &wlprotocol.SetDevUserParam {
+			UserNo : setDevUserParam.UserId,
+			ParamType : setDevUserParam.ParamType,
+			ParamValue : setDevUserParam.ParamValue,
+		}
+		bData, err_ := wlMsg.PkEncode(pdu)
+		if nil != err_ {
+			log.Error("WlJson2BinMsg() Set_dev_user_para wlMsg.PkEncode, error: ", err_)
+			return nil, err_
+		}
+		return bData, nil
+	}
 	case constant.Remote_open: // 远程开锁
 		//log.Info("[", head.DevId, "] constant.Remote_open")
 
