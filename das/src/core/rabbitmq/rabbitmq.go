@@ -202,7 +202,7 @@ func Publish2mns(data []byte, routingKey string) {
 		log.Warningf("Publish2mns > %s", err)
 	} else {
 		SendGraylogByMQ("DAS-mq->MNS: %s", data)
-		log.Debugf("Publish2mns msg: %s", data)
+		//log.Debugf("Publish2mns msg: %s", data)
 	}
 }
 
@@ -219,7 +219,7 @@ func Publish2pms(data []byte, routingKey string) {
 		if err != nil {
 			log.Warningf("Publish2pms > %s", err)
 		} else {
-			log.Debugf("Publish2pms msg: %s", data)
+			//log.Debugf("Publish2pms msg: %s", data)
 		}
 	}()
 }
