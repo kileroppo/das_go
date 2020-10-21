@@ -73,6 +73,7 @@ var (
 		Ty_Status_Humidity:    tyEnvSensorHandle,
 		Ty_Status_PM25_Value:  tyEnvSensorHandle,
 		TY_Status_CO2_Value:   tyEnvSensorHandle,
+		Ty_Status_VOC:         tyEnvSensorHandle,
 
 		Ty_Status_Scene_1: tyDevSceneHandle,
 		Ty_Status_Scene_2: tyDevSceneHandle,

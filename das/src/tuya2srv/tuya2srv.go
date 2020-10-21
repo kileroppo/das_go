@@ -269,7 +269,11 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	msg.MilliTimestamp = int(timestamp)
 	msg.DevId = devId
 
-	msg.AlarmType = TySensor2WonlySensor[tyAlarmType]
+	var ok bool
+	msg.AlarmType,ok = TySensor2WonlySensor[tyAlarmType]
+	if !ok {
+		msg.AlarmType = tyAlarmType
+	}
 	msg.AlarmFlag = alarmFlag
 	alarmVal,ok := SensorVal2Str[msg.AlarmType]
 	if ok {
