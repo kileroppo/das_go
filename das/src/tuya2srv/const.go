@@ -36,6 +36,7 @@ const (
 	Ty_Status_CO_Value            = "CO"
 	TY_Status_CO2_Value           = "CO2"
 	Ty_Status_VOC                 = "VOC"
+	Ty_Status_CH2O                = "CH2O"
 	Ty_Status_Presence_State      = "presence_state"
 	Ty_Status_Scene_1             = "scene_1"
 	Ty_Status_Scene_2             = "scene_2"
@@ -63,7 +64,7 @@ var (
 		Ty_Status_Power:            tyDevOnlineHandle,
 		Ty_Status:                  tyDevStatusHandle,
 
-		Ty_Status_Clean_Record:     tyCleanRobotHandle,
+		Ty_Status_Clean_Record: tyCleanRobotHandle,
 
 		Ty_Status_Gas_Sensor_Status:   tyAlarmSensorHandle,
 		Ty_Status_Smoke_Sensor_Status: tyAlarmSensorHandle,
@@ -76,6 +77,7 @@ var (
 		Ty_Status_PM25_Value:  tyEnvSensorHandle,
 		TY_Status_CO2_Value:   tyEnvSensorHandle,
 		Ty_Status_VOC:         tyEnvSensorHandle,
+		Ty_Status_CH2O:        tyEnvSensorHandle,
 
 		Ty_Status_Scene_1: tyDevSceneHandle,
 		Ty_Status_Scene_2: tyDevSceneHandle,
@@ -93,6 +95,7 @@ var (
 		Ty_Status_PM25_Value:          Wonly_Status_Sensor_PM25,
 		TY_Status_CO2_Value:           Wonly_Status_Sensor_CO2,
 		Ty_Status_Presence_State:      Wonly_Status_Sensor_Infrared,
+		Ty_Status_CH2O:                Wonly_Status_Sensor_Formaldehyde,
 	}
 
 	SensorVal2Str = map[string]([]string){
@@ -101,5 +104,11 @@ var (
 		Wonly_Status_Sensor_Flood:       {"检测正常", "水浸位已超标，正在报警"},
 		Wonly_Status_Sensor_Infrared:    {"无人经过", "有人经过"},
 		Wonly_Status_Sensor_Doorcontact: {"门磁已关闭", "门磁已打开"},
+	}
+
+	TyEnvSensorUnitTrans = map[string]int{
+		Ty_Status_Temperature: 10,
+		TY_Status_CO2_Value:   100,
+		Ty_Status_CH2O:        100,
 	}
 )

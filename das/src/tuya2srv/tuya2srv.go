@@ -280,7 +280,12 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	if ok {
 		msg.AlarmValue = alarmVal[msg.AlarmFlag]
 	} else {
-		msg.AlarmValue = strconv.Itoa(alarmFlag)
+		unit, ok := TyEnvSensorUnitTrans[tyAlarmType]
+		if ok {
+			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)/float64(unit), 'f', 2, 64)
+		} else {
+			msg.AlarmValue = strconv.Itoa(alarmFlag)
+		}
 	}
 
 	data,err := json.Marshal(msg)
