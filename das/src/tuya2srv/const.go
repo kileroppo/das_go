@@ -36,6 +36,10 @@ const (
 	Ty_Status_CO_Value            = "co_value"
 	TY_Status_CO2_Value           = "co2_value"
 	Ty_Status_Presence_State      = "presence_state"
+	Ty_Status_Scene_1             = "scene_1"
+	Ty_Status_Scene_2             = "scene_2"
+	Ty_Status_Scene_3             = "scene_3"
+	Ty_Status_Scene_4             = "scene_4"
 )
 
 //涂鸦设备事件bizCode
@@ -68,6 +72,11 @@ var (
 		Ty_Status_Va_Humidity:    tyEnvSensorHandle,
 		Ty_Status_PM25_Value:     tyEnvSensorHandle,
 		TY_Status_CO2_Value:      tyEnvSensorHandle,
+
+		Ty_Status_Scene_1: tyDevSceneHandle,
+		Ty_Status_Scene_2: tyDevSceneHandle,
+		Ty_Status_Scene_3: tyDevSceneHandle,
+		Ty_Status_Scene_4: tyDevSceneHandle,
 	}
 
 	TySensor2WonlySensor = map[string]string{

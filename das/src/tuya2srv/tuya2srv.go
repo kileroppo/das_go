@@ -284,6 +284,19 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	}
 }
 
+func tyDevSceneHandle(devId string, res gjson.Result) {
+	var msg entity.Feibee2AutoSceneMsg
+	msg.Cmd = 0xf1
+	msg.DevId = devId + res.Get("code").String()
+	msg.AlarmType = "sceneSwitch"
+	msg.AlarmFlag = 1
+
+	data,err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2pms(data, "")
+	}
+}
+
 func Close() {
 	if consumer != nil {
 		consumer.Stop()
