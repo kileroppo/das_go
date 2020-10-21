@@ -10,6 +10,7 @@ import (
 
 	"das/core/entity"
 	"das/core/log"
+	"das/core/redis"
 )
 
 var (
@@ -207,28 +208,28 @@ func Publish2mns(data []byte, routingKey string) {
 }
 
 func Publish2pms(data []byte, routingKey string) {
-	if err := publishDirect(3, producerMQ,exSli[Ex2Pms_Index], routingKey, data); err != nil {
-		log.Warningf("Publish2pms > %s", err)
-	} else {
-		SendGraylogByMQ("DAS-mq->PMS: %s", data)
-		//log.Debugf("Publish2pms msg: %s", data)
-	}
-
-	//go func() {
-	//	var err error
+	//if err := publishDirect(3, producerMQ,exSli[Ex2Pms_Index], routingKey, data); err != nil {
+	//	log.Warningf("Publish2pms > %s", err)
+	//} else {
 	//	SendGraylogByMQ("DAS-mq->PMS: %s", data)
-	//	if redis.IsDevBeta(data) {
-	//		err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
-	//	} else {
-	//		err = publishDirect(3, producerMQ, exSli[Ex2Pms_Index], routingKey, data)
-	//	}
-	//
-	//	if err != nil {
-	//		log.Warningf("Publish2pms > %s", err)
-	//	} else {
-	//		//log.Debugf("Publish2pms msg: %s", data)
-	//	}
-	//}()
+	//	//log.Debugf("Publish2pms msg: %s", data)
+	//}
+
+	go func() {
+		var err error
+		SendGraylogByMQ("DAS-mq->PMS: %s", data)
+		if redis.IsDevBeta(data) {
+			err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
+		} else {
+			err = publishDirect(3, producerMQ, exSli[Ex2Pms_Index], routingKey, data)
+		}
+
+		if err != nil {
+			log.Warningf("Publish2pms > %s", err)
+		} else {
+			//log.Debugf("Publish2pms msg: %s", data)
+		}
+	}()
 }
 
 func Publish2log(data []byte, routingKey string) {
