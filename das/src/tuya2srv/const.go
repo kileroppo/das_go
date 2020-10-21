@@ -63,6 +63,8 @@ var (
 		Ty_Status_Power:            tyDevOnlineHandle,
 		Ty_Status:                  tyDevStatusHandle,
 
+		Ty_Status_Clean_Record:     tyCleanRobotHandle,
+
 		Ty_Status_Gas_Sensor_Status:   tyAlarmSensorHandle,
 		Ty_Status_Smoke_Sensor_Status: tyAlarmSensorHandle,
 		Ty_Status_Watersensor_State:   tyAlarmSensorHandle,

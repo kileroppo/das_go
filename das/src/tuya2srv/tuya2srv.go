@@ -145,7 +145,8 @@ func (t *TuyaMsgHandle) MsgHandle() {
 
 	devStatus := gjson.GetBytes(t.data, "status").Array()
 	for i, _ := range devStatus {
-		if handle, ok := TyHandleMap[devStatus[i].Get("code").String()]; ok {
+		statusCode := devStatus[i].Get("code").String()
+		if handle, ok := TyHandleMap[statusCode]; ok {
 			handle(devId, devStatus[i])
 		}
 	}
@@ -158,7 +159,7 @@ func (t *TuyaMsgHandle) send2Others(devId string, oriData []byte) {
 	data, err := json.Marshal(t.msg2Others)
 	if err == nil {
 		rabbitmq.Publish2mns(data, "")
-		rabbitmq.Publish2pms(data, "")
+		//rabbitmq.Publish2pms(data, "")
 	}
 }
 
@@ -303,6 +304,26 @@ func tyDevSceneHandle(devId string, res gjson.Result) {
 	msg.AlarmFlag = 1
 
 	data,err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2pms(data, "")
+	}
+}
+
+func tyCleanRobotHandle(devId string, rawJsonData gjson.Result) {
+	msg := entity.OtherVendorDevMsg{
+		Header: entity.Header{
+			Cmd:     0x1200,
+			Ack:     0,
+			DevType: "",
+			DevId:   devId,
+			Vendor:  "tuya",
+			SeqId:   0,
+		},
+		OriData: "",
+	}
+	msg.OriData = rawJsonData.Raw
+
+	data, err := json.Marshal(msg)
 	if err == nil {
 		rabbitmq.Publish2pms(data, "")
 	}
