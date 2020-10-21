@@ -281,6 +281,13 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	data,err := json.Marshal(msg)
 	if err == nil {
 		rabbitmq.Publish2mns(data, "")
+		rabbitmq.Publish2pms(data, "")
+	}
+
+	msg.Cmd = 0xf1
+	data,err = json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2pms(data, "")
 	}
 }
 

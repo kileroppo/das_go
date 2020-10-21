@@ -29,12 +29,13 @@ const (
 	Ty_Status_Doorcontact_State   = "doorcontact_state"
 	Ty_Status_Gas_Sensor_Status   = "gas_sensor_status"
 	Ty_Status_Smoke_Sensor_Status = "smoke_sensor_status"
-	Ty_Status_Va_Temperature      = "va_temperature"
-	Ty_Status_Va_Humidity         = "va_humidity"
+	Ty_Status_Temperature         = "TMP"
+	Ty_Status_Humidity            = "HUM"
 	Ty_Status_Watersensor_State   = "watersensor_state"
-	Ty_Status_PM25_Value          = "pm25_value"
-	Ty_Status_CO_Value            = "co_value"
-	TY_Status_CO2_Value           = "co2_value"
+	Ty_Status_PM25_Value          = "PM2_5"
+	Ty_Status_CO_Value            = "CO"
+	TY_Status_CO2_Value           = "CO2"
+	Ty_Status_VOC                 = "VOC"
 	Ty_Status_Presence_State      = "presence_state"
 	Ty_Status_Scene_1             = "scene_1"
 	Ty_Status_Scene_2             = "scene_2"
@@ -68,10 +69,10 @@ var (
 		Ty_Status_Presence_State:      tyAlarmSensorHandle,
 		Ty_Status_Doorcontact_State:   tyAlarmSensorHandle,
 
-		Ty_Status_Va_Temperature: tyEnvSensorHandle,
-		Ty_Status_Va_Humidity:    tyEnvSensorHandle,
-		Ty_Status_PM25_Value:     tyEnvSensorHandle,
-		TY_Status_CO2_Value:      tyEnvSensorHandle,
+		Ty_Status_Temperature: tyEnvSensorHandle,
+		Ty_Status_Humidity:    tyEnvSensorHandle,
+		Ty_Status_PM25_Value:  tyEnvSensorHandle,
+		TY_Status_CO2_Value:   tyEnvSensorHandle,
 
 		Ty_Status_Scene_1: tyDevSceneHandle,
 		Ty_Status_Scene_2: tyDevSceneHandle,
@@ -83,8 +84,8 @@ var (
 		Ty_Status_Gas_Sensor_Status:   Wonly_Status_Sensor_Gas,
 		Ty_Status_Smoke_Sensor_Status: Wonly_Status_Sensor_Smoke,
 		Ty_Status_Doorcontact_State:   Wonly_Status_Sensor_Doorcontact,
-		Ty_Status_Va_Temperature:      Wonly_Status_Sensor_Temperature,
-		Ty_Status_Va_Humidity:         Wonly_Status_Sensor_Humidity,
+		Ty_Status_Temperature:         Wonly_Status_Sensor_Temperature,
+		Ty_Status_Humidity:            Wonly_Status_Sensor_Humidity,
 		Ty_Status_Watersensor_State:   Wonly_Status_Sensor_Flood,
 		Ty_Status_PM25_Value:          Wonly_Status_Sensor_PM25,
 		TY_Status_CO2_Value:           Wonly_Status_Sensor_CO2,

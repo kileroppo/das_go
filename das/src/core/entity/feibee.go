@@ -115,8 +115,9 @@ type Feibee2DevMsg struct {
 type Feibee2AlarmMsg struct {
 	Header
 
-	Time int `json:"time"`
+	Time           int `json:"time"`
 	MilliTimestamp int `json:"milli_timestamp"`
+	TriggerType    int `json:"triggerT"`
 
 	AlarmType  string `json:"alarmType,omitempty"`
 	AlarmValue string `json:"alarmValue,omitempty"`
