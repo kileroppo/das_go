@@ -207,7 +207,7 @@ func Publish2mns(data []byte, routingKey string) {
 }
 
 func Publish2pms(data []byte, routingKey string) {
-	if err := publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data); err != nil {
+	if err := publishDirect(3, producerMQ,exSli[Ex2Pms_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2pms > %s", err)
 	} else {
 		SendGraylogByMQ("DAS-mq->PMS: %s", data)
