@@ -78,8 +78,10 @@ type SetTmpDevUser struct {
 
 	UserId uint16   `json:"userId"` // 设备用户ID
 	Total  uint16   `json:"total"`  // 开门次数，0xffff为无限次
+	Count  uint16   `json:"count"`  // 开门次数，0xffff为无限次
 	MyDate MyDTM    `json:"date"`   // 开始有效时间
 	MyTime [3]MyDTM `json:"time"`   // 时段
+	TimeLength string `json:"time_length"` // 捷博锁临时用户，时长（单位：秒）
 }
 
 type UserOperUpload struct {

@@ -249,6 +249,22 @@ func ProcAppMsg(appMsg string) error {
 		appMsg = string(addDevUserStr)
 		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
+	case constant.Set_dev_user_temp: {
+		var setTmpDevUser entity.SetTmpDevUser
+		if err := json.Unmarshal([]byte(appMsg), &setTmpDevUser); err != nil {
+			log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
+		}
+		if setTmpDevUser.Total > 0 {
+			setTmpDevUser.Count = setTmpDevUser.Total // TODO:JHHE 2020-10-22 兼容旧版平板门
+		}
+		// json转字符串
+		setTmpDevUserStr, err1 := json.Marshal(setTmpDevUser)
+		if err1 != nil {
+			log.Error("ProcAppMsg setTmpDevUser json.Marshal failed, err=", err1)
+			return err1
+		}
+		appMsg = string(setTmpDevUserStr)
+	}
 	case constant.Del_dev_user: {
 		// 添加锁用户，用户名
 		var delDevUser entity.DelDevUser
