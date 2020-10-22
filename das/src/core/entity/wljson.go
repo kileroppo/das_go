@@ -36,6 +36,7 @@ type AddDevUser struct {
 	SubOpen  uint8       `json:"subOpen"`     // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
 	Passwd   string      `json:"passwd"`      // 如果是添加密码需要填写
 	Total    uint16      `json:"total"`       // 开门次数，0xffff为无限次
+	Count    uint16      `json:"count"`       // 开门次数，0xffff为无限次
 	MyDate   MyDTM       `json:"date"`        // 开始有效时间
 	MyTime   [3]MyDTM    `json:"time"`        // 时段
 	TimeLen  interface{} `json:"time_length"` // 兼容捷博生产商，临时用户时长（单位：秒）

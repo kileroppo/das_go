@@ -218,6 +218,9 @@ func ProcAppMsg(appMsg string) error {
 		//}
 		go redis.SetAppUserPool(addDevUser.DevId, userTag, addDevUser.AppUser)
 		addDevUser.AppUser = userTag // 值跟KEY交换，下发到锁端
+		if addDevUser.Total > 0 {
+			addDevUser.Count = addDevUser.Total // TODO:JHHE 2020-10-22 兼容旧版平板门
+		}
 
 		if constant.OPEN_PWD == addDevUser.MainOpen { // 主开锁方式（1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙）
 			if len(addDevUser.Passwd) > 6 {
