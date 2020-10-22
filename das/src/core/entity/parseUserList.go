@@ -19,7 +19,7 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 	var card uint8			// 卡数量
 	var face uint8          // 人脸数量
 	var bluetooth uint8     // 蓝牙数量
-	var count uint16			// 开门次数，0为无限次
+	var total uint16			// 开门次数，0为无限次
 	var remainder uint16    	// 剩余开门次数
 	var date_start [3]byte   	// 开始有效时间 : 年月日,BCD码，截止有效时间 : 年月日,BCD码
 	var date_end [3]byte
@@ -89,11 +89,11 @@ func (devUser *DevUser) ParseUser(DValue string) error {
 		}
 		devUser.Bluetooth = int(bluetooth)
 	}
-	if err = binary.Read(buf, binary.BigEndian, &count); err != nil {
+	if err = binary.Read(buf, binary.BigEndian, &total); err != nil {
 		log.Error("binary.Read failed:", err)
 		return err
 	}
-	devUser.Count = int(count)
+	devUser.Total = int(total)
 
 	if err = binary.Read(buf, binary.BigEndian, &remainder); err != nil {
 		log.Error("binary.Read failed:", err)

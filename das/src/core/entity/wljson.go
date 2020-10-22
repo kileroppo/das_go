@@ -35,7 +35,7 @@ type AddDevUser struct {
 	MainOpen uint8       `json:"mainOpen"`    // 主开锁方式（1-密码，2-刷卡，3-指纹）
 	SubOpen  uint8       `json:"subOpen"`     // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
 	Passwd   string      `json:"passwd"`      // 如果是添加密码需要填写
-	Count    uint16      `json:"count"`       // 开门次数，0xffff为无限次
+	Total    uint16      `json:"total"`       // 开门次数，0xffff为无限次
 	MyDate   MyDTM       `json:"date"`        // 开始有效时间
 	MyTime   [3]MyDTM    `json:"time"`        // 时段
 	TimeLen  interface{} `json:"time_length"` // 兼容捷博生产商，临时用户时长（单位：秒）
@@ -58,7 +58,7 @@ type _DelDevUser struct {
 	MainOpen uint8       `json:"mainOpen"`    // 主开锁方式（1-密码，2-刷卡，3-指纹）
 	SubOpen  uint8       `json:"subOpen"`     // 次开锁方式 (0-正常指纹，1-胁迫指纹, 0:正常密码，1:胁迫密码，2:时间段密码，3:远程密码）
 	Passwd   string      `json:"passwd"`      // 如果是添加密码需要填写
-	Count    uint16      `json:"count"`       // 开门次数，0xffff为无限次
+	Total    uint16      `json:"total"`       // 开门次数，0xffff为无限次
 	MyDate   MyDTM       `json:"date"`        // 开始有效时间
 	MyTime   [3]MyDTM    `json:"time"`        // 时段
 	TimeLen  interface{} `json:"time_length"` // 兼容捷博生产商，临时用户时长（单位：秒）
@@ -76,7 +76,7 @@ type SetTmpDevUser struct {
 	SeqId   int    `json:"seqId"`
 
 	UserId uint16   `json:"userId"` // 设备用户ID
-	Count  uint16   `json:"count"`  // 开门次数，0xffff为无限次
+	Total  uint16   `json:"total"`  // 开门次数，0xffff为无限次
 	MyDate MyDTM    `json:"date"`   // 开始有效时间
 	MyTime [3]MyDTM `json:"time"`   // 时段
 }
@@ -155,7 +155,7 @@ type DevUserUpload struct {
 	Card      int      `json:"card"`      // 卡数量
 	Face      int      `json:"face"`      // 人脸数量（可视人脸锁带该字段）
 	Bluetooth int      `json:"bluetooth"` // 蓝牙数量（蓝牙开锁方式）
-	Count     int      `json:"count"`     // 开门次数，0为无限次
+	Total     int      `json:"total"`     // 开门次数，0为无限次
 	Remainder int      `json:"remainder"` // 剩下的开门次数
 	MyDate    MyDTM    `json:"date"`      // 开始有效时间
 	MyTime    [3]MyDTM `json:"time"`      // 时段
@@ -184,7 +184,7 @@ type DevUser struct {
 	Card      int      `json:"card"`      // 卡数量
 	Face      int      `json:"face"`      // 人脸数量（可视人脸锁带该字段）
 	Bluetooth int      `json:"bluetooth"` // 蓝牙数量（蓝牙开锁方式）
-	Count     int      `json:"count"`     // 开门次数，0为无限次
+	Total     int      `json:"total"`     // 开门次数，0为无限次
 	Remainder int      `json:"remainder"` // 剩下的开门次数
 	MyDate    MyDTM    `json:"date"`      // 开始有效时间
 	MyTime    [3]MyDTM `json:"time"`      // 时段

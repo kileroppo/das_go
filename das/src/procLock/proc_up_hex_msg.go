@@ -222,7 +222,7 @@ func ParseData(mydata interface{}) error {
 		devUserUpload.Ffinger = int((pdu.OpenBitMap >> 5 & 0x01) + (pdu.OpenBitMap >> 6 & 0x01))
 		devUserUpload.Face = int(pdu.OpenBitMap >> 7 & 0x01)
 		devUserUpload.Bluetooth = int(pdu.OpenBitMap >> 8 & 0x01)
-		devUserUpload.Count	= int(pdu.PermitNum)
+		devUserUpload.Total	= int(pdu.PermitNum)
 		devUserUpload.Remainder	= int(pdu.Remainder)
 
 		// 开始日期
@@ -362,7 +362,7 @@ func ParseData(mydata interface{}) error {
 			devUser.Ffinger = int((pdu.DevUserInfos[i].OpenBitMap >> 5 & 0x01) + (pdu.DevUserInfos[i].OpenBitMap >> 6 & 0x01))
 			devUser.Face = int(pdu.DevUserInfos[i].OpenBitMap >> 7 & 0x01)
 			devUser.Bluetooth = int(pdu.DevUserInfos[i].OpenBitMap >> 8 & 0x01)
-			devUser.Count = int(pdu.DevUserInfos[i].PermitNum)
+			devUser.Total = int(pdu.DevUserInfos[i].PermitNum)
 			devUser.Remainder = int(pdu.DevUserInfos[i].Remainder)
 
 			// 开始日期
