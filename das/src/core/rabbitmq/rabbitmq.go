@@ -6,10 +6,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/streadway/amqp"
+
 	"das/core/entity"
 	"das/core/log"
 	"das/core/redis"
-	"github.com/streadway/amqp"
 )
 
 var (
@@ -207,6 +208,13 @@ func Publish2mns(data []byte, routingKey string) {
 }
 
 func Publish2pms(data []byte, routingKey string) {
+	//if err := publishDirect(3, producerMQ,exSli[Ex2Pms_Index], routingKey, data); err != nil {
+	//	log.Warningf("Publish2pms > %s", err)
+	//} else {
+	//	SendGraylogByMQ("DAS-mq->PMS: %s", data)
+	//	//log.Debugf("Publish2pms msg: %s", data)
+	//}
+
 	go func() {
 		var err error
 		SendGraylogByMQ("DAS-mq->PMS: %s", data)

@@ -72,7 +72,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 			UserType: addDevUser.UserType, // 用户类型(1)，用户类型:  0 - 管理员，1 - 普通用户，2 - 临时用户
 			// Passwd: addDevUser.Passwd,		// 密码(6)，密码开锁方式，目前是6个字节.如果添加的是其他验证方式,则为0xff.密码位数少于10位时,多余的填0xff
 			UserNote:  int32(nRandom),   // 用户别名-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
-			PermitNum: addDevUser.Count, // 允许开门次数
+			PermitNum: addDevUser.Total, // 允许开门次数
 			AppUser: int32(appUser),	// APP用户账号-时间戳存在redis中key-value对应 时间戳的16进制作为随机数
 		}
 
@@ -131,7 +131,7 @@ func WlJson2BinMsgZigbee(jsonMsg string, wifiData uint8) ([]byte, error) {
 
 		pdu := &wlprotocol.SetTmpDevUser{
 			UserNo:    setTmpDevUser.UserId, // 设备用户编号，指定操作的用户编号，如果是0XFFFF表示新添加一个用户
-			PermitNum: setTmpDevUser.Count,  // 允许开门次数
+			PermitNum: setTmpDevUser.Total,  // 允许开门次数
 		}
 
 		setTmpDevUser.MyDate.Start = convertHexDateTime(setTmpDevUser.MyDate.Start)

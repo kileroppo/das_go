@@ -39,6 +39,7 @@ const (
 	Del_dev_user      = 0x32 // 删除设备用户
 	Update_dev_user   = 0x35 // 用户更新上报
 	Sync_dev_user     = 0x31 // 同步设备用户列表
+	Set_dev_user_para = 0x3B // 设置设备用户参数
 	Remote_open       = 0x52 // 远程开锁
 	Upload_dev_info   = 0x70 // 上传设备信息
 
