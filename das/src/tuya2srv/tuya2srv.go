@@ -138,16 +138,16 @@ func (t *TuyaMsgHandle) MsgHandle() {
 	t.send2Others(devId, t.data)
 
 	bizCode := gjson.GetBytes(t.data, "bizCode").String()
-	switch bizCode {
-	case Ty_Event_Online, Ty_Event_Offline:
-		tyDevOnOffHandle(devId, bizCode)
+	eventHandle, ok := TyDevEventHandlers[bizCode]
+	if ok {
+		eventHandle(devId, bizCode, gjson.GetBytes(t.data, "bizData"))
 	}
 
 	devStatus := gjson.GetBytes(t.data, "status").Array()
 	for i, _ := range devStatus {
 		statusCode := devStatus[i].Get("code").String()
-		if handle, ok := TyHandleMap[statusCode]; ok {
-			handle(devId, devStatus[i])
+		if statusHandle, ok := TyDevStatusHandlers[statusCode]; ok {
+			statusHandle(devId, devStatus[i])
 		}
 	}
 }
@@ -163,84 +163,82 @@ func (t *TuyaMsgHandle) send2Others(devId string, oriData []byte) {
 	}
 }
 
-func tyDevOnlineHandle(devId string, res gjson.Result) {
+func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
 
-	if res.Get("value").Bool() {
-		return
-	}
-
-	data, err := json.Marshal(msg)
-	if err != nil {
-		log.Warningf("TuyaCallback.tyDevOnOffHandle > json.Marshal > %s", err)
-	} else {
-		rabbitmq.Publish2app(data, msg.DevId)
-	}
-}
-
-func tyDevBattHandle(devId string, res gjson.Result) {
-	msg := entity.AlarmMsgBatt{}
-	msg.Cmd = 0x2a
-	msg.DevId = devId
-	msg.Vendor = "tuya"
-	msg.DevType = "TYRobotCleaner"
-	msg.Value = int(res.Get("value").Int())
-	msg.Time = int32(res.Get("t").Int() / 1000)
-
-	data, err := json.Marshal(msg)
-	if err != nil {
-		log.Warningf("TuyaCallback.tyDevBattHandle > json.Marshal > %s", err)
-	} else {
-		rabbitmq.Publish2app(data, msg.DevId)
-	}
-}
-
-func tyDevOnOffHandle(devId, jsonData string) {
-	msg := entity.DeviceActive{}
-	msg.Cmd = 0x46
-	msg.DevId = devId
-	msg.Vendor = "tuya"
-	msg.DevType = "TYRobotCleaner"
-
-	onOff := jsonData
-
-	if onOff == Ty_Event_Online {
+	if tyEvent == Ty_Event_Online {
 		msg.Time = 1
-	} else  {
+	} else {
 		msg.Time = 0
 	}
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.tyDevOnOffHandle > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.TyEventOnOffHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func tyDevStatusHandle(devId string, res gjson.Result) {
+func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {
+	msg := entity.DeviceActive{}
+	msg.Cmd = 0x46
+	msg.DevId = devId
+	msg.Vendor = "tuya"
+	msg.DevType = "TYRobotCleaner"
+
+	if rawJsonData.Get("value").Bool() {
+		return
+	}
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("TuyaCallback.TyEventOnOffHandle > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.DevId)
+	}
+}
+
+func TyStatusBattHandle(devId string, rawJsonData gjson.Result) {
+	msg := entity.AlarmMsgBatt{}
+	msg.Cmd = 0x2a
+	msg.DevId = devId
+	msg.Vendor = "tuya"
+	msg.DevType = "TYRobotCleaner"
+	msg.Value = int(rawJsonData.Get("value").Int())
+	msg.Time = int32(rawJsonData.Get("t").Int() / 1000)
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		log.Warningf("TuyaCallback.TyStatusBattHandle > json.Marshal > %s", err)
+	} else {
+		rabbitmq.Publish2app(data, msg.DevId)
+	}
+}
+
+func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.Feibee2DevMsg{}
 	msg.Cmd = 0xfb
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
 
-	msg.OpType = res.Get("code").String()
-	msg.OpValue = res.Get("value").String()
+	msg.OpType = rawJsonData.Get("code").String()
+	msg.OpValue = rawJsonData.Get("value").String()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.tyDevStatusHandle > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.TyStatusNormalHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
 }
 
-func tyAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
+func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 	tyAlarmType := rawJsonData.Get("code").String()
 	alarmFlag := 0
 	rawAlarmVal := rawJsonData.Get("value").String()
@@ -254,7 +252,7 @@ func tyAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
 }
 
-func tyEnvSensorHandle(devId string, rawJsonData gjson.Result) {
+func TyStatusEnvSensorHandle(devId string, rawJsonData gjson.Result) {
 	tyAlarmType := rawJsonData.Get("code").String()
 	timestamp := rawJsonData.Get("t").Int()
 	alarmFlag := rawJsonData.Get("value").Int()
@@ -262,59 +260,20 @@ func tyEnvSensorHandle(devId string, rawJsonData gjson.Result) {
 	tySensorDataNotify(devId, tyAlarmType, int(alarmFlag), timestamp)
 }
 
-func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
-	var msg entity.Feibee2AlarmMsg
-	msg.Cmd = 0xfc
-	msg.Vendor = "tuya"
-	msg.Time = int(timestamp) / 1000
-	msg.MilliTimestamp = int(timestamp)
-	msg.DevId = devId
-
-	var ok bool
-	msg.AlarmType,ok = TySensor2WonlySensor[tyAlarmType]
-	if !ok {
-		msg.AlarmType = tyAlarmType
-	}
-	msg.AlarmFlag = alarmFlag
-	alarmVal,ok := SensorVal2Str[msg.AlarmType]
-	if ok {
-		msg.AlarmValue = alarmVal[msg.AlarmFlag]
-	} else {
-		unit, ok := TyEnvSensorUnitTrans[tyAlarmType]
-		if ok {
-			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)/float64(unit), 'f', 2, 64)
-		} else {
-			msg.AlarmValue = strconv.Itoa(alarmFlag)
-		}
-	}
-
-	data,err := json.Marshal(msg)
-	if err == nil {
-		rabbitmq.Publish2mns(data, "")
-		rabbitmq.Publish2pms(data, "")
-	}
-
-	msg.Cmd = 0xf1
-	data,err = json.Marshal(msg)
-	if err == nil {
-		rabbitmq.Publish2pms(data, "")
-	}
-}
-
-func tyDevSceneHandle(devId string, res gjson.Result) {
+func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
 	var msg entity.Feibee2AutoSceneMsg
 	msg.Cmd = 0xf1
-	msg.DevId = devId + res.Get("code").String()
+	msg.DevId = devId + rawJsonData.Get("code").String()
 	msg.AlarmType = "sceneSwitch"
 	msg.AlarmFlag = 1
 
-	data,err := json.Marshal(msg)
+	data, err := json.Marshal(msg)
 	if err == nil {
 		rabbitmq.Publish2pms(data, "")
 	}
 }
 
-func tyCleanRobotHandle(devId string, rawJsonData gjson.Result) {
+func TyStatusCleanRecordHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.OtherVendorDevMsg{
 		Header: entity.Header{
 			Cmd:     0x1200,
@@ -329,6 +288,45 @@ func tyCleanRobotHandle(devId string, rawJsonData gjson.Result) {
 	msg.OriData = rawJsonData.Raw
 
 	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2pms(data, "")
+	}
+}
+
+func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
+	var msg entity.Feibee2AlarmMsg
+	msg.Cmd = 0xfc
+	msg.Vendor = "tuya"
+	msg.Time = int(timestamp) / 1000
+	msg.MilliTimestamp = int(timestamp)
+	msg.DevId = devId
+
+	var ok bool
+	msg.AlarmType, ok = TySensor2WonlySensor[tyAlarmType]
+	if !ok {
+		msg.AlarmType = tyAlarmType
+	}
+	msg.AlarmFlag = alarmFlag
+	alarmVal, ok := SensorVal2Str[msg.AlarmType]
+	if ok {
+		msg.AlarmValue = alarmVal[msg.AlarmFlag]
+	} else {
+		unit, ok := TyEnvSensorUnitTrans[tyAlarmType]
+		if ok {
+			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)/float64(unit), 'f', 2, 64)
+		} else {
+			msg.AlarmValue = strconv.Itoa(alarmFlag)
+		}
+	}
+
+	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2mns(data, "")
+		rabbitmq.Publish2pms(data, "")
+	}
+
+	msg.Cmd = 0xf1
+	data, err = json.Marshal(msg)
 	if err == nil {
 		rabbitmq.Publish2pms(data, "")
 	}

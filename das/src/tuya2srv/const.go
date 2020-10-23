@@ -55,34 +55,40 @@ const (
 	Ty_Event_Upgrade_Status = "upgradeStatus"
 )
 
-type TyHandle func(devId string, rawJsonData gjson.Result)
+type TyStatusHandle func(devId string, rawJsonData gjson.Result)
+type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 
 //涂鸦处理分类
 var (
-	TyHandleMap = map[string]TyHandle{
-		Ty_Status_Electricity_Left: tyDevBattHandle,
-		Ty_Status_Power:            tyDevOnlineHandle,
-		Ty_Status:                  tyDevStatusHandle,
+	TyDevStatusHandlers = map[string]TyStatusHandle{
+		Ty_Status_Electricity_Left: TyStatusBattHandle,
+		Ty_Status_Power:            TyStatusPowerHandle,
+		Ty_Status:                  TyStatusNormalHandle,
 
-		Ty_Status_Clean_Record: tyCleanRobotHandle,
+		Ty_Status_Clean_Record: TyStatusCleanRecordHandle,
 
-		Ty_Status_Gas_Sensor_Status:   tyAlarmSensorHandle,
-		Ty_Status_Smoke_Sensor_Status: tyAlarmSensorHandle,
-		Ty_Status_Watersensor_State:   tyAlarmSensorHandle,
-		Ty_Status_Presence_State:      tyAlarmSensorHandle,
-		Ty_Status_Doorcontact_State:   tyAlarmSensorHandle,
+		Ty_Status_Gas_Sensor_Status:   TyStatusAlarmSensorHandle,
+		Ty_Status_Smoke_Sensor_Status: TyStatusAlarmSensorHandle,
+		Ty_Status_Watersensor_State:   TyStatusAlarmSensorHandle,
+		Ty_Status_Presence_State:      TyStatusAlarmSensorHandle,
+		Ty_Status_Doorcontact_State:   TyStatusAlarmSensorHandle,
 
-		Ty_Status_Temperature: tyEnvSensorHandle,
-		Ty_Status_Humidity:    tyEnvSensorHandle,
-		Ty_Status_PM25_Value:  tyEnvSensorHandle,
-		TY_Status_CO2_Value:   tyEnvSensorHandle,
-		Ty_Status_VOC:         tyEnvSensorHandle,
-		Ty_Status_CH2O:        tyEnvSensorHandle,
+		Ty_Status_Temperature: TyStatusEnvSensorHandle,
+		Ty_Status_Humidity:    TyStatusEnvSensorHandle,
+		Ty_Status_PM25_Value:  TyStatusEnvSensorHandle,
+		TY_Status_CO2_Value:   TyStatusEnvSensorHandle,
+		Ty_Status_VOC:         TyStatusEnvSensorHandle,
+		Ty_Status_CH2O:        TyStatusEnvSensorHandle,
 
-		Ty_Status_Scene_1: tyDevSceneHandle,
-		Ty_Status_Scene_2: tyDevSceneHandle,
-		Ty_Status_Scene_3: tyDevSceneHandle,
-		Ty_Status_Scene_4: tyDevSceneHandle,
+		Ty_Status_Scene_1: TyStatusSceneHandle,
+		Ty_Status_Scene_2: TyStatusSceneHandle,
+		Ty_Status_Scene_3: TyStatusSceneHandle,
+		Ty_Status_Scene_4: TyStatusSceneHandle,
+	}
+
+	TyDevEventHandlers = map[string]TyEventHandle{
+		Ty_Event_Online: TyEventOnOffHandle,
+		Ty_Event_Offline: TyEventOnOffHandle,
 	}
 
 	TySensor2WonlySensor = map[string]string{
