@@ -1,23 +1,9 @@
 package tuya2srv
 
-import "github.com/tidwall/gjson"
+import (
+	"github.com/tidwall/gjson"
 
-//王力传感器报警字符类型枚举
-const (
-	Wonly_Status_Sensor_Illuminance  = "illuminance"
-	Wonly_Status_Sensor_Humidity     = "humidity"
-	Wonly_Status_Sensor_Temperature  = "temperature"
-	Wonly_Status_Sensor_PM25         = "PM2.5"
-	Wonly_Status_Sensor_VOC          = "VOC"
-	Wonly_Status_Sensor_Formaldehyde = "formaldehyde"
-	Wonly_Status_Sensor_CO2          = "CO2"
-	Wonly_Status_Sensor_Gas          = "gas"
-	Wonly_Status_Sensor_Smoke        = "smoke"
-	Wonly_Status_Sensor_Infrared     = "infrared"
-	Wonly_Status_Sensor_Doorcontact  = "doorContact"
-	Wonly_Status_Sensor_Flood        = "flood"
-	Wonly_Status_Sensor_SOSButton    = "sosButton"
-	Wonly_Status_Pad_People          = "peopleDetection"
+	"das/core/constant"
 )
 
 //涂鸦设备状态code枚举
@@ -42,6 +28,7 @@ const (
 	Ty_Status_Scene_2             = "scene_2"
 	Ty_Status_Scene_3             = "scene_3"
 	Ty_Status_Scene_4             = "scene_4"
+	Ty_Status_Temper_Alarm        = "temper_alarm"
 )
 
 //涂鸦设备事件bizCode
@@ -72,6 +59,7 @@ var (
 		Ty_Status_Watersensor_State:   TyStatusAlarmSensorHandle,
 		Ty_Status_Presence_State:      TyStatusAlarmSensorHandle,
 		Ty_Status_Doorcontact_State:   TyStatusAlarmSensorHandle,
+		Ty_Status_Temper_Alarm:        TyStatusAlarmSensorHandle,
 
 		Ty_Status_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Humidity:    TyStatusEnvSensorHandle,
@@ -92,24 +80,17 @@ var (
 	}
 
 	TySensor2WonlySensor = map[string]string{
-		Ty_Status_Gas_Sensor_Status:   Wonly_Status_Sensor_Gas,
-		Ty_Status_Smoke_Sensor_Status: Wonly_Status_Sensor_Smoke,
-		Ty_Status_Doorcontact_State:   Wonly_Status_Sensor_Doorcontact,
-		Ty_Status_Temperature:         Wonly_Status_Sensor_Temperature,
-		Ty_Status_Humidity:            Wonly_Status_Sensor_Humidity,
-		Ty_Status_Watersensor_State:   Wonly_Status_Sensor_Flood,
-		Ty_Status_PM25_Value:          Wonly_Status_Sensor_PM25,
-		TY_Status_CO2_Value:           Wonly_Status_Sensor_CO2,
-		Ty_Status_Presence_State:      Wonly_Status_Sensor_Infrared,
-		Ty_Status_CH2O:                Wonly_Status_Sensor_Formaldehyde,
-	}
-
-	SensorVal2Str = map[string]([]string){
-		Wonly_Status_Sensor_Gas:         {"检测正常", "燃气浓度已超标，正在报警"},
-		Wonly_Status_Sensor_Smoke:       {"检测正常", "烟雾浓度已超标，正在报警"},
-		Wonly_Status_Sensor_Flood:       {"检测正常", "水浸位已超标，正在报警"},
-		Wonly_Status_Sensor_Infrared:    {"无人经过", "有人经过"},
-		Wonly_Status_Sensor_Doorcontact: {"门磁已关闭", "门磁已打开"},
+		Ty_Status_Gas_Sensor_Status:   constant.Wonly_Status_Sensor_Gas,
+		Ty_Status_Smoke_Sensor_Status: constant.Wonly_Status_Sensor_Smoke,
+		Ty_Status_Doorcontact_State:   constant.Wonly_Status_Sensor_Doorcontact,
+		Ty_Status_Temperature:         constant.Wonly_Status_Sensor_Temperature,
+		Ty_Status_Humidity:            constant.Wonly_Status_Sensor_Humidity,
+		Ty_Status_Watersensor_State:   constant.Wonly_Status_Sensor_Flood,
+		Ty_Status_PM25_Value:          constant.Wonly_Status_Sensor_PM25,
+		TY_Status_CO2_Value:           constant.Wonly_Status_Sensor_CO2,
+		Ty_Status_Presence_State:      constant.Wonly_Status_Sensor_Infrared,
+		Ty_Status_CH2O:                constant.Wonly_Status_Sensor_Formaldehyde,
+		Ty_Status_Temper_Alarm:        constant.Wonly_Status_Sensor_Forced_Break,
 	}
 
 	TyEnvSensorUnitTrans = map[string]int{

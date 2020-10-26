@@ -34,7 +34,7 @@ const (
 
 	Add_dev_user      = 0x33 // 添加设备用户
 	Set_dev_user_temp = 0x76 // 设置临时用户
-	User_oper_upload = 0x77 // 用户操作上报
+	User_oper_upload  = 0x77 // 用户操作上报
 	Add_dev_user_step = 0x34 // 新增用户步骤
 	Del_dev_user      = 0x32 // 删除设备用户
 	Update_dev_user   = 0x35 // 用户更新上报
@@ -56,7 +56,7 @@ const (
 	Forced_break_alarm = 0x22 // 强拆报警
 	Fakelock_alarm     = 0x24 // 假锁报警
 	Nolock_alarm       = 0x26 // 门未关报警
-	Gas_Alarm 		   = 0x27 // 燃气报警
+	Gas_Alarm          = 0x27 // 燃气报警
 	Low_battery_alarm  = 0x2A // 锁体的电池，低电量报警
 	Infrared_alarm     = 0x39 // 人体感应报警（infra红外感应)
 	Lock_PIC_Upload    = 0x2F // 视频锁图片上报
@@ -91,29 +91,29 @@ const (
 
 	Wonly_LGuard_Msg = 0xfb
 
-	PadDoor_RealVideo 			= 0x1001 // 平板锁实时视频
-	PadDoor_Weather 			= 0x1002 // 平板锁当前天气
-	Set_AIPad_Reboot_Time 		= 0x1003 // 设置中控网关定时参数
-	RangeHood_Control 			= 0x1005 // 油烟机档位控制
-	RangeHood_Ctrl_Query	    = 0x1006 // 油烟机档位查询
-	RangeHood_Lock_Query        = 0x1007 // 油烟机绑定门锁查询
-	Body_Fat_Scale              = 0x1008 // 体脂称数据上报
+	PadDoor_RealVideo     = 0x1001 // 平板锁实时视频
+	PadDoor_Weather       = 0x1002 // 平板锁当前天气
+	Set_AIPad_Reboot_Time = 0x1003 // 设置中控网关定时参数
+	RangeHood_Control     = 0x1005 // 油烟机档位控制
+	RangeHood_Ctrl_Query  = 0x1006 // 油烟机档位查询
+	RangeHood_Lock_Query  = 0x1007 // 油烟机绑定门锁查询
+	Body_Fat_Scale        = 0x1008 // 体脂称数据上报
 
-	PadDoor_Num_Upload 			= 0x1100 // 平板锁人流检测上报
-	PadDoor_Num_Reset  			= 0x1101 // 平板门锁人流检测重置
-	Scene_Trigger 				= 0xf1   //爱岗场景触发（中控平板的闹钟作为触发条件）
+	PadDoor_Num_Upload = 0x1100 // 平板锁人流检测上报
+	PadDoor_Num_Reset  = 0x1101 // 平板门锁人流检测重置
+	Scene_Trigger      = 0xf1   //爱岗场景触发（中控平板的闹钟作为触发条件）
 
 )
 
 const (
-	ONENET_PLATFORM   = "onenet"
-	TELECOM_PLATFORM  = "telecom"
-	ANDLINK_PLATFORM  = "andlink"
+	ONENET_PLATFORM     = "onenet"
+	TELECOM_PLATFORM    = "telecom"
+	ANDLINK_PLATFORM    = "andlink"
 	PAD_DEVICE_PLATFORM = "paddevice"
-	ALIIOT_PLATFORM   = "aliIoT"
-	FEIBEE_PLATFORM   = "feibee"
-	MQTT_PLATFORM     = "mqtt"
-	MQTT_PAD_PLATFORM = "mqttpad"
+	ALIIOT_PLATFORM     = "aliIoT"
+	FEIBEE_PLATFORM     = "feibee"
+	MQTT_PLATFORM       = "mqtt"
+	MQTT_PAD_PLATFORM   = "mqttpad"
 )
 
 // 电信平台订阅消息类型
@@ -162,14 +162,88 @@ const (
 
 // 开锁方式 1-密码，2-刷卡，3-指纹，5-人脸，12-蓝牙
 const (
-	OPEN_PWD = 1	// 1-密码
-	OPEN_CARD = 2	// 2-刷卡
-	OPEN_FINGER = 3	// 3-指纹
-	OPEN_FACE = 5	// 5-人脸
-	OPEN_BLE = 12	// 12-蓝牙
+	OPEN_PWD    = 1  // 1-密码
+	OPEN_CARD   = 2  // 2-刷卡
+	OPEN_FINGER = 3  // 3-指纹
+	OPEN_FACE   = 5  // 5-人脸
+	OPEN_BLE    = 12 // 12-蓝牙
 )
 
 const (
-	VENDOR_WONLY = "general"
+	VENDOR_WONLY  = "general"
 	VENDOR_FEIBEE = "feibee"
+)
+
+//王力内部传感器报警字符类型枚举
+const (
+	Wonly_Status_Sensor_Illuminance  = "illuminance"
+	Wonly_Status_Sensor_Humidity     = "humidity"
+	Wonly_Status_Sensor_Temperature  = "temperature"
+	Wonly_Status_Sensor_PM25         = "PM2.5"
+	Wonly_Status_Sensor_VOC          = "VOC"
+	Wonly_Status_Sensor_Formaldehyde = "formaldehyde"
+	Wonly_Status_Sensor_CO2          = "CO2"
+	Wonly_Status_Sensor_Gas          = "gas"
+	Wonly_Status_Sensor_Smoke        = "smoke"
+	Wonly_Status_Sensor_Infrared     = "infrared"
+	Wonly_Status_Sensor_Doorcontact  = "doorContact"
+	Wonly_Status_Sensor_Flood        = "flood"
+	Wonly_Status_Sensor_SOSButton    = "sosButton"
+	Wonly_Status_Pad_People          = "peopleDetection"
+	Wonly_Status_Sensor_Forced_Break  = "forcedBreak"
+
+	Wonly_Status_Low_Voltage   = "lowVoltage"
+	Wonly_Status_Low_Power     = "lowPower"
+	Wonly_Status_FbLock_Status = "lockStatus"
+	Wonly_Status_FbDev_Status  = "devStatus"
+	Wonly_Status_Forced_Break  = "forcedBreak"
+
+	Wonly_Status_Airer_Illumination      = "illumination"
+	Wonly_Status_Airer_Disinfection      = "disinfection"
+	Wonly_Status_Airer_Disinfection_Time = "disinfectionTime"
+	Wonly_Status_Airer_MotorOperation    = "motorOperation"
+	Wonly_Status_Airer_Drying            = "drying"
+	Wonly_Status_Airer_Air_Drying        = "airDrying"
+	Wonly_Status_Airer_Drying_Time       = "dryingTime"
+	Wonly_Status_Airer_Air_Drying_Time   = "airDryingTime"
+
+	Wonly_Status_Aircondition_Mode              = "mode"
+	Wonly_Status_Aircondition_State             = "state"
+	Wonly_Status_Aircondition_Windspeed         = "windspeed"
+	Wonly_Status_Aircondition_Curr_Temperature  = "currentTemperature"
+	Wonly_Status_Aircondition_Local_Temperature = "localTemperature"
+	Wonly_Status_Aircondition_Max_Temperature   = "maxTemperature"
+	Wonly_Status_Aircondition_Min_Temperature   = "minTemperature"
+)
+
+var (
+	Wonly_Sensor_Vals_Gas          = []string{"检测正常", "燃气浓度已超标，正在报警"}
+	Wonly_Sensor_Vals_Smoke        = []string{"检测正常", "烟雾浓度已超标，正在报警"}
+	Wonly_Sensor_Vals_Flood        = []string{"检测正常", "水浸位已超标，正在报警"}
+	Wonly_Sensor_Vals_Infrared     = []string{"无人经过", "有人经过"}
+	Wonly_Sensor_Vals_Doorcontact  = []string{"门磁已关闭", "门磁已打开"}
+	Wonly_Sensor_Vals_SOSButton    = []string{"检测正常", "发生紧急呼叫"}
+	Wonly_Sensor_Vals_Forced_Break = []string{"传感器未被强拆", "传感器被强拆"}
+
+	Wonly_FbAirer_Vals_Illumination    = []string{"关闭", "开启"}
+	Wonly_FbAirer_Vals_Disinfection    = []string{"关闭", "开启"}
+	Wonly_FbAirer_Vals_Motor_Operation = []string{"正常", "上限位", "下限位"}
+	Wonly_FbAirer_Vals_Drying          = []string{"关闭", "开启"}
+	Wonly_FbAirer_Vals_Air_Drying      = []string{"关闭", "开启"}
+	Wonly_FbAirer_Vals_Mode            = []string{"关闭", "", "", "制冷", "制热", "打开"}
+	Wonly_FbAirer_Vals_Windspeed       = []string{"关闭", "低速", "中速", "高速", "", "自动"}
+
+	Wonly_FbDev_Vals_Status  = []string{"关闭", "开启"}
+	Wonly_FbLock_Vals_Status = []string{"锁定", "解锁"}
+)
+
+var (
+	SensorVal2Str = map[string]([]string){
+		Wonly_Status_Sensor_Gas:         Wonly_Sensor_Vals_Gas,
+		Wonly_Status_Sensor_Smoke:       Wonly_Sensor_Vals_Smoke,
+		Wonly_Status_Sensor_Flood:       Wonly_Sensor_Vals_Flood,
+		Wonly_Status_Sensor_Infrared:    Wonly_Sensor_Vals_Infrared,
+		Wonly_Status_Sensor_Doorcontact: Wonly_Sensor_Vals_Doorcontact,
+		Wonly_Status_Sensor_Forced_Break: Wonly_Sensor_Vals_Forced_Break,
+	}
 )

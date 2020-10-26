@@ -1,5 +1,8 @@
 package feibee2srv
 
+import "das/core/constant"
+
+//飞比传感器类型(deviceId<<16 + zoneType)
 const (
 	voltage          = 0x00010020
 	battery          = 0x00010021
@@ -55,56 +58,59 @@ var (
 	}
 
 	fixAlarmName = map[MsgType]string{
-		InfraredSensor:     "infrared",
-		DoorMagneticSensor: "doorContact",
-		SmokeSensor:        "smoke",
-		FloodSensor:        "flood",
-		GasSensor:          "gas",
-		SosBtnSensor:       "sosButton",
+		InfraredSensor:     constant.Wonly_Status_Sensor_Infrared,
+		DoorMagneticSensor: constant.Wonly_Status_Sensor_Doorcontact,
+		SmokeSensor:        constant.Wonly_Status_Sensor_Smoke,
+		FloodSensor:        constant.Wonly_Status_Sensor_Flood,
+		GasSensor:          constant.Wonly_Status_Sensor_Gas,
+		SosBtnSensor:       constant.Wonly_Status_Sensor_SOSButton,
 	}
 
 	varAlarmName = map[int]string{
-		voltage:            "lowVoltage",
-		battery:            "lowPower",
-		temperature:        "temperature",
-		humidity:           "humidity",
-		illuminance:        "illuminance",
-		illumination:       "illumination",
-		disinfection:       "disinfection",
-		disinfectionTime:   "disinfectionTime",
-		motorOperation:     "motorOperation",
-		drying:             "drying",
-		airDrying:          "airDrying",
-		dryingTime:         "dryingTime",
-		airDryingTime:      "airDryingTime",
-		mode:               "mode",
-		windspeed:          "windspeed",
-		localTemperature:   "localTemperature",
-		currentTemperature: "currentTemperature",
-		lockStatus:         "lockStatus",
-		maxTemperature:     "maxTemperature",
-		minTemperature:     "minTemperature",
-		devStatus:          "devStatus",
+		voltage:     constant.Wonly_Status_Low_Voltage,
+		battery:     constant.Wonly_Status_Low_Power,
+		temperature: constant.Wonly_Status_Sensor_Temperature,
+		humidity:    constant.Wonly_Status_Sensor_Humidity,
+		illuminance: constant.Wonly_Status_Sensor_Illuminance,
+
+		illumination:     constant.Wonly_Status_Airer_Illumination,
+		disinfection:     constant.Wonly_Status_Airer_Disinfection,
+		disinfectionTime: constant.Wonly_Status_Airer_Disinfection_Time,
+		motorOperation:   constant.Wonly_Status_Airer_MotorOperation,
+		drying:           constant.Wonly_Status_Airer_Drying,
+		airDrying:        constant.Wonly_Status_Airer_Air_Drying,
+		dryingTime:       constant.Wonly_Status_Airer_Drying_Time,
+		airDryingTime:    constant.Wonly_Status_Airer_Air_Drying_Time,
+
+		mode:               constant.Wonly_Status_Aircondition_Mode,
+		windspeed:          constant.Wonly_Status_Aircondition_Windspeed,
+		localTemperature:   constant.Wonly_Status_Aircondition_Local_Temperature,
+		currentTemperature: constant.Wonly_Status_Aircondition_Curr_Temperature,
+
+		lockStatus:     constant.Wonly_Status_FbLock_Status,
+		maxTemperature: constant.Wonly_Status_Aircondition_Max_Temperature,
+		minTemperature: constant.Wonly_Status_Aircondition_Min_Temperature,
+		devStatus:      constant.Wonly_Status_FbDev_Status,
 	}
 
 	alarmValueMapByTyp = map[MsgType]([]string){
-		InfraredSensor:     []string{"无人经过", "有人经过"},
-		DoorMagneticSensor: []string{"门磁已关闭", "门磁已打开"},
-		SmokeSensor:        []string{"检测正常", "烟雾浓度已超标，正在报警"},
-		FloodSensor:        []string{"检测正常", "水浸位已超标，正在报警"},
-		GasSensor:          []string{"检测正常", "燃气浓度已超标，正在报警"},
-		SosBtnSensor:       []string{"检测正常", "发生紧急呼叫"},
+		InfraredSensor:     constant.Wonly_Sensor_Vals_Infrared,
+		DoorMagneticSensor: constant.Wonly_Sensor_Vals_Doorcontact,
+		SmokeSensor:        constant.Wonly_Sensor_Vals_Smoke,
+		FloodSensor:        constant.Wonly_Sensor_Vals_Flood,
+		GasSensor:          constant.Wonly_Sensor_Vals_Gas,
+		SosBtnSensor:       constant.Wonly_Sensor_Vals_SOSButton,
 	}
 
 	alarmValueMapByCid = map[int]([]string){
-		illumination:   []string{"关闭", "开启"},
-		disinfection:   []string{"关闭", "开启"},
-		motorOperation: []string{"正常", "上限位", "下限位"},
-		drying:         []string{"关闭", "开启"},
-		airDrying:      []string{"关闭", "开启"},
-		mode:           []string{"关闭", "", "", "制冷", "制热", "打开"},
-		windspeed:      []string{"关闭", "低速", "中速", "高速", "", "自动"},
-		devStatus:      []string{"关闭", "开启"},
-		lockStatus:     []string{"锁定", "解锁"},
+		illumination:   constant.Wonly_FbAirer_Vals_Illumination,
+		disinfection:   constant.Wonly_FbAirer_Vals_Disinfection,
+		motorOperation: constant.Wonly_FbAirer_Vals_Motor_Operation,
+		drying:         constant.Wonly_FbAirer_Vals_Drying,
+		airDrying:      constant.Wonly_FbAirer_Vals_Air_Drying,
+		mode:           constant.Wonly_FbAirer_Vals_Mode,
+		windspeed:      constant.Wonly_FbAirer_Vals_Windspeed,
+		devStatus:      constant.Wonly_FbDev_Vals_Status,
+		lockStatus:     constant.Wonly_FbLock_Vals_Status,
 	}
 )

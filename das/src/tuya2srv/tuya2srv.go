@@ -2,7 +2,6 @@ package tuya2srv
 
 import (
 	"context"
-	"das/core/util"
 	"encoding/base64"
 	"encoding/json"
 	"strconv"
@@ -13,9 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 
+	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
+	"das/core/util"
 )
 
 var (
@@ -245,9 +246,6 @@ func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 	if rawAlarmVal == "alarm" || rawAlarmVal == "presence" || rawAlarmVal == "true" {
 		alarmFlag = 1
 	}
-	if alarmFlag == 0 && tyAlarmType != Ty_Status_Doorcontact_State {
-		return
-	}
 	timestamp := rawJsonData.Get("t").Int()
 	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
 }
@@ -307,7 +305,7 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 		msg.AlarmType = tyAlarmType
 	}
 	msg.AlarmFlag = alarmFlag
-	alarmVal, ok := SensorVal2Str[msg.AlarmType]
+	alarmVal, ok :=  constant.SensorVal2Str[msg.AlarmType]
 	if ok {
 		msg.AlarmValue = alarmVal[msg.AlarmFlag]
 	} else {
@@ -321,7 +319,9 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 
 	data, err := json.Marshal(msg)
 	if err == nil {
-		rabbitmq.Publish2mns(data, "")
+		if msg.AlarmFlag == 1 && ok && msg.AlarmType != constant.Wonly_Status_Sensor_Doorcontact {
+			rabbitmq.Publish2mns(data, "")
+		}
 		rabbitmq.Publish2pms(data, "")
 	}
 
