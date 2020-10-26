@@ -169,24 +169,48 @@ func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	msg.Cmd = 0x46
 	msg.DevId = devId
 	msg.Vendor = "tuya"
-	msg.DevType = "TYRobotCleaner"
-
 	if tyEvent == Ty_Event_Online {
 		msg.Time = 1
 	} else {
 		msg.Time = 0
 	}
-
 	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Warningf("TuyaCallback.TyEventOnOffHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
+		rabbitmq.Publish2pms(data, "")
+	}
+
+	msg2app := entity.Feibee2DevMsg{}
+	msg2app.Cmd = 0xfb
+	msg2app.Vendor = "tuya"
+	msg2app.DevId = devId
+	msg2app.OpType = "newOnline"
+
+	if tyEvent == Ty_Event_Online {
+		msg2app.OpValue = "1"
+		msg2app.Online = 1
+	} else {
+		msg2app.OpValue = "0"
+	}
+
+	data, err = json.Marshal(msg2app)
+	if err == nil {
+		rabbitmq.Publish2app(data, devId)
 	}
 }
 
-func TyStatusDevOnlineAndBatt(devId string, rawJsonData gjson.Result) {
-	
+func TyStatusDevBatt(devId string, rawJsonData gjson.Result) {
+    msg := entity.OtherVendorDevMsg{}
+    msg.Cmd = 0x1200
+    msg.DevId = devId
+    msg.Vendor = "tuya"
+    msg.OriData = rawJsonData.Raw
+    data, err := json.Marshal(msg)
+    if err == nil {
+    	rabbitmq.Publish2pms(data, "")
+	}
 }
 
 func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {

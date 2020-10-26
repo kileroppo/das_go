@@ -66,11 +66,11 @@ type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 //涂鸦处理分类
 var (
 	TyDevStatusHandlers = map[string]TyStatusHandle{
-		Ty_Status_Electricity_Left: TyStatusRobotCleanerBattHandle,
-		Ty_Status_Power:            TyStatusPowerHandle,
-		Ty_Status:                  TyStatusNormalHandle,
-
-		Ty_Status_Clean_Record: TyStatusCleanRecordHandle,
+		Ty_Status_Electricity_Left:   TyStatusRobotCleanerBattHandle,
+		Ty_Status_Power:              TyStatusPowerHandle,
+		Ty_Status:                    TyStatusNormalHandle,
+		Ty_Status_Battery_Percentage: TyStatusDevBatt,
+		Ty_Status_Clean_Record:       TyStatusCleanRecordHandle,
 
 		Ty_Status_Gas_Sensor_Status:   TyStatusAlarmSensorHandle,
 		Ty_Status_Smoke_Sensor_Status: TyStatusAlarmSensorHandle,
