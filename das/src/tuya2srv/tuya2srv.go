@@ -243,8 +243,10 @@ func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 	tyAlarmType := rawJsonData.Get("code").String()
 	alarmFlag := 0
 	rawAlarmVal := rawJsonData.Get("value").String()
-	if rawAlarmVal == "alarm" || rawAlarmVal == "presence" || rawAlarmVal == "true" {
-		alarmFlag = 1
+	if alarmVal, ok := TySensorAlarmReflect[tyAlarmType]; ok {
+		if rawAlarmVal == alarmVal {
+			alarmFlag = 1
+		}
 	}
 	timestamp := rawJsonData.Get("t").Int()
 	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
@@ -309,10 +311,12 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	if ok {
 		msg.AlarmValue = alarmVal[msg.AlarmFlag]
 	} else {
-		unit, ok := TyEnvSensorUnitTrans[tyAlarmType]
+		divisor, ok := TyEnvSensorValDivisor[tyAlarmType]
 		if ok {
-			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)/float64(unit), 'f', 2, 64)
+			msg.Divisor = divisor
+			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)/float64(divisor), 'f', 2, 64)
 		} else {
+			msg.Divisor = 1
 			msg.AlarmValue = strconv.Itoa(alarmFlag)
 		}
 	}
