@@ -185,6 +185,10 @@ func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	}
 }
 
+func TyStatusDevOnlineAndBatt(devId string, rawJsonData gjson.Result) {
+	
+}
+
 func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
@@ -204,7 +208,7 @@ func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {
 	}
 }
 
-func TyStatusBattHandle(devId string, rawJsonData gjson.Result) {
+func TyStatusRobotCleanerBattHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.AlarmMsgBatt{}
 	msg.Cmd = 0x2a
 	msg.DevId = devId
@@ -215,7 +219,7 @@ func TyStatusBattHandle(devId string, rawJsonData gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.TyStatusBattHandle > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.TyStatusRobotCleanerBattHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}

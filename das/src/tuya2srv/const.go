@@ -17,6 +17,7 @@ const (
 	Ty_Status_Smoke_Sensor_Status = "smoke_sensor_status"
 	Ty_Status_Watersensor_State   = "watersensor_state"
 	Ty_Status_Temper_Alarm        = "temper_alarm"
+	Ty_Status_Battery_Percentage  = "battery_percentage"
 
 	Ty_Status_Air_Temperature = "TMP"
 	Ty_Status_Air_Humidity    = "HUM"
@@ -65,7 +66,7 @@ type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 //涂鸦处理分类
 var (
 	TyDevStatusHandlers = map[string]TyStatusHandle{
-		Ty_Status_Electricity_Left: TyStatusBattHandle,
+		Ty_Status_Electricity_Left: TyStatusRobotCleanerBattHandle,
 		Ty_Status_Power:            TyStatusPowerHandle,
 		Ty_Status:                  TyStatusNormalHandle,
 
