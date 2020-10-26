@@ -350,12 +350,7 @@ func Close() {
 //}
 
 func SendGraylogByMQ(format string, args ...interface{}) {
-	lmsg := ""
-	if len(format) == 0 {
-		lmsg = fmt.Sprint(args...)
-	} else {
-		lmsg = fmt.Sprintf(format, args...)
-	}
+	lmsg := fmt.Sprintf(format, args...)
 
 	msg := entity.GrayLog{
 		Version:  "2.1",
