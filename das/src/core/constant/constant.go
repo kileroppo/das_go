@@ -245,5 +245,6 @@ var (
 		Wonly_Status_Sensor_Infrared:    Wonly_Sensor_Vals_Infrared,
 		Wonly_Status_Sensor_Doorcontact: Wonly_Sensor_Vals_Doorcontact,
 		Wonly_Status_Sensor_Forced_Break: Wonly_Sensor_Vals_Forced_Break,
+		Wonly_Status_Sensor_SOSButton:    Wonly_Sensor_Vals_SOSButton,
 	}
 )
