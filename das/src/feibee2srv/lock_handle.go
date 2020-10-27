@@ -134,6 +134,8 @@ func (fh *FbLockHandle) FbLockAlarmDecode() {
 		msg.Cmd = 0x24
 	case 0x33: //非法操作报警
 		msg.Cmd = 0x20
+	default:
+		return
 	}
 
 	bs, err := json.Marshal(msg)
