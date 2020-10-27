@@ -87,6 +87,7 @@ var (
 
 		Ty_Status_Va_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Va_Humidity:    TyStatusEnvSensorHandle,
+		Ty_Status_Bright_Value:  TyStatusEnvSensorHandle,
 
 		Ty_Status_Air_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Air_Humidity:    TyStatusEnvSensorHandle,
