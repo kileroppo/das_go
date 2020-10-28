@@ -87,15 +87,15 @@ func initGraylogConn() {
 }
 
 func initLogger() {
-	go autoClearLogFiles(logPath)
-	NewLogger(logPath, logLevel)
+	go autoClearLogFiles()
+	newLogger()
 }
 
-func NewLogger(pathDir string, level string) {
-	log.Debug("NewLogger, pathDir=", pathDir, ", level=", level)
+func newLogger() {
+	log.Debug("newLogger, logPath=", logPath, ", logLevel=", logLevel)
 
 	//时间文件夹
-	destFilePath := fmt.Sprintf("%s/%d%02d%02d", pathDir, time.Now().Year(), time.Now().Month(), time.Now().Day())
+	destFilePath := fmt.Sprintf("%s/%d%02d%02d", logPath, time.Now().Year(), time.Now().Month(), time.Now().Day())
 	flag, err := file.IsExist(destFilePath)
 	if err != nil {
 		fmt.Println(ErrArgsInvaild)
@@ -126,12 +126,12 @@ func NewLogger(pathDir string, level string) {
 	stdLog := logging.NewLogBackend(os.Stderr, "", 0)
 	stdFormatter := logging.NewBackendFormatter(fileLog, format)
 	fileLeveled := logging.AddModuleLevel(stdLog)
-	lLevel, _ := logging.LogLevel(level)
+	lLevel, _ := logging.LogLevel(logLevel)
 	fileLeveled.SetLevel(lLevel, "")
 	logging.SetBackend(fileLeveled, stdFormatter)
 
 	// 负责检测文件大小，超过35M则分文件
-	go reNewLogger(pathDir, level)
+	go reNewLogger(logPath, logLevel)
 }
 
 func reNewLogger(pathDir string, level string) {
@@ -141,14 +141,14 @@ func reNewLogger(pathDir string, level string) {
 		//每天一个文件夹
 		destFilePath := fmt.Sprintf("%s/%d%02d%02d", pathDir, time.Now().Year(), time.Now().Month(), time.Now().Day())
 		if 0 != strings.Compare(destFilePath, m_PathName) {
-			NewLogger(pathDir, level)
+			newLogger()
 			return
 		}
 
 		//文件大小大于35M，另起文件
 		_, fileSize := file.GetFileByteSize(m_FileName)
 		if int64(fileSize) > int64(MaxFileCap) {
-			NewLogger(pathDir, level)
+			newLogger()
 			return
 		}
 	}
@@ -177,47 +177,46 @@ func CheckError(err error) {
 
 //autoClearLogFiles: Automatic clean-up of logs
 //Everytime the system start, delete the most previous 5 days' logfiles
-func autoClearLogFiles(logsDirPath string) {
+func autoClearLogFiles() {
 	for {
-		if flag, err := file.IsExist(logsDirPath); err != nil || !flag {
+		if flag, err := file.IsExist(logPath); err != nil || !flag {
 			time.Sleep(time.Hour * 24)
 			continue
 		}
 
-		logsSubFileList, err := ioutil.ReadDir(logsDirPath)
+		logsSubFileList, err := ioutil.ReadDir(logPath)
 		if err != nil {
 			time.Sleep(time.Hour * 24)
 			continue
 		}
 
-		var dirLogs LogFileInfo
-		var sdkLogs LogFileInfo
+		var dirLogs []string
+		var sdkLogs []string
+		var stdLogs []string
 		for i, _ := range logsSubFileList {
 			if logsSubFileList[i].IsDir() {
-				dirLogs.infos = append(dirLogs.infos, logsSubFileList[i])
-			} else {
-				sdkLogs.infos = append(sdkLogs.infos, logsSubFileList[i])
+				dirLogs = append(dirLogs, logsSubFileList[i].Name())
+			} else if strings.Contains(logsSubFileList[i].Name(), "tuya"){
+				sdkLogs = append(sdkLogs, logsSubFileList[i].Name())
+			} else if strings.Contains(logsSubFileList[i].Name(), "das") {
+				stdLogs = append(stdLogs, logsSubFileList[i].Name())
 			}
 		}
-
-		var fileDirName string
-		if dirLogs.Len() > logSaveDay {
-			sort.Sort(dirLogs)
-			for i:=0;i<dirLogs.Len() - logSaveDay;i++ {
-				fileDirName = fmt.Sprintf("%s/%s", logsDirPath, dirLogs.infos[i].Name())
-				os.RemoveAll(fileDirName)
-			}
-		}
-
-		if sdkLogs.Len() > logSaveDay {
-			sort.Sort(sdkLogs)
-			for i:=0;i<sdkLogs.Len() - logSaveDay;i++ {
-				fileDirName = fmt.Sprintf("%s/%s", logsDirPath, sdkLogs.infos[i].Name())
-				os.Remove(fileDirName)
-			}
-		}
+		clearLogs(dirLogs)
+		clearLogs(sdkLogs)
+		clearLogs(stdLogs)
 
 		time.Sleep(time.Hour * 24)
+	}
+}
+
+func clearLogs(logs []string) {
+	if len(logs) >= logSaveDay {
+		sort.Strings(logs)
+		for i := 0; i < len(logs)-logSaveDay; i++ {
+			fileDirName := fmt.Sprintf("%s/%s", logPath, logs[i])
+			os.RemoveAll(fileDirName)
+		}
 	}
 }
 
