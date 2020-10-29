@@ -21,9 +21,11 @@ import (
 
 var (
 	consumer pulsar.Consumer
+	alarmFilter MsgFilter
 )
 
 func Init() {
+	alarmFilter = &RedisFilter{}
 	go Tuya2SrvStart()
 }
 
@@ -362,6 +364,13 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 			msg.AlarmValue = strconv.Itoa(alarmFlag)
 		}
 	}
+
+	//todo: 涂鸦设备上报周期为1min，是否增加设备报警过滤？
+	//if alarmFilter.Exists(devId + msg.AlarmType) {
+	//	return
+	//} else {
+	//	alarmFilter.Set(devId + msg.AlarmType)
+	//}
 
 	data, err := json.Marshal(msg)
 	if err == nil {

@@ -101,6 +101,28 @@ func (self *RedisPool) Set(dbIndex int, key string, value interface{}, expiratio
 	return
 }
 
+func (self *RedisPool) Exists(dbIndex int, key string) (res int64, err error) {
+	pipe := self.cli.Pipeline()
+	pipe.Select(dbIndex)
+	pipe.Exists(key)
+	cmder,errR := pipe.Exec()
+	if errR != nil {
+		err = errR
+		return
+	}
+	if len(cmder) != 2 {
+		err = ErrRedisPipeExec
+		return
+	}
+	strCmder,ok := cmder[1].(*redis.IntCmd)
+	if !ok {
+		err = ErrRedisPipeExec
+		return
+	}
+	res, err = strCmder.Result()
+	return
+}
+
 func (self *RedisPool) HGet(dbIndex int, key,field string) (res string, err error){
 	pipe := self.cli.Pipeline()
 	pipe.Select(dbIndex)
