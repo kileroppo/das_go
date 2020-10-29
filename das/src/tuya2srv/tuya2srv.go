@@ -198,6 +198,20 @@ func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	data, err = json.Marshal(msg2app)
 	if err == nil {
 		rabbitmq.Publish2app(data, devId)
+		rabbitmq.Publish2mns(data, "")
+	}
+}
+
+func TyEventDeleteHandle(devId, tyEvent string, rawJsonData gjson.Result) {
+    msg := entity.Feibee2DevMsg{}
+    msg.Cmd = 0xfb
+    msg.DevId = devId
+    msg.OpType = "devDelete"
+    msg.Vendor = "tuya"
+
+    data, err := json.Marshal(msg)
+    if err == nil {
+    	rabbitmq.Publish2mns(data, "")
 	}
 }
 

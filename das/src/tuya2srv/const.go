@@ -105,6 +105,7 @@ var (
 	TyDevEventHandlers = map[string]TyEventHandle{
 		Ty_Event_Online:  TyEventOnOffHandle,
 		Ty_Event_Offline: TyEventOnOffHandle,
+		Ty_Event_Delete:  TyEventDeleteHandle,
 	}
 
 	TySensor2WonlySensor = map[string]string{
