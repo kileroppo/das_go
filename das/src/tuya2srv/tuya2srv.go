@@ -317,7 +317,7 @@ func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
 	}
 }
 
-func TyStatusCleanRecordHandle(devId string, rawJsonData gjson.Result) {
+func TyStatus2PMSHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.OtherVendorDevMsg{
 		Header: entity.Header{
 			Cmd:     0x1200,

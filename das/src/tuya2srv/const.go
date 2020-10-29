@@ -39,6 +39,9 @@ const (
 	Ty_Status_Scene_2        = "scene_2"
 	Ty_Status_Scene_3        = "scene_3"
 	Ty_Status_Scene_4        = "scene_4"
+
+	Ty_Status_Switch         = "switch"
+	Ty_Status_Switch_1       = "switch_1"
 )
 
 //涂鸦设备事件bizCode
@@ -74,7 +77,9 @@ var (
 		Ty_Status_Power:              TyStatusPowerHandle,
 		Ty_Status:                    TyStatusNormalHandle,
 		Ty_Status_Battery_Percentage: TyStatusDevBatt,
-		Ty_Status_Clean_Record:       TyStatusCleanRecordHandle,
+		Ty_Status_Clean_Record:       TyStatus2PMSHandle,
+		Ty_Status_Switch:             TyStatus2PMSHandle,
+		Ty_Status_Switch_1:           TyStatus2PMSHandle,
 
 		Ty_Status_Gas_Sensor_State:    TyStatusAlarmSensorHandle,
 		Ty_Status_Smoke_Sensor_Status: TyStatusAlarmSensorHandle,
