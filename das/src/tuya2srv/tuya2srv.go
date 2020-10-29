@@ -369,7 +369,7 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	//if alarmFilter.Exists(devId + msg.AlarmType) {
 	//	return
 	//} else {
-	//	alarmFilter.Set(devId + msg.AlarmType)
+	//	alarmFilter.Set(devId + msg.AlarmType, time.Minute * 30)
 	//}
 
 	data, err := json.Marshal(msg)

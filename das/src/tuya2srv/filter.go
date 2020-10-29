@@ -12,7 +12,7 @@ var (
 )
 
 type MsgFilter interface {
-	Set(key string)
+	Set(key string, duration time.Duration)
 	Exists(key string) bool
 }
 
@@ -20,7 +20,7 @@ type SyncMapFilter struct {
 	m sync.Map
 }
 
-func (s *SyncMapFilter) Set(key string) {
+func (s *SyncMapFilter) Set(key string, duration time.Duration) {
 	s.m.Store(key, nil)
 }
 
@@ -30,8 +30,8 @@ func (s *SyncMapFilter) Exists(key string) bool {
 
 type RedisFilter struct {}
 
-func (r *RedisFilter) Set(key string) {
-	_,_ = redis.RedisDevPool.Set(4, key, nil, time.Minute*30)
+func (r *RedisFilter) Set(key string, duration time.Duration) {
+	_,_ = redis.RedisDevPool.Set(4, key, nil, duration)
 }
 
 func (r *RedisFilter) Exists(key string) bool {
