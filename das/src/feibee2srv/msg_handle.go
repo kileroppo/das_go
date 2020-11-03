@@ -57,6 +57,7 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 	switch self.msgType {
 	case NewDev:
 		res.OpType = "newDevice"
+		go RecordDevOnlineStatus(res.DevId, res.Online)
 		//todo: 若online=0，则该设备可能已经在其他网关下
 		//if res.Online <= 0 {
 		//	res.Online = 1
@@ -796,4 +797,12 @@ func devTypeConv(devId, zoneType int) string {
 		}
 	}
 	return "0x" + pre + tail
+}
+
+func RecordDevOnlineStatus(devId string, online int) {
+	status := "离线"
+	if online > 0 {
+		status = "在线"
+	}
+	rabbitmq.SendGraylogByMQ("设备[%s]在线状态更新：%s", devId, status)
 }

@@ -17,6 +17,7 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/util"
+	"das/feibee2srv"
 )
 
 var (
@@ -197,6 +198,7 @@ func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 		msg2app.OpValue = "0"
 	}
 
+	feibee2srv.RecordDevOnlineStatus(msg.DevId, msg2app.Online)
 	data, err = json.Marshal(msg2app)
 	if err == nil {
 		rabbitmq.Publish2app(data, devId)
