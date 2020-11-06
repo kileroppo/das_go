@@ -167,7 +167,7 @@ func (t *TuyaMsgHandle) send2Others(devId string, oriData []byte) {
 	}
 }
 
-func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
+func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
 	msg.DevId = devId
@@ -179,7 +179,7 @@ func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	}
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.TyEventOnOffHandle > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.TyEventOnlineHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 		rabbitmq.Publish2pms(data, "")
@@ -244,7 +244,7 @@ func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.TyEventOnOffHandle > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.TyStatusPowerHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
