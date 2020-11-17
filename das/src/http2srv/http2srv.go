@@ -31,6 +31,7 @@ func Http2SrvStart() {
     app.Post("/yk", YKMsgHandler)
     app.Post("/rg", RGMsgHandler)
     app.All("/feibee", feibee2srv.FeibeeHandler)
+    app.Post("/lancens", LancensMsgHandler)
 
     isTLS, _ := log.Conf.GetBool("https", "is_https")
 	httpPort, _ := log.Conf.GetInt("https", "https_port")
@@ -92,6 +93,10 @@ func Close() {
 //
 //	return srv
 //}
+
+func LancensMsgHandler(c *fiber.Ctx) {
+	log.Infof("揽胜Server-http->DAS: %s", c.Body())
+}
 
 func XMAlarmMsgHandler(c *fiber.Ctx) {
 	log.Infof("XMAlarmMsgHandler recv: %s", c.Body())
