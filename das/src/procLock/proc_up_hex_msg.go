@@ -127,7 +127,7 @@ func ParseData(mydata interface{}) error {
 			OpType: int(pdu.OpType),
 			OpUserPara: int(pdu.OpUserPara),
 			OpValue: int(pdu.OpValue),
-			Time: int32(time.Now().Unix()),
+			Time: time.Now().Unix(),
 		}
 
 		if 2 == pdu.UserType {

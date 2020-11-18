@@ -17,13 +17,16 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/util"
+	"das/feibee2srv"
 )
 
 var (
 	consumer pulsar.Consumer
+	alarmFilter MsgFilter
 )
 
 func Init() {
+	alarmFilter = &RedisFilter{}
 	go Tuya2SrvStart()
 }
 
@@ -164,7 +167,7 @@ func (t *TuyaMsgHandle) send2Others(devId string, oriData []byte) {
 	}
 }
 
-func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
+func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	msg := entity.DeviceActive{}
 	msg.Cmd = 0x46
 	msg.DevId = devId
@@ -176,7 +179,7 @@ func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	}
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.TyEventOnOffHandle > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.TyEventOnlineHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 		rabbitmq.Publish2pms(data, "")
@@ -195,9 +198,24 @@ func TyEventOnOffHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 		msg2app.OpValue = "0"
 	}
 
+	feibee2srv.RecordDevOnlineStatus(msg.DevId, msg2app.Online)
 	data, err = json.Marshal(msg2app)
 	if err == nil {
 		rabbitmq.Publish2app(data, devId)
+		rabbitmq.Publish2mns(data, "")
+	}
+}
+
+func TyEventDeleteHandle(devId, tyEvent string, rawJsonData gjson.Result) {
+    msg := entity.Feibee2DevMsg{}
+    msg.Cmd = 0xfb
+    msg.DevId = devId
+    msg.OpType = "devDelete"
+    msg.Vendor = "tuya"
+
+    data, err := json.Marshal(msg)
+    if err == nil {
+    	rabbitmq.Publish2mns(data, "")
 	}
 }
 
@@ -226,7 +244,7 @@ func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		log.Warningf("TuyaCallback.TyEventOnOffHandle > json.Marshal > %s", err)
+		log.Warningf("TuyaCallback.TyStatusPowerHandle > json.Marshal > %s", err)
 	} else {
 		rabbitmq.Publish2app(data, msg.DevId)
 	}
@@ -239,7 +257,7 @@ func TyStatusRobotCleanerBattHandle(devId string, rawJsonData gjson.Result) {
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
 	msg.Value = int(rawJsonData.Get("value").Int())
-	msg.Time = int32(rawJsonData.Get("t").Int() / 1000)
+	msg.Time = int64(rawJsonData.Get("t").Int() / 1000)
 
 	data, err := json.Marshal(msg)
 	if err != nil {
@@ -301,7 +319,7 @@ func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
 	}
 }
 
-func TyStatusCleanRecordHandle(devId string, rawJsonData gjson.Result) {
+func TyStatus2PMSHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.OtherVendorDevMsg{
 		Header: entity.Header{
 			Cmd:     0x1200,
@@ -348,6 +366,13 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 			msg.AlarmValue = strconv.Itoa(alarmFlag)
 		}
 	}
+
+	//todo: 涂鸦设备上报周期为1min，是否增加设备报警过滤？
+	//if alarmFilter.Exists(devId + msg.AlarmType) {
+	//	return
+	//} else {
+	//	alarmFilter.Set(devId + msg.AlarmType, time.Minute * 30)
+	//}
 
 	data, err := json.Marshal(msg)
 	if err == nil {
