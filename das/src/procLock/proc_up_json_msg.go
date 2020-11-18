@@ -171,7 +171,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 		}
 	case constant.Set_dev_user_para: { // 用户参数设置（0x3B）
 		//1. 回复到APP
-		if 1 < head.Ack { // 错误码返回给APP
+		if 1 <= head.Ack { // 错误码返回给APP
 			rabbitmq.Publish2app([]byte(DValue), head.DevId)
 		}
 	}
