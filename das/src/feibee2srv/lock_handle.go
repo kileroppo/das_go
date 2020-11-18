@@ -237,7 +237,7 @@ func (fh *FbLockHandle) otherUnlock(userId int) {
 				SubOpen:   0,
 				SinMul:    1,
 				Remainder: 0,
-				Time:      int32(fh.data.Records[0].Uptime / 1000),
+				Time:      int64(fh.data.Records[0].Uptime / 1000),
 			},
 		},
 	}

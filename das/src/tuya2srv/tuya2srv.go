@@ -257,7 +257,7 @@ func TyStatusRobotCleanerBattHandle(devId string, rawJsonData gjson.Result) {
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
 	msg.Value = int(rawJsonData.Get("value").Int())
-	msg.Time = int32(rawJsonData.Get("t").Int() / 1000)
+	msg.Time = int64(rawJsonData.Get("t").Int() / 1000)
 
 	data, err := json.Marshal(msg)
 	if err != nil {

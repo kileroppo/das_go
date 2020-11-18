@@ -84,7 +84,7 @@ type DelDevUser struct {
 	UserNo   uint16 // 设备用户编号
 	MainOpen uint8  // 主开锁方式，开锁方式：附表开锁方式，如果该字段是0，表示删除该用户
 	SubOpen  uint8  // 是否胁迫，是否胁迫：0-正常，1-胁迫
-	Time     int32  // 时间戳
+	Time     int64  // 时间戳
 	AppUser int32	// app用户映射的值
 }
 
@@ -134,7 +134,7 @@ type AddDevUserStep struct {
 	SubOpen    uint8  // 是否胁迫，是否胁迫：0-正常，1-胁迫
 	StepNo     uint8  // 步骤序号(1)
 	StepState  uint8  // 步骤状态(1)
-	Time       int32  // 时间戳
+	Time       int64  // 时间戳
 }
 
 //6. 用户更新上报(0x35)(前板-->服务器)
@@ -193,18 +193,18 @@ type WiFiSetZigbeePwd struct {
 
 //9. 门铃呼叫(0x38)(前板-->服务器)
 type DoorbellCall struct {
-	Time int32 // 时间戳
+	Time int64 // 时间戳
 }
 
 //10. 人体感应报警(0x39)(前板-->服务器)
 type Alarms struct {
-	Time int32 // 时间戳
+	Time int64 // 时间戳
 }
 
 //15. 低压报警(0x2A)(前板--->服务器)
 type LowBattAlarm struct {
 	Battery uint8 // 电量百分比
-	Time    int32 // 时间戳
+	Time    int64 // 时间戳
 }
 
 //16. 图片上传(0x2F)(前板--->服务器)
@@ -225,7 +225,7 @@ type PicUpload struct {
 type OpenLockMsg struct {
 	DevUserVer uint32 // 用户列表版本号(4)，当前锁保存的用户列表版本号
 	UserNum    uint8  // 用户数量(1)，当前锁保存的用户总数量
-	Time       int32  // 时间戳
+	Time       int64  // 时间戳
 	Battery    uint8  // 电量百分比：0-100十进制数
 	SinMul     uint8  // 单/双人模式:1-单人（只有用户1），2-双人
 
@@ -250,7 +250,7 @@ type OpenLockMsg struct {
 */
 type EnterMenuMsg struct {
 	DevUserVer uint32 // 用户列表版本号(4)，当前锁保存的用户列表版本号
-	Time       int32  // 时间戳
+	Time       int64  // 时间戳
 	Battery    uint8  // 电量百分比：0-100十进制数
 	SinMul     uint8  // 单/双人模式:1-单人（只有用户1），2-双人
 
