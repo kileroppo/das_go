@@ -169,6 +169,12 @@ func ProcessJsonMsg(DValue string, devID string) error {
 				log.Error("[", head.DevId, "] toDevice_str json.Marshal, err=", err)
 			}
 		}
+	case constant.Set_dev_user_para: { // 用户参数设置（0x3B）
+		//1. 回复到APP
+		if 1 < head.Ack { // 错误码返回给APP
+			rabbitmq.Publish2app([]byte(DValue), head.DevId)
+		}
+	}
 	case constant.Sync_dev_user: // 同步设备用户列表
 		{
 			//1. 设备用户同步
