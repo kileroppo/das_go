@@ -13,7 +13,7 @@ const (
 var (
 	sysName = "das"
 	version = "0.2.1"
-	sysType = Test
+	sysType = Stable
 
 	SysName = getSysName()
 )
