@@ -57,13 +57,13 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 	switch self.msgType {
 	case NewDev:
 		res.OpType = "newDevice"
-		go RecordDevOnlineStatus(res.DevId, res.Online)
 		//todo: 若online=0，则该设备可能已经在其他网关下
 		//if res.Online <= 0 {
 		//	res.Online = 1
 		//}
 	case DevOnline:
 		res.OpType = "newOnline"
+		go RecordDevOnlineStatus(res.DevId, res.Online)
 	case DevDelete:
 		res.OpType = "devDelete"
 	case DevRename:
