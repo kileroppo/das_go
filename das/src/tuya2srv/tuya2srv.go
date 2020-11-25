@@ -274,8 +274,14 @@ func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
 
-	msg.OpType = rawJsonData.Get("code").String()
-	msg.OpValue = rawJsonData.Get("value").String()
+	msg.OpType = Ty_Status
+	val := rawJsonData.Get("value").String()
+	note, ok := TyCleanerStatusNote[val]
+	if ok {
+		msg.Note = note
+	} else {
+		return
+	}
 
 	data, err := json.Marshal(msg)
 	if err != nil {

@@ -12,6 +12,7 @@ const (
 	Ty_Status_Clean_Record        = "clean_record"
 	Ty_Status_Power               = "power"
 	Ty_Status                     = "status"
+	Ty_Status_Mode                = "mode"
 	Ty_Status_Doorcontact_State   = "doorcontact_state"
 	Ty_Status_Gas_Sensor_State    = "gas_sensor_state"
 	Ty_Status_Smoke_Sensor_Status = "smoke_sensor_status"
@@ -40,8 +41,8 @@ const (
 	Ty_Status_Scene_3        = "scene_3"
 	Ty_Status_Scene_4        = "scene_4"
 
-	Ty_Status_Switch         = "switch"
-	Ty_Status_Switch_1       = "switch_1"
+	Ty_Status_Switch   = "switch"
+	Ty_Status_Switch_1 = "switch_1"
 )
 
 //涂鸦设备事件bizCode
@@ -67,6 +68,23 @@ const (
 	Ty_AlarmVal_SOS         = "true"
 )
 
+//涂鸦扫地机状态
+const (
+	Ty_Cleaner_Standby     = "standby"
+	Ty_Cleaner_Smart       = "smart"
+	Ty_Cleaner_Spiral      = "spiral"
+	Ty_Cleaner_Single      = "single"
+	Ty_Cleaner_Chargego    = "chargego"
+	Ty_Cleaner_Wall_Follow = "wall_follow"
+	Ty_Cleaner_Power_Go    = "power_go"
+	Ty_Cleaner_Cleaning    = "cleaning"
+	Ty_Cleaner_Goto_Charge = "goto_charge"
+	Ty_Cleaner_Stop        = "stop"
+	Ty_Cleaner_Paused      = "paused"
+	Ty_Cleaner_Charging    = "charging"
+	Ty_Cleaner_Charge_Done = "charge_done"
+)
+
 type TyStatusHandle func(devId string, rawJsonData gjson.Result)
 type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 
@@ -76,6 +94,7 @@ var (
 		Ty_Status_Electricity_Left:   TyStatusRobotCleanerBattHandle,
 		Ty_Status_Power:              TyStatusPowerHandle,
 		Ty_Status:                    TyStatusNormalHandle,
+		Ty_Status_Mode:               TyStatusNormalHandle,
 		Ty_Status_Battery_Percentage: TyStatusDevBatt,
 		Ty_Status_Clean_Record:       TyStatus2PMSHandle,
 		Ty_Status_Switch:             TyStatus2PMSHandle,
@@ -92,7 +111,7 @@ var (
 
 		Ty_Status_Va_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Va_Humidity:    TyStatusEnvSensorHandle,
-		Ty_Status_Bright_Value:  TyStatusEnvSensorHandle,
+		Ty_Status_Bright_Value:   TyStatusEnvSensorHandle,
 
 		Ty_Status_Air_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Air_Humidity:    TyStatusEnvSensorHandle,
@@ -140,6 +159,21 @@ var (
 		Ty_Status_Air_CH2O:        100,
 		Ty_Status_Va_Humidity:     100,
 		Ty_Status_Va_Temperature:  100,
+	}
+
+	TyCleanerStatusNote = map[string]string{
+		Ty_Cleaner_Standby:     "待机",
+		Ty_Cleaner_Chargego:    "回充中",
+		Ty_Cleaner_Single:      "清扫中",
+		Ty_Cleaner_Smart:       "清扫中",
+		Ty_Cleaner_Spiral:      "清扫中",
+		Ty_Cleaner_Wall_Follow: "清扫中",
+		Ty_Cleaner_Cleaning:    "清扫中",
+		Ty_Cleaner_Goto_Charge: "回充中",
+		Ty_Cleaner_Paused:      "暂停",
+		Ty_Cleaner_Stop:        "暂停",
+		Ty_Cleaner_Charging:    "充电中",
+		Ty_Cleaner_Charge_Done: "充电完成",
 	}
 
 	TySensorAlarmReflect = map[string]string{
