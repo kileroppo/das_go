@@ -83,6 +83,7 @@ const (
 	Ty_Cleaner_Paused      = "paused"
 	Ty_Cleaner_Charging    = "charging"
 	Ty_Cleaner_Charge_Done = "charge_done"
+	Ty_Cleaner_Sleep       = "sleep"
 )
 
 type TyStatusHandle func(devId string, rawJsonData gjson.Result)
@@ -174,6 +175,7 @@ var (
 		Ty_Cleaner_Stop:        "暂停",
 		Ty_Cleaner_Charging:    "充电中",
 		Ty_Cleaner_Charge_Done: "充电完成",
+		Ty_Cleaner_Sleep:       "休眠",
 	}
 
 	TySensorAlarmReflect = map[string]string{
