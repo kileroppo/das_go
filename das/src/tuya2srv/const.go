@@ -8,11 +8,13 @@ import (
 
 //涂鸦设备状态code枚举
 const (
-	Ty_Status_Electricity_Left    = "electricity_left"
-	Ty_Status_Clean_Record        = "clean_record"
-	Ty_Status_Power               = "power"
-	Ty_Status                     = "status"
-	Ty_Status_Mode                = "mode"
+	Ty_Status_Electricity_Left = "electricity_left"
+	Ty_Status_Clean_Record     = "clean_record"
+	Ty_Status_Power            = "power"
+	Ty_Status                  = "status"
+	Ty_Status_Mode             = "mode"
+
+	//传感器
 	Ty_Status_Doorcontact_State   = "doorcontact_state"
 	Ty_Status_Gas_Sensor_State    = "gas_sensor_state"
 	Ty_Status_Smoke_Sensor_Status = "smoke_sensor_status"
@@ -32,7 +34,13 @@ const (
 	Ty_Status_Va_Temperature = "va_temperature"
 	Ty_Status_Va_Humidity    = "va_humidity"
 
-	Ty_Status_Bright_Value = "bright_value"
+	//灯
+	Ty_Status_Switch_Led      = "switch_led"
+	Ty_Status_Bright_Value    = "bright_value"
+	Ty_Status_Bright_Value_V2 = "bright_value_v2"
+	Ty_Status_Colour_Data     = "colour_data"
+	Ty_Status_Colour_Data_V2  = "colour_data_v2"
+	Ty_Status_Work_Mode       = "work_mode"
 
 	Ty_Status_Presence_State = "presence_state"
 	Ty_Status_Pir            = "pir"
@@ -43,6 +51,13 @@ const (
 
 	Ty_Status_Switch   = "switch"
 	Ty_Status_Switch_1 = "switch_1"
+	Ty_Status_Switch_2 = "switch_2"
+	Ty_Status_Switch_3 = "switch_3"
+	Ty_Status_Switch_4 = "switch_4"
+
+	//窗帘电机
+	Ty_Status_Percent_Control   = "percent_control"
+	Ty_Status_Percent_Control_2 = "percent_control_2"
 )
 
 //涂鸦设备事件bizCode
@@ -187,5 +202,30 @@ var (
 		Ty_Status_Watersensor_State:   Ty_AlarmVal_Watersensor,
 		Ty_Status_Presence_State:      Ty_AlarmVal_Presence,
 		Ty_Status_SOS_State:           Ty_AlarmVal_SOS,
+	}
+
+	TyStatusDataFilterMap = map[string]struct{}{
+		Ty_Status_Power:             {},
+		Ty_Status:                   {},
+		Ty_Status_Mode:              {},
+		Ty_Status_Switch_Led:        {},
+		Ty_Status_Bright_Value:      {},
+		Ty_Status_Bright_Value_V2:   {},
+		Ty_Status_Colour_Data:       {},
+		Ty_Status_Colour_Data_V2:    {},
+		Ty_Status_Work_Mode:         {},
+		Ty_Status_Presence_State:    {},
+		Ty_Status_Pir:               {},
+		Ty_Status_Scene_1:           {},
+		Ty_Status_Scene_2:           {},
+		Ty_Status_Scene_3:           {},
+		Ty_Status_Scene_4:           {},
+		Ty_Status_Switch:            {},
+		Ty_Status_Switch_1:          {},
+		Ty_Status_Switch_2:          {},
+		Ty_Status_Switch_3:          {},
+		Ty_Status_Switch_4:          {},
+		Ty_Status_Percent_Control:   {},
+		Ty_Status_Percent_Control_2: {},
 	}
 )

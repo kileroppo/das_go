@@ -116,10 +116,6 @@ type TuyaMsgHandle struct {
 	msg2Others entity.OtherVendorDevMsg
 }
 
-func (t *TuyaMsgHandle) UpdateData(data []byte) {
-	t.data = data
-}
-
 func (t *TuyaMsgHandle) InitHeader() {
 	t.msg2Others = entity.OtherVendorDevMsg{
 		Header: entity.Header{
@@ -138,8 +134,9 @@ func (t *TuyaMsgHandle) MsgHandle() {
 	rabbitmq.SendGraylogByMQ("涂鸦Server-pulsar->DAS: %s", t.data)
 	devId := gjson.GetBytes(t.data, "devId").String()
 
-	rabbitmq.Publish2app(t.data, devId)
-	t.send2Others(devId, t.data)
+	//rabbitmq.Publish2app(t.data, devId)
+	//t.send2Others(devId, t.data)
+	TyDataFilterAndNotify(t.data)
 
 	bizCode := gjson.GetBytes(t.data, "bizCode").String()
 	eventHandle, ok := TyDevEventHandlers[bizCode]
@@ -393,6 +390,37 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	if err == nil {
 		rabbitmq.Publish2pms(data, "")
 	}
+}
+
+func TyDataFilterAndNotify(rawData []byte) {
+	devStatus := gjson.GetBytes(rawData, "status").Array()
+	var statusCode string
+	for i, _ := range devStatus {
+		statusCode = devStatus[i].Get("code").String()
+		if tyDataFilter(statusCode) {
+			msg2mns := entity.OtherVendorDevMsg{
+				Header: entity.Header{
+					Cmd:     0x1200,
+					Ack:     0,
+					DevType: "",
+					DevId:   "",
+					Vendor:  "tuya",
+					SeqId:   0,
+				},
+				OriData: util.Bytes2Str(rawData),
+			}
+			data2mns,err := json.Marshal(msg2mns)
+			if err == nil {
+				rabbitmq.Publish2mns(data2mns, "")
+			}
+			return
+		}
+	}
+}
+
+func tyDataFilter(statusCode string) bool {
+     _,ok := TyStatusDataFilterMap[statusCode]
+     return ok
 }
 
 func Close() {
