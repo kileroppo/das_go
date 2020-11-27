@@ -136,7 +136,7 @@ func (t *TuyaMsgHandle) MsgHandle() {
 
 	//rabbitmq.Publish2app(t.data, devId)
 	//t.send2Others(devId, t.data)
-	TyDataFilterAndNotify(t.data)
+	TyDataFilterAndNotify(devId, t.data)
 
 	bizCode := gjson.GetBytes(t.data, "bizCode").String()
 	eventHandle, ok := TyDevEventHandlers[bizCode]
@@ -392,7 +392,7 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	}
 }
 
-func TyDataFilterAndNotify(rawData []byte) {
+func TyDataFilterAndNotify(devId string, rawData []byte) {
 	devStatus := gjson.GetBytes(rawData, "status").Array()
 	var statusCode string
 	for i, _ := range devStatus {
@@ -403,7 +403,7 @@ func TyDataFilterAndNotify(rawData []byte) {
 					Cmd:     0x1200,
 					Ack:     0,
 					DevType: "",
-					DevId:   "",
+					DevId:   devId,
 					Vendor:  "tuya",
 					SeqId:   0,
 				},
