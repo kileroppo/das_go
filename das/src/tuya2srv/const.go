@@ -227,5 +227,17 @@ var (
 		Ty_Status_Switch_4:          {},
 		Ty_Status_Percent_Control:   {},
 		Ty_Status_Percent_Control_2: {},
+
+		Ty_Status_Battery_Percentage: {},
+		Ty_Status_Air_Temperature:    {},
+		Ty_Status_Air_Humidity:       {},
+		Ty_Status_Air_PM25_Value:     {},
+		Ty_Status_Air_CO_Value:       {},
+		TY_Status_Air_CO2_Value:      {},
+		Ty_Status_Air_VOC:            {},
+		Ty_Status_Air_CH2O:           {},
+
+		Ty_Status_Va_Temperature: {},
+		Ty_Status_Va_Humidity:    {},
 	}
 )
