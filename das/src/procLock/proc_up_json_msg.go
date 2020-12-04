@@ -85,7 +85,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 	//json str 转struct(部份字段)
 	var head entity.Header
 	if err := json.Unmarshal([]byte(DValue), &head); err != nil {
-		log.Error("[", head.DevId, "] Header json.Unmarshal, err=", err)
+		log.Error("[", devID, "] Header json.Unmarshal, err=", err)
 		return err // break
 	}
 
