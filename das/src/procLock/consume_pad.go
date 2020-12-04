@@ -3,6 +3,8 @@ package procLock
 import (
 	"strings"
 
+	"github.com/tidwall/gjson"
+
 	"das/core/constant"
 	"das/core/jobque"
 	"das/core/log"
@@ -67,7 +69,11 @@ func consumePadDoor() {
 		//3. 锁对接的平台，存入redis
 		mymap := make(map[string]interface{})
 		mymap["from"] = constant.PAD_DEVICE_PLATFORM
-		go redis.SetDevicePlatformPool(devID, mymap)
+
+		//中控平板重启时间回复
+		if !(gjson.Get(devData, "cmd").Int() == constant.Set_AIPad_Reboot_Time) {
+			go redis.SetDevicePlatformPool(devID, mymap)
+		}
 
 		//4. fetch job
 		// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
