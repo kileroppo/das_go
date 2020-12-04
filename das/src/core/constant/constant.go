@@ -114,6 +114,8 @@ const (
 	FEIBEE_PLATFORM     = "feibee"
 	MQTT_PLATFORM       = "mqtt"
 	MQTT_PAD_PLATFORM   = "mqttpad"
+
+	Device_Type_ZKGtw = "WonlyZKgateway"
 )
 
 // 电信平台订阅消息类型

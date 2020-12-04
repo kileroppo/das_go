@@ -3,11 +3,14 @@ package procLock
 import (
 	"strings"
 
+	"github.com/tidwall/gjson"
+
 	"das/core/constant"
 	"das/core/jobque"
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
+	"das/core/util"
 )
 
 
@@ -51,7 +54,7 @@ func consumePadDoor() {
 		//log.Info("Consumer ReceiveMQMsgFromDevice: ", string(d.Body))
 
 		//1. 检验数据是否合法
-		getData := string(d.Body)
+		getData := util.Bytes2Str(d.Body)
 		if !strings.Contains(getData, "#") {
 			log.Error("Pad设备-mq->DAS: rabbitmq.ConsumerRabbitMq error msg: ", getData)
 			continue
@@ -61,13 +64,20 @@ func consumePadDoor() {
 		prData := strings.Split(getData, "#")
 		var devID string
 		var devData string
-		devID = prData[0]
-		devData = prData[1]
+		if len(prData) > 1 {
+			devID = prData[0]
+			devData = prData[1]
+		} else {
+			return
+		}
 
-		//3. 锁对接的平台，存入redis
-		mymap := make(map[string]interface{})
-		mymap["from"] = constant.PAD_DEVICE_PLATFORM
-		go redis.SetDevicePlatformPool(devID, mymap)
+		//来自中控平板的消息不做处理
+		if !IsDataFromZKGtw(devData) {
+			//3. 锁对接的平台，存入redis
+			mymap := make(map[string]interface{})
+			mymap["from"] = constant.PAD_DEVICE_PLATFORM
+			go redis.SetDevicePlatformPool(devID, mymap)
+		}
 
 		//4. fetch job
 		// work := httpJob.Job { Serload: httpJob.Serload { DValue: devData, Imei:devID, MsgFrom:constant.NBIOT_MSG }}
@@ -82,4 +92,10 @@ func consumePadDoor() {
 		go consumePadDoor()
 		return
 	}
+}
+
+func IsDataFromZKGtw(data string) bool {
+	devType := gjson.Get(data, "devType").String()
+	cmd := gjson.Get(data, "cmd").Int()
+	return devType == constant.Device_Type_ZKGtw || cmd == constant.Scene_Trigger || cmd == constant.Set_AIPad_Reboot_Time
 }
