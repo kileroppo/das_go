@@ -101,7 +101,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 			blePin, err2 := strconv.ParseInt(addDevUser.Passwd, 16, 64)
 			if err2 != nil {
 				log.Error("WlJson2BinMsg() strconv.ParseInt: ", blePin, ", error: ", err2)
-			} else {
+			} /*else {
 				blePin := util.Int64ToBytes(blePin)
 				for i, v := range blePin {
 					if i >= 10 {
@@ -109,7 +109,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 					}
 					pdu.BlePin[i] = v
 				}
-			}
+			}*/
 			/*pwd := []byte(addDevUser.Passwd)
 			for i := 0; i < len(pwd); i++ {
 				if i < 8 {
