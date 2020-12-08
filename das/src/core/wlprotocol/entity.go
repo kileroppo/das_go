@@ -103,8 +103,8 @@ type AddDevUser struct {
 	TimeSlot1 [4]byte  // 时段1
 	TimeSlot2 [4]byte  // 时段2
 	TimeSlot3 [4]byte  // 时段3
-	BlePin    [10]byte // 蓝牙PIN码
-//	BlePin int64	 // 蓝牙PIN码
+//	BlePin    [10]byte // 蓝牙PIN码
+	BlePin int64	 // 蓝牙PIN码
 	Reserve int16	// 保留2字节
 	AppUser int32	// app用户映射的值
 }
