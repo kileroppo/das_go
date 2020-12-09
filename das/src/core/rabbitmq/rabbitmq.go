@@ -266,13 +266,13 @@ func Publish2Scene(data []byte, routingKey string) {
 		if redis.IsDevBeta(data) {
 			err = publishDirect(7, producerMQ,exSli[ExSceneBeta_Index], routingKey, data)
 		} else {
-			err = publishDirect(7, producerMQ, exSli[ExSceneBeta_Index], routingKey, data)
+			err = publishDirect(7, producerMQ, exSli[ExScene_Index], routingKey, data)
 		}
 
 		if err != nil {
-			log.Warningf("Publish2pms > %s", err)
+			log.Warningf("Publish2Scene > %s", err)
 		} else {
-			//log.Debugf("Publish2pms msg: %s", data)
+			//log.Debugf("Publish2Scene msg: %s", data)
 		}
 	}()
 }
