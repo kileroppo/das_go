@@ -1,6 +1,7 @@
 package mqtt2srv
 
 import (
+	"das/core/constant"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -116,7 +117,7 @@ func sendSleepStageForSceneTrigger(msgTyp string, oriData gjson.Result) {
 func sendSceneTrigger(devId, alarmType string, alarmFlag int) {
 	msg2pms := entity.Feibee2AutoSceneMsg{
 		Header:      entity.Header{
-			Cmd:     241,
+			Cmd:     constant.Scene_Trigger,
 			Ack:     0,
 			DevType: "",
 			DevId:   devId,
@@ -135,7 +136,7 @@ func sendSceneTrigger(devId, alarmType string, alarmFlag int) {
 	if err != nil {
 		log.Errorf("sendSceneTrigger > %s", err)
 	} else {
-		rabbitmq.Publish2pms(data, "")
+		rabbitmq.Publish2Scene(data, "")
 	}
 }
 

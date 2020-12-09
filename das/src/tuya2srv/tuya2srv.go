@@ -82,7 +82,7 @@ func (t *TuyaCallback) HandlePayload(ctx context.Context, msg *pulsar.Message, p
 		data: jsonData,
 		msg2Others: entity.OtherVendorDevMsg{
 			Header: entity.Header{
-				Cmd:     0x1200,
+				Cmd:     constant.Other_Vendor_Msg,
 				Ack:     0,
 				DevType: "",
 				DevId:   "",
@@ -119,7 +119,7 @@ type TuyaMsgHandle struct {
 func (t *TuyaMsgHandle) InitHeader() {
 	t.msg2Others = entity.OtherVendorDevMsg{
 		Header: entity.Header{
-			Cmd:     0x1200,
+			Cmd:     constant.Other_Vendor_Msg,
 			Ack:     0,
 			DevType: "",
 			DevId:   "",
@@ -166,7 +166,7 @@ func (t *TuyaMsgHandle) send2Others(devId string, oriData []byte) {
 
 func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	msg := entity.DeviceActive{}
-	msg.Cmd = 0x46
+	msg.Cmd = constant.Upload_lock_active
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	if tyEvent == Ty_Event_Online {
@@ -183,7 +183,7 @@ func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	}
 
 	msg2app := entity.Feibee2DevMsg{}
-	msg2app.Cmd = 0xfb
+	msg2app.Cmd = constant.Device_Normal_Msg
 	msg2app.Vendor = "tuya"
 	msg2app.DevId = devId
 	msg2app.OpType = "newOnline"
@@ -205,7 +205,7 @@ func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 
 func TyEventDeleteHandle(devId, tyEvent string, rawJsonData gjson.Result) {
     msg := entity.Feibee2DevMsg{}
-    msg.Cmd = 0xfb
+    msg.Cmd = constant.Device_Normal_Msg
     msg.DevId = devId
     msg.OpType = "devDelete"
     msg.Vendor = "tuya"
@@ -218,7 +218,7 @@ func TyEventDeleteHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 
 func TyStatusDevBatt(devId string, rawJsonData gjson.Result) {
     msg := entity.OtherVendorDevMsg{}
-    msg.Cmd = 0x1200
+    msg.Cmd = constant.Other_Vendor_Msg
     msg.DevId = devId
     msg.Vendor = "tuya"
     msg.OriData = rawJsonData.Raw
@@ -230,7 +230,7 @@ func TyStatusDevBatt(devId string, rawJsonData gjson.Result) {
 
 func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.DeviceActive{}
-	msg.Cmd = 0x46
+	msg.Cmd = constant.Upload_lock_active
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
@@ -249,7 +249,7 @@ func TyStatusPowerHandle(devId string, rawJsonData gjson.Result) {
 
 func TyStatusRobotCleanerBattHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.AlarmMsgBatt{}
-	msg.Cmd = 0x2a
+	msg.Cmd = constant.Low_battery_alarm
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
@@ -266,7 +266,7 @@ func TyStatusRobotCleanerBattHandle(devId string, rawJsonData gjson.Result) {
 
 func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.Feibee2DevMsg{}
-	msg.Cmd = 0xfb
+	msg.Cmd = constant.Device_Normal_Msg
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
@@ -311,21 +311,21 @@ func TyStatusEnvSensorHandle(devId string, rawJsonData gjson.Result) {
 
 func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
 	var msg entity.Feibee2AutoSceneMsg
-	msg.Cmd = 0xf1
+	msg.Cmd = constant.Scene_Trigger
 	msg.DevId = devId + rawJsonData.Get("code").String()
 	msg.AlarmType = "sceneSwitch"
 	msg.AlarmFlag = 1
 
 	data, err := json.Marshal(msg)
 	if err == nil {
-		rabbitmq.Publish2pms(data, "")
+		rabbitmq.Publish2Scene(data, "")
 	}
 }
 
 func TyStatus2PMSHandle(devId string, rawJsonData gjson.Result) {
 	msg := entity.OtherVendorDevMsg{
 		Header: entity.Header{
-			Cmd:     0x1200,
+			Cmd:     constant.Other_Vendor_Msg,
 			Ack:     0,
 			DevType: "",
 			DevId:   devId,
@@ -344,7 +344,7 @@ func TyStatus2PMSHandle(devId string, rawJsonData gjson.Result) {
 
 func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
 	var msg entity.Feibee2AlarmMsg
-	msg.Cmd = 0xfc
+	msg.Cmd = constant.Device_Sensor_Msg
 	msg.Vendor = "tuya"
 	msg.Time = int(timestamp) / 1000
 	msg.MilliTimestamp = int(timestamp)
@@ -385,10 +385,10 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 		rabbitmq.Publish2pms(data, "")
 	}
 
-	msg.Cmd = 0xf1
+	msg.Cmd = constant.Scene_Trigger
 	data, err = json.Marshal(msg)
 	if err == nil {
-		rabbitmq.Publish2pms(data, "")
+		rabbitmq.Publish2Scene(data, "")
 	}
 }
 
@@ -400,7 +400,7 @@ func TyDataFilterAndNotify(devId string, rawData []byte) {
 		if tyDataFilter(statusCode) {
 			msg2mns := entity.OtherVendorDevMsg{
 				Header: entity.Header{
-					Cmd:     0x1200,
+					Cmd:     constant.Other_Vendor_Msg,
 					Ack:     0,
 					DevType: "",
 					DevId:   devId,

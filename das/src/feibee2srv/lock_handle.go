@@ -1,6 +1,7 @@
 package feibee2srv
 
 import (
+	"das/core/constant"
 	"errors"
 	"fmt"
 	"strconv"
@@ -80,7 +81,7 @@ func (fh *FbLockHandle) FbLockEnableDecode() {
 	}
 
 	msg := entity.DeviceActive{
-		Cmd:     0x46,
+		Cmd:     constant.Upload_lock_active,
 		Ack:     1,
 		DevType: "WonlyFBlock",
 		DevId:   fh.data.Records[0].Uuid,
@@ -126,14 +127,14 @@ func (fh *FbLockHandle) FbLockAlarmDecode() {
 
 	switch fh.Protocal.Value[5] {
 	case 0x04: //强拆报警
-		msg.Cmd = 0x22
+		msg.Cmd = constant.Forced_break_alarm
 	case 0x05: //门未关报警
-		msg.Cmd = 0x26
+		msg.Cmd = constant.Nolock_alarm
 	case 0x06: //胁迫报警
 	case 0x07: //假锁报警
-		msg.Cmd = 0x24
+		msg.Cmd = constant.Fakelock_alarm
 	case 0x33: //非法操作报警
-		msg.Cmd = 0x20
+		msg.Cmd = constant.Noatmpt_alarm
 	default:
 		return
 	}
@@ -180,7 +181,7 @@ func (fh *FbLockHandle) remoteUnlock(userId int) {
 
 	msg := entity.FeibeeLockRemoteOn{
 		Header: entity.Header{
-			Cmd:     0x52,
+			Cmd:     constant.Remote_open,
 			Ack:     1,
 			DevId:   fh.data.Records[0].Uuid,
 			Vendor:  "feibee",
@@ -224,7 +225,7 @@ func (fh *FbLockHandle) remoteUnlock(userId int) {
 
 func (fh *FbLockHandle) otherUnlock(userId int) {
 	msg := entity.UploadOpenLockLog{
-		Cmd:     0x40,
+		Cmd:     constant.Upload_open_log,
 		Ack:     1,
 		DevType: "WonlyFBlock",
 		DevId:   fh.data.Records[0].Uuid,
@@ -281,7 +282,7 @@ func (fh *FbLockHandle) FbLockBattDecode() {
 
 	msg := entity.FeibeeLockBattMsg{
 		Header: entity.Header{
-			Cmd:     0x2a,
+			Cmd:     constant.Low_battery_alarm,
 			Ack:     1,
 			DevType: "WonlyFBlock",
 			DevId:   fh.data.Records[0].Uuid,

@@ -1,6 +1,7 @@
 package feibee2srv
 
 import (
+	"das/core/constant"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -140,7 +141,7 @@ func (self *BaseSensorAlarm) pushMsg2mns() {
 func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
 	var msg entity.Feibee2AutoSceneMsg
 
-	msg.Cmd = 0xf1
+	msg.Cmd = constant.Scene_Trigger
 	msg.Ack = 0
 	msg.Vendor = "feibee"
 	msg.SeqId = 1
@@ -161,7 +162,7 @@ func (self *BaseSensorAlarm) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 func (self *BaseSensorAlarm) createStatusMsg(opType string) entity.Feibee2DevMsg {
 	var msg entity.Feibee2DevMsg
 
-	msg.Cmd = 0xfb
+	msg.Cmd = constant.Device_Normal_Msg
 	msg.Ack = 0
 	msg.DevType = self.devType
 	msg.DevId = self.devid
@@ -178,7 +179,7 @@ func (self *BaseSensorAlarm) createStatusMsg(opType string) entity.Feibee2DevMsg
 func (self *BaseSensorAlarm) createAlarmMsg() entity.Feibee2AlarmMsg {
 	var msg entity.Feibee2AlarmMsg
 
-	msg.Cmd = 0xfc
+	msg.Cmd = constant.Device_Sensor_Msg
 	msg.Ack = 0
 	msg.DevType = self.devType
 	msg.DevId = self.devid
@@ -217,7 +218,7 @@ func (self *BaseSensorAlarm) pushMsg2pmsForSceneTrigger() {
 		log.Error("BaseSensorAlarm.pushMsg2pmsForSceneTrigger > %s", err)
 		return
 	}
-	rabbitmq.Publish2pms(data, "")
+	rabbitmq.Publish2Scene(data, "")
 }
 
 func (self *BaseSensorAlarm) pushForcedBreakMsg() {

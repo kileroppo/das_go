@@ -2,6 +2,7 @@ package http2srv
 
 import (
 	"crypto/tls"
+	"das/core/constant"
 
 	"encoding/json"
 	"strconv"
@@ -127,7 +128,7 @@ func (y YKJob) Handle() {
 
 func ProcessYKMsg(rawData []byte) {
 	header := entity.Header{
-		Cmd:     0xfb,
+		Cmd:     constant.Device_Normal_Msg,
 		DevType: "WonlyYKInfrared",
 		Vendor:  "yk",
 	}
@@ -163,7 +164,7 @@ func ProcessYKMsg(rawData []byte) {
 		rabbitmq.Publish2mns(data, "")
 	}
 
-	header.Cmd = 0x1200
+	header.Cmd = constant.Other_Vendor_Msg
 	msg2pms := entity.OtherVendorDevMsg{
 		Header:  header,
 		OriData: string(rawData),
@@ -197,7 +198,7 @@ func (r RGJob) Handle() {
 
 	msg := entity.OtherVendorDevMsg{
 		Header: entity.Header{
-			Cmd:     0x1200,
+			Cmd:     constant.Other_Vendor_Msg,
 			DevId:   devId,
 			Vendor:  "rg",
 			DevType: "",

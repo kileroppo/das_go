@@ -520,14 +520,14 @@ func pushMsgForSceneTrigger(msg *entity.RangeHoodAlarm) {
 		AlarmType:   "rangeHoodGas",
 		AlarmFlag:   1,
 	}
-	msg2pms.Cmd = 0xf1
+	msg2pms.Cmd = constant.Scene_Trigger
 	data2pms, err := json.Marshal(msg2pms)
 	if err != nil {
 		log.Warning("ProcAppMsg Wonly_LGuard_Msg json.Marshal() error = ", err)
 		return
 	}
 	//作为场景触发通知
-	rabbitmq.Publish2pms(data2pms, "")
+	rabbitmq.Publish2Scene(data2pms, "")
 }
 
 func pushMsgForSave(msg *entity.RangeHoodAlarm) {
