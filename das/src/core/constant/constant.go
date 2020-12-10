@@ -180,6 +180,7 @@ const (
 const (
 	VENDOR_WONLY  = "general"
 	VENDOR_FEIBEE = "feibee"
+	Vendor_Lancens = "lancens"
 )
 
 //王力内部传感器报警字符类型枚举

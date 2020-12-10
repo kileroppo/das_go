@@ -2,8 +2,7 @@ package http2srv
 
 import (
 	"crypto/tls"
-	"das/core/constant"
-
+	"fmt"
 	"encoding/json"
 	"strconv"
 
@@ -16,6 +15,7 @@ import (
 	"das/core/rabbitmq"
 	"das/core/util"
 	"das/feibee2srv"
+	"das/core/constant"
 )
 
 var (
@@ -96,7 +96,8 @@ func Close() {
 //}
 
 func LancensMsgHandler(c *fiber.Ctx) {
-	log.Infof("揽胜Server-http->DAS: %s", c.Body())
+	rabbitmq.SendGraylogByMQ(fmt.Sprintf("揽胜Server-http->DAS: %s", c.Body()))
+	ProcessLancensMsg(c.Body())
 }
 
 func XMAlarmMsgHandler(c *fiber.Ctx) {
@@ -173,6 +174,20 @@ func ProcessYKMsg(rawData []byte) {
 	if err != nil {
 		log.Warningf("ProcessYKMsg > json.Marshal > %s", err)
 	} else {
+		rabbitmq.Publish2pms(data, "")
+	}
+}
+
+func ProcessLancensMsg(oriData string) {
+	msg := entity.OtherVendorDevMsg{
+		Header:  entity.Header{
+			Cmd: constant.Other_Vendor_Msg,
+			Vendor: constant.Vendor_Lancens,
+		},
+		OriData: oriData,
+	}
+	data,err := json.Marshal(msg)
+	if err == nil {
 		rabbitmq.Publish2pms(data, "")
 	}
 }
