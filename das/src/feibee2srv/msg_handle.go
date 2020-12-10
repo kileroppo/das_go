@@ -36,7 +36,7 @@ func (self *NormalMsgHandle) createMsgHeader() (header entity.Header) {
 }
 
 func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string, err error) {
-	res.Cmd = 0xfb
+	res.Cmd = constant.Device_Normal_Msg
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
@@ -96,7 +96,7 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 }
 
 func (self *NormalMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
-	res.Cmd = 0xfa
+	res.Cmd = constant.Feibee_Ori_Msg
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
@@ -113,7 +113,7 @@ func (self *NormalMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
 func (self *NormalMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg {
 	var msg entity.Feibee2AutoSceneMsg
 
-	msg.Cmd = 0xf1
+	msg.Cmd = constant.Scene_Trigger
 	msg.Ack = 0
 	msg.Vendor = "feibee"
 	msg.SeqId = 1
@@ -170,7 +170,7 @@ func (self *NormalMsgHandle) PushMsg() {
 	if self.msgType == RemoteOpDev && self.data.Msg[0].Deviceid == 0x0202 {
 		data,err := json.Marshal(self.createMsg2pmsForSence())
 		if err == nil {
-			rabbitmq.Publish2pms(data, "")
+			rabbitmq.Publish2Scene(data, "")
 		}
 	}
 }
@@ -198,13 +198,13 @@ func (self *ManualOpMsgHandle) PushMsg() {
 	if self.data.Records[0].Deviceid == 0x0202 {
 		data,err := json.Marshal(self.createMsg2pmsForSence())
 		if err == nil {
-			rabbitmq.Publish2pms(data, "")
+			rabbitmq.Publish2Scene(data, "")
 		}
 	}
 }
 
 func (self *ManualOpMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
-	res.Cmd = 0xfa
+	res.Cmd = constant.Feibee_Ori_Msg
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
@@ -219,7 +219,7 @@ func (self *ManualOpMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
 }
 
 func (self *ManualOpMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
-	res.Cmd = 0xfb
+	res.Cmd = constant.Device_Normal_Msg
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
@@ -251,7 +251,7 @@ func (self *ManualOpMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMs
 	    return msg
 	}
 
-	msg.Cmd = 0xf1
+	msg.Cmd = constant.Scene_Trigger
 	msg.Ack = 0
 	msg.Vendor = "feibee"
 	msg.SeqId = 1
@@ -272,7 +272,7 @@ type GtwMsgHandle struct {
 }
 
 func (self *GtwMsgHandle) createMsg2mns() (res entity.Feibee2DevMsg) {
-	res.Cmd = 0xfb
+	res.Cmd = constant.Device_Normal_Msg
 	res.Vendor = "feibee"
 	res.SeqId = 1
 	res.Bindid = self.data.Gateway[0].Bindid
@@ -284,7 +284,7 @@ func (self *GtwMsgHandle) createMsg2mns() (res entity.Feibee2DevMsg) {
 }
 
 func (self *GtwMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
-	res.Cmd = 0xfa
+	res.Cmd = constant.Feibee_Ori_Msg
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
@@ -294,7 +294,7 @@ func (self *GtwMsgHandle) createMsg2pms() (res entity.Feibee2PMS) {
 }
 
 func (self *GtwMsgHandle) createMsg2app() (res entity.FeibeeGtwMsg2App) {
-    res.Cmd = 0xf5
+    res.Cmd = constant.Feibee_Gtw_Info
     res.Vendor = "feibee"
     res.Bindid = self.data.Gateway[0].Bindid
     res.Bindstr = self.data.Gateway[0].Bindstr
@@ -349,7 +349,7 @@ func (self *GtwUpgradeHandle) PushMsg() {
 }
 
 func (self *GtwUpgradeHandle) createMsg2app() (res entity.Feibee2DevMsg) {
-	res.Cmd = 0xfb
+	res.Cmd = constant.Device_Normal_Msg
 	res.Vendor = "feibee"
 	res.SeqId = 1
 	res.Bindid = self.data.UpGradeMessages[0].Bindid
@@ -367,7 +367,7 @@ type InfraredTreasureHandle struct {
 }
 
 func (self *InfraredTreasureHandle) createMsg2App() (res entity.Feibee2DevMsg, routingKey,bindid string) {
-	res.Cmd = 0xfb
+	res.Cmd = constant.Device_Normal_Msg
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1
@@ -569,7 +569,7 @@ func (self *WonlyLGuardHandle) sendMsg2pmsForSceneTrigger() {
 	if err != nil {
 		log.Error("WonlyLGuardHandle sendMsg2pmsForSceneTrigger() error = ", err)
 	} else {
-		rabbitmq.Publish2pms(data2pms, "")
+		rabbitmq.Publish2Scene(data2pms, "")
 	}
 }
 
@@ -614,7 +614,7 @@ func (self *WonlyLGuardHandle) createOtherMsg2App() (res entity.Feibee2DevMsg, r
 		return
 	}
 
-	res.Cmd = 0xfb
+	res.Cmd = constant.Device_Normal_Msg
 	res.Ack = 1
 	res.Vendor = "feibee"
 	res.SeqId = 1
@@ -646,7 +646,7 @@ func (self *SceneSwitchHandle) PushMsg() {
 		log.Warning("SceneSwitchHandle sceneMsg2pms json.Marshal() error = ", err)
 	} else {
 		//producer.SendMQMsg2PMS(string(sceneData2pms))
-		rabbitmq.Publish2pms(sceneData2pms, "")
+		rabbitmq.Publish2Scene(sceneData2pms, "")
 		rabbitmq.Publish2mns(sceneData2pms, "")
 	}
 }
@@ -699,7 +699,7 @@ func (self *FeibeeSceneHandle) PushMsg() {
 }
 
 func (self *FeibeeSceneHandle) createMsg2mns() (res entity.Feibee2DevMsg){
-	res.Header.Cmd = 0xfb
+	res.Header.Cmd = constant.Device_Normal_Msg
 	res.Header.Vendor = "feibee"
 	res.Header.SeqId = 1
 	res.SceneMessages = self.data.SceneMessages
@@ -736,7 +736,7 @@ func (self *CurtainDevgreeHandle) publish2app() {
 
 	msg := entity.Feibee2DevMsg{
 		Header:        entity.Header{
-			Cmd:     0xfb,
+			Cmd:     constant.Device_Normal_Msg,
 			Ack:     0,
 			DevType: devTypeConv(self.data.Records[0].Deviceid, self.data.Records[0].Zonetype),
 			DevId:  self.data.Records[0].Uuid,
@@ -764,7 +764,7 @@ func (self *CurtainDevgreeHandle) publish2app() {
 }
 
 func createSceneMsg2pms(data *entity.FeibeeData, alarmFlag int, alarmType string) (res entity.Feibee2AutoSceneMsg) {
-	res.Cmd = 0xf1
+	res.Cmd = constant.Scene_Trigger
 	res.Ack = 0
 	res.Vendor = "feibee"
 	res.SeqId = 1

@@ -795,7 +795,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 func SendLockMsgForSceneTrigger(devId, devType , alarmType string, alarmFlag int) {
 	var msg entity.Feibee2AutoSceneMsg
 
-	msg.Cmd = 0xf1
+	msg.Cmd = constant.Scene_Trigger
 	msg.Ack = 0
 	msg.DevType = devType
 	msg.DevId = devId
@@ -812,7 +812,7 @@ func SendLockMsgForSceneTrigger(devId, devType , alarmType string, alarmFlag int
 	}
 
 	//producer.SendMQMsg2PMS(string(data))
-	rabbitmq.Publish2pms(data, "")
+	rabbitmq.Publish2Scene(data, "")
 }
 
 func ParseOpenLog(rawData string) {

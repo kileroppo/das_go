@@ -1,6 +1,7 @@
 package feibee2srv
 
 import (
+	"das/core/constant"
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
@@ -98,7 +99,7 @@ func (pm *PMHandle) decodeCO2() {
 func (pm *PMHandle) push2pms(opType, opValue string, opFlag int) {
 	msg2pms := entity.Feibee2AutoSceneMsg{
 		Header: entity.Header{
-			Cmd:     0xf1,
+			Cmd:     constant.Scene_Trigger,
 			DevId:   pm.data.Records[0].Uuid,
 			DevType: devTypeConv(pm.data.Records[0].Deviceid, pm.data.Records[0].Zonetype),
 			Vendor:  "feibee",
@@ -117,9 +118,9 @@ func (pm *PMHandle) push2pms(opType, opValue string, opFlag int) {
 		log.Warningf("PMHandle.push2pms > Trigger > json.Marshal > %s", err)
 		return
 	}
-	rabbitmq.Publish2pms(data, "")
+	rabbitmq.Publish2Scene(data, "")
 
-	msg2pms.Cmd = 0xfc
+	msg2pms.Cmd = constant.Device_Sensor_Msg
 	data, err = json.Marshal(msg2pms)
 	if err != nil {
 		log.Warningf("PMHandle.push2pms > Alarm > json.Marshal > %s", err)

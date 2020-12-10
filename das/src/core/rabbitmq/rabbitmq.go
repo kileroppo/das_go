@@ -41,9 +41,11 @@ const (
 	ExSrv2Wonlyms_Index = 8
 	Ex2PmsBeta_Index    = 9
 	Ex2Graylog_Index    = 10
+	ExScene_Index       = 12
+	ExSceneBeta_Index   = 13
 
 	consumerNum = 4
-	publishNum  = 7
+	publishNum  = 8
 )
 
 func Init() {
@@ -110,6 +112,8 @@ func initMQCfg() {
 	ex2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex")
 	ex2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_ex")
 	exFb2Srv, err := log.Conf.GetString("rabbitmq", "feibee2srv_ex")
+	exScene, err := log.Conf.GetString("rabbitmq", "scene_ex")
+	exSceneBeta, err := log.Conf.GetString("rabbitmq_beta", "scene_ex")
 
 	exTypeApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_ex_type")
 	exTypeDev2App, err := log.Conf.GetString("rabbitmq", "device2app_ex_type")
@@ -123,6 +127,8 @@ func initMQCfg() {
 	exType2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_ex_type")
 	exType2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_ex_type")
 	exTypeFb2Srv, err := log.Conf.GetString("rabbitmq", "feibee2srv_ex_type")
+	exTypeScene, err := log.Conf.GetString("rabbitmq", "scene_ex_type")
+	exTypeSceneBeta, err := log.Conf.GetString("rabbitmq_beta", "scene_ex_type")
 
 
 	queApp2dev, err := log.Conf.GetString("rabbitmq", "app2device_que")
@@ -135,10 +141,12 @@ func initMQCfg() {
 	que2PmsBeta, err := log.Conf.GetString("rabbitmq_beta", "das2pms_que")
 	//que2Graylog, err := log.Conf.GetString("rabbitmq", "graylog_que")
 	que2Fb2Srv, err := log.Conf.GetString("rabbitmq", "feibee2srv_que")
+	queScene, err := log.Conf.GetString("rabbitmq", "scene_que")
+	queSceneBeta, err := log.Conf.GetString("rabbitmq_beta", "scene_que")
 
-	exSli = []string{exApp2dev, exDev2App, ex2Mns, ex2Pms, exDev2Srv, exSrv2Dev, exAli2Srv, ex2Log, exSrv2Wonlyms, ex2PmsBeta, ex2Graylog, exFb2Srv}
-	exTypeSli := []string{exTypeApp2dev, exTypeDev2App, exType2Mns, exType2Pms, exTypeDev2Srv, exTypeSrv2Dev, exTypeAli2Srv, exType2Log, exTypeSrv2Wonlyms, exType2PmsBeta, exType2Graylog, exTypeFb2Srv}
-	queSli := []string{queApp2dev, "", que2Mns, que2Pms, queDev2Srv, "", queAli2Srv, que2Log, queSrv2Wonlyms, que2PmsBeta, "", que2Fb2Srv}
+	exSli = []string{exApp2dev, exDev2App, ex2Mns, ex2Pms, exDev2Srv, exSrv2Dev, exAli2Srv, ex2Log, exSrv2Wonlyms, ex2PmsBeta, ex2Graylog, exFb2Srv, exScene, exSceneBeta}
+	exTypeSli := []string{exTypeApp2dev, exTypeDev2App, exType2Mns, exType2Pms, exTypeDev2Srv, exTypeSrv2Dev, exTypeAli2Srv, exType2Log, exTypeSrv2Wonlyms, exType2PmsBeta, exType2Graylog, exTypeFb2Srv, exTypeScene, exTypeSceneBeta}
+	queSli := []string{queApp2dev, "", que2Mns, que2Pms, queDev2Srv, "", queAli2Srv, que2Log, queSrv2Wonlyms, que2PmsBeta, "", que2Fb2Srv, queScene, queSceneBeta}
 
 	exCfg := exchangeCfg{
 		name:       "",
@@ -249,6 +257,24 @@ func Publish2Graylog(data []byte, routingKey string) {
 	if err := publishDirect(6, producerMQ, exSli[Ex2Graylog_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2Graylog > %s", err)
 	}
+}
+
+func Publish2Scene(data []byte, routingKey string) {
+	go func() {
+		var err error
+		SendGraylogByMQ("DAS-mq->PMS(scene): %s", data)
+		if redis.IsDevBeta(data) {
+			err = publishDirect(7, producerMQ,exSli[ExSceneBeta_Index], routingKey, data)
+		} else {
+			err = publishDirect(7, producerMQ, exSli[ExScene_Index], routingKey, data)
+		}
+
+		if err != nil {
+			log.Warningf("Publish2Scene > %s", err)
+		} else {
+			//log.Debugf("Publish2Scene msg: %s", data)
+		}
+	}()
 }
 
 func ConsumeApp() (ch <-chan amqp.Delivery, err error){

@@ -2,7 +2,7 @@ package http2srv
 
 import (
 	"crypto/tls"
-
+	"fmt"
 	"encoding/json"
 	"strconv"
 
@@ -15,6 +15,7 @@ import (
 	"das/core/rabbitmq"
 	"das/core/util"
 	"das/feibee2srv"
+	"das/core/constant"
 )
 
 var (
@@ -95,7 +96,8 @@ func Close() {
 //}
 
 func LancensMsgHandler(c *fiber.Ctx) {
-	log.Infof("揽胜Server-http->DAS: %s", c.Body())
+	rabbitmq.SendGraylogByMQ(fmt.Sprintf("揽胜Server-http->DAS: %s", c.Body()))
+	ProcessLancensMsg(c.Body())
 }
 
 func XMAlarmMsgHandler(c *fiber.Ctx) {
@@ -127,7 +129,7 @@ func (y YKJob) Handle() {
 
 func ProcessYKMsg(rawData []byte) {
 	header := entity.Header{
-		Cmd:     0xfb,
+		Cmd:     constant.Device_Normal_Msg,
 		DevType: "WonlyYKInfrared",
 		Vendor:  "yk",
 	}
@@ -163,7 +165,7 @@ func ProcessYKMsg(rawData []byte) {
 		rabbitmq.Publish2mns(data, "")
 	}
 
-	header.Cmd = 0x1200
+	header.Cmd = constant.Other_Vendor_Msg
 	msg2pms := entity.OtherVendorDevMsg{
 		Header:  header,
 		OriData: string(rawData),
@@ -172,6 +174,20 @@ func ProcessYKMsg(rawData []byte) {
 	if err != nil {
 		log.Warningf("ProcessYKMsg > json.Marshal > %s", err)
 	} else {
+		rabbitmq.Publish2pms(data, "")
+	}
+}
+
+func ProcessLancensMsg(oriData string) {
+	msg := entity.OtherVendorDevMsg{
+		Header:  entity.Header{
+			Cmd: constant.Other_Vendor_Msg,
+			Vendor: constant.Vendor_Lancens,
+		},
+		OriData: oriData,
+	}
+	data,err := json.Marshal(msg)
+	if err == nil {
 		rabbitmq.Publish2pms(data, "")
 	}
 }
@@ -197,7 +213,7 @@ func (r RGJob) Handle() {
 
 	msg := entity.OtherVendorDevMsg{
 		Header: entity.Header{
-			Cmd:     0x1200,
+			Cmd:     constant.Other_Vendor_Msg,
 			DevId:   devId,
 			Vendor:  "rg",
 			DevType: "",
