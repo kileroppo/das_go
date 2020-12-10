@@ -116,6 +116,7 @@ func WlJson2BinMsg(jsonMsg string, wlProtocol int) ([]byte, error) {
 					pdu.BlePin[i] = pwd[i]
 				}
 			}*/
+			pdu.BlePin = blePin
 		} else {
 			pwd := []byte(addDevUser.Passwd)
 			for i := 0; i < len(pwd); i++ {
