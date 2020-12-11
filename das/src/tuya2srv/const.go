@@ -58,6 +58,10 @@ const (
 	//窗帘电机
 	Ty_Status_Percent_Control   = "percent_control"
 	Ty_Status_Percent_Control_2 = "percent_control_2"
+
+	Ty_Status_Sleep_Stage = "sleep_stage"
+	Ty_Status_Off_Bed     = "off_bed"
+	Ty_Status_Wakeup      = "wakeup"
 )
 
 //涂鸦设备事件bizCode
@@ -101,6 +105,12 @@ const (
 	Ty_Cleaner_Sleep       = "sleep"
 )
 
+//涂鸦睡眠袋睡眠状态
+const (
+	Ty_Sleep_Stage_Awake = "awake"
+	Ty_Sleep_Stage_Sleep = "sleep"
+)
+
 type TyStatusHandle func(devId string, rawJsonData gjson.Result)
 type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 
@@ -140,6 +150,10 @@ var (
 		Ty_Status_Scene_2: TyStatusSceneHandle,
 		Ty_Status_Scene_3: TyStatusSceneHandle,
 		Ty_Status_Scene_4: TyStatusSceneHandle,
+
+		Ty_Status_Sleep_Stage: TyStatusSleepStage,
+		Ty_Status_Off_Bed:     TyStatusOffBed,
+		Ty_Status_Wakeup:      TyStatusWakeup,
 	}
 
 	TyDevEventHandlers = map[string]TyEventHandle{

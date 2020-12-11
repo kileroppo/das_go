@@ -223,6 +223,8 @@ const (
 	Wonly_Status_Aircondition_Local_Temperature = "localTemperature"
 	Wonly_Status_Aircondition_Max_Temperature   = "maxTemperature"
 	Wonly_Status_Aircondition_Min_Temperature   = "minTemperature"
+
+	Wonly_Status_Sleep_Stage = "sleepStatus"
 )
 
 var (
