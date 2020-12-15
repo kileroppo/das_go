@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/tidwall/gjson"
 	"sync"
 	"time"
 
@@ -236,7 +237,7 @@ func Publish2mns(data []byte, routingKey string) {
 		log.Warningf("Publish2mns > %s", err)
 	} else {
 		var esLog entity.EsLogEntiy // 记录日志
-		esLog.DeviceId = routingKey
+		esLog.DeviceId = gjson.Get(string(data), "devId").String()
 		esLog.Vendor = "general"
 		esLog.Operation = "DAS发给MNS"
 		esLog.ThirdPlatform = "王力RabbitMQ"
@@ -276,7 +277,7 @@ func Publish2pms(data []byte, routingKey string) {
 		}
 
 		var esLog entity.EsLogEntiy // 记录日志
-		esLog.DeviceId = routingKey
+		esLog.DeviceId = gjson.Get(string(data), "devId").String()
 		esLog.Vendor = "general"
 		esLog.Operation = "DAS发给PMS"
 		esLog.ThirdPlatform = "王力RabbitMQ"
