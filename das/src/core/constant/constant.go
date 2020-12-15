@@ -174,6 +174,7 @@ const (
 	IPC_SN_PNO     = 0x0d // 视频模组sn
 	WIFI_SSID_PNO  = 0x0f // WIFI_SSID
 	PROJECT_No_PNO = 0x10 // 产品序列号
+	IPC_SN_PNO_lencens = 0x1b // 揽胜视频模组sn
 
 )
 

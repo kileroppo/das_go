@@ -704,6 +704,27 @@ func ParseData(mydata interface{}) error {
 				rbyf_pn = byteData[0:index]
 			}
 			lockParam.PaValue = string(rbyf_pn[:])
+		} else if constant.IPC_SN_PNO_lencens == pdu.ParamNo {
+			var byteData []byte
+			rbyf_pn := make([]byte, 20, 20) //make语法声明 ，len为20，cap为20
+			paramValue, ok := pdu.ParamValue.(string)
+			if !ok {
+				log.Error("ParseData Update_dev_para pdu.ParamValue.(string), ok=", ok)
+				return nil
+			}
+			for m := 0; m < len(paramValue); m++ {
+				if m >= 20 {
+					break
+				}
+				byteData = append(byteData, paramValue[m])
+			}
+			index := bytes.IndexByte(byteData, 0)
+			if -1 == index {
+				rbyf_pn = byteData[0:len(byteData)]
+			} else {
+				rbyf_pn = byteData[0:index]
+			}
+			lockParam.PaValue = string(rbyf_pn[:])
 		}
 
 		//2. 发送到PMS模块
