@@ -128,8 +128,9 @@ func (t *TuyaMsgHandle) MsgHandle() {
 	var esLog entity.EsLogEntiy // 记录日志
 	esLog.DeviceId = devId
 	esLog.Vendor = "tuya"
-	esLog.Operation = TyDevEventOperZh[bizCode]
-	esLog.ThirdPlatform = "涂鸦pulsar推送"
+	esLog.Operation = "涂鸦pulsar推送"
+	esLog.RetMsg = TyDevEventOperZh[bizCode]
+	esLog.ThirdPlatform = "涂鸦pulsar"
 	esData, err := json.Marshal(esLog)
 	if err != nil {
 		log.Warningf("MsgHandle > json.Marshal > %s", err)

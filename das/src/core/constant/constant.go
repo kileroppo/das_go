@@ -111,6 +111,15 @@ const (
 
 )
 
+var WlLockAlarmMsg = map[int]string{
+	Noatmpt_alarm : "非法操作报警",
+	Forced_break_alarm : "强拆报警",
+	Fakelock_alarm : "假锁报警",
+	Nolock_alarm : "门未关报警",
+	Gas_Alarm : "燃气报警",
+	Low_battery_alarm : "锁体的电池，低电量报警",
+	Infrared_alarm : "人体感应报警（infra红外感应)",
+}
 const (
 	ONENET_PLATFORM     = "onenet"
 	TELECOM_PLATFORM    = "telecom"

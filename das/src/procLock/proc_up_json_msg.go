@@ -591,6 +591,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 	case constant.Upload_lock_active: // 锁激活状态上报
 		{
 			//log.Info("[", head.DevId, "] constant.Upload_lock_active")
+			esLog.Operation = "锁激活状态上报"
 			//1. 解析锁激活上报包
 			var lockActive entity.DeviceActiveResp
 			if err_lockActive := json.Unmarshal([]byte(DValue), &lockActive); err_lockActive != nil {
@@ -631,9 +632,9 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			rabbitmq.Publish2mns([]byte(DValue), "")
 
 			if lockActive.Time > 0 {
-				esLog.Operation = "设备上线"
+				esLog.RetMsg = "设备上线"
 			} else {
-				esLog.Operation = "设备离线"
+				esLog.RetMsg = "设备离线"
 			}
 		}
 	case constant.Real_Video: // 实时视频
