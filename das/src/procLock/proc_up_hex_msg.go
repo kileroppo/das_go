@@ -53,6 +53,7 @@ func ParseData(mydata interface{}) error {
 	}
 
 	var esLog entity.EsLogEntiy // 记录日志
+	esLog.Operation = "device-mqtt|http2->DAS"
 	var wlMsg wlprotocol.WlMessage
 	bBody, err0 := wlMsg.PkDecode(data)
 	//sendMQTTUpLogMsg(&wlMsg, data)
@@ -67,7 +68,7 @@ func ParseData(mydata interface{}) error {
 	switch wlMsg.Cmd {
 	case constant.Add_dev_user:			// 新增用户(0x33)(服务器-->前板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Add_dev_user")
-		esLog.Operation = "新增用户"
+		esLog.Operation += "新增用户"
 		if wlMsg.Ack > 1 {
 			addDevUser := entity.Header{
 				Cmd: int(wlMsg.Cmd),
@@ -86,7 +87,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Set_dev_user_temp:	// 设置临时用户时段(0x76)(服务器-->前板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_user_temp")
-		esLog.Operation = "设置临时用户时段"
+		esLog.Operation += "设置临时用户时段"
 
 		// 组包
 		factoryReset := entity.Header{
@@ -108,7 +109,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.User_oper_upload:
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.User_oper_upload")
-		esLog.Operation = "用户操作上报"
+		esLog.Operation += "用户操作上报"
 		// 1.解包
 		pdu := &wlprotocol.UserOperUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
@@ -150,7 +151,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Add_dev_user_step:	// 新增用户报告步骤(0x34)(前板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Add_dev_user_step")
-		esLog.Operation = "新增用户报告步骤"
+		esLog.Operation += "新增用户报告步骤"
 		pdu := &wlprotocol.AddDevUserStep{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -183,7 +184,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Del_dev_user:			// 删除用户(0x32)(服务器-->前板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Del_dev_user")
-		esLog.Operation = "删除用户"
+		esLog.Operation += "删除用户"
 		if wlMsg.Ack > 1 {
 			delDevUser := entity.Header{
 				Cmd: int(wlMsg.Cmd),
@@ -202,7 +203,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Update_dev_user:		// 用户更新上报(0x35)(前板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Update_dev_user")
-		esLog.Operation = "用户更新上报"
+		esLog.Operation += "用户更新上报"
 		pdu := &wlprotocol.UserUpdateLoad{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -315,7 +316,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Set_dev_user_para: { // 用户参数设置（0x3B）
 			// log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_user_para")
-			esLog.Operation = "用户参数设置"
+			esLog.Operation += "用户参数设置"
 
 			pdu := &wlprotocol.SetDevUserParam{}
 			err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
@@ -345,7 +346,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Sync_dev_user:		// 请求同步用户列表(0x31)(服务器-->前板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Sync_dev_user")
-		esLog.Operation = "请求同步用户列表"
+		esLog.Operation += "请求同步用户列表"
 		pdu := &wlprotocol.SyncDevUserResp{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -460,7 +461,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Remote_open:			// 远程开锁命令(0x52)(服务器->前板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Remote_open")
-		esLog.Operation = "远程开锁命令"
+		esLog.Operation += "远程开锁命令"
 		pdu := &wlprotocol.RemoteOpenLockResp{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -498,7 +499,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Upload_dev_info:		// 发送设备信息(0x70)(前板，后板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Upload_dev_info")
-		esLog.Operation = "发送设备信息"
+		esLog.Operation += "发送设备信息"
 		//1. 回复锁
 		tPdu := &wlprotocol.UploadDevInfoResp{
 			Time: int32(time.Now().Unix()),
@@ -625,7 +626,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Set_dev_para:			// 设置参数(0x72)(服务器-->前板，后板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_para")
-		esLog.Operation = "设置参数"
+		esLog.Operation += "设置参数"
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -660,7 +661,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Update_dev_para:		// 参数更新(0x73)(前板,后板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Update_dev_para")
-		esLog.Operation = "参数更新"
+		esLog.Operation += "参数更新"
 		pdu := &wlprotocol.ParamUpdate{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -715,7 +716,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Soft_reset:			// 软件重启命令(0x74)(服务器-->前、后板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Soft_reset")
-		esLog.Operation = "软件重启命令"
+		esLog.Operation += "软件重启命令"
 
 		// 组包
 		softReset := entity.Header{
@@ -736,7 +737,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Factory_reset:		// 恢复出厂化(0xEA)( 服务器-->前、后板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Factory_reset")
-		esLog.Operation = "恢复出厂化"
+		esLog.Operation += "恢复出厂化"
 
 		// 组包
 		factoryReset := entity.Header{
@@ -760,7 +761,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Upload_open_log:	// 用户开锁消息上报(0x40)(前板--->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData Upload_open_log")
-		esLog.Operation = "用户开锁消息上报"
+		esLog.Operation += "用户开锁消息上报"
 		pdu := &wlprotocol.OpenLockMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -809,7 +810,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.UpEnter_menu_log:	// 用户进入菜单上报(0x42)(前板--->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.UpEnter_menu_log")
-		esLog.Operation = "用户进入菜单上报"
+		esLog.Operation += "用户进入菜单上报"
 		pdu := &wlprotocol.EnterMenuMsg{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -854,7 +855,7 @@ func ParseData(mydata interface{}) error {
 	case constant.Infrared_alarm, constant.Noatmpt_alarm, constant.Forced_break_alarm, constant.Fakelock_alarm, constant.Nolock_alarm:
 		// 人体感应报警(0x39)(前板-->服务器) // 非法操作报警(0x20)(前板--->服务器) // 强拆报警(0x22)(前板--->服务器) // 假锁报警(0x24)(前板--->服务器) // 门未关报警(0x26)(前板--->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Infrared_alarm, Noatmpt_alarm, Forced_break_alarm, Fakelock_alarm, Nolock_alarm")
-		esLog.Operation = constant.WlLockAlarmMsg[int(wlMsg.Cmd)]
+		esLog.Operation += constant.WlLockAlarmMsg[int(wlMsg.Cmd)]
 		pdu := &wlprotocol.Alarms{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -883,7 +884,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Low_battery_alarm:	// 低压报警(0x2A)(前板--->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Low_battery_alarm")
-		esLog.Operation = constant.WlLockAlarmMsg[int(wlMsg.Cmd)]
+		esLog.Operation += constant.WlLockAlarmMsg[int(wlMsg.Cmd)]
 		pdu := &wlprotocol.LowBattAlarm{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -913,7 +914,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Lock_PIC_Upload:		// 图片上传(0x2F)(前板--->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Lock_PIC_Upload")
-		esLog.Operation = "图片上传"
+		esLog.Operation += "图片上传"
 		pdu := &wlprotocol.PicUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -942,7 +943,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Upload_lock_active:	// 在线离线(0x46)(后板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Upload_lock_active")
-		esLog.Operation = "锁激活上报"
+		esLog.Operation += "锁激活上报"
 		pdu := &wlprotocol.OnOffLine{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -984,7 +985,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Real_Video:			// 实时视频(0x36)(服务器-->前板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Real_Video")
-		esLog.Operation = "实时视频"
+		esLog.Operation += "实时视频"
 		pdu := &wlprotocol.RealVideo{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -1010,7 +1011,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Set_Wifi:				// Wifi设置(0x37)(服务器-->前板)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_Wifi")
-		esLog.Operation = "Wifi设置"
+		esLog.Operation += "Wifi设置"
 		pdu := &wlprotocol.WiFiSet{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -1069,7 +1070,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Notify_Set_Wifi:
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Notify_Set_Wifi")
-		esLog.Operation = "Wifi设置提醒"
+		esLog.Operation += "Wifi设置提醒"
 		notifyHead := entity.Header {
 			Cmd: int(wlMsg.Cmd),
 			Ack: int(wlMsg.Ack),
@@ -1086,7 +1087,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Door_Call:			// 门铃呼叫(0x38)(前板-->服务器)
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Door_Call")
-		esLog.Operation = "门铃呼叫"
+		esLog.Operation += "门铃呼叫"
 		pdu := &wlprotocol.DoorbellCall{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)
 		if nil != err {
@@ -1116,7 +1117,7 @@ func ParseData(mydata interface{}) error {
 		}
 	case constant.Door_State: // 锁状态上报
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Door_State")
-		esLog.Operation = "锁状态上报"
+		esLog.Operation += "锁状态上报"
 
 		pdu := &wlprotocol.DoorStateUpload{}
 		err = pdu.Decode(bBody, wlMsg.DevId.Uuid)

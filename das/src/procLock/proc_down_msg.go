@@ -23,7 +23,7 @@ import (
  *
  */
 func ProcAppMsg(appMsg string) error {
-	var strAppMsg string = appMsg
+	// var strAppMsg string = appMsg
 	if !strings.ContainsAny(appMsg, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
 		/*log.Error("ProcAppMsg() error msg : ", appMsg)
 		return errors.New("error msg.")*/
@@ -86,14 +86,15 @@ func ProcAppMsg(appMsg string) error {
 
 	// 记录APP下行日志
 	var esLog entity.EsLogEntiy // 记录日志
-	rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s >>> %s", head.DevId, strAppMsg, appMsg)
+	esLog.Operation = "APP-mq->DAS"
+	// rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s >>> %s", head.DevId, strAppMsg, appMsg)
 	//sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 
 	//2. 数据干预处理
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
 	switch head.Cmd {
 	case constant.Remote_open: {
-		esLog.Operation = "远程开门"
+		esLog.Operation += "远程开门"
 		//1. 先判断是否为亿速码加签名，查询redis，若为远程开锁流程且能查到random，则需要加签名
 		random, err0 := redis.GetDeviceYisumaRandomfromPool(head.DevId)
 		if err0 == nil {
@@ -200,7 +201,7 @@ func ProcAppMsg(appMsg string) error {
 		}
 	}
 	case constant.Add_dev_user: {
-		esLog.Operation = "添加锁用户"
+		esLog.Operation += "添加锁用户"
 		// 添加锁用户，用户名
 		var addDevUser entity.AddDevUser
 		if err := json.Unmarshal([]byte(appMsg), &addDevUser); err != nil {
@@ -253,7 +254,7 @@ func ProcAppMsg(appMsg string) error {
 		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Set_dev_user_temp: {
-		esLog.Operation = "设置锁临时用户"
+		esLog.Operation += "设置锁临时用户"
 		var setTmpDevUser entity.SetTmpDevUser
 		if err := json.Unmarshal([]byte(appMsg), &setTmpDevUser); err != nil {
 			log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
@@ -270,7 +271,7 @@ func ProcAppMsg(appMsg string) error {
 		appMsg = string(setTmpDevUserStr)
 	}
 	case constant.Del_dev_user: {
-		esLog.Operation = "删除锁用户"
+		esLog.Operation += "删除锁用户"
 		// 添加锁用户，用户名
 		var delDevUser entity.DelDevUser
 		if err := json.Unmarshal([]byte(appMsg), &delDevUser); err != nil {
@@ -295,7 +296,7 @@ func ProcAppMsg(appMsg string) error {
 		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Set_dev_para: {
-		esLog.Operation = "设置锁参数"
+		esLog.Operation += "设置锁参数"
 		// 添加锁用户，用户名
 		var setLockParamReq entity.SetLockParamReq
 		if err := json.Unmarshal([]byte(appMsg), &setLockParamReq); err != nil {
@@ -321,13 +322,13 @@ func ProcAppMsg(appMsg string) error {
 		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Wonly_LGuard_Msg: {
-		esLog.Operation = "小卫士操作"
+		esLog.Operation += "小卫士操作"
 		//小卫士消息
 		go httpgo.Http2FeibeeWonlyLGuard(appMsg)
 		return nil
 	}
 	case constant.Body_Fat_Scale:
-		esLog.Operation = "APP将体脂秤数据上报到服务器"
+		esLog.Operation += "将体脂秤数据上报到服务器"
 		rabbitmq.Publish2pms([]byte(appMsg), "")
 		return nil
 	}
