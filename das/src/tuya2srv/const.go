@@ -59,9 +59,11 @@ const (
 	Ty_Status_Percent_Control   = "percent_control"
 	Ty_Status_Percent_Control_2 = "percent_control_2"
 
-	Ty_Status_Sleep_Stage = "sleep_stage"
-	Ty_Status_Off_Bed     = "off_bed"
-	Ty_Status_Wakeup      = "wakeup"
+	Ty_Status_Sleep_Stage      = "sleep_stage"
+	Ty_Status_Off_Bed          = "off_bed"
+	Ty_Status_Wakeup           = "wakeup"
+	Ty_Status_Heart_Rate       = "heart_rate"
+	Ty_Status_Respiratory_Rate = "respiratory_rate"
 )
 
 //涂鸦设备事件bizCode
@@ -253,5 +255,18 @@ var (
 
 		Ty_Status_Va_Temperature: {},
 		Ty_Status_Va_Humidity:    {},
+
+		Ty_Status_Wakeup:      {},
+		Ty_Status_Sleep_Stage: {},
+	}
+
+	tyAlarmDataFilterMap = map[string]struct{}{
+		Ty_Status_Gas_Sensor_State:    {},
+		Ty_Status_Smoke_Sensor_Status: {},
+		Ty_Status_Doorcontact_State:   {},
+		Ty_Status_Pir:                 {},
+		Ty_Status_Temper_Alarm:        {},
+		Ty_Status_Presence_State:      {},
+		Ty_Status_Watersensor_State:   {},
 	}
 )
