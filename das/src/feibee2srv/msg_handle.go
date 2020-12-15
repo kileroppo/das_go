@@ -813,8 +813,8 @@ func RecordDevOnlineStatus(devId, vendor string, online int) {
 		User:          "",
 		Operation:     "",
 		ThirdPlatform: "",
-		RetMsg:        "",
-		RawData:       status,
+		RetMsg:        status,
+		RawData:       "",
 	}
 	logBytes,err := json.Marshal(fullMsg)
 	if err == nil {
