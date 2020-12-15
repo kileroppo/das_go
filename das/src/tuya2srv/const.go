@@ -164,6 +164,16 @@ var (
 		Ty_Event_Delete:  TyEventDeleteHandle,
 	}
 
+	TyDevEventOperZh = map[string]string{
+		Ty_Event_Online : 			"设备上线",
+		Ty_Event_Offline : 			"设备离线",
+		Ty_Event_Name_Update : 		"修改设备名称",
+		Ty_Event_Dp_Name_Update : 	"修改设备功能点名称",
+		Ty_Event_Bind_User : 		"设备绑定用户",
+		Ty_Event_Delete : 			"删除设备",
+		Ty_Event_Upgrade_Status : 	"设备升级状态",
+	}
+
 	TySensor2WonlySensor = map[string]string{
 		Ty_Status_Gas_Sensor_State:    constant.Wonly_Status_Sensor_Gas,
 		Ty_Status_Smoke_Sensor_Status: constant.Wonly_Status_Sensor_Smoke,

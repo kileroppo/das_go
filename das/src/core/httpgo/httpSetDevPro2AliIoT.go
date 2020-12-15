@@ -2,6 +2,7 @@ package httpgo
 
 import (
 	"bytes"
+	"das/core/entity"
 	"das/core/go-aliyun-sign"
 	"das/core/log"
 	"das/core/rabbitmq"
@@ -96,6 +97,8 @@ func getAliIoTCloudToken() (token string, err error) {
 func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err error) {
 	log.Info("[", deviceName, "]HttpSetAliThingPro start.")
 
+	var esLog entity.EsLogEntiy // 记录日志
+
 	mydata := "{\"id\":\"1509086454180\",\"version\":\"1.0\",\"request\":{\"apiVer\":\"1.0.2\",\"cloudToken\":\"" + token + "\"},\"params\":{\"productKey\":\"a1xhJ6eIxsn\",\"deviceName\":\"" + deviceName + "\",\"items\":{\"UserData\":\"" + data +"\"}}}"
 	req_body := bytes.NewBuffer([]byte(mydata))
 
@@ -107,7 +110,6 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro http.NewRequest()，error=", err0)
 		return "", err0
 	}
-	rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s", deviceName, req_body.Bytes())
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
@@ -139,6 +141,8 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 		}
 
 		log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", string(body))
+		esLog.RetMsg = "成功"
+		esLog.RawData = "request:" + string(req_body.Bytes()) + "; response: " + string(body)
 		return string(body), nil
 	} else {
 		log.Error("[", deviceName, "] "+cmd+" HttpSetAliThingPro Post failed，resp.StatusCode=", resp.StatusCode, ", error=", err1)
@@ -150,8 +154,21 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 		}
 
 		log.Debug("[", deviceName, "] "+cmd+" HttpSetAliThingPro() ", string(body))
+		esLog.RetMsg = "失败"
+		esLog.RawData = "request:" + string(req_body.Bytes()) + "; response: " + string(body)
 		return string(body), err1
 	}
+
+	esLog.DeviceId = deviceName
+	esLog.Vendor = "general"
+	esLog.Operation = "接入阿里云的智能锁操作"
+	esLog.ThirdPlatform = sUrl
+	esData, err := json.Marshal(esLog)
+	if err != nil {
+		log.Warningf("setAliThingPro > json.Marshal > %s", err)
+		return
+	}
+	rabbitmq.SendGraylogByMQ("%s", esData)
 
 	return "", nil
 }

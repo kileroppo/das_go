@@ -22,6 +22,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		}
 	}()
 
+	var esLog entity.EsLogEntiy // 记录日志
 	var msg entity.WonlyGuardMsgFromApp
 	if err := json.Unmarshal([]byte(appData), &msg); err != nil {
 		log.Warningf("Http2FeibeeWonlyLGuard > json.Unmarshal > %s", err)
@@ -73,8 +74,6 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		return
 	}
 
-	rabbitmq.SendGraylogByMQ("DAS-http->飞比Server: Send WonlyLGuard control to feibee, url: %s; request: %s; response: %s", url, reqData, respData)
-
 	//log.Infof("Http2FeibeeWonlyLGuard > resp: %s", respData)
 	var respMsg entity.RespFromFeibee
 	err = json.Unmarshal(respData, &respMsg)
@@ -83,9 +82,25 @@ func Http2FeibeeWonlyLGuard(appData string) {
 		return
 	}
 
+
 	if respMsg.Code != 1 {
 		log.Warning("Control WonlyLGuard failed")
+		esLog.RetMsg = "失败"
+	} else {
+		esLog.RetMsg = "成功"
 	}
+
+	esLog.DeviceId = msg.DevId
+	esLog.Vendor = "feibee"
+	esLog.Operation = "小卫士控制"
+	esLog.ThirdPlatform = url
+	esLog.RawData = "request:" + string(reqData) + "; response: " + string(respData)
+	esData, err := json.Marshal(esLog)
+	if err != nil {
+		log.Warningf("Http2FeibeeWonlyLGuard > json.Marshal > %s", err)
+		return
+	}
+	rabbitmq.SendGraylogByMQ("%s", esData)
 }
 
 func WonlyAESDecrypt(cipher, key string) (res string ,err error) {

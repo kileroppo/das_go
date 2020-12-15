@@ -105,7 +105,6 @@ type TuyaMsgHandle struct {
 }
 
 func (t *TuyaMsgHandle) MsgHandle() {
-	rabbitmq.SendGraylogByMQ("涂鸦Server-pulsar->DAS: %s", t.data)
 	devId := gjson.GetBytes(t.data, "devId").String()
 
 	//rabbitmq.Publish2app(t.data, devId)
@@ -125,6 +124,19 @@ func (t *TuyaMsgHandle) MsgHandle() {
 			statusHandle(devId, devStatus[i])
 		}
 	}
+
+	var esLog entity.EsLogEntiy // 记录日志
+	esLog.DeviceId = devId
+	esLog.Vendor = "tuya"
+	esLog.Operation = TyDevEventOperZh[bizCode]
+	esLog.ThirdPlatform = "涂鸦pulsar推送"
+	esData, err := json.Marshal(esLog)
+	if err != nil {
+		log.Warningf("MsgHandle > json.Marshal > %s", err)
+		return
+	}
+	// rabbitmq.SendGraylogByMQ("涂鸦Server-pulsar->DAS: %s", t.data)
+	rabbitmq.SendGraylogByMQ("%s", esData)
 }
 
 func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
