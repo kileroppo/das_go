@@ -244,7 +244,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			rabbitmq.Publish2mns([]byte(DValue), "")
 			rabbitmq.Publish2pms([]byte(DValue), "")
 			//远程开锁作为场景触发条件
-			SendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockOpen", 1)
+			SendLockMsgForSceneTrigger(head.DevId, head.DevType, "lockOpen", 0)
 		}
 	}
 	case constant.Upload_dev_info: // 上传设备信息

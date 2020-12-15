@@ -313,7 +313,7 @@ func ParseData(mydata interface{}) error {
 			log.Error("[", wlMsg.DevId.Uuid, "] ParseData constant.Update_dev_user toPms_byte json.Marshal, err=", err1)
 			return err1
 		}
-	case constant.Set_dev_user_para: { // 用户参数设置（0x3B） 
+	case constant.Set_dev_user_para: { // 用户参数设置（0x3B）
 			// log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.Set_dev_user_para")
 			esLog.Operation = "用户参数设置"
 
@@ -323,7 +323,7 @@ func ParseData(mydata interface{}) error {
 				log.Error("[", wlMsg.DevId.Uuid, "] ParseData Set_dev_user_para pdu.Decode, err=", err)
 				return err
 			}
-			
+
 			setDevUserPara := entity.SetDevUserParam {
 				Cmd:        int(wlMsg.Cmd),
 				Ack:        int(wlMsg.Ack),
@@ -490,7 +490,7 @@ func ParseData(mydata interface{}) error {
 
 			if 1 == wlMsg.Ack { // 开门成功才记录远程开锁记录
 				rabbitmq.Publish2pms(to_byte, "")
-				SendLockMsgForSceneTrigger(remoteOpenLockResp.DevId, remoteOpenLockResp.DevType, "lockOpen", 1)
+				SendLockMsgForSceneTrigger(remoteOpenLockResp.DevId, remoteOpenLockResp.DevType, "lockOpen", 0)
 			}
 		} else {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Remote_open, err=", err1)
