@@ -85,6 +85,7 @@ func ProcAppMsg(appMsg string) error {
 	}
 
 	// 记录APP下行日志
+	var esLog entity.EsLogEntiy // 记录日志
 	rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s >>> %s", head.DevId, strAppMsg, appMsg)
 	//sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 
@@ -92,6 +93,7 @@ func ProcAppMsg(appMsg string) error {
 	// 若为远程开锁流程且查询redis能查到random，则需要进行SM2加签
 	switch head.Cmd {
 	case constant.Remote_open: {
+		esLog.Operation = "远程开门"
 		//1. 先判断是否为亿速码加签名，查询redis，若为远程开锁流程且能查到random，则需要加签名
 		random, err0 := redis.GetDeviceYisumaRandomfromPool(head.DevId)
 		if err0 == nil {
@@ -198,6 +200,7 @@ func ProcAppMsg(appMsg string) error {
 		}
 	}
 	case constant.Add_dev_user: {
+		esLog.Operation = "添加锁用户"
 		// 添加锁用户，用户名
 		var addDevUser entity.AddDevUser
 		if err := json.Unmarshal([]byte(appMsg), &addDevUser); err != nil {
@@ -250,6 +253,7 @@ func ProcAppMsg(appMsg string) error {
 		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Set_dev_user_temp: {
+		esLog.Operation = "设置锁临时用户"
 		var setTmpDevUser entity.SetTmpDevUser
 		if err := json.Unmarshal([]byte(appMsg), &setTmpDevUser); err != nil {
 			log.Error("ProcAppMsg json.Unmarshal Header error, err=", err)
@@ -266,6 +270,7 @@ func ProcAppMsg(appMsg string) error {
 		appMsg = string(setTmpDevUserStr)
 	}
 	case constant.Del_dev_user: {
+		esLog.Operation = "删除锁用户"
 		// 添加锁用户，用户名
 		var delDevUser entity.DelDevUser
 		if err := json.Unmarshal([]byte(appMsg), &delDevUser); err != nil {
@@ -290,6 +295,7 @@ func ProcAppMsg(appMsg string) error {
 		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
 	case constant.Set_dev_para: {
+		esLog.Operation = "设置锁参数"
 		// 添加锁用户，用户名
 		var setLockParamReq entity.SetLockParamReq
 		if err := json.Unmarshal([]byte(appMsg), &setLockParamReq); err != nil {
@@ -314,11 +320,14 @@ func ProcAppMsg(appMsg string) error {
 		appMsg = string(setLockParamReqStr)
 		//log.Debug("ProcAppMsg , appMsg=", appMsg)
 	}
-	case constant.Wonly_LGuard_Msg:
+	case constant.Wonly_LGuard_Msg: {
+		esLog.Operation = "小卫士操作"
 		//小卫士消息
 		go httpgo.Http2FeibeeWonlyLGuard(appMsg)
-		return nil // TODO:JHHE after HTTP request, no other processes, otherwise return
+		return nil
+	}
 	case constant.Body_Fat_Scale:
+		esLog.Operation = "APP将体脂秤数据上报到服务器"
 		rabbitmq.Publish2pms([]byte(appMsg), "")
 		return nil
 	}
@@ -332,113 +341,33 @@ func ProcAppMsg(appMsg string) error {
 
 	switch ret["from"] {
 	case constant.ONENET_PLATFORM: { // 移动OneNET平台
-			var toDevHead entity.MyHeader
-			toDevHead.ApiVersion = constant.API_VERSION
-			toDevHead.ServiceType = constant.SERVICE_TYPE
+		esLog.ThirdPlatform = "移动OneNET平台"
+		var toDevHead entity.MyHeader
+		toDevHead.ApiVersion = constant.API_VERSION
+		toDevHead.ServiceType = constant.SERVICE_TYPE
 
-			// 解密数据
-			myKey := util.MD52Bytes(head.DevId)
-			var strToDevData string
-			var err error
-			if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
-				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+		// 解密数据
+		myKey := util.MD52Bytes(head.DevId)
+		var strToDevData string
+		var err error
+		if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
+			toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+			toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
 
-				buf := new(bytes.Buffer)
-				binary.Write(buf, binary.BigEndian, toDevHead)
-				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
-			}
-
-			respStr, err := httpgo.Http2OneNET_write(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
-			if "" != respStr && nil == err {
-				var respOneNET entity.RespOneNET
-				if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {
-					log.Error("ProcAppMsg json.Unmarshal RespOneNET error, err=", err)
-					return err
-				}
-
-				if 0 != respOneNET.RespErrno {
-					var devAct entity.DeviceActive
-					devAct.Cmd = constant.Upload_lock_active
-					devAct.Ack = 0
-					devAct.DevType = head.DevType
-					devAct.DevId = head.DevId
-					devAct.Vendor = head.Vendor
-					devAct.SeqId = 0
-					devAct.Signal = 0
-					devAct.Time = 0
-
-					//1. 回复APP，设备离线状态
-					if toApp_str, err := json.Marshal(devAct); err == nil {
-						//log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
-						//producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
-						rabbitmq.Publish2app(toApp_str, devAct.DevId)
-					} else {
-						log.Error("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, json.Marshal, err=", err)
-					}
-
-					//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
-					go redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
-				}
-			}
+			buf := new(bytes.Buffer)
+			binary.Write(buf, binary.BigEndian, toDevHead)
+			strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
 		}
-	case constant.TELECOM_PLATFORM: {} // 电信平台
-	case constant.ANDLINK_PLATFORM: {} // 移动AndLink平台
-	case constant.PAD_DEVICE_PLATFORM: {	// WiFi平板
-			var strToDevData string
-			var err error
-			if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
-				strToDevData = appMsg
-			} else {
-				// 加密数据
-				var toDevHead entity.MyHeader
-				toDevHead.ApiVersion = constant.API_VERSION
-				toDevHead.ServiceType = constant.SERVICE_TYPE
 
-				myKey := util.MD52Bytes(head.DevId)
-				if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
-					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
-
-					buf := new(bytes.Buffer)
-					binary.Write(buf, binary.BigEndian, toDevHead)
-					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
-				}
-			}
-			SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
-		}
-	case constant.MQTT_PAD_PLATFORM: {// WiFi平板，MQTT通道
-			var strToDevData string
-			var err error
-			if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
-				strToDevData = appMsg
-			} else {
-				// 加密数据
-				var toDevHead entity.MyHeader
-				toDevHead.ApiVersion = constant.API_VERSION
-				toDevHead.ServiceType = constant.SERVICE_TYPE
-
-				myKey := util.MD52Bytes(head.DevId)
-				if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
-					toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
-					toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
-
-					buf := new(bytes.Buffer)
-					binary.Write(buf, binary.BigEndian, toDevHead)
-					strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
-				}
-			}
-			WlMqttPublishPad(head.DevId, strToDevData)
-		}
-	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
-			bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
-			if nil != err_ {
-				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
-				return err_
+		respStr, err := httpgo.Http2OneNET_write(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
+		if "" != respStr && nil == err {
+			var respOneNET entity.RespOneNET
+			if err := json.Unmarshal([]byte(respStr), &respOneNET); err != nil {
+				log.Error("ProcAppMsg json.Unmarshal RespOneNET error, err=", err)
+				return err
 			}
 
-			respStatus, _ := httpgo.HttpSetAliPro(head.DevId, hex.EncodeToString(bData), strconv.Itoa(head.Cmd))
-			if 200 != respStatus {
+			if 0 != respOneNET.RespErrno {
 				var devAct entity.DeviceActive
 				devAct.Cmd = constant.Upload_lock_active
 				devAct.Ack = 0
@@ -462,51 +391,148 @@ func ProcAppMsg(appMsg string) error {
 				go redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
 			}
 		}
+	}
+	case constant.TELECOM_PLATFORM: {} // 电信平台
+	case constant.ANDLINK_PLATFORM: {} // 移动AndLink平台
+	case constant.PAD_DEVICE_PLATFORM: {	// WiFi平板
+		esLog.ThirdPlatform = "王力RabbitMQ"
+		var strToDevData string
+		var err error
+		if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
+			strToDevData = appMsg
+		} else {
+			// 加密数据
+			var toDevHead entity.MyHeader
+			toDevHead.ApiVersion = constant.API_VERSION
+			toDevHead.ServiceType = constant.SERVICE_TYPE
+
+			myKey := util.MD52Bytes(head.DevId)
+			if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
+				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+
+				buf := new(bytes.Buffer)
+				binary.Write(buf, binary.BigEndian, toDevHead)
+				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+			}
+		}
+		SendMQMsg2Device(head.DevId, strToDevData, strconv.Itoa(head.Cmd))
+	}
+	case constant.MQTT_PAD_PLATFORM: {// WiFi平板，MQTT通道
+		esLog.ThirdPlatform = "王力IoT平台"
+		var strToDevData string
+		var err error
+		if constant.PadDoor_RealVideo == head.Cmd { // TODO:JHHE 临时方案，平板锁开启视频不加密
+			strToDevData = appMsg
+		} else {
+			// 加密数据
+			var toDevHead entity.MyHeader
+			toDevHead.ApiVersion = constant.API_VERSION
+			toDevHead.ServiceType = constant.SERVICE_TYPE
+
+			myKey := util.MD52Bytes(head.DevId)
+			if strToDevData, err = util.ECBEncrypt([]byte(appMsg), myKey); err == nil {
+				toDevHead.CheckSum = util.CheckSum([]byte(strToDevData))
+				toDevHead.MsgLen = (uint16)(strings.Count(strToDevData, "") - 1)
+
+				buf := new(bytes.Buffer)
+				binary.Write(buf, binary.BigEndian, toDevHead)
+				strToDevData = hex.EncodeToString(buf.Bytes()) + strToDevData
+			}
+		}
+		WlMqttPublishPad(head.DevId, strToDevData)
+	}
+	case constant.ALIIOT_PLATFORM: {	// 阿里云飞燕平台
+		esLog.ThirdPlatform = "阿里云飞燕平台"
+		bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
+		if nil != err_ {
+			log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
+			return err_
+		}
+
+		respStatus, _ := httpgo.HttpSetAliPro(head.DevId, hex.EncodeToString(bData), strconv.Itoa(head.Cmd))
+		if 200 != respStatus {
+			var devAct entity.DeviceActive
+			devAct.Cmd = constant.Upload_lock_active
+			devAct.Ack = 0
+			devAct.DevType = head.DevType
+			devAct.DevId = head.DevId
+			devAct.Vendor = head.Vendor
+			devAct.SeqId = 0
+			devAct.Signal = 0
+			devAct.Time = 0
+
+			//1. 回复APP，设备离线状态
+			if toApp_str, err := json.Marshal(devAct); err == nil {
+				//log.Info("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, ", string(toApp_str))
+				//producer.SendMQMsg2APP(devAct.DevId, string(toApp_str))
+				rabbitmq.Publish2app(toApp_str, devAct.DevId)
+			} else {
+				log.Error("[", head.DevId, "] ProcAppMsg() device timeout, resp to APP, json.Marshal, err=", err)
+			}
+
+			//2. 锁响应超时唤醒，以此判断锁离线，将状态存入redis
+			go redis.SetActTimePool(devAct.DevId, int64(devAct.Time))
+		}
+	}
 	case constant.MQTT_PLATFORM: {	// MQTT
-			bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
+		esLog.ThirdPlatform = "王力IoT平台"
+		bData, err_ := WlJson2BinMsg(appMsg, constant.GENERAL_PROTOCOL)
+		if nil != err_ {
+			log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
+			return err_
+		}
+
+		WlMqttPublish(head.DevId, bData)
+	}
+	case constant.FEIBEE_PLATFORM: {//飞比zigbee锁
+		esLog.ThirdPlatform = "飞比云平台"
+		var msgHead entity.ZigbeeLockHead
+		if err := json.Unmarshal([]byte(appMsg), &msgHead); err != nil {
+			log.Error("ProcAppMsg json.Unmarshal() error = ", err)
+			return err
+		}
+
+		var i uint8 = 1
+		var nCount uint8 = 1
+		if constant.Set_Wifi == msgHead.Cmd { // zigbee常在线锁设置wifi拆分两条命令下行
+			nCount = 2
+		}
+		for ; i <= nCount; i++ {
+			appData, err_ := WlJson2BinMsgZigbee(appMsg, i)
 			if nil != err_ {
 				log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
 				return err_
 			}
-
-			WlMqttPublish(head.DevId, bData)
-		}
-	case constant.FEIBEE_PLATFORM: {//飞比zigbee锁
-			var msgHead entity.ZigbeeLockHead
-			if err := json.Unmarshal([]byte(appMsg), &msgHead); err != nil {
-				log.Error("ProcAppMsg json.Unmarshal() error = ", err)
-				return err
+			if "" == ret["uuid"] || "" == ret["uid"] {
+				return errors.New("下发给飞比zigbee锁的uuid, uid为空")
 			}
+			// TODO:JHHE 包体前面增加长度
+			bLen := IntToBytes(len(appData))
+			strLen := hex.EncodeToString(bLen)
+			go httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:]+"00"+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
 
-			var i uint8 = 1
-			var nCount uint8 = 1
-			if constant.Set_Wifi == msgHead.Cmd { // zigbee常在线锁设置wifi拆分两条命令下行
-				nCount = 2
-			}
-			for ; i <= nCount; i++ {
-				appData, err_ := WlJson2BinMsgZigbee(appMsg, i)
-				if nil != err_ {
-					log.Error("ProcAppMsg() WlJson2BinMsg, error: ", err_)
-					return err_
-				}
-				if "" == ret["uuid"] || "" == ret["uid"] {
-					return errors.New("下发给飞比zigbee锁的uuid, uid为空")
-				}
-				// TODO:JHHE 包体前面增加长度
-				bLen := IntToBytes(len(appData))
-				strLen := hex.EncodeToString(bLen)
-				go httpgo.Http2FeibeeZigbeeLock(strLen[len(strLen)-2:]+"00"+hex.EncodeToString(appData), msgHead.Bindid, msgHead.Bindstr, ret["uuid"], ret["uid"])
-
-				// 连续两条命令间隔100毫秒
-				if constant.Set_Wifi == msgHead.Cmd {
-					time.Sleep(time.Millisecond * 100)
-				}
+			// 连续两条命令间隔100毫秒
+			if constant.Set_Wifi == msgHead.Cmd {
+				time.Sleep(time.Millisecond * 100)
 			}
 		}
+	}
 	default: {
 			log.Error("ProcAppMsg::Unknow Platform from redis, please check the platform: ", ret)
 		}
 	}
+
+	esLog.DeviceId = head.DevId
+	esLog.Vendor = head.Vendor
+	// esLog.ThirdPlatform = "王力RabbitMQ"
+	esLog.RawData = appMsg
+	esData, err_ := json.Marshal(esLog)
+	if err_ != nil {
+		log.Warningf("ProcessJsonMsg > json.Marshal > %s", err_)
+		return err_
+	}
+	rabbitmq.SendGraylogByMQ("%s", esData)
 
 	// time.Sleep(time.Second)
 	return nil
