@@ -2,6 +2,7 @@ package feibee2srv
 
 import (
 	"das/core/redis"
+	"das/core/util"
 	"errors"
 	"strconv"
 	"time"
@@ -63,7 +64,7 @@ func (self *NormalMsgHandle) createMsg2App() (res entity.Feibee2DevMsg, routingK
 		//}
 	case DevOnline:
 		res.OpType = "newOnline"
-		go RecordDevOnlineStatus(res.DevId, res.Online)
+		go RecordDevOnlineStatus(res.DevId, "feibee", res.Online)
 	case DevDelete:
 		res.OpType = "devDelete"
 	case DevRename:
@@ -799,10 +800,25 @@ func devTypeConv(devId, zoneType int) string {
 	return "0x" + pre + tail
 }
 
-func RecordDevOnlineStatus(devId string, online int) {
-	status := "离线"
+func RecordDevOnlineStatus(devId, vendor string, online int) {
+	status := "设备离线"
 	if online > 0 {
-		status = "在线"
+		status = "设备上线"
 	}
-	rabbitmq.SendGraylogByMQ("设备[%s]在线状态更新：%s", devId, status)
+	fullMsg := entity.EsLogEntiy{
+		Vendor:        vendor,
+		DeviceName:    "",
+		DeviceId:      devId,
+		FamilyId:      "",
+		User:          "",
+		Operation:     "",
+		ThirdPlatform: "",
+		RetMsg:        "",
+		RawData:       status,
+	}
+	logBytes,err := json.Marshal(fullMsg)
+	if err == nil {
+		rabbitmq.SendGraylogByMQ(util.Bytes2Str(logBytes))
+	}
+
 }

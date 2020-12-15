@@ -131,6 +131,7 @@ func (t *TuyaMsgHandle) MsgHandle() {
 	esLog.Operation = "涂鸦pulsar推送"
 	esLog.RetMsg = TyDevEventOperZh[bizCode]
 	esLog.ThirdPlatform = "涂鸦pulsar"
+	esLog.RawData = util.Bytes2Str(t.data)
 	esData, err := json.Marshal(esLog)
 	if err != nil {
 		log.Warningf("MsgHandle > json.Marshal > %s", err)
@@ -171,7 +172,7 @@ func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 		msg2app.OpValue = "0"
 	}
 
-	feibee2srv.RecordDevOnlineStatus(msg.DevId, msg2app.Online)
+	feibee2srv.RecordDevOnlineStatus(msg.DevId, "tuya", msg2app.Online)
 	data, err = json.Marshal(msg2app)
 	if err == nil {
 		rabbitmq.Publish2app(data, devId)
