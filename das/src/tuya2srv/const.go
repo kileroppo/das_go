@@ -58,6 +58,12 @@ const (
 	//窗帘电机
 	Ty_Status_Percent_Control   = "percent_control"
 	Ty_Status_Percent_Control_2 = "percent_control_2"
+
+	Ty_Status_Sleep_Stage      = "sleep_stage"
+	Ty_Status_Off_Bed          = "off_bed"
+	Ty_Status_Wakeup           = "wakeup"
+	Ty_Status_Heart_Rate       = "heart_rate"
+	Ty_Status_Respiratory_Rate = "respiratory_rate"
 )
 
 //涂鸦设备事件bizCode
@@ -101,6 +107,12 @@ const (
 	Ty_Cleaner_Sleep       = "sleep"
 )
 
+//涂鸦睡眠袋睡眠状态
+const (
+	Ty_Sleep_Stage_Awake = "awake"
+	Ty_Sleep_Stage_Sleep = "sleep"
+)
+
 type TyStatusHandle func(devId string, rawJsonData gjson.Result)
 type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 
@@ -140,12 +152,26 @@ var (
 		Ty_Status_Scene_2: TyStatusSceneHandle,
 		Ty_Status_Scene_3: TyStatusSceneHandle,
 		Ty_Status_Scene_4: TyStatusSceneHandle,
+
+		Ty_Status_Sleep_Stage: TyStatusSleepStage,
+		Ty_Status_Off_Bed:     TyStatusOffBed,
+		Ty_Status_Wakeup:      TyStatusWakeup,
 	}
 
 	TyDevEventHandlers = map[string]TyEventHandle{
 		Ty_Event_Online:  TyEventOnlineHandle,
 		Ty_Event_Offline: TyEventOnlineHandle,
 		Ty_Event_Delete:  TyEventDeleteHandle,
+	}
+
+	TyDevEventOperZh = map[string]string{
+		Ty_Event_Online : 			"设备上线",
+		Ty_Event_Offline : 			"设备离线",
+		Ty_Event_Name_Update : 		"修改设备名称",
+		Ty_Event_Dp_Name_Update : 	"修改设备功能点名称",
+		Ty_Event_Bind_User : 		"设备绑定用户",
+		Ty_Event_Delete : 			"删除设备",
+		Ty_Event_Upgrade_Status : 	"设备升级状态",
 	}
 
 	TySensor2WonlySensor = map[string]string{
@@ -239,5 +265,17 @@ var (
 
 		Ty_Status_Va_Temperature: {},
 		Ty_Status_Va_Humidity:    {},
+
+		Ty_Status_Wakeup:      {},
+		Ty_Status_Sleep_Stage: {},
+	}
+
+	tyAlarmDataFilterMap = map[string]struct{}{
+		Ty_Status_Gas_Sensor_State:    {},
+		Ty_Status_Smoke_Sensor_Status: {},
+		Ty_Status_Doorcontact_State:   {},
+		Ty_Status_Pir:                 {},
+		Ty_Status_Temper_Alarm:        {},
+		Ty_Status_Watersensor_State:   {},
 	}
 )

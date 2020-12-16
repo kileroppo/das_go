@@ -2,6 +2,7 @@ package mqtt2srv
 
 import (
 	"das/core/constant"
+	"das/filter"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -17,9 +18,13 @@ import (
 
 var (
 	sleepaceMqttCli mqtt.Client
+	sleepaceMsgFilter = filter.RedisFilter{}
 )
 
 const (
+	filterKey = "_msgFilter"
+	filterDur = time.Duration(time.Hour)
+
 	Sleepace_Data_Key_Sleep_Stage  = "sleepStage"
 	Sleepace_Data_Key_Inbed_Status = "inBedStatus"
 
@@ -115,6 +120,10 @@ func sendSleepStageForSceneTrigger(msgTyp string, oriData gjson.Result) {
 }
 
 func sendSceneTrigger(devId, alarmType string, alarmFlag int) {
+	if !sleepStageMsgFilter(devId, alarmType, alarmFlag) {
+		return
+	}
+
 	msg2pms := entity.Feibee2AutoSceneMsg{
 		Header:      entity.Header{
 			Cmd:     constant.Scene_Trigger,
@@ -142,4 +151,8 @@ func sendSceneTrigger(devId, alarmType string, alarmFlag int) {
 
 func Close() {
 	dasMqtt.CloseMqttCli(sleepaceMqttCli)
+}
+
+func sleepStageMsgFilter(devId, alarmType string, alarmFlag int) bool {
+	return filter.AlarmMsgFilter(devId + "_" + alarmType, alarmFlag)
 }

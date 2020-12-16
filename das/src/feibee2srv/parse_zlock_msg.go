@@ -397,7 +397,7 @@ func ParseZlockData(hexData, devType, uuid string) error {
 
 			if 1 == wlMsg.Ack { // 开门成功才记录远程开锁记录
 				rabbitmq.Publish2pms(to_byte, "")
-				procLock.SendLockMsgForSceneTrigger(remoteOpenLockResp.DevId, remoteOpenLockResp.DevType, "lockOpen", 1)
+				procLock.SendLockMsgForSceneTrigger(remoteOpenLockResp.DevId, remoteOpenLockResp.DevType, "lockOpen", 0)
 			}
 		} else {
 			log.Error("[", uuid, "] constant.Remote_open, err=", err1)

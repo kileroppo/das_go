@@ -111,6 +111,15 @@ const (
 
 )
 
+var WlLockAlarmMsg = map[int]string{
+	Noatmpt_alarm : "非法操作报警",
+	Forced_break_alarm : "强拆报警",
+	Fakelock_alarm : "假锁报警",
+	Nolock_alarm : "门未关报警",
+	Gas_Alarm : "燃气报警",
+	Low_battery_alarm : "锁体的电池，低电量报警",
+	Infrared_alarm : "人体感应报警（infra红外感应)",
+}
 const (
 	ONENET_PLATFORM     = "onenet"
 	TELECOM_PLATFORM    = "telecom"
@@ -165,6 +174,7 @@ const (
 	IPC_SN_PNO     = 0x0d // 视频模组sn
 	WIFI_SSID_PNO  = 0x0f // WIFI_SSID
 	PROJECT_No_PNO = 0x10 // 产品序列号
+	IPC_SN_PNO_lencens = 0x1b // 揽胜视频模组sn
 
 )
 
@@ -223,6 +233,8 @@ const (
 	Wonly_Status_Aircondition_Local_Temperature = "localTemperature"
 	Wonly_Status_Aircondition_Max_Temperature   = "maxTemperature"
 	Wonly_Status_Aircondition_Min_Temperature   = "minTemperature"
+
+	Wonly_Status_Sleep_Stage = "sleepStatus"
 )
 
 var (

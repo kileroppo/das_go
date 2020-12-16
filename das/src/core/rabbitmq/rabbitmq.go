@@ -3,6 +3,7 @@ package rabbitmq
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/tidwall/gjson"
 	"sync"
 	"time"
 
@@ -191,7 +192,20 @@ func Publish2dev(data []byte, routingKey string) {
 	if err := publishDirect(0, producerMQ, exSli[ExSrv2Dev_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2dev > %s", err)
 	} else {
-		SendGraylogByMQ("DAS-mq->device: %s", data)
+		var esLog entity.EsLogEntiy // 记录日志
+		esLog.DeviceId = routingKey
+		esLog.Vendor = "general"
+		esLog.Operation = "下行数据"
+		esLog.ThirdPlatform = "王力RabbitMQ"
+		esLog.RawData = string(data)
+		esData, err := json.Marshal(esLog)
+		if err != nil {
+			log.Warningf("Publish2dev > json.Marshal > %s", err)
+			return
+		}
+
+		// SendGraylogByMQ("DAS-mq->device: %s", data)
+		SendGraylogByMQ("%s", esData)
 		//log.Debugf("RoutingKey = '%s', Publish2dev msg: %s", routingKey, string(data))
 	}
 }
@@ -200,7 +214,19 @@ func Publish2app(data []byte, routingKey string) {
 	if err := publishDirect(1, producerMQ, exSli[ExDev2App_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2app > %s", err)
 	} else {
-		SendGraylogByMQ("DAS-mq->APP: %s", data)
+		var esLog entity.EsLogEntiy // 记录日志
+		esLog.DeviceId = routingKey
+		esLog.Vendor = "general"
+		esLog.Operation = "DAS发给APP"
+		esLog.ThirdPlatform = "王力RabbitMQ"
+		esLog.RawData = string(data)
+		esData, err := json.Marshal(esLog)
+		if err != nil {
+			log.Warningf("Publish2app > json.Marshal > %s", err)
+			return
+		}
+		// SendGraylogByMQ("DAS-mq->APP: %s", data)
+		SendGraylogByMQ("%s", esData)
 		//sendRabbitMQUpDataLog(data)
 		//log.Debugf("RoutingKey = '%s', Publish2app msg: %s", routingKey, string(data))
 	}
@@ -210,7 +236,19 @@ func Publish2mns(data []byte, routingKey string) {
 	if err := publishDirect(2, producerMQ, exSli[Ex2Mns_Index], routingKey, data); err != nil {
 		log.Warningf("Publish2mns > %s", err)
 	} else {
-		SendGraylogByMQ("DAS-mq->MNS: %s", data)
+		var esLog entity.EsLogEntiy // 记录日志
+		esLog.DeviceId = gjson.Get(string(data), "devId").String()
+		esLog.Vendor = "general"
+		esLog.Operation = "DAS发给MNS"
+		esLog.ThirdPlatform = "王力RabbitMQ"
+		esLog.RawData = string(data)
+		esData, err := json.Marshal(esLog)
+		if err != nil {
+			log.Warningf("Publish2mns > json.Marshal > %s", err)
+			return
+		}
+		SendGraylogByMQ("%s", esData)
+		// SendGraylogByMQ("DAS-mq->MNS: %s", data)
 		//log.Debugf("Publish2mns msg: %s", data)
 	}
 }
@@ -225,7 +263,7 @@ func Publish2pms(data []byte, routingKey string) {
 
 	go func() {
 		var err error
-		SendGraylogByMQ("DAS-mq->PMS: %s", data)
+		// SendGraylogByMQ("DAS-mq->PMS: %s", data)
 		if redis.IsDevBeta(data) {
 			err = publishDirect(3, producerMQ,exSli[Ex2PmsBeta_Index], routingKey, data)
 		} else {
@@ -237,6 +275,19 @@ func Publish2pms(data []byte, routingKey string) {
 		} else {
 			//log.Debugf("Publish2pms msg: %s", data)
 		}
+
+		var esLog entity.EsLogEntiy // 记录日志
+		esLog.DeviceId = gjson.Get(string(data), "devId").String()
+		esLog.Vendor = "general"
+		esLog.Operation = "DAS发给PMS"
+		esLog.ThirdPlatform = "王力RabbitMQ"
+		esLog.RawData = string(data)
+		esData, err := json.Marshal(esLog)
+		if err != nil {
+			log.Warningf("Publish2pms > json.Marshal > %s", err)
+			return
+		}
+		SendGraylogByMQ("%s", esData)
 	}()
 }
 
@@ -384,6 +435,7 @@ func SendGraylogByMQ(format string, args ...interface{}) {
 		Facility: "das",
 		Message:  lmsg,
 		Timestamp: time.Now().Unix(),
+		LogType: "device",
 	}
 	b, err := json.Marshal(msg)
 	if err == nil {

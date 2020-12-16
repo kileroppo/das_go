@@ -2,6 +2,7 @@ package tuya2srv
 
 import (
 	"context"
+	"das/filter"
 	"encoding/base64"
 	"encoding/json"
 	"strconv"
@@ -22,11 +23,11 @@ import (
 
 var (
 	consumer pulsar.Consumer
-	alarmFilter MsgFilter
+	alarmFilter filter.MsgFilter
 )
 
 func Init() {
-	alarmFilter = &RedisFilter{}
+	alarmFilter = &filter.RedisFilter{}
 	go Tuya2SrvStart()
 }
 
@@ -80,17 +81,6 @@ func (t *TuyaCallback) HandlePayload(ctx context.Context, msg *pulsar.Message, p
 
 	handler := TuyaMsgHandle{
 		data: jsonData,
-		msg2Others: entity.OtherVendorDevMsg{
-			Header: entity.Header{
-				Cmd:     constant.Other_Vendor_Msg,
-				Ack:     0,
-				DevType: "",
-				DevId:   "",
-				Vendor:  "tuya",
-				SeqId:   0,
-			},
-			OriData: "",
-		},
 	}
 	handler.MsgHandle()
 	return nil
@@ -113,25 +103,9 @@ func (t *TuyaCallback) decryptData(payload []byte) (jsonData []byte, err error) 
 
 type TuyaMsgHandle struct {
 	data       []byte
-	msg2Others entity.OtherVendorDevMsg
-}
-
-func (t *TuyaMsgHandle) InitHeader() {
-	t.msg2Others = entity.OtherVendorDevMsg{
-		Header: entity.Header{
-			Cmd:     constant.Other_Vendor_Msg,
-			Ack:     0,
-			DevType: "",
-			DevId:   "",
-			Vendor:  "tuya",
-			SeqId:   0,
-		},
-		OriData: "",
-	}
 }
 
 func (t *TuyaMsgHandle) MsgHandle() {
-	rabbitmq.SendGraylogByMQ("涂鸦Server-pulsar->DAS: %s", t.data)
 	devId := gjson.GetBytes(t.data, "devId").String()
 
 	//rabbitmq.Publish2app(t.data, devId)
@@ -151,17 +125,21 @@ func (t *TuyaMsgHandle) MsgHandle() {
 			statusHandle(devId, devStatus[i])
 		}
 	}
-}
 
-func (t *TuyaMsgHandle) send2Others(devId string, oriData []byte) {
-	t.msg2Others.DevId = devId
-	t.msg2Others.OriData = util.Bytes2Str(oriData)
-
-	data, err := json.Marshal(t.msg2Others)
-	if err == nil {
-		rabbitmq.Publish2mns(data, "")
-		//rabbitmq.Publish2pms(data, "")
+	var esLog entity.EsLogEntiy // 记录日志
+	esLog.DeviceId = devId
+	esLog.Vendor = "tuya"
+	esLog.Operation = "涂鸦pulsar推送"
+	esLog.RetMsg = TyDevEventOperZh[bizCode]
+	esLog.ThirdPlatform = "涂鸦pulsar"
+	esLog.RawData = util.Bytes2Str(t.data)
+	esData, err := json.Marshal(esLog)
+	if err != nil {
+		log.Warningf("MsgHandle > json.Marshal > %s", err)
+		return
 	}
+	// rabbitmq.SendGraylogByMQ("涂鸦Server-pulsar->DAS: %s", t.data)
+	rabbitmq.SendGraylogByMQ("%s", esData)
 }
 
 func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
@@ -195,7 +173,7 @@ func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 		msg2app.OpValue = "0"
 	}
 
-	feibee2srv.RecordDevOnlineStatus(msg.DevId, msg2app.Online)
+	feibee2srv.RecordDevOnlineStatus(msg.DevId, "tuya", msg2app.Online)
 	data, err = json.Marshal(msg2app)
 	if err == nil {
 		rabbitmq.Publish2app(data, devId)
@@ -315,6 +293,64 @@ func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
 	msg.DevId = devId + rawJsonData.Get("code").String()
 	msg.AlarmType = "sceneSwitch"
 	msg.AlarmFlag = 1
+
+	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2Scene(data, "")
+	}
+}
+
+func TyStatusSleepStage(devId string, rawJsonData gjson.Result) {
+	var msg entity.Feibee2AutoSceneMsg
+	msg.Cmd = constant.Scene_Trigger
+	msg.DevId = devId
+	msg.AlarmType = constant.Wonly_Status_Sleep_Stage
+	msg.Time = int(rawJsonData.Get("t").Int()/1000)
+	tyVal := rawJsonData.Get("value").String()
+	if tyVal == Ty_Sleep_Stage_Awake {
+		msg.AlarmFlag = 1
+	} else if tyVal == Ty_Sleep_Stage_Sleep {
+		msg.AlarmFlag = 4
+	} else {
+		return
+	}
+	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2Scene(data, "")
+	}
+}
+
+func TyStatusOffBed(devId string, rawJsonData gjson.Result) {
+	var msg entity.Feibee2AutoSceneMsg
+	msg.Cmd = constant.Scene_Trigger
+	msg.DevId = devId
+	msg.AlarmType = constant.Wonly_Status_Sleep_Stage
+	msg.Time = int(rawJsonData.Get("t").Int()/1000)
+	offBed := rawJsonData.Get("value").Bool()
+	if offBed {
+		msg.AlarmFlag = 6 //离床
+	} else {
+		msg.AlarmFlag = 5 //在床
+	}
+
+	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2Scene(data, "")
+	}
+}
+
+func TyStatusWakeup(devId string, rawJsonData gjson.Result) {
+	var msg entity.Feibee2AutoSceneMsg
+	msg.Cmd = constant.Scene_Trigger
+	msg.DevId = devId
+	msg.AlarmType = constant.Wonly_Status_Sleep_Stage
+	msg.Time = int(rawJsonData.Get("t").Int()/1000)
+	wakeup := rawJsonData.Get("value").Bool()
+	if wakeup {
+		msg.AlarmFlag = 1 //清醒
+	} else {
+		return //睡眠
+	}
 
 	data, err := json.Marshal(msg)
 	if err == nil {

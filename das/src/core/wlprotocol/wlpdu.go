@@ -1009,7 +1009,9 @@ func (pdu *ParamUpdate) Decode(bBody []byte, uuid string) error {
 		pdu.ParamValue = string(buf.Next(16))
 	} else if 0x0f == pdu.ParamNo {	// WIFI_SSID	0x0f	32个字节
 		pdu.ParamValue = string(buf.Next(32))
-	} else {
+	} else if 0x1b == pdu.ParamNo {	// 揽胜模组sn【ipc_sn】	0x1b	20字节
+		pdu.ParamValue = string(buf.Next(20))
+	}else {
 		var paramValue uint8
 		if err = binary.Read(buf, binary.BigEndian, &paramValue); err != nil {
 			log.Error("binary.Read failed:", err)

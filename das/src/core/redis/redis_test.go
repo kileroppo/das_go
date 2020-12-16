@@ -3,6 +3,7 @@ package redis
 import (
 	"das/core/log"
 	"testing"
+	"time"
 )
 
 var (
@@ -18,4 +19,5 @@ func init() {
 
 func TestIsFeibeeSpSrv(t *testing.T) {
 	IsFeibeeSpSrv([]byte(reqData))
+	redisDevPool0.HMSetNX(4, "msgFilter", "test1", true, time.Minute)
 }
