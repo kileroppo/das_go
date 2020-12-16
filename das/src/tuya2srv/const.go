@@ -276,7 +276,6 @@ var (
 		Ty_Status_Doorcontact_State:   {},
 		Ty_Status_Pir:                 {},
 		Ty_Status_Temper_Alarm:        {},
-		Ty_Status_Presence_State:      {},
 		Ty_Status_Watersensor_State:   {},
 	}
 )

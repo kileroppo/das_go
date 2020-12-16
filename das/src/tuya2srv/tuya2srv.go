@@ -2,6 +2,7 @@ package tuya2srv
 
 import (
 	"context"
+	"das/filter"
 	"encoding/base64"
 	"encoding/json"
 	"strconv"
@@ -22,11 +23,11 @@ import (
 
 var (
 	consumer pulsar.Consumer
-	alarmFilter MsgFilter
+	alarmFilter filter.MsgFilter
 )
 
 func Init() {
-	alarmFilter = &RedisFilter{}
+	alarmFilter = &filter.RedisFilter{}
 	go Tuya2SrvStart()
 }
 
