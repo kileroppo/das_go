@@ -95,7 +95,7 @@ func Http2FeibeeWonlyLGuard(appData string) {
 	esLog.Operation = "小卫士控制"
 	esLog.ThirdPlatform = url
 	esLog.RawData = "request:" + string(reqData) + "; response: " + string(respData)
-	esData, err := json.Marshal(esLog)
+	esData, err := json.MarshalToString(esLog)
 	if err != nil {
 		log.Warningf("Http2FeibeeWonlyLGuard > json.Marshal > %s", err)
 		return

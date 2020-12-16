@@ -1176,8 +1176,8 @@ func ParseData(mydata interface{}) error {
 	esLog.DeviceId = wlMsg.DevId.Uuid
 	esLog.Vendor = "general"
 	esLog.ThirdPlatform = "王力IoT平台"
-	esLog.RawData = hex.EncodeToString(bBody)
-	esData, err_ := json.Marshal(esLog)
+	esLog.RawData = hex.EncodeToString(data)
+	esData, err_ := json.MarshalToString(esLog)
 	if err_ != nil {
 		log.Warningf("ProcessJsonMsg > json.Marshal > %s", err_)
 		return err_

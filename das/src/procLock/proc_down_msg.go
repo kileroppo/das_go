@@ -528,7 +528,7 @@ func ProcAppMsg(appMsg string) error {
 	esLog.Vendor = head.Vendor
 	// esLog.ThirdPlatform = "王力RabbitMQ"
 	esLog.RawData = appMsg
-	esData, err_ := json.Marshal(esLog)
+	esData, err_ := json.MarshalToString(esLog)
 	if err_ != nil {
 		log.Warningf("ProcessJsonMsg > json.Marshal > %s", err_)
 		return err_

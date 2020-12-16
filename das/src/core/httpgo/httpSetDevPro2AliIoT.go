@@ -163,7 +163,7 @@ func setAliThingPro(token, deviceName, data, cmd string) (respBody string, err e
 	esLog.Vendor = "general"
 	esLog.Operation = "接入阿里云的智能锁操作"
 	esLog.ThirdPlatform = sUrl
-	esData, err := json.Marshal(esLog)
+	esData, err := json.MarshalToString(esLog)
 	if err != nil {
 		log.Warningf("setAliThingPro > json.Marshal > %s", err)
 		return

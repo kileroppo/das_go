@@ -844,10 +844,10 @@ func ProcessJsonMsg(DValue string, devID string) error {
 	}
 
 	esLog.DeviceId = devID
-	esLog.Vendor = "general"
+	esLog.Vendor = "王力"
 	esLog.ThirdPlatform = "王力RabbitMQ"
 	esLog.RawData = string(DValue)
-	esData, err_ := json.Marshal(esLog)
+	esData, err_ := json.MarshalToString(esLog)
 	if err_ != nil {
 		log.Warningf("ProcessJsonMsg > json.Marshal > %s", err_)
 		return err_
