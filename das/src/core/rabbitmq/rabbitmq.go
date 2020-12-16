@@ -194,7 +194,7 @@ func Publish2dev(data []byte, routingKey string) {
 	} else {
 		var esLog entity.EsLogEntiy // 记录日志
 		esLog.DeviceId = routingKey
-		esLog.Vendor = "general"
+		esLog.Vendor = ""
 		esLog.Operation = "下行数据"
 		esLog.ThirdPlatform = "王力RabbitMQ"
 		esLog.RawData = string(data)
@@ -216,7 +216,7 @@ func Publish2app(data []byte, routingKey string) {
 	} else {
 		var esLog entity.EsLogEntiy // 记录日志
 		esLog.DeviceId = routingKey
-		esLog.Vendor = "general"
+		esLog.Vendor = ""
 		esLog.Operation = "DAS发给APP"
 		esLog.ThirdPlatform = "王力RabbitMQ"
 		esLog.RawData = string(data)
@@ -238,7 +238,7 @@ func Publish2mns(data []byte, routingKey string) {
 	} else {
 		var esLog entity.EsLogEntiy // 记录日志
 		esLog.DeviceId = gjson.Get(string(data), "devId").String()
-		esLog.Vendor = "general"
+		esLog.Vendor = ""
 		esLog.Operation = "DAS发给MNS"
 		esLog.ThirdPlatform = "王力RabbitMQ"
 		esLog.RawData = string(data)
@@ -278,7 +278,7 @@ func Publish2pms(data []byte, routingKey string) {
 
 		var esLog entity.EsLogEntiy // 记录日志
 		esLog.DeviceId = gjson.Get(string(data), "devId").String()
-		esLog.Vendor = "general"
+		esLog.Vendor = ""
 		esLog.Operation = "DAS发给PMS"
 		esLog.ThirdPlatform = "王力RabbitMQ"
 		esLog.RawData = string(data)
