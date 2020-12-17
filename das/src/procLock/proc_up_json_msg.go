@@ -839,6 +839,11 @@ func ProcessJsonMsg(DValue string, devID string) error {
 			esLog.Operation += "中控闹钟触发爱岗场景"
 	    	rabbitmq.Publish2pms([]byte(DValue), "")
 	    }
+	case constant.User_oper_upload:
+		{
+		    esLog.Operation += "用户操作上报"
+		    rabbitmq.Publish2pms([]byte(DValue), "")
+		}
 	default:
 		log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
 	}
