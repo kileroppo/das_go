@@ -53,7 +53,7 @@ func ParseData(mydata interface{}) error {
 	}
 
 	var esLog entity.EsLogEntiy // 记录日志
-	esLog.Operation = "device-mqtt|http2->DAS"
+	esLog.Operation = "device-mqtt|http2-DAS"
 	var wlMsg wlprotocol.WlMessage
 	bBody, err0 := wlMsg.PkDecode(data)
 	//sendMQTTUpLogMsg(&wlMsg, data)

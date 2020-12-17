@@ -55,6 +55,12 @@ const (
 	Ty_Status_Switch_3 = "switch_3"
 	Ty_Status_Switch_4 = "switch_4"
 
+	Ty_Status_Switch_Val = "switch_value"
+	Ty_Status_Switch1_Val = "switch1_value"
+	Ty_Status_Switch2_Val = "switch2_value"
+	Ty_Status_Switch3_Val = "switch3_value"
+	Ty_Status_Switch4_Val = "switch4_value"
+
 	//窗帘电机
 	Ty_Status_Percent_Control   = "percent_control"
 	Ty_Status_Percent_Control_2 = "percent_control_2"
@@ -251,6 +257,12 @@ var (
 		Ty_Status_Switch_2:          {},
 		Ty_Status_Switch_3:          {},
 		Ty_Status_Switch_4:          {},
+
+		Ty_Status_Switch1_Val: {},
+		Ty_Status_Switch2_Val: {},
+		Ty_Status_Switch3_Val: {},
+		Ty_Status_Switch4_Val: {},
+
 		Ty_Status_Percent_Control:   {},
 		Ty_Status_Percent_Control_2: {},
 
