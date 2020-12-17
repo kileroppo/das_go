@@ -86,7 +86,7 @@ func ProcAppMsg(appMsg string) error {
 
 	// 记录APP下行日志
 	var esLog entity.EsLogEntiy // 记录日志
-	esLog.Operation = "APP-mq->DAS"
+	esLog.Operation = "APP-rmq-DAS"
 	// rabbitmq.SendGraylogByMQ("下行数据(APP-mq->DAS)：dev[%s]; %s >>> %s", head.DevId, strAppMsg, appMsg)
 	//sendPadDoorUpLogMsg(head.DevId, strAppMsg + ">>>" + appMsg, "下行设备数据")
 

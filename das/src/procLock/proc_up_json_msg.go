@@ -76,7 +76,7 @@ func ProcessJsonMsg(DValue string, devID string) error {
 	//log.Debug("[", devID, "] ProcessJsonMsg() DValue after: ", DValue)
 
 	var esLog entity.EsLogEntiy // 记录日志
-	esLog.Operation = "device-mq->DAS"
+	esLog.Operation = "device-mq-DAS"
 	// rabbitmq.SendGraylogByMQ("上行数据(device-mq->DAS): dev[%s]; %s", devID, DValue)
 	//rabbitmq.SendGraylogByMQ("[%s] ProcessJsonMsg DValue after: %s", devID, DValue)
 	if !strings.ContainsAny(DValue, "{ & }") { // 判断数据中是否正确的json，不存在，则是错误数据.
