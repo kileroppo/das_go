@@ -201,12 +201,13 @@ var (
 		Ty_Status_Bright_Value:   constant.Wonly_Status_Sensor_Illuminance,
 	}
 
-	TyEnvSensorValDivisor = map[string]int{
-		Ty_Status_Air_Temperature: 10,
-		TY_Status_Air_CO2_Value:   100,
-		Ty_Status_Air_CH2O:        100,
-		Ty_Status_Va_Humidity:     100,
-		Ty_Status_Va_Temperature:  100,
+	TyEnvSensorValTransfer = map[string]float64{
+		Ty_Status_Air_Temperature: 0.1,
+		TY_Status_Air_CO2_Value:   0.01,
+		Ty_Status_Air_CH2O:        0.01,
+		Ty_Status_Va_Humidity:     0.01,
+		Ty_Status_Va_Temperature:  0.01,
+		Ty_Status_Bright_Value:    8.8,
 	}
 
 	TyCleanerStatusNote = map[string]string{

@@ -407,12 +407,12 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	if ok {
 		msg.AlarmValue = alarmVal[msg.AlarmFlag]
 	} else {
-		divisor, ok := TyEnvSensorValDivisor[tyAlarmType]
+		multiplier, ok := TyEnvSensorValTransfer[tyAlarmType]
 		if ok {
-			msg.Divisor = divisor
-			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)/float64(divisor), 'f', 2, 64)
+			msg.Multiplier = multiplier
+			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)*float64(multiplier), 'f', 2, 64)
 		} else {
-			msg.Divisor = 1
+			msg.Multiplier = 1
 			msg.AlarmValue = strconv.Itoa(alarmFlag)
 		}
 	}
@@ -426,7 +426,9 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 
 	data, err := json.Marshal(msg)
 	if err == nil {
-		if msg.AlarmFlag == 1 && ok && msg.AlarmType != constant.Wonly_Status_Sensor_Doorcontact {
+		if msg.AlarmType == constant.Wonly_Status_Sensor_Doorcontact {
+			rabbitmq.Publish2mns(data, "")
+		} else if ok && msg.AlarmFlag == 1 {
 			rabbitmq.Publish2mns(data, "")
 		}
 		rabbitmq.Publish2pms(data, "")
