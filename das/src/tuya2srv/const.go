@@ -47,12 +47,18 @@ const (
 	Ty_Status_Scene_2         = "scene_2"
 	Ty_Status_Scene_3         = "scene_3"
 	Ty_Status_Scene_4         = "scene_4"
+	Ty_Status_Scene_5         = "scene_5"
+	Ty_Status_Scene_6         = "scene_6"
+	Ty_Status_Scene_7         = "scene_7"
+	Ty_Status_Scene_8         = "scene_8"
 
 	Ty_Status_Switch   = "switch"
 	Ty_Status_Switch_1 = "switch_1"
 	Ty_Status_Switch_2 = "switch_2"
 	Ty_Status_Switch_3 = "switch_3"
 	Ty_Status_Switch_4 = "switch_4"
+	Ty_Status_Switch_5 = "switch_5"
+	Ty_Status_Switch_6 = "switch_6"
 
 	Ty_Status_Switch_Val  = "switch_value"
 	Ty_Status_Switch1_Val = "switch1_value"
@@ -165,6 +171,10 @@ var (
 		Ty_Status_Scene_2: TyStatusSceneHandle,
 		Ty_Status_Scene_3: TyStatusSceneHandle,
 		Ty_Status_Scene_4: TyStatusSceneHandle,
+		Ty_Status_Scene_5: TyStatusSceneHandle,
+		Ty_Status_Scene_6: TyStatusSceneHandle,
+		Ty_Status_Scene_7: TyStatusSceneHandle,
+		Ty_Status_Scene_8: TyStatusSceneHandle,
 
 		Ty_Status_Sleep_Stage: TyStatusSleepStage,
 		Ty_Status_Off_Bed:     TyStatusOffBed,
@@ -265,6 +275,10 @@ var (
 		Ty_Status_Scene_2:     {},
 		Ty_Status_Scene_3:     {},
 		Ty_Status_Scene_4:     {},
+		Ty_Status_Scene_5:     {},
+		Ty_Status_Scene_6:     {},
+		Ty_Status_Scene_7:     {},
+		Ty_Status_Scene_8:     {},
 		Ty_Status_Switch:      {},
 		Ty_Status_Switch_1:    {},
 		Ty_Status_Switch_2:    {},
