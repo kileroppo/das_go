@@ -22,6 +22,8 @@ const (
 	Ty_Status_Temper_Alarm        = "temper_alarm"
 	Ty_Status_Battery_Percentage  = "battery_percentage"
 	Ty_Status_SOS_State           = "sos_state"
+	Ty_Status_Presence_State      = "presence_state"
+	Ty_Status_Pir                 = "pir"
 
 	Ty_Status_Air_Temperature = "TMP"
 	Ty_Status_Air_Humidity    = "HUM"
@@ -41,13 +43,10 @@ const (
 	Ty_Status_Colour_Data     = "colour_data"
 	Ty_Status_Colour_Data_V2  = "colour_data_v2"
 	Ty_Status_Work_Mode       = "work_mode"
-
-	Ty_Status_Presence_State = "presence_state"
-	Ty_Status_Pir            = "pir"
-	Ty_Status_Scene_1        = "scene_1"
-	Ty_Status_Scene_2        = "scene_2"
-	Ty_Status_Scene_3        = "scene_3"
-	Ty_Status_Scene_4        = "scene_4"
+	Ty_Status_Scene_1         = "scene_1"
+	Ty_Status_Scene_2         = "scene_2"
+	Ty_Status_Scene_3         = "scene_3"
+	Ty_Status_Scene_4         = "scene_4"
 
 	Ty_Status_Switch   = "switch"
 	Ty_Status_Switch_1 = "switch_1"
@@ -64,7 +63,9 @@ const (
 	//窗帘电机
 	Ty_Status_Percent_Control   = "percent_control"
 	Ty_Status_Percent_Control_2 = "percent_control_2"
+	Ty_Status_Work_State        = "work_state"
 
+	//睡眠带
 	Ty_Status_Sleep_Stage      = "sleep_stage"
 	Ty_Status_Off_Bed          = "off_bed"
 	Ty_Status_Wakeup           = "wakeup"
@@ -119,6 +120,12 @@ const (
 	Ty_Sleep_Stage_Sleep = "sleep"
 )
 
+//涂鸦窗帘状态
+const (
+	Ty_Cmd_Work_State_Val_Open  = "opening"
+	Ty_Cmd_Work_State_Val_Close = "closing"
+)
+
 type TyStatusHandle func(devId string, rawJsonData gjson.Result)
 type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 
@@ -162,6 +169,8 @@ var (
 		Ty_Status_Sleep_Stage: TyStatusSleepStage,
 		Ty_Status_Off_Bed:     TyStatusOffBed,
 		Ty_Status_Wakeup:      TyStatusWakeup,
+
+		Ty_Status_Work_State: TyStatusCurtainHandle,
 	}
 
 	TyDevEventHandlers = map[string]TyEventHandle{
@@ -207,7 +216,7 @@ var (
 		Ty_Status_Air_CH2O:        0.01,
 		Ty_Status_Va_Humidity:     0.01,
 		Ty_Status_Va_Temperature:  0.01,
-		Ty_Status_Bright_Value:    8.8,
+		Ty_Status_Bright_Value:    10.483,
 	}
 
 	TyCleanerStatusNote = map[string]string{
@@ -238,47 +247,59 @@ var (
 	}
 
 	TyStatusDataFilterMap = map[string]struct{}{
-		Ty_Status_Power:           {},
-		Ty_Status:                 {},
-		Ty_Status_Mode:            {},
+		Ty_Status_Power:              {},
+		Ty_Status:                    {},
+		Ty_Status_Mode:               {},
+		Ty_Status_Battery_Percentage: {},
+
+		//灯类
 		Ty_Status_Switch_Led:      {},
 		Ty_Status_Bright_Value:    {},
 		Ty_Status_Bright_Value_V2: {},
 		Ty_Status_Colour_Data:     {},
 		Ty_Status_Colour_Data_V2:  {},
 		Ty_Status_Work_Mode:       {},
-		Ty_Status_Presence_State:  {},
-		Ty_Status_Pir:             {},
-		Ty_Status_Scene_1:         {},
-		Ty_Status_Scene_2:         {},
-		Ty_Status_Scene_3:         {},
-		Ty_Status_Scene_4:         {},
-		Ty_Status_Switch:          {},
-		Ty_Status_Switch_1:        {},
-		Ty_Status_Switch_2:        {},
-		Ty_Status_Switch_3:        {},
-		Ty_Status_Switch_4:        {},
 
+		//开关类
+		Ty_Status_Scene_1:     {},
+		Ty_Status_Scene_2:     {},
+		Ty_Status_Scene_3:     {},
+		Ty_Status_Scene_4:     {},
+		Ty_Status_Switch:      {},
+		Ty_Status_Switch_1:    {},
+		Ty_Status_Switch_2:    {},
+		Ty_Status_Switch_3:    {},
+		Ty_Status_Switch_4:    {},
 		Ty_Status_Switch1_Val: {},
 		Ty_Status_Switch2_Val: {},
 		Ty_Status_Switch3_Val: {},
 		Ty_Status_Switch4_Val: {},
 
+		//窗帘类
 		Ty_Status_Percent_Control:   {},
 		Ty_Status_Percent_Control_2: {},
+		Ty_Status_Work_State:        {},
 
-		Ty_Status_Battery_Percentage: {},
-		Ty_Status_Air_Temperature:    {},
-		Ty_Status_Air_Humidity:       {},
-		Ty_Status_Air_PM25_Value:     {},
-		Ty_Status_Air_CO_Value:       {},
-		TY_Status_Air_CO2_Value:      {},
-		Ty_Status_Air_VOC:            {},
-		Ty_Status_Air_CH2O:           {},
+		//传感器类
+		Ty_Status_Doorcontact_State:   {},
+		Ty_Status_Gas_Sensor_State:    {},
+		Ty_Status_Smoke_Sensor_Status: {},
+		Ty_Status_Watersensor_State:   {},
+		Ty_Status_Temper_Alarm:        {},
+		Ty_Status_SOS_State:           {},
+		Ty_Status_Presence_State:      {},
+		Ty_Status_Pir:                 {},
+		Ty_Status_Air_Temperature:     {},
+		Ty_Status_Air_Humidity:        {},
+		Ty_Status_Air_PM25_Value:      {},
+		Ty_Status_Air_CO_Value:        {},
+		TY_Status_Air_CO2_Value:       {},
+		Ty_Status_Air_VOC:             {},
+		Ty_Status_Air_CH2O:            {},
+		Ty_Status_Va_Temperature:      {},
+		Ty_Status_Va_Humidity:         {},
 
-		Ty_Status_Va_Temperature: {},
-		Ty_Status_Va_Humidity:    {},
-
+		//睡眠带
 		Ty_Status_Wakeup:           {},
 		Ty_Status_Sleep_Stage:      {},
 		Ty_Status_Heart_Rate:       {},

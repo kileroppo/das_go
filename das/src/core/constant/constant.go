@@ -235,6 +235,8 @@ const (
 	Wonly_Status_Aircondition_Min_Temperature   = "minTemperature"
 
 	Wonly_Status_Sleep_Stage = "sleepStatus"
+
+	Wonly_Status_Curtain = "curtain"
 )
 
 var (
