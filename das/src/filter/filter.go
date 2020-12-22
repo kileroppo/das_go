@@ -3,43 +3,53 @@ package filter
 import (
 	"reflect"
 	"strconv"
-	"sync"
 	"time"
 
 	"das/core/redis"
 )
 
 var (
-	_ MsgFilter = &SyncMapFilter{}
 	_ MsgFilter = &RedisFilter{}
 	alarmMsgFilter = RedisFilter{}
 )
 
 const (
 	filterKey = "_msgFilter"
-	filterDur = time.Duration(time.Hour)
+	frequentDur = time.Second*30
+	filterDur = time.Hour
 )
 
 type MsgFilter interface {
 	IsValid(key string, val interface{}, duration time.Duration) (res bool)
-}
-
-type SyncMapFilter struct {
-	m sync.Map
-}
-
-func (s *SyncMapFilter) IsValid(key string, val interface{}, duration time.Duration) (res bool) {
-	_, res = s.m.LoadOrStore(key, val)
-	return !res
+	IsFrequentValid(key string, val interface{}, dur time.Duration, frequentDur time.Duration) bool
 }
 
 type RedisFilter struct{}
 
 func (r *RedisFilter) IsValid(key string, val interface{}, duration time.Duration) (res bool) {
-	return r.isValid(key, val, duration)
+	res,_ = r.isValid(key, val, duration)
+	return
 }
 
-func (r *RedisFilter) isValid(key string, val interface{}, duration time.Duration) (res bool) {
+func (r *RedisFilter) IsFrequentValid(key string, val interface{}, dur time.Duration, frequentDur time.Duration) bool {
+	changed, ttl := r.isValid(key, val, dur)
+	if changed {
+		if ttl < 0 || ttl > dur {
+			return true
+		} else {
+			since := dur - ttl
+			if since < frequentDur {
+				return false
+			} else {
+				return true
+			}
+		}
+	} else {
+		return false
+	}
+}
+
+func (r *RedisFilter) isValid(key string, val interface{}, duration time.Duration) (res bool, ttl time.Duration) {
 	cli := redis.GetRedisDB(1)
 	oldVal, err := cli.Get(key).Result()
 	if err != nil {
@@ -55,9 +65,20 @@ func (r *RedisFilter) isValid(key string, val interface{}, duration time.Duratio
 		}
 	}
 	if res {
+		ttl = cli.PTTL(key).Val()
 		r.updKey(key, val, duration)
 	}
 	return
+}
+
+func (r *RedisFilter) GetDuration(key string) time.Duration {
+	cli := redis.GetRedisDB(1)
+	durCmd := cli.PTTL(key)
+	if durCmd.Err() != nil {
+		return -1
+	} else {
+		return durCmd.Val()
+	}
 }
 
 func redisValCompare(newVal interface{}, oldVal string) bool {
@@ -99,7 +120,11 @@ func (r *RedisFilter) updKey(key string, val interface{}, duration time.Duration
 	cli.Set(key, val, duration)
 }
 
-func AlarmMsgFilter(key string, val interface{}) bool {
+func AlarmMsgFilter(key string, val interface{}, filterDur time.Duration) bool {
 	res := alarmMsgFilter.IsValid(key + filterKey, val, filterDur)
 	return res
+}
+
+func AlarmFrequentFilter(key string, val interface{}, filterDur, frequentDur time.Duration) bool {
+	return alarmMsgFilter.IsFrequentValid(key + filterKey, val, filterDur, frequentDur)
 }

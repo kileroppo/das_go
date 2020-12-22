@@ -4,6 +4,7 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
+	"fmt"
 	"testing"
 )
 
@@ -21,4 +22,12 @@ var (
 
 func TestSleepaceHandler(t *testing.T) {
     SleepaceHandler([]byte(sleepaceMsg))
+}
+
+func TestSleepStageMsgFilter(t *testing.T) {
+	if sleepStageMsgFilter("f7o6bn7jtlusr", "sleepStatus", 6) {
+		fmt.Println("valid")
+	} else {
+		fmt.Println("invalid")
+	}
 }

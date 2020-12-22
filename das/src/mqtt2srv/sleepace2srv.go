@@ -23,7 +23,8 @@ var (
 
 const (
 	filterKey = "_msgFilter"
-	filterDur = time.Duration(time.Hour)
+	filterDuration = time.Hour
+	frequentDuration = time.Second*30
 
 	Sleepace_Data_Key_Sleep_Stage  = "sleepStage"
 	Sleepace_Data_Key_Inbed_Status = "inBedStatus"
@@ -154,5 +155,5 @@ func Close() {
 }
 
 func sleepStageMsgFilter(devId, alarmType string, alarmFlag int) bool {
-	return filter.AlarmMsgFilter(devId + "_" + alarmType, alarmFlag)
+	return filter.AlarmFrequentFilter(devId + "_" + alarmType, alarmFlag, filterDuration, frequentDuration)
 }
