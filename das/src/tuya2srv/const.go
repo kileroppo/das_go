@@ -302,6 +302,7 @@ var (
 		//睡眠带
 		Ty_Status_Wakeup:           {},
 		Ty_Status_Sleep_Stage:      {},
+		Ty_Status_Off_Bed:          {},
 		Ty_Status_Heart_Rate:       {},
 		Ty_Status_Respiratory_Rate: {},
 	}

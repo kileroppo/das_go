@@ -249,9 +249,11 @@ func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
+	msg.Time = int(correctSensorMillTimestamp(rawJsonData.Get("t").Int()) / 1000)
 
 	msg.OpType = Ty_Status
 	val := rawJsonData.Get("value").String()
+	msg.OpValue = val
 	note, ok := TyCleanerStatusNote[val]
 	if ok {
 		msg.Note = note
