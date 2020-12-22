@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"strconv"
+	"time"
 
 	pulsar "github.com/TuyaInc/tuya_pulsar_sdk_go"
 	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tylog"
@@ -279,6 +280,15 @@ func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
 }
 
+func correctSensorMillTimestamp(millTimestamp int64) int64 {
+	curr := time.Now().UnixNano() / 1000_000
+	if millTimestamp > curr {
+		return curr
+	} else {
+		return millTimestamp
+	}
+}
+
 func TyStatusEnvSensorHandle(devId string, rawJsonData gjson.Result) {
 	tyAlarmType := rawJsonData.Get("code").String()
 	timestamp := rawJsonData.Get("t").Int()
@@ -379,11 +389,12 @@ func TyStatus2PMSHandle(devId string, rawJsonData gjson.Result) {
 }
 
 func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
+	correctT := correctSensorMillTimestamp(timestamp)
 	var msg entity.Feibee2AlarmMsg
 	msg.Cmd = constant.Device_Sensor_Msg
 	msg.Vendor = "tuya"
-	msg.Time = int(timestamp) / 1000
-	msg.MilliTimestamp = int(timestamp)
+	msg.Time = int(correctT / 1000)
+	msg.MilliTimestamp = int(correctT)
 	msg.DevId = devId
 
 	var ok bool
