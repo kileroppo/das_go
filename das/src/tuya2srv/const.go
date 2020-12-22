@@ -55,7 +55,7 @@ const (
 	Ty_Status_Switch_3 = "switch_3"
 	Ty_Status_Switch_4 = "switch_4"
 
-	Ty_Status_Switch_Val = "switch_value"
+	Ty_Status_Switch_Val  = "switch_value"
 	Ty_Status_Switch1_Val = "switch1_value"
 	Ty_Status_Switch2_Val = "switch2_value"
 	Ty_Status_Switch3_Val = "switch3_value"
@@ -171,13 +171,13 @@ var (
 	}
 
 	TyDevEventOperZh = map[string]string{
-		Ty_Event_Online : 			"设备上线",
-		Ty_Event_Offline : 			"设备离线",
-		Ty_Event_Name_Update : 		"修改设备名称",
-		Ty_Event_Dp_Name_Update : 	"修改设备功能点名称",
-		Ty_Event_Bind_User : 		"设备绑定用户",
-		Ty_Event_Delete : 			"删除设备",
-		Ty_Event_Upgrade_Status : 	"设备升级状态",
+		Ty_Event_Online:         "设备上线",
+		Ty_Event_Offline:        "设备离线",
+		Ty_Event_Name_Update:    "修改设备名称",
+		Ty_Event_Dp_Name_Update: "修改设备功能点名称",
+		Ty_Event_Bind_User:      "设备绑定用户",
+		Ty_Event_Delete:         "删除设备",
+		Ty_Event_Upgrade_Status: "设备升级状态",
 	}
 
 	TySensor2WonlySensor = map[string]string{
@@ -237,26 +237,26 @@ var (
 	}
 
 	TyStatusDataFilterMap = map[string]struct{}{
-		Ty_Status_Power:             {},
-		Ty_Status:                   {},
-		Ty_Status_Mode:              {},
-		Ty_Status_Switch_Led:        {},
-		Ty_Status_Bright_Value:      {},
-		Ty_Status_Bright_Value_V2:   {},
-		Ty_Status_Colour_Data:       {},
-		Ty_Status_Colour_Data_V2:    {},
-		Ty_Status_Work_Mode:         {},
-		Ty_Status_Presence_State:    {},
-		Ty_Status_Pir:               {},
-		Ty_Status_Scene_1:           {},
-		Ty_Status_Scene_2:           {},
-		Ty_Status_Scene_3:           {},
-		Ty_Status_Scene_4:           {},
-		Ty_Status_Switch:            {},
-		Ty_Status_Switch_1:          {},
-		Ty_Status_Switch_2:          {},
-		Ty_Status_Switch_3:          {},
-		Ty_Status_Switch_4:          {},
+		Ty_Status_Power:           {},
+		Ty_Status:                 {},
+		Ty_Status_Mode:            {},
+		Ty_Status_Switch_Led:      {},
+		Ty_Status_Bright_Value:    {},
+		Ty_Status_Bright_Value_V2: {},
+		Ty_Status_Colour_Data:     {},
+		Ty_Status_Colour_Data_V2:  {},
+		Ty_Status_Work_Mode:       {},
+		Ty_Status_Presence_State:  {},
+		Ty_Status_Pir:             {},
+		Ty_Status_Scene_1:         {},
+		Ty_Status_Scene_2:         {},
+		Ty_Status_Scene_3:         {},
+		Ty_Status_Scene_4:         {},
+		Ty_Status_Switch:          {},
+		Ty_Status_Switch_1:        {},
+		Ty_Status_Switch_2:        {},
+		Ty_Status_Switch_3:        {},
+		Ty_Status_Switch_4:        {},
 
 		Ty_Status_Switch1_Val: {},
 		Ty_Status_Switch2_Val: {},
@@ -278,8 +278,10 @@ var (
 		Ty_Status_Va_Temperature: {},
 		Ty_Status_Va_Humidity:    {},
 
-		Ty_Status_Wakeup:      {},
-		Ty_Status_Sleep_Stage: {},
+		Ty_Status_Wakeup:           {},
+		Ty_Status_Sleep_Stage:      {},
+		Ty_Status_Heart_Rate:       {},
+		Ty_Status_Respiratory_Rate: {},
 	}
 
 	tyAlarmDataFilterMap = map[string]struct{}{
