@@ -8,11 +8,12 @@ import (
 
 //涂鸦设备状态code枚举
 const (
-	Ty_Status_Electricity_Left = "electricity_left"
-	Ty_Status_Clean_Record     = "clean_record"
-	Ty_Status_Power            = "power"
-	Ty_Status                  = "status"
-	Ty_Status_Mode             = "mode"
+	Ty_Status_Electricity_Left  = "electricity_left"
+	Ty_Status_Clean_Record      = "clean_record"
+	Ty_Status_Power             = "power"
+	Ty_Status                   = "status"
+	Ty_Status_Mode              = "mode"
+	Ty_Status_Direction_Control = "direction_control"
 
 	//传感器
 	Ty_Status_Doorcontact_State   = "doorcontact_state"
@@ -104,20 +105,21 @@ const (
 
 //涂鸦扫地机状态
 const (
-	Ty_Cleaner_Standby     = "standby"
-	Ty_Cleaner_Smart       = "smart"
-	Ty_Cleaner_Spiral      = "spiral"
-	Ty_Cleaner_Single      = "single"
-	Ty_Cleaner_Chargego    = "chargego"
-	Ty_Cleaner_Wall_Follow = "wall_follow"
-	Ty_Cleaner_Power_Go    = "power_go"
-	Ty_Cleaner_Cleaning    = "cleaning"
-	Ty_Cleaner_Goto_Charge = "goto_charge"
-	Ty_Cleaner_Stop        = "stop"
-	Ty_Cleaner_Paused      = "paused"
-	Ty_Cleaner_Charging    = "charging"
-	Ty_Cleaner_Charge_Done = "charge_done"
-	Ty_Cleaner_Sleep       = "sleep"
+	Ty_Cleaner_Mode_Standby     = "standby"
+	Ty_Cleaner_Mode_Smart       = "smart"
+	Ty_Cleaner_Mode_Spiral      = "spiral"
+	Ty_Cleaner_Mode_Single      = "single"
+	Ty_Cleaner_Mode_Chargego    = "chargego"
+	Ty_Cleaner_Mode_Wall_Follow = "wall_follow"
+
+	Ty_Cleaner_Direction_Stop = "stop"
+
+	Ty_Cleaner_Status_Cleaning    = "cleaning"
+	Ty_Cleaner_Status_Goto_Charge = "goto_charge"
+	Ty_Cleaner_Status_Paused      = "paused"
+	Ty_Cleaner_Status_Charging    = "charging"
+	Ty_Cleaner_Status_Charge_Done = "charge_done"
+	Ty_Cleaner_Status_Sleep       = "sleep"
 )
 
 //涂鸦睡眠袋睡眠状态
@@ -138,10 +140,13 @@ type TyEventHandle func(devId, tyEvent string, rawJsonData gjson.Result)
 //涂鸦处理分类
 var (
 	TyDevStatusHandlers = map[string]TyStatusHandle{
-		Ty_Status_Electricity_Left:   TyStatusRobotCleanerBattHandle,
-		Ty_Status_Power:              TyStatusPowerHandle,
-		Ty_Status:                    TyStatusNormalHandle,
-		Ty_Status_Mode:               TyStatusNormalHandle,
+		Ty_Status_Electricity_Left: TyStatusRobotCleanerBattHandle,
+		Ty_Status_Power:            TyStatusPowerHandle,
+
+		Ty_Status:                   TyStatusNormalHandle,
+		Ty_Status_Mode:              TyStatusNormalHandle,
+		Ty_Status_Direction_Control: TyStatusNormalHandle,
+
 		Ty_Status_Battery_Percentage: TyStatusDevBatt,
 		Ty_Status_Clean_Record:       TyStatus2PMSHandle,
 		Ty_Status_Switch:             TyStatus2PMSHandle,
@@ -230,19 +235,19 @@ var (
 	}
 
 	TyCleanerStatusNote = map[string]string{
-		Ty_Cleaner_Standby:     "待机",
-		Ty_Cleaner_Chargego:    "回充中",
-		Ty_Cleaner_Single:      "清扫中",
-		Ty_Cleaner_Smart:       "清扫中",
-		Ty_Cleaner_Spiral:      "清扫中",
-		Ty_Cleaner_Wall_Follow: "清扫中",
-		Ty_Cleaner_Cleaning:    "清扫中",
-		Ty_Cleaner_Goto_Charge: "回充中",
-		Ty_Cleaner_Paused:      "暂停",
-		Ty_Cleaner_Stop:        "暂停",
-		Ty_Cleaner_Charging:    "充电中",
-		Ty_Cleaner_Charge_Done: "充电完成",
-		Ty_Cleaner_Sleep:       "休眠",
+		Ty_Cleaner_Mode_Standby:       "待机",
+		Ty_Cleaner_Mode_Chargego:      "回充中",
+		Ty_Cleaner_Mode_Single:        "清扫中",
+		Ty_Cleaner_Mode_Smart:         "清扫中",
+		Ty_Cleaner_Mode_Spiral:        "清扫中",
+		Ty_Cleaner_Mode_Wall_Follow:   "清扫中",
+		Ty_Cleaner_Status_Cleaning:    "清扫中",
+		Ty_Cleaner_Status_Goto_Charge: "回充中",
+		Ty_Cleaner_Status_Paused:      "暂停",
+		Ty_Cleaner_Direction_Stop:     "暂停",
+		Ty_Cleaner_Status_Charging:    "充电中",
+		Ty_Cleaner_Status_Charge_Done: "充电完成",
+		Ty_Cleaner_Status_Sleep:       "休眠",
 	}
 
 	TySensorAlarmReflect = map[string]string{
