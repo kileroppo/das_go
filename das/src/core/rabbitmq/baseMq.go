@@ -14,13 +14,26 @@ import (
 )
 
 var (
+	ErrInvalidMQChannel = errors.New("the rabbitMQ channel was invalid")
 	ErrInvalidMQ  = errors.New("baseMQ was invalid")
 )
 
 var (
 	seqSli    []uint64
-	cacheKey  = "pmsMqCache%d_%d"
+	cacheKey  = "dasMqCache%d_%d"
 )
+
+func NewBaseMQ(url string) *baseMq {
+	ctx, cancel := context.WithCancel(context.Background())
+	reconnCtx, reconnCancel := context.WithCancel(ctx)
+	return &baseMq{
+		mqUri: url,
+		ctx: ctx,
+		cancel: cancel,
+		reconnCtx: reconnCtx,
+		reconnCancel: reconnCancel,
+	}
+}
 
 type exchangeCfg struct {
 	name       string
@@ -55,8 +68,8 @@ type baseMq struct {
 	ctx    context.Context
 	cancel context.CancelFunc
 
-	ctxReconn context.Context
-	cancelReconn context.CancelFunc
+	reconnCtx    context.Context
+	reconnCancel context.CancelFunc
 }
 
 func (bmq *baseMq) initConn() (err error) {
@@ -179,33 +192,39 @@ func (bmq *baseMq) initExchange(ch *amqp.Channel, cfg *exchangeCfg) error {
 }
 
 func (bmq *baseMq) publishSafe(index int, exchange, routingKey string, data []byte) (err error) {
-	select {
-	case <-bmq.ctx.Done():
-		return ErrInvalidMQ
-	default:
-		err = bmq.publishCh[index].Publish(
-			exchange,   // publish to an exchange
-			routingKey, // routing to 0 or more queues
-			false,      // mandatory
-			false,      // immediate
-			amqp.Publishing{
-				Headers:         amqp.Table{},
-				ContentType:     "text/plain",
-				ContentEncoding: "",
-				Body:            data,
-				DeliveryMode:    amqp.Persistent, // 1=non-persistent, 2=persistent
-				Priority:        0,               // 0-9
-				// a bunch of application/implementation-specific fields
-			},
-		)
-		if err != nil {
-			go bmq.reConn()
-			return
-		}
+	if index >= len(bmq.publishCh) || bmq.publishCh[index] == nil {
+		return ErrInvalidMQChannel
 	}
-	return nil
-}
 
+	if atomic.LoadUint32(&bmq.reconnFlag) == 1 {
+		return ErrInvalidMQ
+	}
+
+	if bmq.publishCh[index] == nil {
+		return ErrInvalidMQ
+	}
+	err = bmq.publishCh[index].Publish(
+		exchange,   // PublishDirect to an exchange
+		routingKey, // routing to 0 or more queues
+		false,      // mandatory
+		false,      // immediate
+		amqp.Publishing{
+			Headers:         amqp.Table{},
+			ContentType:     "text/plain",
+			ContentEncoding: "",
+			Body:            data,
+			DeliveryMode:    amqp.Persistent, // 1=non-persistent, 2=persistent
+			Priority:        0,               // 0-9
+			// a bunch of application/implementation-specific fields
+		},
+	)
+	if err != nil {
+		go bmq.reConn()
+		return
+	}
+
+	return err
+}
 //func (bmq *baseMq) startACKHandle(index int) {
 //	ackCh := make(chan amqp.Confirmation, 100)
 //	confirmCh := bmq.publishCh[index].NotifyPublish(ackCh)
@@ -288,11 +307,10 @@ func (bmq *baseMq) reConn() error {
 	bmq.mu.Lock()
 	if !atomic.CompareAndSwapUint32(&bmq.reconnFlag, 0, 1) {
 		bmq.mu.Unlock()
-		<- bmq.ctxReconn.Done()
+		<- bmq.reconnCtx.Done()
 		return nil
 	}
-	bmq.cancel()
-	bmq.ctxReconn, bmq.cancelReconn = context.WithCancel(context.Background())
+	bmq.reconnCtx, bmq.reconnCancel = context.WithCancel(bmq.ctx)
 	bmq.mu.Unlock()
 	for {
 		log.Infof("MQ %dth Reconnecting...", bmq.currReConnNum+1)
@@ -301,7 +319,7 @@ func (bmq *baseMq) reConn() error {
 			if err != nil {
 				log.Errorf("baseMq.reConn > initConn > %s", err)
 				bmq.currReConnNum++
-				bmq.cancel()
+				//bmq.cancel()
 				time.Sleep(time.Second * 10)
 				continue
 			}
@@ -310,15 +328,15 @@ func (bmq *baseMq) reConn() error {
 		if err != nil {
 			log.Errorf("baseMq.reConn > initChannels > %s", err)
 			bmq.currReConnNum++
-			bmq.cancel()
+			//bmq.cancel()
 			time.Sleep(time.Second * 10)
 			continue
 		}
-		bmq.cancelReconn()
 		bmq.currReConnNum = 0
 		atomic.StoreUint32(&bmq.reconnFlag, 0)
+		bmq.reconnCancel()
 		log.Info("MQ Reconnected Successfully")
-		bmq.ctx, bmq.cancel = context.WithCancel(context.Background())
+		//bmq.ctx, bmq.cancel = context.WithCancel(context.Background())
 		return nil
 	}
 }

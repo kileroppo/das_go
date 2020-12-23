@@ -438,12 +438,10 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 		}
 	}
 
-	//todo: 涂鸦设备上报周期为1min，是否增加设备报警过滤？
-	//if alarmFilter.Exists(devId + msg.AlarmType) {
-	//	return
-	//} else {
-	//	alarmFilter.Set(devId + msg.AlarmType, time.Minute * 30)
-	//}
+	//todo: 涂鸦报警过滤
+	if !tyAlarmMsgFilter(msg.DevId, msg.AlarmType, msg.AlarmFlag) {
+		return
+	}
 
 	data, err := json.Marshal(msg)
 	if err == nil {
