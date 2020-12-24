@@ -67,6 +67,8 @@ const (
 	Ty_Status_Switch2_Val = "switch2_value"
 	Ty_Status_Switch3_Val = "switch3_value"
 	Ty_Status_Switch4_Val = "switch4_value"
+	Ty_Status_Switch5_Val = "switch5_value"
+	Ty_Status_Switch6_Val = "switch6_value"
 
 	//窗帘电机
 	Ty_Status_Percent_Control   = "percent_control"
@@ -319,6 +321,7 @@ var (
 		Ty_Status_Air_CH2O:            {},
 		Ty_Status_Va_Temperature:      {},
 		Ty_Status_Va_Humidity:         {},
+		Ty_Status_Alarm_State:         {},
 
 		//睡眠带
 		Ty_Status_Wakeup:           {},
