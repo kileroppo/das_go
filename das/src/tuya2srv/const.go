@@ -25,6 +25,7 @@ const (
 	Ty_Status_SOS_State           = "sos_state"
 	Ty_Status_Presence_State      = "presence_state"
 	Ty_Status_Pir                 = "pir"
+	Ty_Status_Alarm_State         = "alarm_state"
 
 	Ty_Status_Air_Temperature = "TMP"
 	Ty_Status_Air_Humidity    = "HUM"
@@ -160,6 +161,7 @@ var (
 		Ty_Status_Temper_Alarm:        TyStatusAlarmSensorHandle,
 		Ty_Status_Pir:                 TyStatusAlarmSensorHandle,
 		Ty_Status_SOS_State:           TyStatusAlarmSensorHandle,
+		Ty_Status_Alarm_State:         TyStatusAlarmStateHandle,
 
 		Ty_Status_Va_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Va_Humidity:    TyStatusEnvSensorHandle,
@@ -333,5 +335,6 @@ var (
 		constant.Wonly_Status_Sensor_Infrared:     {},
 		constant.Wonly_Status_Sensor_Forced_Break: {},
 		constant.Wonly_Status_Sensor_Flood:        {},
+		constant.Wonly_Status_Audible_Alarm:       {},
 	}
 )

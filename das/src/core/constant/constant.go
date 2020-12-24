@@ -211,6 +211,7 @@ const (
 	Wonly_Status_Sensor_SOSButton    = "sosButton"
 	Wonly_Status_Pad_People          = "peopleDetection"
 	Wonly_Status_Sensor_Forced_Break = "forcedBreak"
+	Wonly_Status_Audible_Alarm       = "audibleAlarm"
 
 	Wonly_Status_Low_Voltage   = "lowVoltage"
 	Wonly_Status_Low_Power     = "lowPower"
@@ -248,6 +249,7 @@ var (
 	Wonly_Sensor_Vals_Doorcontact  = []string{"门磁已关闭", "门磁已打开"}
 	Wonly_Sensor_Vals_SOSButton    = []string{"检测正常", "发生紧急呼叫"}
 	Wonly_Sensor_Vals_Forced_Break = []string{"传感器未被强拆", "传感器被强拆"}
+	Wonly_Sensor_Vals_Audible_Alarm = []string{"报警取消", "声光报警"}
 
 	Wonly_FbAirer_Vals_Illumination    = []string{"关闭", "开启"}
 	Wonly_FbAirer_Vals_Disinfection    = []string{"关闭", "开启"}
@@ -270,5 +272,6 @@ var (
 		Wonly_Status_Sensor_Doorcontact:  Wonly_Sensor_Vals_Doorcontact,
 		Wonly_Status_Sensor_Forced_Break: Wonly_Sensor_Vals_Forced_Break,
 		Wonly_Status_Sensor_SOSButton:    Wonly_Sensor_Vals_SOSButton,
+		Wonly_Status_Audible_Alarm:       Wonly_Sensor_Vals_Audible_Alarm,
 	}
 )

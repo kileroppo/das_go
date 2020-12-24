@@ -282,6 +282,16 @@ func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
 }
 
+func TyStatusAlarmStateHandle(devId string, rawJsonData gjson.Result) {
+	timestamp := rawJsonData.Get("t").Int()
+	val := rawJsonData.Get("value").Int()
+	alarmFlag := 0
+	if val != 4 {
+		alarmFlag = 1
+	}
+	tySensorDataNotify(devId, constant.Wonly_Status_Audible_Alarm, alarmFlag, timestamp)
+}
+
 func correctSensorMillTimestamp(millTimestamp int64) int64 {
 	curr := time.Now().UnixNano() / 1000_000
 	if millTimestamp > curr {
