@@ -2,7 +2,6 @@ package tuya2srv
 
 import (
 	"context"
-	"das/filter"
 	"encoding/base64"
 	"encoding/json"
 	"strconv"
@@ -24,11 +23,10 @@ import (
 
 var (
 	consumer pulsar.Consumer
-	alarmFilter filter.MsgFilter
 )
 
 func Init() {
-	alarmFilter = &filter.RedisFilter{}
+	loadFilterRulesFromMySql()
 	go Tuya2SrvStart()
 }
 

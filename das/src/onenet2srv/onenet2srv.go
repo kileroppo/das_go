@@ -7,7 +7,6 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/dlintw/goconf"
 	"github.com/json-iterator/go"
 
 	"das/core/constant"
@@ -24,7 +23,8 @@ var (
 	json = jsoniter.ConfigCompatibleWithStandardLibrary
 )
 
-func OneNET2HttpSrvStart(conf *goconf.ConfigFile) *http.Server {
+func OneNET2HttpSrvStart() *http.Server {
+	conf := log.Conf
 	var httpPort int
 
 	// 判断是否为https协议

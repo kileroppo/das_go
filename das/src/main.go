@@ -9,6 +9,7 @@ import (
 
 	"das/core/etcd"
 	"das/core/log"
+	"das/core/mysql"
 	"das/core/rabbitmq"
 	"das/core/redis"
 	"das/feibee2srv"
@@ -23,16 +24,16 @@ func main() {
 	go func() {
 		http.ListenAndServe(":14999", nil)
 	}()
-	conf := log.Init()
-
+	log.Init()
 	redis.InitRedis()
+	mysql.Init()
 	etcd.Init()
 	rabbitmq.Init()
 	procLock.Run()
 	feibee2srv.Init()
 	//aliSrv := aliIot2srv.NewAliIOT2Srv(conf)
 	//aliSrv.Run()
-	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart(conf)
+	oneNet2Srv := onenet2srv.OneNET2HttpSrvStart()
 	http2srv.Init()
 	mqtt2srv.Init()
 	tuya2srv.Init()
@@ -65,6 +66,7 @@ func main() {
 	tuya2srv.Close()
 	oneNet2Srv.Close()
 	redis.Close()
+	mysql.Close()
 	etcd.CloseEtcdCli()
 	log.Info("das_go server quit......")
 }

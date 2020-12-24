@@ -265,71 +265,7 @@ var (
 		Ty_Status_SOS_State:           Ty_AlarmVal_SOS,
 	}
 
-	TyStatusDataFilterMap = map[string]struct{}{
-		Ty_Status_Power:              {},
-		Ty_Status:                    {},
-		Ty_Status_Mode:               {},
-		Ty_Status_Battery_Percentage: {},
-
-		//灯类
-		Ty_Status_Switch_Led:      {},
-		Ty_Status_Bright_Value:    {},
-		Ty_Status_Bright_Value_V2: {},
-		Ty_Status_Colour_Data:     {},
-		Ty_Status_Colour_Data_V2:  {},
-		Ty_Status_Work_Mode:       {},
-
-		//开关类
-		Ty_Status_Scene_1:     {},
-		Ty_Status_Scene_2:     {},
-		Ty_Status_Scene_3:     {},
-		Ty_Status_Scene_4:     {},
-		Ty_Status_Scene_5:     {},
-		Ty_Status_Scene_6:     {},
-		Ty_Status_Scene_7:     {},
-		Ty_Status_Scene_8:     {},
-		Ty_Status_Switch:      {},
-		Ty_Status_Switch_1:    {},
-		Ty_Status_Switch_2:    {},
-		Ty_Status_Switch_3:    {},
-		Ty_Status_Switch_4:    {},
-		Ty_Status_Switch1_Val: {},
-		Ty_Status_Switch2_Val: {},
-		Ty_Status_Switch3_Val: {},
-		Ty_Status_Switch4_Val: {},
-
-		//窗帘类
-		Ty_Status_Percent_Control:   {},
-		Ty_Status_Percent_Control_2: {},
-		Ty_Status_Work_State:        {},
-
-		//传感器类
-		Ty_Status_Doorcontact_State:   {},
-		Ty_Status_Gas_Sensor_State:    {},
-		Ty_Status_Smoke_Sensor_Status: {},
-		Ty_Status_Watersensor_State:   {},
-		Ty_Status_Temper_Alarm:        {},
-		Ty_Status_SOS_State:           {},
-		Ty_Status_Presence_State:      {},
-		Ty_Status_Pir:                 {},
-		Ty_Status_Air_Temperature:     {},
-		Ty_Status_Air_Humidity:        {},
-		Ty_Status_Air_PM25_Value:      {},
-		Ty_Status_Air_CO_Value:        {},
-		TY_Status_Air_CO2_Value:       {},
-		Ty_Status_Air_VOC:             {},
-		Ty_Status_Air_CH2O:            {},
-		Ty_Status_Va_Temperature:      {},
-		Ty_Status_Va_Humidity:         {},
-		Ty_Status_Alarm_State:         {},
-
-		//睡眠带
-		Ty_Status_Wakeup:           {},
-		Ty_Status_Sleep_Stage:      {},
-		Ty_Status_Off_Bed:          {},
-		Ty_Status_Heart_Rate:       {},
-		Ty_Status_Respiratory_Rate: {},
-	}
+	TyStatusDataFilterMap = make(map[string]struct{})
 
 	tyAlarmDataFilterMap = map[string]struct{}{
 		constant.Wonly_Status_Sensor_Gas:          {},
