@@ -125,7 +125,7 @@ func (self *NormalMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 	msg.TriggerType = 0
 
 	msg.AlarmFlag = self.data.Msg[0].Onoff
-	msg.AlarmType = "curtain"
+	msg.AlarmType = constant.Wonly_Status_Curtain
 
 	return msg
 }

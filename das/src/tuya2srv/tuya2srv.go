@@ -2,10 +2,10 @@ package tuya2srv
 
 import (
 	"context"
-	"das/filter"
 	"encoding/base64"
 	"encoding/json"
 	"strconv"
+	"time"
 
 	pulsar "github.com/TuyaInc/tuya_pulsar_sdk_go"
 	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tylog"
@@ -23,11 +23,10 @@ import (
 
 var (
 	consumer pulsar.Consumer
-	alarmFilter filter.MsgFilter
 )
 
 func Init() {
-	alarmFilter = &filter.RedisFilter{}
+	loadFilterRulesFromMySql()
 	go Tuya2SrvStart()
 }
 
@@ -248,9 +247,11 @@ func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
+	msg.Time = int(correctSensorMillTimestamp(rawJsonData.Get("t").Int()) / 1000)
 
 	msg.OpType = Ty_Status
 	val := rawJsonData.Get("value").String()
+	msg.OpValue = val
 	note, ok := TyCleanerStatusNote[val]
 	if ok {
 		msg.Note = note
@@ -277,6 +278,25 @@ func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 	}
 	timestamp := rawJsonData.Get("t").Int()
 	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
+}
+
+func TyStatusAlarmStateHandle(devId string, rawJsonData gjson.Result) {
+	timestamp := rawJsonData.Get("t").Int()
+	val := rawJsonData.Get("value").Int()
+	alarmFlag := 0
+	if val != 4 {
+		alarmFlag = 1
+	}
+	tySensorDataNotify(devId, constant.Wonly_Status_Audible_Alarm, alarmFlag, timestamp)
+}
+
+func correctSensorMillTimestamp(millTimestamp int64) int64 {
+	curr := time.Now().UnixNano() / 1000_000
+	if millTimestamp > curr {
+		return curr
+	} else {
+		return millTimestamp
+	}
 }
 
 func TyStatusEnvSensorHandle(devId string, rawJsonData gjson.Result) {
@@ -378,12 +398,61 @@ func TyStatus2PMSHandle(devId string, rawJsonData gjson.Result) {
 	}
 }
 
+func TyStatusCurtainHandle(devId string, rawJsonData gjson.Result) {
+	var msg entity.Feibee2AutoSceneMsg
+	msg.Cmd = constant.Scene_Trigger
+	msg.DevId = devId
+	msg.AlarmType = constant.Wonly_Status_Curtain
+	msg.Time = int(rawJsonData.Get("t").Int()/1000)
+
+	val := rawJsonData.Get("value").String()
+	if val == Ty_Cmd_Work_State_Val_Open {
+		msg.AlarmFlag = 1
+	} else {
+		msg.AlarmFlag = 0
+	}
+	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2Scene(data, "")
+	}
+}
+
+func TyStatusSwitchValHandle(devId string, rawJsonData gjson.Result) {
+	var msg entity.Feibee2AutoSceneMsg
+	msg.Cmd = constant.Scene_Trigger
+	code := rawJsonData.Get("code").String()
+	sceneNum := Ty_Status_Scene_1
+	switch code {
+	case Ty_Status_Switch1_Val:
+		sceneNum = Ty_Status_Scene_1
+	case Ty_Status_Switch2_Val:
+		sceneNum = Ty_Status_Scene_2
+	case Ty_Status_Switch3_Val:
+		sceneNum = Ty_Status_Scene_3
+	case Ty_Status_Switch4_Val:
+		sceneNum = Ty_Status_Scene_4
+	case Ty_Status_Switch5_Val:
+		sceneNum = Ty_Status_Scene_5
+	case Ty_Status_Switch6_Val:
+		sceneNum = Ty_Status_Scene_6
+	}
+	msg.DevId = devId + sceneNum
+	msg.AlarmType = "sceneSwitch"
+	msg.AlarmFlag = 1
+
+	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2Scene(data, "")
+	}
+}
+
 func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
+	correctT := correctSensorMillTimestamp(timestamp)
 	var msg entity.Feibee2AlarmMsg
 	msg.Cmd = constant.Device_Sensor_Msg
 	msg.Vendor = "tuya"
-	msg.Time = int(timestamp) / 1000
-	msg.MilliTimestamp = int(timestamp)
+	msg.Time = int(correctT / 1000)
+	msg.MilliTimestamp = int(correctT)
 	msg.DevId = devId
 
 	var ok bool
@@ -396,26 +465,26 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	if ok {
 		msg.AlarmValue = alarmVal[msg.AlarmFlag]
 	} else {
-		divisor, ok := TyEnvSensorValDivisor[tyAlarmType]
+		multiplier, ok := TyEnvSensorValTransfer[tyAlarmType]
 		if ok {
-			msg.Divisor = divisor
-			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)/float64(divisor), 'f', 2, 64)
+			msg.Multiplier = multiplier
+			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)*float64(multiplier), 'f', 2, 64)
 		} else {
-			msg.Divisor = 1
+			msg.Multiplier = 1
 			msg.AlarmValue = strconv.Itoa(alarmFlag)
 		}
 	}
 
-	//todo: 涂鸦设备上报周期为1min，是否增加设备报警过滤？
-	//if alarmFilter.Exists(devId + msg.AlarmType) {
-	//	return
-	//} else {
-	//	alarmFilter.Set(devId + msg.AlarmType, time.Minute * 30)
-	//}
+	//todo: 涂鸦报警过滤
+	if !tyAlarmMsgFilter(msg.DevId, msg.AlarmType, msg.AlarmFlag) {
+		return
+	}
 
 	data, err := json.Marshal(msg)
 	if err == nil {
-		if msg.AlarmFlag == 1 && ok && msg.AlarmType != constant.Wonly_Status_Sensor_Doorcontact {
+		if msg.AlarmType == constant.Wonly_Status_Sensor_Doorcontact {
+			rabbitmq.Publish2mns(data, "")
+		} else if ok && msg.AlarmFlag == 1 {
 			rabbitmq.Publish2mns(data, "")
 		}
 		rabbitmq.Publish2pms(data, "")

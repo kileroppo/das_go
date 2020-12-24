@@ -64,9 +64,7 @@ func initProducerMQ() {
 		panic(err)
 	}
 
-	producerMQ = &baseMq{
-		mqUri: uri,
-	}
+	producerMQ = NewBaseMQ(uri)
 
 	if err = producerMQ.initConn(); err != nil {
 		panic(err)
@@ -86,9 +84,7 @@ func initConsumerMQ() {
 		panic(err)
 	}
 
-	consumerMQ = &baseMq{
-		mqUri: uri,
-	}
+	consumerMQ = NewBaseMQ(uri)
 
 	if err = consumerMQ.initConn(); err != nil {
 		panic(err)
