@@ -327,11 +327,11 @@ var (
 	}
 
 	tyAlarmDataFilterMap = map[string]struct{}{
-		Ty_Status_Gas_Sensor_State:    {},
-		Ty_Status_Smoke_Sensor_Status: {},
-		Ty_Status_Doorcontact_State:   {},
-		Ty_Status_Pir:                 {},
-		Ty_Status_Temper_Alarm:        {},
-		Ty_Status_Watersensor_State:   {},
+		constant.Wonly_Status_Sensor_Gas:          {},
+		constant.Wonly_Status_Sensor_Smoke:        {},
+		constant.Wonly_Status_Sensor_Doorcontact:  {},
+		constant.Wonly_Status_Sensor_Infrared:     {},
+		constant.Wonly_Status_Sensor_Forced_Break: {},
+		constant.Wonly_Status_Sensor_Flood:        {},
 	}
 )

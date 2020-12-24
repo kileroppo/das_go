@@ -103,23 +103,24 @@ const (
 	PadDoor_Num_Reset  = 0x1101 // 平板门锁人流检测重置
 	Other_Vendor_Msg   = 0x1200
 
-	Feibee_Ori_Msg     = 0xfa   //飞比原始消息
-	Device_Normal_Msg  = 0xfb   //设备状态消息
-	Device_Sensor_Msg  = 0xfc   //设备传感器消息
-	Scene_Trigger      = 0xf1   //爱岗场景触发（中控平板的闹钟作为触发条件）
-	Feibee_Gtw_Info    = 0xf5   //飞比网关信息
+	Feibee_Ori_Msg    = 0xfa //飞比原始消息
+	Device_Normal_Msg = 0xfb //设备状态消息
+	Device_Sensor_Msg = 0xfc //设备传感器消息
+	Scene_Trigger     = 0xf1 //爱岗场景触发（中控平板的闹钟作为触发条件）
+	Feibee_Gtw_Info   = 0xf5 //飞比网关信息
 
 )
 
 var WlLockAlarmMsg = map[int]string{
-	Noatmpt_alarm : "非法操作报警",
-	Forced_break_alarm : "强拆报警",
-	Fakelock_alarm : "假锁报警",
-	Nolock_alarm : "门未关报警",
-	Gas_Alarm : "燃气报警",
-	Low_battery_alarm : "锁体的电池，低电量报警",
-	Infrared_alarm : "人体感应报警（infra红外感应)",
+	Noatmpt_alarm:      "非法操作报警",
+	Forced_break_alarm: "强拆报警",
+	Fakelock_alarm:     "假锁报警",
+	Nolock_alarm:       "门未关报警",
+	Gas_Alarm:          "燃气报警",
+	Low_battery_alarm:  "锁体的电池，低电量报警",
+	Infrared_alarm:     "人体感应报警（infra红外感应)",
 }
+
 const (
 	ONENET_PLATFORM     = "onenet"
 	TELECOM_PLATFORM    = "telecom"
@@ -171,9 +172,9 @@ const (
 
 //	设备参数设置编号，需要特殊处理的字符串
 const (
-	IPC_SN_PNO     = 0x0d // 视频模组sn
-	WIFI_SSID_PNO  = 0x0f // WIFI_SSID
-	PROJECT_No_PNO = 0x10 // 产品序列号
+	IPC_SN_PNO         = 0x0d // 视频模组sn
+	WIFI_SSID_PNO      = 0x0f // WIFI_SSID
+	PROJECT_No_PNO     = 0x10 // 产品序列号
 	IPC_SN_PNO_lencens = 0x1b // 揽胜视频模组sn
 
 )
@@ -188,8 +189,8 @@ const (
 )
 
 const (
-	VENDOR_WONLY  = "general"
-	VENDOR_FEIBEE = "feibee"
+	VENDOR_WONLY   = "general"
+	VENDOR_FEIBEE  = "feibee"
 	Vendor_Lancens = "lancens"
 )
 
@@ -209,7 +210,7 @@ const (
 	Wonly_Status_Sensor_Flood        = "flood"
 	Wonly_Status_Sensor_SOSButton    = "sosButton"
 	Wonly_Status_Pad_People          = "peopleDetection"
-	Wonly_Status_Sensor_Forced_Break  = "forcedBreak"
+	Wonly_Status_Sensor_Forced_Break = "forcedBreak"
 
 	Wonly_Status_Low_Voltage   = "lowVoltage"
 	Wonly_Status_Low_Power     = "lowPower"
@@ -262,11 +263,11 @@ var (
 
 var (
 	SensorVal2Str = map[string]([]string){
-		Wonly_Status_Sensor_Gas:         Wonly_Sensor_Vals_Gas,
-		Wonly_Status_Sensor_Smoke:       Wonly_Sensor_Vals_Smoke,
-		Wonly_Status_Sensor_Flood:       Wonly_Sensor_Vals_Flood,
-		Wonly_Status_Sensor_Infrared:    Wonly_Sensor_Vals_Infrared,
-		Wonly_Status_Sensor_Doorcontact: Wonly_Sensor_Vals_Doorcontact,
+		Wonly_Status_Sensor_Gas:          Wonly_Sensor_Vals_Gas,
+		Wonly_Status_Sensor_Smoke:        Wonly_Sensor_Vals_Smoke,
+		Wonly_Status_Sensor_Flood:        Wonly_Sensor_Vals_Flood,
+		Wonly_Status_Sensor_Infrared:     Wonly_Sensor_Vals_Infrared,
+		Wonly_Status_Sensor_Doorcontact:  Wonly_Sensor_Vals_Doorcontact,
 		Wonly_Status_Sensor_Forced_Break: Wonly_Sensor_Vals_Forced_Break,
 		Wonly_Status_Sensor_SOSButton:    Wonly_Sensor_Vals_SOSButton,
 	}
