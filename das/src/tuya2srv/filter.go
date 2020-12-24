@@ -1,6 +1,7 @@
 package tuya2srv
 
 import (
+	"sync"
 	"time"
 
 	"das/core/log"
@@ -9,6 +10,7 @@ import (
 )
 
 var (
+	mu = sync.Mutex{}
 	sqlQueryFilterRules = `
 SELECT CODE 
 FROM
@@ -32,6 +34,8 @@ func loadFilterRulesFromMySql() {
 		return
 	}
 	code := ""
+	mu.Lock()
+	defer mu.Unlock()
 	for rows.Next() {
 		if err := rows.Scan(&code); err == nil {
 			TyStatusDataFilterMap[code] = struct{}{}

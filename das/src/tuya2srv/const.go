@@ -185,6 +185,13 @@ var (
 		Ty_Status_Scene_7: TyStatusSceneHandle,
 		Ty_Status_Scene_8: TyStatusSceneHandle,
 
+		Ty_Status_Switch1_Val: TyStatusSwitchValHandle,
+		Ty_Status_Switch2_Val: TyStatusSwitchValHandle,
+		Ty_Status_Switch3_Val: TyStatusSwitchValHandle,
+		Ty_Status_Switch4_Val: TyStatusSwitchValHandle,
+		Ty_Status_Switch5_Val: TyStatusSwitchValHandle,
+		Ty_Status_Switch6_Val: TyStatusSwitchValHandle,
+
 		Ty_Status_Sleep_Stage: TyStatusSleepStage,
 		Ty_Status_Off_Bed:     TyStatusOffBed,
 		Ty_Status_Wakeup:      TyStatusWakeup,

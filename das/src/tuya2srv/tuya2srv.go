@@ -417,6 +417,35 @@ func TyStatusCurtainHandle(devId string, rawJsonData gjson.Result) {
 	}
 }
 
+func TyStatusSwitchValHandle(devId string, rawJsonData gjson.Result) {
+	var msg entity.Feibee2AutoSceneMsg
+	msg.Cmd = constant.Scene_Trigger
+	code := rawJsonData.Get("code").String()
+	sceneNum := Ty_Status_Scene_1
+	switch code {
+	case Ty_Status_Switch1_Val:
+		sceneNum = Ty_Status_Scene_1
+	case Ty_Status_Switch2_Val:
+		sceneNum = Ty_Status_Scene_2
+	case Ty_Status_Switch3_Val:
+		sceneNum = Ty_Status_Scene_3
+	case Ty_Status_Switch4_Val:
+		sceneNum = Ty_Status_Scene_4
+	case Ty_Status_Switch5_Val:
+		sceneNum = Ty_Status_Scene_5
+	case Ty_Status_Switch6_Val:
+		sceneNum = Ty_Status_Scene_6
+	}
+	msg.DevId = devId + sceneNum
+	msg.AlarmType = "sceneSwitch"
+	msg.AlarmFlag = 1
+
+	data, err := json.Marshal(msg)
+	if err == nil {
+		rabbitmq.Publish2Scene(data, "")
+	}
+}
+
 func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
 	correctT := correctSensorMillTimestamp(timestamp)
 	var msg entity.Feibee2AlarmMsg
