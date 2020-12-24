@@ -2,7 +2,6 @@ package tuya2srv
 
 import (
 	"sync"
-	"time"
 
 	"das/core/log"
 	"das/core/mysql"
@@ -20,7 +19,7 @@ FROM
 
 func tyAlarmMsgFilter(devId, code string, val interface{}) bool {
 	if _,ok := tyAlarmDataFilterMap[code]; ok {
-		res := filter.AlarmMsgFilter(devId + "_" + code, val, time.Hour*1)
+		res := filter.AlarmMsgFilter(devId + "_" + code, val, -1)
 		return res
 	} else {
 		return true
