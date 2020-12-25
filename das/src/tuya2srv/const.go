@@ -115,7 +115,11 @@ const (
 	Ty_Cleaner_Mode_Chargego    = "chargego"
 	Ty_Cleaner_Mode_Wall_Follow = "wall_follow"
 
-	Ty_Cleaner_Direction_Stop = "stop"
+	Ty_Cleaner_Direction_Stop       = "stop"
+	Ty_Cleaner_Direction_Forward    = "forward"
+	Ty_Cleaner_Direction_Backward   = "backward"
+	Ty_Cleaner_Direction_Turn_Left  = "turn_left"
+	Ty_Cleaner_Direction_Turn_Right = "turn_right"
 
 	Ty_Cleaner_Status_Cleaning    = "cleaning"
 	Ty_Cleaner_Status_Goto_Charge = "goto_charge"
@@ -246,19 +250,25 @@ var (
 	}
 
 	TyCleanerStatusNote = map[string]string{
-		Ty_Cleaner_Mode_Standby:       "待机",
-		Ty_Cleaner_Mode_Chargego:      "回充中",
-		Ty_Cleaner_Mode_Single:        "清扫中",
-		Ty_Cleaner_Mode_Smart:         "清扫中",
-		Ty_Cleaner_Mode_Spiral:        "清扫中",
-		Ty_Cleaner_Mode_Wall_Follow:   "清扫中",
-		Ty_Cleaner_Status_Cleaning:    "清扫中",
-		Ty_Cleaner_Status_Goto_Charge: "回充中",
-		Ty_Cleaner_Status_Paused:      "暂停",
-		Ty_Cleaner_Direction_Stop:     "暂停",
-		Ty_Cleaner_Status_Charging:    "充电中",
-		Ty_Cleaner_Status_Charge_Done: "充电完成",
-		Ty_Cleaner_Status_Sleep:       "休眠",
+		Ty_Cleaner_Mode_Standby:         "待机",
+		Ty_Cleaner_Mode_Chargego:        "回充中",
+		Ty_Cleaner_Mode_Single:          "清扫中",
+		Ty_Cleaner_Mode_Smart:           "清扫中",
+		Ty_Cleaner_Mode_Spiral:          "清扫中",
+		Ty_Cleaner_Mode_Wall_Follow:     "清扫中",
+		Ty_Cleaner_Status_Cleaning:      "清扫中",
+		Ty_Cleaner_Status_Goto_Charge:   "回充中",
+		Ty_Cleaner_Status_Paused:        "暂停",
+
+		Ty_Cleaner_Direction_Stop:       "暂停",
+		Ty_Cleaner_Direction_Backward:   "清扫中",
+		Ty_Cleaner_Direction_Forward:    "清扫中",
+		Ty_Cleaner_Direction_Turn_Left:  "清扫中",
+		Ty_Cleaner_Direction_Turn_Right: "清扫中",
+
+		Ty_Cleaner_Status_Charging:      "充电中",
+		Ty_Cleaner_Status_Charge_Done:   "充电完成",
+		Ty_Cleaner_Status_Sleep:         "休眠",
 	}
 
 	TySensorAlarmReflect = map[string]string{
