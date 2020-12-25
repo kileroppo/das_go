@@ -491,24 +491,34 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	}
 
 	//todo: 涂鸦报警过滤
+	notifyFlag, triggerFlag := true, false
 	if !tyAlarmMsgFilter(msg.DevId, msg.AlarmType, msg.AlarmFlag) {
-		return
-	}
-
-	data, err := json.Marshal(msg)
-	if err == nil {
-		if msg.AlarmType == constant.Wonly_Status_Sensor_Doorcontact {
-			rabbitmq.Publish2mns(data, "")
-		} else if ok && msg.AlarmFlag == 1 {
-			rabbitmq.Publish2mns(data, "")
+		if msg.AlarmType == constant.Wonly_Status_Sensor_Infrared {
+			notifyFlag = false
+			triggerFlag = true
+		} else {
+			return
 		}
-		rabbitmq.Publish2pms(data, "")
 	}
 
-	msg.Cmd = constant.Scene_Trigger
-	data, err = json.Marshal(msg)
-	if err == nil {
-		rabbitmq.Publish2Scene(data, "")
+	if notifyFlag {
+		data, err := json.Marshal(msg)
+		if err == nil {
+			if msg.AlarmType == constant.Wonly_Status_Sensor_Doorcontact {
+				rabbitmq.Publish2mns(data, "")
+			} else if ok && msg.AlarmFlag == 1 {
+				rabbitmq.Publish2mns(data, "")
+			}
+			rabbitmq.Publish2pms(data, "")
+		}
+	}
+
+	if triggerFlag {
+		msg.Cmd = constant.Scene_Trigger
+		data, err := json.Marshal(msg)
+		if err == nil {
+			rabbitmq.Publish2Scene(data, "")
+		}
 	}
 }
 
