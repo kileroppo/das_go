@@ -424,17 +424,17 @@ func TyStatusSwitchValHandle(devId string, rawJsonData gjson.Result) {
 	sceneNum := Ty_Status_Scene_1
 	switch code {
 	case Ty_Status_Switch1_Val:
-		sceneNum = Ty_Status_Scene_1
+		sceneNum = Ty_Status_Switch_1
 	case Ty_Status_Switch2_Val:
-		sceneNum = Ty_Status_Scene_2
+		sceneNum = Ty_Status_Switch_2
 	case Ty_Status_Switch3_Val:
-		sceneNum = Ty_Status_Scene_3
+		sceneNum = Ty_Status_Switch_3
 	case Ty_Status_Switch4_Val:
-		sceneNum = Ty_Status_Scene_4
+		sceneNum = Ty_Status_Switch_4
 	case Ty_Status_Switch5_Val:
-		sceneNum = Ty_Status_Scene_5
+		sceneNum = Ty_Status_Switch_5
 	case Ty_Status_Switch6_Val:
-		sceneNum = Ty_Status_Scene_6
+		sceneNum = Ty_Status_Switch_6
 	}
 	msg.DevId = devId + sceneNum
 	msg.AlarmType = "sceneSwitch"
