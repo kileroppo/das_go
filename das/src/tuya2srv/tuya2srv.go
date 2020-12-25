@@ -499,6 +499,8 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 		} else {
 			return
 		}
+	} else {
+		notifyFlag, triggerFlag = true, true
 	}
 
 	if notifyFlag {
