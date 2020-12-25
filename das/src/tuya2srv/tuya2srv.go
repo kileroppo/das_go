@@ -310,10 +310,25 @@ func TyStatusEnvSensorHandle(devId string, rawJsonData gjson.Result) {
 func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
 	var msg entity.Feibee2AutoSceneMsg
 	msg.Cmd = constant.Scene_Trigger
-	msg.DevId = devId + rawJsonData.Get("code").String()
+	code := rawJsonData.Get("code").String()
+	sceneNum := Ty_Status_Switch_1
+	switch code {
+	case Ty_Status_Scene_1:
+		sceneNum = Ty_Status_Switch_1
+	case Ty_Status_Scene_2:
+		sceneNum = Ty_Status_Switch_2
+	case Ty_Status_Scene_3:
+		sceneNum = Ty_Status_Switch_3
+	case Ty_Status_Scene_4:
+		sceneNum = Ty_Status_Switch_4
+	case Ty_Status_Scene_5:
+		sceneNum = Ty_Status_Switch_5
+	case Ty_Status_Scene_6:
+		sceneNum = Ty_Status_Switch_6
+	}
+	msg.DevId = devId + sceneNum
 	msg.AlarmType = "sceneSwitch"
 	msg.AlarmFlag = 1
-
 	data, err := json.Marshal(msg)
 	if err == nil {
 		rabbitmq.Publish2Scene(data, "")
