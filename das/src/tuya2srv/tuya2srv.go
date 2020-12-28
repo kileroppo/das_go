@@ -310,10 +310,25 @@ func TyStatusEnvSensorHandle(devId string, rawJsonData gjson.Result) {
 func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
 	var msg entity.Feibee2AutoSceneMsg
 	msg.Cmd = constant.Scene_Trigger
-	msg.DevId = devId + rawJsonData.Get("code").String()
+	code := rawJsonData.Get("code").String()
+	sceneNum := Ty_Status_Switch_1
+	switch code {
+	case Ty_Status_Scene_1:
+		sceneNum = Ty_Status_Switch_1
+	case Ty_Status_Scene_2:
+		sceneNum = Ty_Status_Switch_2
+	case Ty_Status_Scene_3:
+		sceneNum = Ty_Status_Switch_3
+	case Ty_Status_Scene_4:
+		sceneNum = Ty_Status_Switch_4
+	case Ty_Status_Scene_5:
+		sceneNum = Ty_Status_Switch_5
+	case Ty_Status_Scene_6:
+		sceneNum = Ty_Status_Switch_6
+	}
+	msg.DevId = devId + sceneNum
 	msg.AlarmType = "sceneSwitch"
 	msg.AlarmFlag = 1
-
 	data, err := json.Marshal(msg)
 	if err == nil {
 		rabbitmq.Publish2Scene(data, "")
@@ -424,17 +439,17 @@ func TyStatusSwitchValHandle(devId string, rawJsonData gjson.Result) {
 	sceneNum := Ty_Status_Scene_1
 	switch code {
 	case Ty_Status_Switch1_Val:
-		sceneNum = Ty_Status_Scene_1
+		sceneNum = Ty_Status_Switch_1
 	case Ty_Status_Switch2_Val:
-		sceneNum = Ty_Status_Scene_2
+		sceneNum = Ty_Status_Switch_2
 	case Ty_Status_Switch3_Val:
-		sceneNum = Ty_Status_Scene_3
+		sceneNum = Ty_Status_Switch_3
 	case Ty_Status_Switch4_Val:
-		sceneNum = Ty_Status_Scene_4
+		sceneNum = Ty_Status_Switch_4
 	case Ty_Status_Switch5_Val:
-		sceneNum = Ty_Status_Scene_5
+		sceneNum = Ty_Status_Switch_5
 	case Ty_Status_Switch6_Val:
-		sceneNum = Ty_Status_Scene_6
+		sceneNum = Ty_Status_Switch_6
 	}
 	msg.DevId = devId + sceneNum
 	msg.AlarmType = "sceneSwitch"
@@ -476,24 +491,36 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	}
 
 	//todo: 涂鸦报警过滤
+	notifyFlag, triggerFlag := true, false
 	if !tyAlarmMsgFilter(msg.DevId, msg.AlarmType, msg.AlarmFlag) {
-		return
-	}
-
-	data, err := json.Marshal(msg)
-	if err == nil {
-		if msg.AlarmType == constant.Wonly_Status_Sensor_Doorcontact {
-			rabbitmq.Publish2mns(data, "")
-		} else if ok && msg.AlarmFlag == 1 {
-			rabbitmq.Publish2mns(data, "")
+		if msg.AlarmType == constant.Wonly_Status_Sensor_Infrared {
+			notifyFlag = false
+			triggerFlag = true
+		} else {
+			return
 		}
-		rabbitmq.Publish2pms(data, "")
+	} else {
+		notifyFlag, triggerFlag = true, true
 	}
 
-	msg.Cmd = constant.Scene_Trigger
-	data, err = json.Marshal(msg)
-	if err == nil {
-		rabbitmq.Publish2Scene(data, "")
+	if notifyFlag {
+		data, err := json.Marshal(msg)
+		if err == nil {
+			if msg.AlarmType == constant.Wonly_Status_Sensor_Doorcontact {
+				rabbitmq.Publish2mns(data, "")
+			} else if ok && msg.AlarmFlag == 1 {
+				rabbitmq.Publish2mns(data, "")
+			}
+			rabbitmq.Publish2pms(data, "")
+		}
+	}
+
+	if triggerFlag {
+		msg.Cmd = constant.Scene_Trigger
+		data, err := json.Marshal(msg)
+		if err == nil {
+			rabbitmq.Publish2Scene(data, "")
+		}
 	}
 }
 
