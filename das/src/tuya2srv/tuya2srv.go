@@ -253,14 +253,15 @@ func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
 	msg.OpType = Ty_Status
 	val := rawJsonData.Get("value").String()
 
-	if !tyStatusPriorityFilter(devId, rawTimestamp, val) {
-		return
-	}
 	msg.OpValue = val
 	note, ok := TyCleanerStatusNote[val]
 	if ok {
 		msg.Note = note
 	} else {
+		return
+	}
+
+	if !tyStatusPriorityFilter(devId, rawTimestamp, val) {
 		return
 	}
 
