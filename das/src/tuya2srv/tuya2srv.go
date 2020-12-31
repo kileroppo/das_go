@@ -242,15 +242,20 @@ func TyStatusRobotCleanerBattHandle(devId string, rawJsonData gjson.Result) {
 }
 
 func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
+	rawTimestamp := rawJsonData.Get("t").Int()
 	msg := entity.Feibee2DevMsg{}
 	msg.Cmd = constant.Device_Normal_Msg
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
-	msg.Time = int(correctSensorMillTimestamp(rawJsonData.Get("t").Int()) / 1000)
+	msg.Time = int(correctSensorMillTimestamp(rawTimestamp) / 1000)
 
 	msg.OpType = Ty_Status
 	val := rawJsonData.Get("value").String()
+
+	if !tyStatusPriorityFilter(devId, rawTimestamp, val) {
+		return
+	}
 	msg.OpValue = val
 	note, ok := TyCleanerStatusNote[val]
 	if ok {

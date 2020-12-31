@@ -2,6 +2,7 @@ package tuya2srv
 
 import (
 	"sync"
+	"time"
 
 	"das/core/log"
 	"das/core/mysql"
@@ -24,6 +25,10 @@ func tyAlarmMsgFilter(devId, code string, val interface{}) bool {
 	} else {
 		return true
 	}
+}
+
+func tyStatusPriorityFilter(devId string, timestamp int64, status string) bool {
+	return filter.MsgPriorityFilter(devId, timestamp, status, time.Minute*1)
 }
 
 func loadFilterRulesFromMySql() {

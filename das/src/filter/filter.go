@@ -5,6 +5,8 @@ import (
 	"strconv"
 	"time"
 
+	goredis "github.com/go-redis/redis"
+
 	"das/core/redis"
 )
 
@@ -15,11 +17,15 @@ var (
 
 const (
 	filterKey = "_msgFilter"
+	priorityKey = "_priorityFilter"
+	PriorityField = "prio"
+	ValueField = "value"
 	frequentDur = time.Second*30
 	filterDur = time.Hour
 )
 
 type MsgFilter interface {
+	IsPriorityValid(key string, priority int64, val interface{}, dur time.Duration) bool
 	IsValid(key string, val interface{}, duration time.Duration) (res bool)
 	IsFrequentValid(key string, val interface{}, dur time.Duration, frequentDur time.Duration) bool
 }
@@ -81,6 +87,46 @@ func (r *RedisFilter) GetDuration(key string) time.Duration {
 	}
 }
 
+func (r *RedisFilter) IsPriorityValid(key string, priority int64, val interface{}, dur time.Duration) bool {
+	return r.isPriorityValid(key, priority, val, dur)
+}
+
+func (r *RedisFilter) isPriorityValid(key string, priority int64, val interface{}, dur time.Duration) (res bool) {
+	cli := redis.GetRedisDB(1)
+	str,err := cli.HGet(key, PriorityField).Result()
+	if len(str) == 0 || err != nil {
+		r.setKey(cli, key, priority, val, dur)
+		res = true
+	} else {
+		oldPrio,err := strconv.ParseInt(str, 10, 64)
+		if err != nil {
+			res = true
+			r.setKey(cli, key, priority, val, dur)
+		} else {
+			if priority > oldPrio {
+				res = true
+				r.setKey(cli, key, priority, val, dur)
+			} else {
+				res = false
+			}
+		}
+	}
+	return
+}
+
+func (r *RedisFilter) setKey(cli *goredis.Client, key string, priority int64, val interface{}, dur time.Duration) {
+	fields := map[string]interface{} {
+		ValueField: val,
+		PriorityField: priority,
+	}
+	pipe := cli.TxPipeline()
+	defer pipe.Close()
+	pipe.HMSet(key, fields)
+	pipe.Expire(key, dur)
+	pipe.Exec()
+	return
+}
+
 func redisValCompare(newVal interface{}, oldVal string) bool {
 	valType := reflect.TypeOf(newVal)
 	switch valType.Kind() {
@@ -127,4 +173,8 @@ func AlarmMsgFilter(key string, val interface{}, filterDur time.Duration) bool {
 
 func AlarmFrequentFilter(key string, val interface{}, filterDur, frequentDur time.Duration) bool {
 	return alarmMsgFilter.IsFrequentValid(key + filterKey, val, filterDur, frequentDur)
+}
+
+func MsgPriorityFilter(key string, priority int64, val interface{}, dur time.Duration) bool {
+	return alarmMsgFilter.IsPriorityValid(key + priorityKey, priority, val, dur)
 }
