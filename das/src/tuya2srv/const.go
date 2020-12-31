@@ -265,6 +265,10 @@ var (
 		Ty_Cleaner_Status_Sleep:         "休眠",
 
 		Ty_Cleaner_Direction_Stop:       "暂停",
+		Ty_Cleaner_Direction_Forward:    "清扫中",
+		Ty_Cleaner_Direction_Backward:   "清扫中",
+		Ty_Cleaner_Direction_Turn_Left:  "清扫中",
+		Ty_Cleaner_Direction_Turn_Right: "清扫中",
 	}
 
 	TySensorAlarmReflect = map[string]string{
@@ -279,6 +283,13 @@ var (
 	}
 
 	TyStatusDataFilterMap = make(map[string]struct{})
+
+	TyEventDataFilterMap = map[string]struct{} {
+		Ty_Event_Delete: {},
+		Ty_Event_Online: {},
+		Ty_Event_Offline: {},
+		Ty_Event_Upgrade_Status: {},
+	}
 
 	tyAlarmDataFilterMap = map[string]struct{}{
 		constant.Wonly_Status_Sensor_Gas:          {},

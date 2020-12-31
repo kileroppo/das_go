@@ -242,20 +242,26 @@ func TyStatusRobotCleanerBattHandle(devId string, rawJsonData gjson.Result) {
 }
 
 func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
+	rawTimestamp := rawJsonData.Get("t").Int()
 	msg := entity.Feibee2DevMsg{}
 	msg.Cmd = constant.Device_Normal_Msg
 	msg.DevId = devId
 	msg.Vendor = "tuya"
 	msg.DevType = "TYRobotCleaner"
-	msg.Time = int(correctSensorMillTimestamp(rawJsonData.Get("t").Int()) / 1000)
+	msg.Time = int(correctSensorMillTimestamp(rawTimestamp) / 1000)
 
 	msg.OpType = Ty_Status
 	val := rawJsonData.Get("value").String()
+
 	msg.OpValue = val
 	note, ok := TyCleanerStatusNote[val]
 	if ok {
 		msg.Note = note
 	} else {
+		return
+	}
+
+	if !tyStatusPriorityFilter(devId, rawTimestamp, val) {
 		return
 	}
 
@@ -525,34 +531,49 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 }
 
 func TyDataFilterAndNotify(devId string, rawData []byte) {
+	bizCode := gjson.GetBytes(rawData, "bizCode").String()
+	if len(bizCode) > 0 && tyEventFilter(bizCode) {
+		tyRawDataNotify(devId, rawData)
+		return
+	}
+
 	devStatus := gjson.GetBytes(rawData, "status").Array()
 	var statusCode string
 	for i, _ := range devStatus {
 		statusCode = devStatus[i].Get("code").String()
-		if tyDataFilter(statusCode) {
-			msg2mns := entity.OtherVendorDevMsg{
-				Header: entity.Header{
-					Cmd:     constant.Other_Vendor_Msg,
-					Ack:     0,
-					DevType: "",
-					DevId:   devId,
-					Vendor:  "tuya",
-					SeqId:   0,
-				},
-				OriData: util.Bytes2Str(rawData),
-			}
-			data2mns,err := json.Marshal(msg2mns)
-			if err == nil {
-				rabbitmq.Publish2mns(data2mns, "")
-			}
-			return
+		if tyStatusFilter(statusCode) {
+			tyRawDataNotify(devId, rawData)
 		}
 	}
 }
 
-func tyDataFilter(statusCode string) bool {
+func tyRawDataNotify(devId string, rawData []byte) {
+	msg2mns := entity.OtherVendorDevMsg{
+		Header: entity.Header{
+			Cmd:     constant.Other_Vendor_Msg,
+			Ack:     0,
+			DevType: "",
+			DevId:   devId,
+			Vendor:  "tuya",
+			SeqId:   0,
+		},
+		OriData: util.Bytes2Str(rawData),
+	}
+	data2mns,err := json.Marshal(msg2mns)
+	if err == nil {
+		rabbitmq.Publish2mns(data2mns, "")
+	}
+	return
+}
+
+func tyStatusFilter(statusCode string) bool {
      _,ok := TyStatusDataFilterMap[statusCode]
      return ok
+}
+
+func tyEventFilter(bizCode string) bool {
+	_,ok := TyEventDataFilterMap[bizCode]
+	return ok
 }
 
 func Close() {
