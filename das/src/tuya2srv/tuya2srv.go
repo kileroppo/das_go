@@ -7,11 +7,11 @@ import (
 	"strconv"
 	"time"
 
-	pulsar "github.com/TuyaInc/tuya_pulsar_sdk_go"
-	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tylog"
-	"github.com/TuyaInc/tuya_pulsar_sdk_go/pkg/tyutils"
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
+	pulsar "github.com/tuya/tuya-pulsar-sdk-go"
+	"github.com/tuya/tuya-pulsar-sdk-go/pkg/tylog"
+	"github.com/tuya/tuya-pulsar-sdk-go/pkg/tyutils"
 
 	"das/core/constant"
 	"das/core/entity"
