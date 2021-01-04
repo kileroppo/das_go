@@ -5,7 +5,6 @@ go 1.13
 require (
 	github.com/Devatoria/go-graylog v0.0.0-20171023211614-c16c35c9383b
 	github.com/Jeffail/gabs v1.4.0 // indirect
-	github.com/TuyaInc/tuya_pulsar_sdk_go v0.0.0-20200320080207-7fafafeb6dbc
 	github.com/ZZMarquis/gm v1.0.0
 	github.com/coreos/etcd v3.3.22+incompatible // indirect
 	github.com/coreos/go-semver v0.3.0 // indirect
@@ -31,7 +30,10 @@ require (
 	github.com/sirupsen/logrus v1.6.0
 	github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271
 	github.com/tidwall/gjson v1.6.0
+	github.com/tuya/tuya-cloud-sdk-go v0.0.0-20201215025652-fb4377540ad3
+	github.com/tuya/tuya-pulsar-sdk-go v0.0.0-20201126121603-61a8e9867c95
 	github.com/valyala/bytebufferpool v1.0.0
+	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.26.0
