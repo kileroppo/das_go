@@ -543,6 +543,7 @@ func TyDataFilterAndNotify(devId string, rawData []byte) {
 		statusCode = devStatus[i].Get("code").String()
 		if tyStatusFilter(statusCode) {
 			tyRawDataNotify(devId, rawData)
+			return
 		}
 	}
 }
