@@ -283,7 +283,7 @@ func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
 		}
 	}
 	timestamp := rawJsonData.Get("t").Int()
-	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp)
+	tySensorDataNotify(devId, tyAlarmType, alarmFlag, timestamp, &rawJsonData)
 }
 
 func TyStatusAlarmStateHandle(devId string, rawJsonData gjson.Result) {
@@ -293,7 +293,7 @@ func TyStatusAlarmStateHandle(devId string, rawJsonData gjson.Result) {
 	if val != 4 {
 		alarmFlag = 1
 	}
-	tySensorDataNotify(devId, constant.Wonly_Status_Audible_Alarm, alarmFlag, timestamp)
+	tySensorDataNotify(devId, constant.Wonly_Status_Audible_Alarm, alarmFlag, timestamp, &rawJsonData)
 }
 
 func correctSensorMillTimestamp(millTimestamp int64) int64 {
@@ -310,7 +310,7 @@ func TyStatusEnvSensorHandle(devId string, rawJsonData gjson.Result) {
 	timestamp := rawJsonData.Get("t").Int()
 	alarmFlag := rawJsonData.Get("value").Int()
 
-	tySensorDataNotify(devId, tyAlarmType, int(alarmFlag), timestamp)
+	tySensorDataNotify(devId, tyAlarmType, int(alarmFlag), timestamp, nil)
 }
 
 func TyStatusSceneHandle(devId string, rawJsonData gjson.Result) {
@@ -467,7 +467,7 @@ func TyStatusSwitchValHandle(devId string, rawJsonData gjson.Result) {
 	}
 }
 
-func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64) {
+func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64, rawJsonData *gjson.Result) {
 	correctT := correctSensorMillTimestamp(timestamp)
 	var msg entity.Feibee2AlarmMsg
 	msg.Cmd = constant.Device_Sensor_Msg
@@ -510,6 +510,7 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	}
 
 	if notifyFlag {
+		tySensorRawDataNotify(devId, rawJsonData)
 		data, err := json.Marshal(msg)
 		if err == nil {
 			if msg.AlarmType == constant.Wonly_Status_Sensor_Doorcontact {
@@ -528,6 +529,35 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 			rabbitmq.Publish2Scene(data, "")
 		}
 	}
+}
+
+func tySensorRawDataNotify(devId string, rawJsonData *gjson.Result) {
+	if rawJsonData == nil {
+		return
+	}
+	singleStatus := entity.TuyaDevStaus{
+		Code:  "",
+		Value: nil,
+		T:     0,
+	}
+	err := json.Unmarshal(util.Str2Bytes(rawJsonData.String()), &singleStatus)
+	if err != nil {
+		return
+	}
+
+	rawMsg := entity.TuyaRawStatusMsg{
+		DataId:     "",
+		DevId:      devId,
+		ProductKey: "",
+		Status:     []entity.TuyaDevStaus{singleStatus,},
+	}
+
+	data,err := json.Marshal(rawMsg)
+	if err != nil {
+		return
+	}
+
+	tyRawDataNotify(devId, data)
 }
 
 func TyDataFilterAndNotify(devId string, rawData []byte) {

@@ -80,3 +80,16 @@ type OtherVendorDevMsg struct {
 
 	OriData string `json:"oriData,omitempty"`
 }
+
+type TuyaRawStatusMsg struct {
+	DataId string `json:"dataId"`
+	DevId string `json:"devId"`
+	ProductKey string `json:"productKey"`
+	Status []TuyaDevStaus `json:"status,inline"`
+}
+
+type TuyaDevStaus struct {
+	Code string `json:"code"`
+	Value interface{} `json:"value"`
+	T int64 `json:"t"`
+}
