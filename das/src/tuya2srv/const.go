@@ -2,6 +2,7 @@ package tuya2srv
 
 import (
 	"github.com/tidwall/gjson"
+	"math"
 
 	"das/core/constant"
 )
@@ -299,5 +300,32 @@ var (
 		constant.Wonly_Status_Sensor_Forced_Break: {},
 		constant.Wonly_Status_Sensor_Flood:        {},
 		constant.Wonly_Status_Audible_Alarm:       {},
+	}
+
+	tyEnvAlarmDataFilterMap = map[string] struct{} {
+		constant.Wonly_Status_Sensor_PM25: {},
+		constant.Wonly_Status_Sensor_CO2: {},
+		constant.Wonly_Status_Sensor_Formaldehyde: {},
+		constant.Wonly_Status_Sensor_VOC: {},
+	}
+)
+
+//环境传感器相关表驱动
+var (
+	LimitPH2_5 = []float64{75, 115, math.MaxFloat64}
+	LimitCO2 = []float64{0.15, 0.35, math.MaxFloat64}
+	LimitCH2O = 0.1
+	LimitVOC = 0.6
+
+	GradeEnv = []string{"A","B","C"}
+
+	ReflectGrade = map[string] []float64 {
+		constant.Wonly_Status_Sensor_PM25: LimitPH2_5,
+		constant.Wonly_Status_Sensor_CO2: LimitCO2,
+	}
+
+	ReflectLimit = map[string]float64 {
+		constant.Wonly_Status_Sensor_Formaldehyde: LimitCH2O,
+		constant.Wonly_Status_Sensor_VOC: LimitVOC,
 	}
 )

@@ -22,3 +22,4 @@ logs/
 /das/src/tuya2srv/das.ini
 /das/src/tuya2srv/tuya_test.go
 /das/src/core/redis/das.ini
+.DS_Store

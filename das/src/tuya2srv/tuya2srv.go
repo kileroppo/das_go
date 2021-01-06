@@ -498,7 +498,7 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 
 	//todo: 涂鸦报警过滤
 	notifyFlag, triggerFlag := true, false
-	if !tyAlarmMsgFilter(msg.DevId, msg.AlarmType, msg.AlarmFlag) {
+	if !tyAlarmMsgFilter(msg.DevId, msg.AlarmType, msg.AlarmValue, msg.AlarmFlag) {
 		if msg.AlarmType == constant.Wonly_Status_Sensor_Infrared {
 			notifyFlag = false
 			triggerFlag = true
