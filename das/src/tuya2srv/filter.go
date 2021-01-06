@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"das/core/constant"
 	"das/core/log"
 	"das/core/mysql"
 	"das/filter"
@@ -18,6 +19,25 @@ FROM
 	ty_notify_filter_rule
 `
 )
+
+func TyFilter(devId, sensorType, sensorVal string, val interface{}) (notifyFlag bool, triggerFlag bool) {
+	notifyFlag, triggerFlag = true, false
+	if !tyAlarmMsgFilter(devId, sensorType, sensorVal, val) {
+		if sensorType == constant.Wonly_Status_Sensor_Infrared {
+			notifyFlag = false
+			triggerFlag = true
+		} else {
+			if _,ok := tyEnvAlarmDataFilterMap[sensorType]; ok {
+				notifyFlag = true
+			} else {
+				notifyFlag = false
+			}
+		}
+	} else {
+		notifyFlag, triggerFlag = true, true
+	}
+	return
+}
 
 func tyAlarmMsgFilter(devId, code, sensorVal string, val interface{}) bool {
 	if _,ok := tyAlarmDataFilterMap[code]; ok {
