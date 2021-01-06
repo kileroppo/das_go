@@ -21,13 +21,11 @@ FROM
 
 func tyAlarmMsgFilter(devId, code, sensorVal string, val interface{}) bool {
 	if _,ok := tyAlarmDataFilterMap[code]; ok {
-		res := filter.AlarmMsgFilter(devId + "_" + code, val, -1)
-		return res
+		return filter.AlarmMsgFilter(devId + "_" + code, val, -1)
 	} else {
-		if _,ok := tyEnvAlarmDataFilterMap[code]; ok {
-			level := GetEnvSensorLevel(code, sensorVal)
-			res := filter.AlarmMsgFilter(devId + "_" + level, val, -1)
-			return res
+		level,ok := GetEnvSensorLevel(code, sensorVal)
+		if ok {
+			return filter.AlarmMsgFilter(devId + "_" + level, val, -1)
 		}
 		return true
 	}
@@ -54,17 +52,22 @@ func loadFilterRulesFromMySql() {
 	log.Info("load filter rules done")
 }
 
-func GetEnvSensorLevel(sensorType, sensorVal string) (levelVal string)  {
-	_, ok := ReflectGrade[sensorType]
+func GetEnvSensorLevel(sensorType, sensorVal string) (levelVal string, ok bool)  {
+	_, ok = ReflectGrade[sensorType]
 	if ok {
-		return envSensorLevelTable(sensorType, sensorVal)
+		levelVal = envSensorLevelTable(sensorType, sensorVal)
 	} else {
-		return envSensorVOCLevelTable(sensorType, sensorVal)
+		levelVal = envSensorVOCLevelTable(sensorType, sensorVal)
 	}
+	if len(levelVal) == 0 {
+		ok = false
+	} else {
+		ok = true
+	}
+	return
 }
 
 func envSensorLevelTable(sensorType, sensorVal string) (levelVal string) {
-	levelVal = "-1"
 	rangeLimit,ok := ReflectGrade[sensorType]
 	if !ok {
 		return
@@ -90,7 +93,6 @@ func envSensorLevelTable(sensorType, sensorVal string) (levelVal string) {
 }
 
 func envSensorVOCLevelTable(sensorType, sensorVal string) (levelVal string) {
-	levelVal = "-1"
 	limit,ok := ReflectLimit[sensorType]
 	if !ok {
 		return
