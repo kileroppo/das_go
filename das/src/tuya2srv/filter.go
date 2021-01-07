@@ -40,15 +40,19 @@ func TyFilter(devId, sensorType, sensorVal string, val interface{}) (notifyFlag 
 }
 
 func tyAlarmMsgFilter(devId, code, sensorVal string, val interface{}) bool {
+	key := devId
 	if _,ok := tyAlarmDataFilterMap[code]; ok {
-		return filter.AlarmMsgFilter(devId + "_" + code, val, -1)
+		key += "_" + code
 	} else {
 		level,ok := GetEnvSensorLevel(code, sensorVal)
 		if ok {
-			return filter.AlarmMsgFilter(devId + "_" + level, val, -1)
+			key += "_" + code
+			val = level
+		} else {
+			return true
 		}
-		return true
 	}
+	return filter.AlarmMsgFilter(key, val, -1)
 }
 
 func tyStatusPriorityFilter(devId string, timestamp int64, status string) bool {
