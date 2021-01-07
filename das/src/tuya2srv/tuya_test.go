@@ -134,8 +134,20 @@ func TestTuyaHandle(t *testing.T) {
 
 func TestGetEnvSensorLevel(t *testing.T) {
 	datas := [][]string {
+		{"CO2", "0.01"},
 		{"CO2", "0.1"},
 		{"CO2", "0.2"},
+		{"CO2", "0.4"},
+		{"CO2", "0.5"},
+
+		{"PM2.5", "-1"},
+		{"PM2.5", "101"},
+		{"PM2.5", "151"},
+		{"PM2.5", "161"},
+		{"PM2.5", "201"},
+
+		{"VOC", "0.59"},
+		{"VOC", "0.7"},
 	}
 
 	for _,data := range datas {
