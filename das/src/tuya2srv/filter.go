@@ -104,16 +104,12 @@ func envSensorLevelTable(sensorType, sensorVal string) (levelVal string) {
 	level := 0
 	for i := 0; i < len(rangeLimit); i++ {
 		if val < rangeLimit[i] {
-			level++
 			break
 		} else {
 			level++
-			if i == 1 && val == rangeLimit[i] {
-				break
-			}
 		}
 	}
-	return GradeEnv[level-1]
+	return GradeEnv[level]
 }
 
 func envSensorVOCLevelTable(sensorType, sensorVal string) (levelVal string) {
@@ -125,7 +121,7 @@ func envSensorVOCLevelTable(sensorType, sensorVal string) (levelVal string) {
 	if err != nil {
 		return
 	}
-	if val <= limit {
+	if val < limit {
 		return GradeEnv[0]
 	} else {
 		return GradeEnv[1]

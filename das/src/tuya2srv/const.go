@@ -312,12 +312,12 @@ var (
 
 //环境传感器相关表驱动
 var (
-	LimitPH2_5 = []float64{75, 115, math.MaxFloat64}
-	LimitCO2 = []float64{0.15, 0.35, math.MaxFloat64}
+	LimitPH2_5 = []float64{101, 151, 201, math.MaxFloat64}
+	LimitCO2 = []float64{0.1, 0.2, 0.5, math.MaxFloat64}
 	LimitCH2O = 0.1
 	LimitVOC = 0.6
 
-	GradeEnv = []string{"A","B","C"}
+	GradeEnv = []string{"0", "A","B","C"}
 
 	ReflectGrade = map[string] []float64 {
 		constant.Wonly_Status_Sensor_PM25: LimitPH2_5,
