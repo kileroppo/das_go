@@ -76,7 +76,7 @@ func TestAlarmHandle(t *testing.T) {
 }
 
 func TestOneAlarm(t *testing.T) {
-	if ProcessFeibeeMsg([]byte(gsss)) != nil {
+	if ProcessFeibeeMsg([]byte(temp)) != nil {
 		t.Errorf("Process feibee alarm error")
 	}
 }

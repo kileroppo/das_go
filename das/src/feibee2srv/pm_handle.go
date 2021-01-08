@@ -5,6 +5,7 @@ import (
 	"das/core/entity"
 	"das/core/log"
 	"das/core/rabbitmq"
+	"das/filter"
 	"fmt"
 	"strconv"
 	"time"
@@ -97,6 +98,8 @@ func (pm *PMHandle) decodeCO2() {
 }
 
 func (pm *PMHandle) push2pms(opType, opValue string, opFlag int) {
+	_, triggerFlag := filter.SensorFilter(pm.data.Records[0].Uuid, opType, opValue, opFlag)
+
 	msg2pms := entity.Feibee2AutoSceneMsg{
 		Header: entity.Header{
 			Cmd:     constant.Scene_Trigger,
@@ -113,12 +116,16 @@ func (pm *PMHandle) push2pms(opType, opValue string, opFlag int) {
 		Zone:        "",
 	}
 
-	data, err := json.Marshal(msg2pms)
-	if err != nil {
-		log.Warningf("PMHandle.push2pms > Trigger > json.Marshal > %s", err)
-		return
+	var data []byte
+	var err error
+	if triggerFlag {
+		data, err = json.Marshal(msg2pms)
+		if err != nil {
+			log.Warningf("PMHandle.push2pms > Trigger > json.Marshal > %s", err)
+			return
+		}
+		rabbitmq.Publish2Scene(data, "")
 	}
-	rabbitmq.Publish2Scene(data, "")
 
 	msg2pms.Cmd = constant.Device_Sensor_Msg
 	data, err = json.Marshal(msg2pms)

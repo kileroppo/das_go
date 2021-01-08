@@ -19,6 +19,7 @@ import (
 	"das/core/rabbitmq"
 	"das/core/util"
 	"das/feibee2srv"
+	"das/filter"
 )
 
 var (
@@ -202,6 +203,42 @@ func TyStatusDevBatt(devId string, rawJsonData gjson.Result) {
     data, err := json.Marshal(msg)
     if err == nil {
     	rabbitmq.Publish2pms(data, "")
+	}
+
+	alarmFlag := rawJsonData.Get("value").Int()
+	if alarmFlag >= LowBatteryThreshold {
+		return
+	}
+	alarmType := constant.Wonly_Status_Low_Power
+	alarmVal := rawJsonData.Get("value").String()
+
+	_, notifyFlag := filter.SensorFilter(devId, alarmType, "", alarmFlag)
+	if notifyFlag {
+		alarmMsg := entity.Feibee2AlarmMsg{
+			Header:         entity.Header{
+				Cmd:     constant.Device_Sensor_Msg,
+				Ack:     0,
+				DevType: "",
+				DevId:   devId,
+				Vendor:  "tuya",
+				SeqId:   0,
+			},
+			Time:           0,
+			MilliTimestamp: 0,
+			TriggerType:    0,
+			AlarmType:      alarmType,
+			AlarmValue:     alarmVal,
+			AlarmFlag:      0,
+			Bindid:         "",
+			CycleFlag:      false,
+			Multiplier:     0,
+		}
+
+		data,err := json.Marshal(alarmMsg)
+		if err != nil {
+			return
+		}
+		rabbitmq.Publish2mns(data, "")
 	}
 }
 
@@ -497,7 +534,7 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	}
 
 	//todo: 涂鸦报警过滤
-	notifyFlag, triggerFlag := TyFilter(msg.DevId, msg.AlarmType, msg.AlarmValue, msg.AlarmFlag)
+	notifyFlag, triggerFlag := filter.SensorFilter(msg.DevId, msg.AlarmType, msg.AlarmValue, msg.AlarmFlag)
 
 	if notifyFlag {
 		tySensorRawDataNotify(devId, rawJsonData)

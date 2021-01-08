@@ -1,7 +1,6 @@
 package feibee2srv
 
 import (
-	"das/core/constant"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
@@ -11,6 +10,8 @@ import (
 	"github.com/json-iterator/go"
 
 	"das/core/entity"
+	"das/core/constant"
+	"das/filter"
 	"das/core/log"
 	"das/core/rabbitmq"
 )
@@ -93,7 +94,10 @@ func (self *BaseSensorAlarm) PushMsg() {
 	//todo: 设备周期上报数据能否触发场景
 	if self.alarmMsgType == sensorAlarm {
 		//周期上报能触发场景
-		self.pushMsg2pmsForSceneTrigger()
+		_, triggerFlag := filter.SensorFilter(self.devid, self.alarmType, self.alarmVal, self.alarmVal)
+		if triggerFlag {
+			self.pushMsg2pmsForSceneTrigger()
+		}
 
 		//周期上报不触发场景
 		//if self.alarmType == "doorContact" && self.alarmFlag == 1 && self.cycleFlag > 0 { //门磁周期消息不触发
