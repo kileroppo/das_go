@@ -4,6 +4,7 @@ import (
 	"das/core/log"
 	"das/core/rabbitmq"
 	"das/core/redis"
+	"das/filter"
 	"fmt"
 	"testing"
 )
@@ -18,15 +19,15 @@ var (
 	statusDemo = `
 {
     "dataId": "AAW4ExXjL5RapTq7XxcAeA",
-    "devId": "6c8185490530eec080d8ju",
+    "devId": "test",
     "productKey": "ncdapbwy",
     "status": [
         {"code":"va_temperature","103":"2390","t":1609817485969,"value":2390},
         {
             "1": "true",
-            "code": "doorcontact_state",
+            "code": "battery_percentage",
             "t": 1609766994653,
-            "value": true
+            "value": 18
         },
         {
             "code": "temper_alarm",
@@ -126,7 +127,7 @@ var (
 
 func TestTuyaHandle(t *testing.T) {
 	h := TuyaMsgHandle{
-		data: []byte(tyEnv),
+		data: []byte(statusDemo),
 	}
 
 	h.MsgHandle()
@@ -151,7 +152,7 @@ func TestGetEnvSensorLevel(t *testing.T) {
 	}
 
 	for _,data := range datas {
-		level, ok := GetEnvSensorLevel(data[0], data[1])
+		level, ok := filter.GetEnvSensorLevel(data[0], data[1])
 		if ok {
 			fmt.Printf("%s:%s(%s)\n", data[0], data[1], level)
 		}
