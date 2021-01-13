@@ -31,11 +31,17 @@ const (
 
 	Ty_Status_Air_Temperature = "TMP"
 	Ty_Status_Air_Humidity    = "HUM"
-	Ty_Status_Air_PM25_Value  = "PM2_5"
-	Ty_Status_Air_CO_Value    = "CO"
-	TY_Status_Air_CO2_Value   = "CO2"
+	Ty_Status_Air_PM25        = "PM2_5"
+	Ty_Status_Air_CO          = "CO"
+	TY_Status_Air_CO2         = "CO2"
 	Ty_Status_Air_VOC         = "VOC"
 	Ty_Status_Air_CH2O        = "CH2O"
+
+	Ty_Status_VOC_Value = "voc_value"
+	Ty_Status_PM25_Value = "pm25_value"
+	Ty_Status_CH2O_Value = "ch2o_value"
+	Ty_Status_Humidity_Value = "humidity_value"
+	Ty_Status_Temp_Current = "temp_current"
 
 	Ty_Status_Va_Temperature = "va_temperature"
 	Ty_Status_Va_Humidity    = "va_humidity"
@@ -171,14 +177,20 @@ var (
 		Ty_Status_SOS_State:           TyStatusAlarmSensorHandle,
 		Ty_Status_Alarm_State:         TyStatusAlarmStateHandle,
 
+		Ty_Status_VOC_Value: TyStatusEnvSensorHandle,
+		Ty_Status_PM25_Value: TyStatusEnvSensorHandle,
+		Ty_Status_CH2O_Value: TyStatusEnvSensorHandle,
+		Ty_Status_Humidity_Value: TyStatusEnvSensorHandle,
+		Ty_Status_Temp_Current: TyStatusEnvSensorHandle,
+
 		Ty_Status_Va_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Va_Humidity:    TyStatusEnvSensorHandle,
 		Ty_Status_Bright_Value:   TyStatusEnvSensorHandle,
 
 		Ty_Status_Air_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Air_Humidity:    TyStatusEnvSensorHandle,
-		Ty_Status_Air_PM25_Value:  TyStatusEnvSensorHandle,
-		TY_Status_Air_CO2_Value:   TyStatusEnvSensorHandle,
+		Ty_Status_Air_PM25:        TyStatusEnvSensorHandle,
+		TY_Status_Air_CO2:         TyStatusEnvSensorHandle,
 		Ty_Status_Air_VOC:         TyStatusEnvSensorHandle,
 		Ty_Status_Air_CH2O:        TyStatusEnvSensorHandle,
 
@@ -233,9 +245,15 @@ var (
 
 		Ty_Status_Air_Temperature: constant.Wonly_Status_Sensor_Temperature,
 		Ty_Status_Air_Humidity:    constant.Wonly_Status_Sensor_Humidity,
-		Ty_Status_Air_PM25_Value:  constant.Wonly_Status_Sensor_PM25,
-		TY_Status_Air_CO2_Value:   constant.Wonly_Status_Sensor_CO2,
+		Ty_Status_Air_PM25:        constant.Wonly_Status_Sensor_PM25,
+		TY_Status_Air_CO2:         constant.Wonly_Status_Sensor_CO2,
 		Ty_Status_Air_CH2O:        constant.Wonly_Status_Sensor_Formaldehyde,
+
+		Ty_Status_VOC_Value:       constant.Wonly_Status_Sensor_VOC,
+		Ty_Status_PM25_Value:      constant.Wonly_Status_Sensor_PM25,
+		Ty_Status_CH2O_Value:      constant.Wonly_Status_Sensor_Formaldehyde,
+		Ty_Status_Humidity_Value:  constant.Wonly_Status_Sensor_Humidity,
+		Ty_Status_Temp_Current:    constant.Wonly_Status_Sensor_Temperature,
 
 		Ty_Status_Va_Temperature: constant.Wonly_Status_Sensor_Temperature,
 		Ty_Status_Va_Humidity:    constant.Wonly_Status_Sensor_Humidity,
@@ -244,11 +262,14 @@ var (
 
 	TyEnvSensorValTransfer = map[string]float64{
 		Ty_Status_Air_Temperature: 0.1,
-		TY_Status_Air_CO2_Value:   0.01,
+		TY_Status_Air_CO2:         0.01,
 		Ty_Status_Air_CH2O:        0.01,
 		Ty_Status_Va_Humidity:     0.01,
 		Ty_Status_Va_Temperature:  0.01,
 		Ty_Status_Bright_Value:    10.483,
+
+		Ty_Status_CH2O_Value: 0.01,
+		Ty_Status_Temp_Current: 0.1,
 	}
 
 	TyCleanerStatusNote = map[string]string{
