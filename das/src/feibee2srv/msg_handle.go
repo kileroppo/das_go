@@ -168,12 +168,16 @@ func (self *NormalMsgHandle) PushMsg() {
 	}
 
 	//电动窗帘作为触发条件
-	if self.msgType == RemoteOpDev && self.data.Msg[0].Deviceid == 0x0202 {
+	if isCurtainStatus(self.msgType, self.data.Msg[0].Deviceid) {
 		data,err := json.Marshal(self.createMsg2pmsForSence())
 		if err == nil {
 			rabbitmq.Publish2Scene(data, "")
 		}
 	}
+}
+
+func isCurtainStatus(msgType MsgType, deviceId int) bool {
+	return (msgType == RemoteOpDev || msgType == ManualOpDev) && (deviceId == 0x202 || deviceId == 0x200)
 }
 
 type ManualOpMsgHandle struct {
@@ -196,7 +200,7 @@ func (self *ManualOpMsgHandle) PushMsg() {
 	}
 
 	//电动窗帘作为触发条件
-	if self.data.Records[0].Deviceid == 0x0202 {
+	if isCurtainStatus(ManualOpDev, self.data.Records[0].Deviceid) {
 		data,err := json.Marshal(self.createMsg2pmsForSence())
 		if err == nil {
 			rabbitmq.Publish2Scene(data, "")
