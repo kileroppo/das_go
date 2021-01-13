@@ -270,6 +270,7 @@ var (
 
 		Ty_Status_CH2O_Value: 0.01,
 		Ty_Status_Temp_Current: 0.1,
+		Ty_Status_VOC_Value: 0.01,
 	}
 
 	TyCleanerStatusNote = map[string]string{

@@ -523,7 +523,7 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	if ok {
 		msg.AlarmValue = alarmVal[msg.AlarmFlag]
 	} else {
-		multiplier, ok := TyEnvSensorValTransfer[msg.AlarmType]
+		multiplier, ok := TyEnvSensorValTransfer[tyAlarmType]
 		if ok {
 			msg.Multiplier = multiplier
 			msg.AlarmValue = strconv.FormatFloat(float64(alarmFlag)*float64(multiplier), 'f', 2, 64)
