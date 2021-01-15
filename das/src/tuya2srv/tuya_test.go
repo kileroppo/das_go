@@ -25,7 +25,7 @@ var (
         {"code":"va_temperature","103":"2390","t":1609817485969,"value":2390},
         {
             "1": "true",
-            "code": "ch2o_value",
+            "code": "co2_value",
             "t": 1609766994653,
             "value": 18
         },
