@@ -127,7 +127,7 @@ var (
 
 func TestTuyaHandle(t *testing.T) {
 	h := TuyaMsgHandle{
-		data: []byte(statusDemo),
+		data: []byte(eventDemo),
 	}
 
 	h.MsgHandle()

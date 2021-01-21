@@ -23,7 +23,7 @@ FROM
 )
 
 func tyStatusPriorityFilter(devId string, timestamp int64, status string) bool {
-	return filter.MsgPriorityFilter(devId, timestamp, status, time.Minute*1)
+	return filter.MsgNormalPriorityFilter(devId, timestamp, status, time.Minute*1)
 }
 
 func loadFilterRulesFromMySql() {

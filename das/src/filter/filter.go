@@ -24,8 +24,14 @@ const (
 	filterDur = time.Hour
 )
 
+type ValComparer func(int64, int64) bool
+
+var NormalComparer ValComparer = func(newVal, oldVal int64) bool {
+	return newVal > oldVal
+}
+
 type MsgFilter interface {
-	IsPriorityValid(key string, priority int64, val interface{}, dur time.Duration) bool
+	IsPriorityValid(key string, priority int64, val interface{}, dur time.Duration, compare ValComparer) bool
 	IsValid(key string, val interface{}, duration time.Duration) (res bool)
 	IsFrequentValid(key string, val interface{}, dur time.Duration, frequentDur time.Duration) bool
 }
@@ -87,11 +93,11 @@ func (r *RedisFilter) GetDuration(key string) time.Duration {
 	}
 }
 
-func (r *RedisFilter) IsPriorityValid(key string, priority int64, val interface{}, dur time.Duration) bool {
-	return r.isPriorityValid(key, priority, val, dur)
+func (r *RedisFilter) IsPriorityValid(key string, priority int64, val interface{}, dur time.Duration, compare ValComparer) bool {
+	return r.isPriorityValid(key, priority, val, dur, compare)
 }
 
-func (r *RedisFilter) isPriorityValid(key string, priority int64, val interface{}, dur time.Duration) (res bool) {
+func (r *RedisFilter) isPriorityValid(key string, priority int64, val interface{}, dur time.Duration, compare ValComparer) (res bool) {
 	cli := redis.GetRedisDB(1)
 	str,err := cli.HGet(key, PriorityField).Result()
 	if len(str) == 0 || err != nil {
@@ -103,7 +109,7 @@ func (r *RedisFilter) isPriorityValid(key string, priority int64, val interface{
 			res = true
 			r.setKey(cli, key, priority, val, dur)
 		} else {
-			if priority > oldPrio {
+			if compare(priority, oldPrio) {
 				res = true
 				r.setKey(cli, key, priority, val, dur)
 			} else {
@@ -175,6 +181,10 @@ func AlarmFrequentFilter(key string, val interface{}, filterDur, frequentDur tim
 	return alarmMsgFilter.IsFrequentValid(key + filterKey, val, filterDur, frequentDur)
 }
 
-func MsgPriorityFilter(key string, priority int64, val interface{}, dur time.Duration) bool {
-	return alarmMsgFilter.IsPriorityValid(key + priorityKey, priority, val, dur)
+func MsgNormalPriorityFilter(key string, priority int64, val interface{}, dur time.Duration) bool {
+	return alarmMsgFilter.IsPriorityValid(key + priorityKey, priority, val, dur, NormalComparer)
+}
+
+func MsgPriorityFilter(key string, priority int64, val interface{}, dur time.Duration, compare ValComparer) bool {
+	return alarmMsgFilter.IsPriorityValid(key + filterKey, priority, val, dur, compare)
 }

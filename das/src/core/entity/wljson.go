@@ -451,6 +451,7 @@ type DeviceActive struct {
 
 	Signal int   `json:"signal"` // NB锁信号强度
 	Time   int64 `json:"time"`
+	Timestamp int64 `json:"timestamp"`
 }
 type DeviceActiveResp struct {
 	Cmd     int    `json:"cmd"`
