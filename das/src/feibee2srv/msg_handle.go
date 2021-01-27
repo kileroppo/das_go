@@ -124,7 +124,17 @@ func (self *NormalMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMsg 
 
 	msg.TriggerType = 0
 
-	msg.AlarmFlag = self.data.Msg[0].Onoff
+	if self.msgType == DevDegree {
+        if self.data.Msg[0].DevDegree < 5 {
+        	msg.AlarmFlag = 0
+		} else if self.data.Msg[0].DevDegree > 250 {
+        	msg.AlarmFlag = 1
+		} else {
+		    msg.AlarmFlag = -1
+		}
+	} else {
+		msg.AlarmFlag = self.data.Msg[0].Onoff
+	}
 	msg.AlarmType = constant.Wonly_Status_Curtain
 
 	return msg
@@ -177,7 +187,7 @@ func (self *NormalMsgHandle) PushMsg() {
 }
 
 func isCurtainStatus(msgType MsgType, deviceId int) bool {
-	return (msgType == RemoteOpDev || msgType == ManualOpDev) && (deviceId == 0x202 || deviceId == 0x200)
+	return (msgType == RemoteOpDev || msgType == ManualOpDev || msgType == DevDegree) && (deviceId == 0x202 || deviceId == 0x200)
 }
 
 type ManualOpMsgHandle struct {
@@ -254,6 +264,9 @@ func (self *ManualOpMsgHandle) createMsg2pmsForSence() entity.Feibee2AutoSceneMs
 	if alarmFlag,err = strconv.Atoi(self.data.Records[0].Value);err != nil  {
 	    log.Warningf("ManualOpMsgHandle.createMsg2pmsForSence > strconv.Atoi > %s",err)
 	    return msg
+	}
+	if alarmFlag == 2 {
+		alarmFlag = 0
 	}
 
 	msg.Cmd = constant.Scene_Trigger
