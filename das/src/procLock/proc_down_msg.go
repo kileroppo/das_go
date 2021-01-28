@@ -335,7 +335,10 @@ func ProcAppMsg(appMsg string) error {
 		return nil
 	case constant.Video_Hang_Up:
 		esLog.Operation += "视频锁通话挂断请求上报到服务器"
-		rabbitmq.Publish2app(util.Str2Bytes(appMsg), gjson.Get(appMsg, "devId").String())
+		send_data := util.Str2Bytes(appMsg)
+		rkey := gjson.Get(appMsg, "devId").String()
+		rabbitmq.Publish2app(send_data, rkey) //to 中控平板
+		rabbitmq.Publish2dev(send_data, rkey) //to 油烟机
 		return nil
 	}
 	//log.Debug("ProcAppMsg after, ", appMsg)
