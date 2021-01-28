@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/tidwall/gjson"
+
 	"das/core/constant"
 	"das/core/entity"
 	"das/core/httpgo"
@@ -330,6 +332,10 @@ func ProcAppMsg(appMsg string) error {
 	case constant.Body_Fat_Scale:
 		esLog.Operation += "将体脂秤数据上报到服务器"
 		rabbitmq.Publish2pms([]byte(appMsg), "")
+		return nil
+	case constant.Video_Hang_Up:
+		esLog.Operation += "视频锁通话挂断请求上报到服务器"
+		rabbitmq.Publish2app(util.Str2Bytes(appMsg), gjson.Get(appMsg, "devId").String())
 		return nil
 	}
 	//log.Debug("ProcAppMsg after, ", appMsg)

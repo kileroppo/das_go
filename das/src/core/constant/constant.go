@@ -101,7 +101,8 @@ const (
 
 	PadDoor_Num_Upload = 0x1100 // 平板锁人流检测上报
 	PadDoor_Num_Reset  = 0x1101 // 平板门锁人流检测重置
-	Other_Vendor_Msg   = 0x1200
+	Other_Vendor_Msg   = 0x1200 //爱岗其他第三方设备消息
+	Video_Hang_Up      = 0x1201 //视频锁通话挂断消息
 
 	Feibee_Ori_Msg    = 0xfa //飞比原始消息
 	Device_Normal_Msg = 0xfb //设备状态消息
