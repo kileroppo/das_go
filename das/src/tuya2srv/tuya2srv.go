@@ -152,6 +152,7 @@ func TyEventOnlineHandle(devId, tyEvent string, rawJsonData gjson.Result) {
 	} else {
 		msg.Time = 0
 	}
+	msg.Timestamp = rawJsonData.Get("time").Int()
 	data, err := json.Marshal(msg)
 	if err != nil {
 		log.Warningf("TuyaCallback.TyEventOnlineHandle > json.Marshal > %s", err)

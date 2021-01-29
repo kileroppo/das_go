@@ -42,6 +42,7 @@ const (
 	Ty_Status_CH2O_Value = "ch2o_value"
 	Ty_Status_Humidity_Value = "humidity_value"
 	Ty_Status_Temp_Current = "temp_current"
+	Ty_Status_CO2_Value = "co2_value"
 
 	Ty_Status_Va_Temperature = "va_temperature"
 	Ty_Status_Va_Humidity    = "va_humidity"
@@ -182,6 +183,7 @@ var (
 		Ty_Status_CH2O_Value: TyStatusEnvSensorHandle,
 		Ty_Status_Humidity_Value: TyStatusEnvSensorHandle,
 		Ty_Status_Temp_Current: TyStatusEnvSensorHandle,
+		Ty_Status_CO2_Value: TyStatusEnvSensorHandle,
 
 		Ty_Status_Va_Temperature: TyStatusEnvSensorHandle,
 		Ty_Status_Va_Humidity:    TyStatusEnvSensorHandle,
@@ -254,6 +256,7 @@ var (
 		Ty_Status_CH2O_Value:      constant.Wonly_Status_Sensor_Formaldehyde,
 		Ty_Status_Humidity_Value:  constant.Wonly_Status_Sensor_Humidity,
 		Ty_Status_Temp_Current:    constant.Wonly_Status_Sensor_Temperature,
+		Ty_Status_CO2_Value:       constant.Wonly_Status_Sensor_CO2,
 
 		Ty_Status_Va_Temperature: constant.Wonly_Status_Sensor_Temperature,
 		Ty_Status_Va_Humidity:    constant.Wonly_Status_Sensor_Humidity,
@@ -271,6 +274,7 @@ var (
 		Ty_Status_CH2O_Value: 0.01,
 		Ty_Status_Temp_Current: 0.1,
 		Ty_Status_VOC_Value: 0.01,
+		Ty_Status_CO2_Value: 0.01,
 	}
 
 	TyCleanerStatusNote = map[string]string{
@@ -313,23 +317,6 @@ var (
 		Ty_Event_Online: {},
 		Ty_Event_Offline: {},
 		Ty_Event_Upgrade_Status: {},
-	}
-
-	tyAlarmDataFilterMap = map[string]struct{}{
-		constant.Wonly_Status_Sensor_Gas:          {},
-		constant.Wonly_Status_Sensor_Smoke:        {},
-		constant.Wonly_Status_Sensor_Doorcontact:  {},
-		constant.Wonly_Status_Sensor_Infrared:     {},
-		constant.Wonly_Status_Sensor_Forced_Break: {},
-		constant.Wonly_Status_Sensor_Flood:        {},
-		constant.Wonly_Status_Audible_Alarm:       {},
-	}
-
-	tyEnvAlarmDataFilterMap = map[string] struct{} {
-		constant.Wonly_Status_Sensor_PM25: {},
-		constant.Wonly_Status_Sensor_CO2: {},
-		constant.Wonly_Status_Sensor_Formaldehyde: {},
-		constant.Wonly_Status_Sensor_VOC: {},
 	}
 )
 

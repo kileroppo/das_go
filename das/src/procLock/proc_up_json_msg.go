@@ -844,6 +844,13 @@ func ProcessJsonMsg(DValue string, devID string) error {
 		    esLog.Operation += "用户操作上报"
 		    rabbitmq.Publish2pms([]byte(DValue), "")
 		}
+	case constant.Video_Hang_Up:
+		{
+			esLog.Operation += "视频锁通话挂断请求上报到服务器"
+			send_data := util.Str2Bytes(DValue)
+			rabbitmq.Publish2app(send_data, head.DevId) //to 中控平板
+			rabbitmq.Publish2dev(send_data, head.DevId) //to 油烟机
+		}
 	default:
 		log.Info("[", head.DevId, "] Default, Cmd=", head.Cmd)
 	}
