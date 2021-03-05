@@ -40,8 +40,11 @@ func (c ConsumerJob) Handle() {
 }
 
 func Run() {
+	// 从mq 拿app发来 控制锁的消息
 	go consume()
+	// 从mq 拿pad发来 控制锁的消息
 	go consumePadDoor()
+	// das 从 mqtt订阅 相关设备 topic
 	go initMqtt()
 }
 
@@ -52,6 +55,7 @@ func consume() {
 		log.Errorf("consumeApp > %s", err)
 	}
 
+	// cc: 从mq消费者中取出消息 添加到工作队列
 	for msg := range msgs {
 		//log.Info("Consumer ReceiveMQMsgFromAPP: ", string(msg.Body))
 		jobque.JobQueue <- NewConsumerJob(string(msg.Body))

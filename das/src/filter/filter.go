@@ -70,12 +70,16 @@ func (r *RedisFilter) isValid(key string, val interface{}, duration time.Duratio
 	if oldVal == "" {
 		res = true
 	} else {
+
 		if redisValCompare(val, oldVal) {
+			// 无效
 			res = false
 		} else {
+			// 有效 不同值
 			res = true
 		}
 	}
+	// true表示有效  false表示无效
 	if res {
 		ttl = cli.PTTL(key).Val()
 		r.updKey(key, val, duration)
@@ -138,6 +142,7 @@ func redisValCompare(newVal interface{}, oldVal string) bool {
 	switch valType.Kind() {
 	case reflect.Int64:
 		spcNew := newVal.(int64)
+		// 把旧 value 变成 int
 		spcOld, err := strconv.ParseInt(oldVal, 10, 64)
 		if err != nil {
 			return false

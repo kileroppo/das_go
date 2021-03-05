@@ -55,6 +55,7 @@ func ParseData(mydata interface{}) error {
 	var esLog entity.EsLogEntiy // 记录日志
 	esLog.Operation = "device-mqtt|http2-DAS"
 	var wlMsg wlprotocol.WlMessage
+	// 解包
 	bBody, err0 := wlMsg.PkDecode(data)
 	//sendMQTTUpLogMsg(&wlMsg, data)
 	//todo
@@ -107,7 +108,7 @@ func ParseData(mydata interface{}) error {
 			log.Error("[", wlMsg.DevId.Uuid, "] constant.Set_dev_user_temp, err=", err1)
 			return err1
 		}
-	case constant.User_oper_upload:
+	case constant.User_oper_upload:     // 用户操作上报
 		//log.Info("[", wlMsg.DevId.Uuid, "] ParseData constant.User_oper_upload")
 		esLog.Operation += "用户操作上报"
 		// 1.解包

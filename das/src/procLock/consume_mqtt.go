@@ -111,7 +111,7 @@ func subscribeDefaultTopic(client mqtt.Client) {
 	}
 
 	log.Info("call subscribeDefaultTopic")
-	// 订阅
+	// 订阅  qos:0 = das从 mqtt 拉消息直接返回
 	log.Info("mqtt Subscribe ", msgTopic)
 	if token := client.Subscribe(msgTopic, 0, msgCallback); token.WaitTimeout(time.Second*3) && token.Error() != nil {
 		log.Error(token.Error())

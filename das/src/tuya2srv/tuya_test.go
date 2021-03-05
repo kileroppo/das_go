@@ -121,13 +121,26 @@ var (
             "value": 200
         }
     ]
-}
-`
+}`
+	testSmoke =`{
+    "dataId": "0005b51217c1d61a5aa5b0bb5f240102",
+    "devId": "123456789",
+    "productKey": "pisltm67",
+    "status": [
+        {
+            "code": "smoke_sensor_status",
+            "2": "48",
+            "t": 1614905432594,
+            "value": 48
+        }
+    ]
+}`
+
 )
 
 func TestTuyaHandle(t *testing.T) {
 	h := TuyaMsgHandle{
-		data: []byte(eventDemo),
+		data: []byte(testSmoke),
 	}
 
 	h.MsgHandle()

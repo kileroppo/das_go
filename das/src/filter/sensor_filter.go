@@ -44,6 +44,7 @@ var (
 )
 
 func SensorFilter(devId, sensorType, sensorVal string, val interface{}) (notifyFlag bool, triggerFlag bool) {
+	// pm2.5 三个过滤等级 0 - 100  100 - 200  val = 涂鸦返回的value
 	notifyFlag, triggerFlag = true, false
 	if !sensorMsgFilter(devId, sensorType, sensorVal, val) {
 		if sensorType == constant.Wonly_Status_Sensor_Infrared {
@@ -64,9 +65,11 @@ func SensorFilter(devId, sensorType, sensorVal string, val interface{}) (notifyF
 
 func sensorMsgFilter(devId, code, sensorVal string, val interface{}) bool {
 	key := devId
+	// 如果 属于报警类型列表  devId_code
 	if _,ok := AlarmDataFilterMap[code]; ok {
 		key += "_" + code
 	} else {
+		// 否则  或是 等级设备等级
 		level,ok := GetEnvSensorLevel(code, sensorVal)
 		if ok {
 			key += "_" + code
@@ -75,6 +78,7 @@ func sensorMsgFilter(devId, code, sensorVal string, val interface{}) bool {
 			return true
 		}
 	}
+	 // key = dev_code   val = value of ty api return
 	return AlarmMsgFilter(key, val, -1)
 }
 

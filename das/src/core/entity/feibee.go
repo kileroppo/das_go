@@ -117,14 +117,14 @@ type Feibee2AlarmMsg struct {
 
 	Time           int `json:"time"`
 	MilliTimestamp int `json:"milli_timestamp"`
-	TriggerType    int `json:"triggerT"`
+	TriggerType    int `json:"triggerT"`  // 触发类型
 
-	AlarmType  string `json:"alarmType,omitempty"`
-	AlarmValue string `json:"alarmValue,omitempty"`
+	AlarmType  string `json:"alarmType,omitempty"` // 报警类型 （王力类型）
+	AlarmValue string `json:"alarmValue,omitempty"` // 报警值
 
-	AlarmFlag  int     `json:"alarmFlag,omitempty"`
-	Bindid     string  `json:"bindid,omitempty"`
-	CycleFlag  bool    `json:"cycleFlag"`
+	AlarmFlag  int     `json:"alarmFlag,omitempty"` // 报警标志
+	Bindid     string  `json:"bindid,omitempty"`  // 绑定的id
+	CycleFlag  bool    `json:"cycleFlag"` // 循环flag ？
 	Multiplier float64 `json:"multiplier"`
 }
 

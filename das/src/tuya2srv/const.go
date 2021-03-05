@@ -242,19 +242,23 @@ var (
 		Ty_Status_Pir:                 constant.Wonly_Status_Sensor_Infrared,
 		Ty_Status_Temper_Alarm:        constant.Wonly_Status_Sensor_Forced_Break,
 		Ty_Status_Presence_State:      constant.Wonly_Status_Sensor_Infrared,
+
 		Ty_Status_Watersensor_State:   constant.Wonly_Status_Sensor_Flood,
 		Ty_Status_SOS_State:           constant.Wonly_Status_Sensor_SOSButton,
 
 		Ty_Status_Air_Temperature: constant.Wonly_Status_Sensor_Temperature,
 		Ty_Status_Air_Humidity:    constant.Wonly_Status_Sensor_Humidity,
 		Ty_Status_Air_PM25:        constant.Wonly_Status_Sensor_PM25,
+
 		TY_Status_Air_CO2:         constant.Wonly_Status_Sensor_CO2,
 		Ty_Status_Air_CH2O:        constant.Wonly_Status_Sensor_Formaldehyde,
 
 		Ty_Status_VOC_Value:       constant.Wonly_Status_Sensor_VOC,
 		Ty_Status_PM25_Value:      constant.Wonly_Status_Sensor_PM25,
+
 		Ty_Status_CH2O_Value:      constant.Wonly_Status_Sensor_Formaldehyde,
 		Ty_Status_Humidity_Value:  constant.Wonly_Status_Sensor_Humidity,
+
 		Ty_Status_Temp_Current:    constant.Wonly_Status_Sensor_Temperature,
 		Ty_Status_CO2_Value:       constant.Wonly_Status_Sensor_CO2,
 

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -110,6 +111,7 @@ func (t *TuyaMsgHandle) MsgHandle() {
 
 	//rabbitmq.Publish2app(t.data, devId)
 	//t.send2Others(devId, t.data)
+	// 通知mns
 	TyDataFilterAndNotify(devId, t.data)
 
 	bizCode := gjson.GetBytes(t.data, "bizCode").String()
@@ -312,9 +314,12 @@ func TyStatusNormalHandle(devId string, rawJsonData gjson.Result) {
 }
 
 func TyStatusAlarmSensorHandle(devId string, rawJsonData gjson.Result) {
-	tyAlarmType := rawJsonData.Get("code").String()
 	alarmFlag := 0
+	// 涂鸦报警类型
+	tyAlarmType := rawJsonData.Get("code").String()
+	// 报警value
 	rawAlarmVal := rawJsonData.Get("value").String()
+
 	if alarmVal, ok := TySensorAlarmReflect[tyAlarmType]; ok {
 		if rawAlarmVal == alarmVal {
 			alarmFlag = 1
@@ -504,9 +509,11 @@ func TyStatusSwitchValHandle(devId string, rawJsonData gjson.Result) {
 		rabbitmq.Publish2Scene(data, "")
 	}
 }
-
+// 涂鸦场景或数据通知
 func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int64, rawJsonData *gjson.Result) {
+	// 1 校验时间
 	correctT := correctSensorMillTimestamp(timestamp)
+	// 1.1 塞入常用字段
 	var msg entity.Feibee2AlarmMsg
 	msg.Cmd = constant.Device_Sensor_Msg
 	msg.Vendor = "tuya"
@@ -515,15 +522,20 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 	msg.DevId = devId
 
 	var ok bool
+	// 1.2 b报警类型
 	msg.AlarmType, ok = TySensor2WonlySensor[tyAlarmType]
 	if !ok {
 		msg.AlarmType = tyAlarmType
 	}
+	// 1.2.1 报警 --- 涂鸦 api返回的 value  （以下简称 value）
 	msg.AlarmFlag = alarmFlag
+	// ty:code---[gas] ---- []string{"检测正常", "燃气浓度已超标，正在报警"}
 	alarmVal, ok :=  constant.SensorVal2Str[msg.AlarmType]
 	if ok {
+		//  找到文字版描述 用 value 在文字版数组中选一个
 		msg.AlarmValue = alarmVal[msg.AlarmFlag]
 	} else {
+		// 传感器元器件敏感度  type == code
 		multiplier, ok := TyEnvSensorValTransfer[tyAlarmType]
 		if ok {
 			msg.Multiplier = multiplier
@@ -536,7 +548,8 @@ func tySensorDataNotify(devId, tyAlarmType string, alarmFlag int, timestamp int6
 
 	//todo: 涂鸦报警过滤
 	notifyFlag, triggerFlag := filter.SensorFilter(msg.DevId, msg.AlarmType, msg.AlarmValue, msg.AlarmFlag)
-
+	fmt.Print("notifyFlag",notifyFlag)
+	fmt.Print("triggerFlag",triggerFlag)
 	if notifyFlag {
 		tySensorRawDataNotify(devId, rawJsonData)
 		data, err := json.Marshal(msg)
